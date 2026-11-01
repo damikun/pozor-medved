@@ -1,0 +1,172 @@
+// One side-view run through a Liptov valley: spring den, forest, village, feeding site, birch grove,
+// a sheep farm (salaš), the river Váh, a mountain hotel, the national park and the winter den.
+(function () {
+  const { CFG } = ZS;
+  const GY = CFG.GROUND;
+
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  ZS.util = { mulberry32, clamp };
+
+  ZS.makeLevel = function (seed) {
+    const rng = mulberry32(seed || 11);
+    const W = CFG.LEVEL_W;
+    const L = {
+      rng,
+      startDen: 110, winterDen: W - 300,
+      village: { from: 2300, to: 3520 },
+      salas: { from: 6900, to: 8000, koliba: 7120, pen: [7300, 7900] },
+      river: { from: 8200, to: 8660 },
+      hotel: { x: 9300, w: 460, lift: 9930, chapel: 10180 },
+      park: { from: 10350, to: 11850 },
+      feeding: 4320,
+      trees: [], items: [], logs: [], houses: [], signs: [], posts: [], spawns: [],
+      stones: [], haystacks: [6960, 8040, 11980], mountains: [], ridge: [],
+    };
+    const add = (type, x, extra) => L.items.push(Object.assign({ type, x, eaten: false, locked: false }, extra));
+
+    L.houses = [{ x: 2420, w: 160 }, { x: 2700, w: 180 }, { x: 2990, w: 150 }, { x: 3260, w: 170 }];
+    L.posts = [{ x: 1900 }, { x: 4560 }];
+    L.logs = [
+      { x: 1200, w: 96, h: 30 }, { x: 3920, w: 110, h: 34 }, { x: 4880, w: 90, h: 30 },
+      { x: 5650, w: 100, h: 32 }, { x: 6350, w: 96, h: 30 }, { x: 7500, w: 120, h: 36 },
+      { x: 10700, w: 110, h: 34 }, { x: 11400, w: 96, h: 30 },
+    ];
+    // Stepping stones across the Váh; their tops are low platforms.
+    L.stones = [{ x: 8300, w: 64 }, { x: 8425, w: 58 }, { x: 8550, w: 66 }];
+    L.signs = [
+      { x: 420, text: 'Drž ↓ pri hrubom strome' },
+      { x: 800, text: '↑ pri strome = lez hore' },
+      { x: 2305, text: CFG.VILLAGE_NAME },
+      { x: 2130, text: 'Medveď je za každým stromom!', by: '— minister Strašiak', billboard: true },
+      { x: L.feeding - 70, text: 'vnadisko' },
+      { x: 8110, text: 'Váh – brod' },
+      { x: 10300, text: 'Národný park' },
+      { x: W - 470, text: 'Zimný brloh →' },
+    ];
+
+    [2510, 2800, 3075, 3350].forEach((x) => add('bin', x));
+    [3430, 3500].forEach((x) => add('hive', x));
+    [L.feeding - 40, L.feeding, L.feeding + 40].forEach((x) => add('corn', x));
+    add('container', L.hotel.x + L.hotel.w / 2 + 70);
+
+    function makeTree(kind, x) {
+      const s = rng();
+      if (kind === 'buk') return { kind, x, w: 46 + rng() * 14, h: 220 + rng() * 60, r: 92 + rng() * 24, hide: true, shade: s };
+      if (kind === 'smrek') return { kind, x, w: 42 + rng() * 12, h: 300 + rng() * 60, r: 84 + rng() * 16, hide: true, shade: s };
+      if (kind === 'jablon') return { kind, x, w: 42, h: 110, r: 74, hide: true, shade: s };
+      return { kind, x, w: 16 + rng() * 5, h: 220 + rng() * 40, r: 56, hide: false, shade: s };
+    }
+
+    // Apple trees give the only cover in the village; apples lie under them and hang in the crowns.
+    [2560, 2855, 3135, 3405].forEach((x) => {
+      L.trees.push(makeTree('jablon', x));
+      add('apple', x + 26);
+      add('apple', x - 30, { y: GY - 160 });
+      add('apple', x + 28, { y: GY - 148 });
+    });
+
+    const H = L.hotel;
+    const blocked = (x) => (x > L.village.from - 40 && x < L.village.to + 40)
+      || (x > L.salas.from && x < L.salas.to)
+      || (x > L.river.from - 70 && x < L.river.to + 70)
+      || (x > H.x - H.w / 2 - 30 && x < H.x + H.w / 2 + 110)
+      || Math.abs(x - H.lift) < 50 || Math.abs(x - H.chapel) < 60
+      || L.haystacks.some((h) => Math.abs(h - x) < 70)
+      || L.posts.some((p) => Math.abs(p.x - x) < 80)
+      || L.logs.some((l) => Math.abs(l.x - x) < l.w / 2 + 80)
+      || Math.abs(x - L.feeding) < 90
+      || Math.abs(x - 2130) < 150
+      // Keep signs clear of trunks so a sign never covers a hiding bear.
+      || L.signs.some((s) => !s.billboard && Math.abs(s.x - x) < 95)
+      || x < 230 || x > W - 480;
+    const birchGrove = (x) => x > 5820 && x < 6080;
+
+    let x = 240;
+    while (x < W - 480) {
+      if (!blocked(x)) {
+        let kind;
+        if (birchGrove(x)) kind = 'breza';
+        else if (x >= L.park.to) kind = 'smrek';
+        else if (x > L.park.from) kind = rng() < 0.7 ? 'smrek' : 'buk';
+        else { const r = rng(); kind = r < 0.5 ? 'buk' : r < 0.92 ? 'smrek' : 'breza'; }
+        L.trees.push(makeTree(kind, x));
+      }
+      // Cover every couple of seconds of walking; the bare mountainside near the end is sparser.
+      x += birchGrove(x) ? 85 + rng() * 40 : x >= L.park.to ? 170 + rng() * 110 : 115 + rng() * 85;
+    }
+    // One old beech in the middle of the birch grove, and two lone beeches on the sheep meadow.
+    L.trees = L.trees.filter((t) => Math.abs(t.x - 5950) > 70);
+    L.trees.push(makeTree('buk', 5950), makeTree('buk', 7040), makeTree('buk', 7660));
+    L.trees.sort((a, b) => a.x - b.x);
+
+    // A darker back row that only makes the forest look dense; it gives no cover.
+    L.backTrees = [];
+    for (let bx = 60; bx < W; bx += 55 + rng() * 70) {
+      if ((bx > L.village.from && bx < L.village.to) || (bx > H.x - H.w / 2 && bx < H.x + H.w / 2)) continue;
+      L.backTrees.push({ x: bx, kind: rng() < 0.55 ? 'smrek' : 'buk', h: 170 + rng() * 120, r: 55 + rng() * 25, w: 20 + rng() * 10 });
+    }
+
+    // Forest food on the ground is not enough on its own: the rest is wild honey, trout or human food.
+    const noFood = (fx) => (fx > L.village.from - 60 && fx < L.village.to + 60)
+      || (fx > L.river.from - 40 && fx < L.river.to + 40)
+      || (fx > H.x - H.w / 2 - 40 && fx < H.x + H.w / 2 + 160)
+      || Math.abs(fx - L.feeding) < 120;
+    for (let i = 0; i < 120 && L.items.filter((it) => ZS.FOOD[it.type].natural).length < 20; i++) {
+      const fx = 300 + rng() * (W - 900);
+      if (noFood(fx) || L.items.some((it) => Math.abs(it.x - fx) < 60)) continue;
+      const r = rng();
+      add(r < 0.3 ? 'berry' : r < 0.48 ? 'herb' : r < 0.62 ? 'ants' : r < 0.8 ? 'mushroom' : 'nut', fx);
+    }
+    // Wild bees in old beeches: honey up in the crown, the reason to climb.
+    L.trees.filter((t) => t.kind === 'buk' && t.h > 235 && t.x > 600).filter((t, i) => i % 2 === 0).slice(0, 7)
+      .forEach((t) => add('wildhoney', t.x + 6, { y: GY - t.h + 14 }));
+    // Trout jump out of the Váh between the stones.
+    [8245, 8365, 8490, 8610].forEach((fx) => add('fish', fx, { y: GY + 30, hidden: true, jumpT: 1 + rng() * 3, jump: -1 }));
+    L.items.sort((a, b) => a.x - b.x);
+
+    L.spawns = [
+      { kind: 'posed', x: 1900, range: 480 },
+      { kind: 'posed', x: 4560, range: 500 },
+      { kind: 'walker', from: 3650, to: 4950 },
+      { kind: 'walker', from: 5250, to: 6650 },
+      { kind: 'walker', from: 9750, to: 10300 },
+      { kind: 'picker', from: 1250, to: 2150 },
+      { kind: 'picker', from: 5300, to: 6600 },
+      { kind: 'picker', from: 10450, to: 11300 },
+      { kind: 'tourist', from: 2600, to: 3300 },
+      { kind: 'tourist', from: 2380, to: 3150 },
+      { kind: 'tourist', from: 9050, to: 9850 },
+      { kind: 'tourist', from: 9250, to: 10150 },
+      { kind: 'dog', from: 7150, to: 7950 },
+    ];
+    for (let i = 0; i < 5; i++) L.spawns.push({ kind: 'sheep', from: 7340, to: 7860, x: 7380 + i * 105 });
+
+    // Background silhouettes, drawn with parallax.
+    for (let mx = -200; mx < W * 0.15 + 3200; mx += 70 + rng() * 90) {
+      L.mountains.push([mx, GY - 150 - rng() * 170]);
+    }
+    for (let rx = -200; rx < W * 0.35 + 3200; rx += 60 + rng() * 60) {
+      L.ridge.push([rx, GY - 60 - rng() * 60]);
+    }
+    return L;
+  };
+
+  // Height of a polyline silhouette at x, used for the parallax ridges.
+  ZS.silhouetteY = function (pts, x) {
+    for (let i = 1; i < pts.length; i++) {
+      if (pts[i][0] >= x) {
+        const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+        return y0 + ((y1 - y0) * (x - x0)) / (x1 - x0 || 1);
+      }
+    }
+    return pts[pts.length - 1][1];
+  };
+})();

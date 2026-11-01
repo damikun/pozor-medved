@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Za stromom</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud" hidden>
+  <div class="bars">
+    <div class="bar fat" id="barFat"><span>Tuk</span><i></i><em style="left: 85%"></em></div>
+    <div class="bar syn" id="barSyn"><span>Synantropia</span><i></i><em></em></div>
+    <div class="bar panic" id="barPanic"><span>Mediálna panika</span><i></i></div>
+    <div class="bar trip" id="barTrip"><span>Cesta do zimného brlohu</span><i></i></div>
+  </div>
+  <div class="side">
+    <div id="season"></div>
+    <div id="lives"></div>
+  </div>
+  <div id="badges"></div>
+</div>
+
+<div id="ticker" hidden><b>SPRÁVY</b><span id="tickerText"></span></div>
+
+<div id="touch" hidden>
+  <button data-key="ArrowLeft" aria-label="Doľava">◀</button>
+  <button data-key="ArrowRight" aria-label="Doprava">▶</button>
+  <span class="gap"></span>
+  <button data-key="ArrowDown" aria-label="Schovať sa">🌲</button>
+  <button data-key="ArrowUp" aria-label="Skok">⤒</button>
+</div>
+
+<div id="screen" class="screen">
+  <div class="card" id="screenCard"></div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/level.js"></script>
+<script src="js/actors.js"></script>
+<script src="js/people.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/scenery.js"></script>
+<script src="js/bear.js"></script>
+<script src="js/draw.js"></script>
+<script src="js/autoplay.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

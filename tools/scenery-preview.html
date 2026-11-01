@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kulisy · náhľad</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #1f2a19; color: #e9efe0; font: 13px/1.4 system-ui, sans-serif; }
+  header { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 12px; background: #141b10; border-bottom: 1px solid #34452b; }
+  header label { display: inline-flex; gap: 6px; align-items: center; }
+  button, select { font: inherit; padding: 4px 10px; border-radius: 6px; border: 1px solid #4d6341; background: #2b3a22; color: inherit; cursor: pointer; }
+  button:hover { background: #38492c; }
+  button[aria-pressed="true"] { background: #5b7a3c; }
+  main { padding: 12px; display: grid; gap: 16px; justify-items: start; }
+  section h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: #b8c9a8; }
+  canvas { display: block; border-radius: 8px; box-shadow: 0 2px 14px rgba(0, 0, 0, 0.4); }
+  #info { margin-left: auto; color: #9fb08f; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<header>
+  <button id="pause" aria-pressed="false">Pauza (medzerník)</button>
+  <button id="slow" aria-pressed="false">Spomalene ¼×</button>
+  <button id="ref" aria-pressed="true">Medveď a poľovník pre mierku</button>
+  <button id="box" aria-pressed="false">Rámčeky rozmerov</button>
+  <label>Priblíženie
+    <select id="zoom"><option value="fit">podľa okna</option><option>1</option><option>1.5</option><option>2</option><option>3</option></select>
+  </label>
+  <span id="info"></span>
+</header>
+<main id="main"></main>
+<script src="../js/data.js"></script>
+<script src="../js/people.js"></script>
+<script src="../js/bear.js"></script>
+<script src="../js/scenery.js"></script>
+<script>
+(function () {
+  const CFG = ZS.CFG, GY = CFG.GROUND, SC = ZS.scenery;
+  // ?only=sheep,dog shows just those panels. ?t=12 starts at game time 12 s, ?pause freezes there, ?zoom=2, ?box, ?noref.
+  const qs = new URLSearchParams(location.search);
+  const only = (qs.get('only') || '').split(',').filter(Boolean);
+  const ui = { paused: qs.has('pause'), slow: false, ref: !qs.has('noref'), box: qs.has('box'), zoom: qs.get('zoom') || 'fit', time: +(qs.get('t') || 0), last: 0 };
+  const main = document.getElementById('main');
+
+  // Things that walk about the way the game moves them: x changes a little every frame.
+  function walker(a, b, speed, extra) { return Object.assign({ x: a, dir: 1, a, b, speed }, extra); }
+  function stepWalker(o, dt) {
+    o.x += o.dir * o.speed * dt;
+    if (o.x > o.b) { o.x = o.b; o.dir = -1; } else if (o.x < o.a) { o.x = o.a; o.dir = 1; }
+  }
+
+  // Scale references from the other modules: the bear and a hunter standing next to the new things.
+  const bearObj = { x: 0, y: GY, vy: 0, dir: 1, onGround: true, moving: false, running: false, crouch: false, walkT: 0, inv: 0, hiding: null,
+    pose: 'stiff', hideT: 0, danger: false, peekSide: 1, climbing: null, climbV: 0, climbT: 0, covered: false };
+  const manObj = { x: 0, dir: 1, kind: 'walker', state: 'idle', aimAt: [0, 0], id: 'ref-man' };
+  function refs(ctx, t, bearX, manX) {
+    if (!ui.ref) return;
+    try {
+      if (bearX !== undefined && ZS.drawBear) { bearObj.x = bearX; ZS.drawBear(ctx, bearObj, t); }
+      if (manX !== undefined && ZS.drawHuman) { manObj.x = manX; manObj.aimAt[0] = manX + 100; manObj.aimAt[1] = GY - 50; ZS.drawHuman(ctx, manObj, t); }
+    } catch (e) { /* the references are optional */ }
+  }
+
+  function ground(ctx, x0, W) {
+    ctx.fillStyle = '#6b4f35'; ctx.fillRect(x0 - 10, GY, W + 20, 300);
+    ctx.fillStyle = '#5f9a3e'; ctx.fillRect(x0 - 10, GY, W + 20, 14);
+    ctx.fillStyle = '#86674a'; ctx.fillRect(x0 - 10, GY + 24, W + 20, 14);
+    ctx.strokeStyle = '#4f8a35'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let x = Math.floor(x0 / 37) * 37; x < x0 + W + 37; x += 37) { ctx.moveTo(x, GY + 2); ctx.lineTo(x - 4, GY - 8); ctx.moveTo(x, GY + 2); ctx.lineTo(x + 3, GY - 9); }
+    ctx.stroke();
+  }
+
+  // A panel: its own canvas showing world x 0..W, from `up` units above the ground line to `down` below it.
+  // build() returns { step(dt, t), draw(ctx, t), boxes: [[x, w, h, label]], notes }.
+  const defs = [];
+  const panel = (id, title, W, up, down, build) => defs.push({ id, title, W, up, down, build });
+
+  panel('koliba', 'koliba(ctx, x, time) · 202 × 137 (dym vyššie), kotva = stred, zem', 500, 230, 70, () => ({
+    draw(ctx, t) { SC.koliba(ctx, 130, t); refs(ctx, t, 320, 430); },
+    boxes: [[130, 202, 137, 'koliba']],
+    labels: [[130, 'koliba'], [320, 'medveď 106 × 60'], [430, 'poľovník 75']],
+  }));
+
+  panel('pen', 'pen(ctx, x1, x2, time) · výška 62, ohradník vľavo vyčnieva o 24 · ovce stoja pred plotom', 640, 120, 60, () => {
+    const sheep = [{ x: 150, dir: 1, state: 'graze', id: 'p1' }, { x: 205, dir: -1, state: 'graze', id: 'p2' }, { x: 380, dir: 1, state: 'graze', id: 'p3' }];
+    const w = walker(250, 340, 28, { state: 'walk', id: 'p4' });
+    return {
+      step(dt) { stepWalker(w, dt); },
+      draw(ctx, t) { SC.pen(ctx, 70, 560, t); for (const o of sheep) SC.sheep(ctx, o, t); SC.sheep(ctx, w, t); refs(ctx, t, 610, undefined); },
+      boxes: [[315, 490, 62, 'pen x1..x2']],
+      labels: [[70, 'x1', 44], [560, 'x2', 44], [44, 'ohradník'], [300, 'ovce pred plotom']],
+    };
+  });
+
+  panel('sheep', 'sheep(ctx, s, time) · telo asi 50 dlhé, s hlavou 62 × 42, kotva = stred, zem · graze, walk, flee', 660, 100, 40, () => {
+    const g1 = { x: 50, dir: 1, state: 'graze', id: 'g1' }, g2 = { x: 105, dir: -1, state: 'graze', id: 'g2' };
+    const w1 = walker(150, 290, 30, { state: 'walk', id: 'w1' }), f1 = walker(300, 520, 110, { state: 'flee', id: 'f1' });
+    return {
+      step(dt) { stepWalker(w1, dt); stepWalker(f1, dt); },
+      draw(ctx, t) { for (const o of [g1, g2, w1, f1]) SC.sheep(ctx, o, t); refs(ctx, t, 610, undefined); },
+      boxes: [[50, 62, 42, 'ovca']],
+      labels: [[50, 'graze'], [105, 'graze, dir -1'], [220, 'walk 30 u/s'], [410, 'flee 110 u/s']],
+    };
+  });
+
+  // A sheep and a dog that change state like in the game: x only moves while the state says so.
+  function cycle(o, t, period, plan) {
+    const k = t % period;
+    for (const [until, state, speed] of plan) if (k < until) { o.state = state; o.speed = speed; return; }
+  }
+  panel('sheep2', 'prechody stavov: graze → walk → flee → graze (každých 10 s), jedna ovca zrkadlovo', 660, 100, 40, () => {
+    const a = walker(40, 620, 0, { state: 'graze', id: 'c1' }), b = walker(40, 620, 0, { state: 'graze', id: 'c2', x: 620, dir: -1 });
+    const plan = [[3.5, 'graze', 0], [6.5, 'walk', 30], [8.5, 'flee', 105], [10, 'graze', 0]];
+    return {
+      step(dt, t) { cycle(a, t, 10, plan); cycle(b, t + 5, 10, plan); stepWalker(a, dt); stepWalker(b, dt); },
+      draw(ctx, t) { SC.sheep(ctx, a, t); SC.sheep(ctx, b, t); },
+      labels: [[330, 'stav sa mení každých 10 s; rýchlosť podľa stavu: graze 0, walk 30, flee 105']],
+    };
+  });
+
+  panel('dog', 'dog(ctx, d, time) · 71 dlhý (zadok → nos), 64 vysoký, kotva = stred, zem · idle, bark, walk, run', 740, 110, 40, () => {
+    const d1 = { x: 60, dir: 1, state: 'idle', id: 'd1' }, d2 = { x: 160, dir: 1, state: 'bark', id: 'd2' };
+    const d3 = walker(230, 360, 55, { state: 'walk', id: 'd3' }), d4 = walker(440, 680, 230, { state: 'run', id: 'd4' });
+    return {
+      step(dt) { stepWalker(d3, dt); stepWalker(d4, dt); },
+      draw(ctx, t) { for (const o of [d1, d2, d3, d4]) SC.dog(ctx, o, t); refs(ctx, t, undefined, 700); },
+      boxes: [[60, 82, 64, 'pes']],
+      labels: [[60, 'idle'], [160, 'bark'], [295, 'walk 55 u/s'], [560, 'run 230 u/s']],
+    };
+  });
+
+  panel('dog2', 'prechody stavov psa: idle → walk → run → bark (každých 12 s)', 740, 110, 40, () => {
+    const a = walker(60, 680, 0, { state: 'idle', id: 'dc1' }), b = walker(60, 680, 0, { state: 'idle', id: 'dc2', x: 680, dir: -1 });
+    const plan = [[3, 'idle', 0], [6, 'walk', 55], [8.5, 'run', 230], [12, 'bark', 0]];
+    return {
+      step(dt, t) { cycle(a, t, 12, plan); cycle(b, t + 6, 12, plan); stepWalker(a, dt); stepWalker(b, dt); },
+      draw(ctx, t) { SC.dog(ctx, a, t); SC.dog(ctx, b, t); },
+      labels: [[370, 'stav sa mení každých 12 s: idle 0, walk 55, run 230, bark 0 u/s']],
+    };
+  });
+
+  panel('river', 'river(ctx, x1, x2, time) · stone(ctx, x, w, time) · fish(ctx, f, time)', 700, 150, 120, () => {
+    const R1 = 140, R2 = 560, stones = [[235, 60], [330, 74], [430, 56]];
+    // Trout that jump out of the water along an arc, then stay under for a while.
+    const jumps = [{ x0: 190, vx: 52, dir: 1, T: 2.6, off: 0.2, id: 'f1', up: 360 }, { x0: 510, vx: -46, dir: -1, T: 3.3, off: 1.1, id: 'f2', up: 330 }, { x0: 360, vx: 38, dir: 1, T: 3.9, off: 2.3, id: 'f3', up: 400 }];
+    const fishes = jumps.map((j) => ({ x: 0, y: 0, dir: j.dir, wiggle: j.off * 3, id: j.id, on: false }));
+    return {
+      step() {},
+      draw(ctx, t) {
+        SC.river(ctx, R1, R2, t);
+        for (const s of stones) SC.stone(ctx, s[0], s[1], t);
+        jumps.forEach((j, i) => {
+          const u = ((t + j.off * 2) % j.T), dur = 1.15, f = fishes[i];
+          if (u > dur) return;
+          f.x = j.x0 + j.vx * u; f.y = GY - 6 - j.up * u + 0.5 * 600 * u * u; f.dir = j.dir;   // gravity 600, like a short hop
+          SC.fish(ctx, f, t);
+        });
+        refs(ctx, t, 640, undefined);
+      },
+      boxes: [[350, 420 + 32, 14, 'river x1..x2 (hladina GROUND-6)'], [235, 60, 19, 'kameň']],
+      labels: [[350, 'river x1..x2', -118], [235, 'stone', -60], [330, 'stone', -60], [430, 'stone', -60], [250, 'pstruh: skok z hladiny', -128]],
+    };
+  });
+
+  panel('hotel', 'hotel(ctx, x, time) · 464 × 232, kotva = stred, zem · SUV vpravo vpredu, komín vľavo, vlajka vpravo', 560, 250, 50, () => ({
+    draw(ctx, t) { SC.hotel(ctx, 270, t); refs(ctx, t, 60, 130); },
+    boxes: [[270, 466, 232, 'hotel']],
+    labels: [[270, 'hotel'], [430, 'SUV'], [60, 'medveď'], [130, 'poľovník']],
+  }));
+
+  panel('lift', 'skiLift(ctx, x, time) · pylón 214 vysoký, lano stúpa doprava (sklon 0,24), vľavo mizne po 760', 940, 360, 40, () => ({
+    draw(ctx, t) { SC.skiLift(ctx, 420, t); refs(ctx, t, 120, 200); },
+    boxes: [[420, 50, 214, 'pylón']],
+    labels: [[420, 'skiLift'], [120, 'medveď'], [200, 'poľovník']],
+  }));
+
+  panel('props', 'container(ctx, x, locked) 96 × 70 · haystack(ctx, x) 72 × 111 · chapel(ctx, x, time) 93 × 151', 600, 200, 40, () => ({
+    draw(ctx, t) {
+      SC.container(ctx, 60, false); SC.container(ctx, 170, true); SC.haystack(ctx, 270, t); SC.chapel(ctx, 400, t); refs(ctx, t, 520, 570);
+    },
+    boxes: [[60, 96, 70, 'kontajner'], [170, 102, 70, 'kontajner (zamknutý)'], [270, 70, 111, 'kopa sena'], [400, 93, 151, 'kaplnka']],
+    labels: [[60, 'container(false)'], [170, 'container(true)'], [270, 'haystack'], [400, 'chapel'], [520, 'medveď'], [570, 'poľovník']],
+  }));
+
+  // ---- Shared machinery ----------------------------------------------------------------------
+  const panels = defs.filter((d) => !only.length || only.includes(d.id)).map((d) => {
+    const sec = document.createElement('section'), h = document.createElement('h2'), canvas = document.createElement('canvas');
+    h.textContent = d.title; sec.append(h, canvas); main.append(sec);
+    // With ?only=..., ?x0=40&w=200 shows just that slice of the panel (for looking at details with ?zoom=4).
+    const slice = only.length === 1;
+    return Object.assign(d, { canvas, ctx: canvas.getContext('2d'), h: d.up + d.down, scene: d.build(),
+      x0: slice ? +(qs.get('x0') || 0) : 0, W: slice && qs.has('w') ? +qs.get('w') : d.W });
+  });
+
+  // ?t=12 plays the movement of everything up to that moment first, so a paused picture shows a real pose.
+  if (ui.time > 0) {
+    const t0 = ui.time;
+    for (let tt = 0; tt < t0; tt += 1 / 60) for (const p of panels) if (p.scene.step) p.scene.step(1 / 60, tt);
+    ui.time = t0;
+  }
+
+  function resize() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1), avail = document.documentElement.clientWidth - 24;
+    for (const p of panels) {
+      const z = ui.zoom === 'fit' ? Math.max(1, Math.min(2.4, avail / p.W)) : +ui.zoom;
+      p.zoom = z; p.dpr = dpr;
+      p.canvas.style.width = Math.round(p.W * z) + 'px'; p.canvas.style.height = Math.round(p.h * z) + 'px';
+      p.canvas.width = Math.round(p.W * z * dpr); p.canvas.height = Math.round(p.h * z * dpr);
+    }
+  }
+
+  function render(p, t) {
+    const c = p.ctx, k = p.zoom * p.dpr;
+    c.setTransform(k, 0, 0, k, 0, 0);
+    const sky = c.createLinearGradient(0, 0, 0, p.up);
+    sky.addColorStop(0, '#a7d8f5'); sky.addColorStop(1, '#eaf7ff');
+    c.fillStyle = sky; c.fillRect(0, 0, p.W, p.up);
+    c.translate(-p.x0, p.up - GY);
+    ground(c, p.x0, p.W);
+    try { p.scene.draw(c, t); } catch (e) { c.setTransform(k, 0, 0, k, 0, 0); c.fillStyle = '#b00020'; c.font = '600 12px system-ui'; c.fillText(String(e.stack || e).split('\n').slice(0, 2).join(' '), 8, 18); console.error(e); }
+    c.setTransform(k, 0, 0, k, 0, 0); c.translate(-p.x0, p.up - GY);
+    c.font = '600 ' + (11 / p.zoom) + 'px system-ui, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    for (const [x, text, dy] of p.scene.labels || []) {
+      const y = GY + (dy === undefined ? 24 : dy), w = c.measureText(text).width + 8 / p.zoom;
+      c.fillStyle = 'rgba(20,28,16,0.62)'; c.fillRect(x - w / 2, y - 8 / p.zoom, w, 16 / p.zoom);
+      c.fillStyle = '#f2f6e8'; c.fillText(text, x, y);
+    }
+    if (ui.box && p.scene.boxes) {
+      c.lineWidth = 1 / p.zoom; c.setLineDash([4 / p.zoom, 4 / p.zoom]); c.strokeStyle = 'rgba(224,49,49,0.8)'; c.fillStyle = 'rgba(224,49,49,0.9)';
+      c.font = (10 / p.zoom) + 'px system-ui, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'top';
+      for (const [x, w, hh, label] of p.scene.boxes) { c.strokeRect(x - w / 2, GY - hh, w, hh); c.fillText(label + ' ' + w + '×' + hh, x - w / 2 + 2, GY - hh + 2); }
+      c.setLineDash([]);
+    }
+  }
+
+  // One step of the loop: moves the things that walk, then draws every panel. (Also callable from the console: ZS.preview.tick(1 / 60).)
+  function tick(dt) {
+    if (!ui.paused) {
+      const step = dt * (ui.slow ? 0.25 : 1);
+      ui.time += step;
+      for (const p of panels) if (p.scene.step) p.scene.step(step, ui.time);
+    }
+    for (const p of panels) render(p, ui.time);
+    document.getElementById('info').textContent = 't = ' + ui.time.toFixed(2) + ' s';
+  }
+  function frame(ts) {
+    const dt = Math.min(0.05, (ts - ui.last) / 1000 || 0);
+    ui.last = ts;
+    tick(dt);
+    requestAnimationFrame(frame);
+  }
+
+  function toggle(id, key) {
+    ui[key] = !ui[key];
+    document.getElementById(id).setAttribute('aria-pressed', String(ui[key]));
+  }
+  document.getElementById('pause').onclick = () => toggle('pause', 'paused');
+  document.getElementById('slow').onclick = () => toggle('slow', 'slow');
+  document.getElementById('ref').onclick = () => toggle('ref', 'ref');
+  document.getElementById('box').onclick = () => toggle('box', 'box');
+  document.getElementById('zoom').onchange = (e) => { ui.zoom = e.target.value; resize(); };
+  for (const [id, key] of [['pause', 'paused'], ['ref', 'ref'], ['box', 'box']]) document.getElementById(id).setAttribute('aria-pressed', String(ui[key]));
+  document.getElementById('zoom').value = ui.zoom;
+  window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); toggle('pause', 'paused'); } });
+  window.addEventListener('resize', resize);
+  ZS.preview = { ui, panels, tick };   // for inspection from the console
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

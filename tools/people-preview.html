@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ľudia a efekty</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #1f2a19; color: #e9efe0; font: 13px/1.4 system-ui, sans-serif; }
+  header { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 12px; background: #141b10; border-bottom: 1px solid #34452b; }
+  header label { display: inline-flex; gap: 6px; align-items: center; }
+  button, select { font: inherit; padding: 4px 10px; border-radius: 6px; border: 1px solid #4d6341; background: #2b3a22; color: inherit; cursor: pointer; }
+  button:hover { background: #38492c; }
+  button.on { background: #5b7a3c; }
+  main { padding: 12px; display: grid; gap: 14px; justify-items: start; }
+  canvas { display: block; border-radius: 8px; box-shadow: 0 2px 14px rgba(0, 0, 0, 0.4); }
+  h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: #b8c9a8; }
+  #info { margin-left: auto; color: #9fb08f; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<header>
+  <label>Ročné obdobie
+    <select id="season"><option value="0">Jar</option><option value="1">Leto</option><option value="2">Jeseň</option></select>
+  </label>
+  <label>Priblíženie
+    <select id="zoom"><option>1</option><option>1.25</option><option selected>1.6</option><option>2</option><option>3</option></select>
+  </label>
+  <button id="pause">Pauza</button>
+  <button id="shot">Výstrel (vtáky)</button>
+  <button id="dust">Prach</button>
+  <button id="run">Beh po scéne</button>
+  <button id="lock">Zámera z posedu</button>
+  <span id="info"></span>
+</header>
+<main>
+  <section><h2>Všetky druhy a stavy (walk a run sa posúvajú svetom, kamera ich sleduje; stav, ktorý druh nemá, sa nakreslí ako idle)</h2><canvas id="grid"></canvas></section>
+  <section><h2>Scéna: efekty, posed, prach a vtáky</h2><canvas id="scene"></canvas></section>
+</main>
+
+<script src="../js/data.js"></script>
+<script src="../js/people.js"></script>
+<script src="../js/fx.js"></script>
+<script>
+(function () {
+  const GY = ZS.CFG.GROUND;
+  const q = new URLSearchParams(location.search);
+  const $ = (id) => document.getElementById(id);
+  const KINDS = ZS.HUMAN_KINDS, STATES = ZS.HUMAN_STATES;
+  const VALID = {
+    walker: ['idle', 'walk', 'run', 'aim'], ztmh: ['idle', 'walk', 'run', 'aim'], poacher: ['idle', 'walk', 'run', 'aim'],
+    picker: ['idle', 'walk', 'run'], tourist: ['idle', 'walk', 'run', 'film'],
+  };
+  const SPEED = { walker: [48, 150], ztmh: [70, 230], poacher: [70, 170], picker: [35, 210], tourist: [25, 210] };
+  const SKY = [['#a7d8f5', '#eaf7ff'], ['#7cc4ef', '#d8f1ff'], ['#efb57c', '#fbe6c8']];
+  const CW = 150, CH = 118, GROUND_IN_CELL = 92;
+  let zoom = +q.get('zoom') || 1.6, season = +q.get('season') || 0, time = 0, paused = false;
+  $('season').value = season; $('zoom').value = String(zoom);
+  const sections = document.querySelectorAll('main section');
+  if (q.get('view') === 'scene') sections[0].hidden = true;
+  if (q.get('view') === 'grid') sections[1].hidden = true;
+  const only = q.get('only') ? q.get('only').split(',') : null;   // ?only=walker (a row) or ?only=walker,aim (one cell)
+  const oneCell = !!(only && only[1]);
+  const strip = q.get('strip') ? q.get('strip').split(',') : null, from = +(q.get('from') || 0);   // ?strip=walker,walk : eight phases of one stride
+  const cw = strip ? 104 : CW;
+
+  const cells = [];
+  if (strip) {
+    const L = ZS.HUMAN_LOOK[strip[0]], S = strip[1] === 'run' ? L.runS : L.walkS;
+    for (let i = 0; i < 8; i++) cells.push({ kind: strip[0], state: strip[1], id: 'strip:' + i, r: (i - from) >> 1, c: (i - from) & 1, show: i >= from && i < from + 4, x: 5000 + i * S / 8, dir: +(q.get('dir') || 1), cur: strip[1], frozen: true });
+  }
+  if (!strip) KINDS.forEach((kind, r) => STATES.forEach((state, c) => {
+    if (only && !(only[0] === kind && (!only[1] || only[1] === state))) return;
+    cells.push({ kind, state, id: kind + ':' + state, r, c, x: 5000, dir: 1, cur: state, run: 0, pausing: 0, na: !VALID[kind].includes(state) });
+  }));
+
+  function stepCell(c, dt) {
+    if (c.frozen) return;
+    if (c.state === 'walk' || c.state === 'run') {
+      const walk = c.state === 'walk', sp = SPEED[c.kind][walk ? 0 : 1], leg = walk ? 6 : 3.5, pause = walk ? 1.2 : 0.7;
+      if (c.pausing > 0) { c.pausing -= dt; c.cur = 'idle'; if (c.pausing <= 0) c.dir *= -1; }
+      else { c.cur = c.state; c.x += c.dir * sp * dt; c.run += dt; if (c.run > leg) { c.run = 0; c.pausing = pause; } }
+    } else if (c.state === 'idle' && Math.floor(time / 5) % 2 === 1) c.dir = -1; else if (c.state === 'idle') c.dir = 1;
+  }
+
+  function sky(ctx, x, y, w, h) {
+    const g = ctx.createLinearGradient(0, y, 0, y + h);
+    g.addColorStop(0, SKY[season][0]); g.addColorStop(1, SKY[season][1]);
+    ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+  }
+  function ground(ctx, cam, w) {
+    ctx.fillStyle = '#6b4f35'; ctx.fillRect(cam - 10, GY, w + 20, 600);
+    ctx.fillStyle = '#5f9a3e'; ctx.fillRect(cam - 10, GY, w + 20, 14);
+    ctx.fillStyle = '#86674a'; ctx.fillRect(cam - 10, GY + 24, w + 20, 14);
+    ctx.strokeStyle = '#4f8a35'; ctx.lineWidth = 2; ctx.beginPath();
+    for (let x = Math.floor(cam / 37) * 37; x < cam + w + 37; x += 37) {
+      ctx.moveTo(x, GY + 2); ctx.lineTo(x - 4, GY - 8); ctx.moveTo(x, GY + 2); ctx.lineTo(x + 3, GY - 9);
+    }
+    ctx.stroke();
+  }
+  function marker(ctx, x, y, bear) {
+    if (bear) { ctx.fillStyle = '#6b4226'; ctx.beginPath(); ctx.ellipse(x, GY - 24, 34, 18, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(x + 28, GY - 36, 12, 0, 7); ctx.fill(); return; }
+    ctx.strokeStyle = 'rgba(224,49,49,0.9)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x, y, 12, 0, 7); ctx.moveTo(x - 18, y); ctx.lineTo(x + 18, y); ctx.moveTo(x, y - 18); ctx.lineTo(x, y + 18); ctx.stroke();
+  }
+
+  let sceneStep = null, sceneDraw = null, sceneSeason = null, sceneSize = null;
+  const gridCv = $('grid'), gctx = gridCv.getContext('2d');
+  function sizeGrid() {
+    const cols = strip ? 2 : oneCell ? 1 : STATES.length, rows = strip ? 2 : only ? 1 : KINDS.length;
+    const dpr = window.devicePixelRatio || 1;
+    const w = cols * cw * zoom, h = rows * CH * zoom;
+    gridCv.style.width = w + 'px'; gridCv.style.height = h + 'px';
+    gridCv.width = Math.round(w * dpr); gridCv.height = Math.round(h * dpr);
+    gctx.setTransform(dpr * zoom, 0, 0, dpr * zoom, 0, 0);
+  }
+
+  function drawGrid() {
+    const ctx = gctx;
+    ctx.fillStyle = '#243019'; ctx.fillRect(0, 0, gridCv.width, gridCv.height);
+    for (const c of cells) {
+      if (c.show === false) continue;
+      const ox = oneCell ? 0 : c.c * cw, oy = only && !strip ? 0 : c.r * CH;
+      ctx.save();
+      ctx.translate(ox, oy); ctx.beginPath(); ctx.rect(0.5, 0.5, cw - 1, CH - 1); ctx.clip();
+      sky(ctx, 0, 0, cw, CH);
+      ctx.translate(cw / 2 - c.x, GROUND_IN_CELL - GY);
+      ground(ctx, c.x - cw / 2, cw);
+      let aimAt;
+      if (c.state === 'aim' && !c.na) { aimAt = [c.x + c.dir * (52 + 18 * Math.sin(time * 1.3)), GY - 30]; marker(ctx, aimAt[0], aimAt[1]); }
+      if (c.state === 'film' && !c.na) { aimAt = [c.x + c.dir * 58, GY - 40]; marker(ctx, c.x + c.dir * 58, 0, true); }
+      ZS.drawHuman(ctx, { id: c.id, x: c.x, dir: c.dir, kind: c.kind, state: c.cur, aimAt, kick: c.state === 'aim' ? Math.max(0, 1 - (time % 3) / 0.3) : 0 }, c.frozen ? 100 : time);
+      ctx.restore();
+      if (c.na) { ctx.fillStyle = 'rgba(24,32,18,0.5)'; ctx.fillRect(ox, oy, cw, CH); }
+      const tag = strip ? 'phase ' + (from + c.c + c.r * 2) + '/8' : c.kind + ' · ' + c.state + (c.na ? ' (-> idle)' : '');
+      ctx.fillStyle = 'rgba(20,28,14,0.78)'; ctx.fillRect(ox + 4, oy + 4, 14 + tag.length * 5.2, 13);
+      ctx.fillStyle = '#eef4e4'; ctx.font = '600 9px system-ui, sans-serif'; ctx.textBaseline = 'top';
+      ctx.fillText(tag, ox + 8, oy + 6.5);
+    }
+  }
+
+  // --- Scene: a bit of forest with a raised stand, to see the effects and the stand hunter in place -------------------
+  const scCv = $('scene'), sctx = scCv.getContext('2d');
+  const SV = 760;
+  const G = { cam: 1100, time: 0, seasonIdx: season, fx: null };
+  const bear = { x: 1280, dir: 1, run: q.has('run'), vy: 0, y: GY, dustCd: 0, turn: 0 };
+  const stand = { x: 1500, cross: 1300, crossDir: 1, lock: 0, locked: false };
+  const walker = { x: 1700, dir: -1, from: 1620, to: 1900, pause: 0 };
+  let szoom = 1, shotAt = q.has('shot') ? +q.get('shot') : -1;   // ?shot=1 fires a shot at t = 1 s
+  const crop = q.get('crop') ? q.get('crop').split(',').map(Number) : null;   // ?crop=centreX,width,top,height : close-up of the scene
+  const trees = [];
+  (function () {
+    let s = 7; const rng = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+    for (let x = 120; x < 4200; x += 130 + rng() * 120) {
+      if (Math.abs(x - 1500) < 90) continue;
+      const k = rng() < 0.55 ? 'buk' : 'smrek';
+      trees.push(k === 'buk' ? { kind: k, x, w: 46 + rng() * 14, h: 220 + rng() * 60, r: 92 + rng() * 24 } : { kind: k, x, w: 42 + rng() * 12, h: 300 + rng() * 60, r: 84 + rng() * 16 });
+    }
+  })();
+  const BUK = ['#7cc35a', '#4f9a43', '#d8892f'];
+  const circ = (c, x, y, r) => { c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); };
+  function drawTree(c, t) {
+    const top = t.kind === 'smrek' ? GY - t.h * 0.42 : GY - t.h, half = t.w / 2;
+    c.fillStyle = t.kind === 'smrek' ? '#6b4a32' : '#9b958b';
+    c.beginPath(); c.moveTo(t.x - half - 7, GY); c.lineTo(t.x - half, GY - 16); c.lineTo(t.x - half + 2, top); c.lineTo(t.x + half - 2, top); c.lineTo(t.x + half, GY - 16); c.lineTo(t.x + half + 7, GY); c.fill();
+    c.fillStyle = 'rgba(0,0,0,0.13)'; c.fillRect(t.x + t.w * 0.12, top, t.w * 0.34, GY - top - 16);
+    if (t.kind === 'smrek') {
+      const base = GY - t.h * 0.3, tp = GY - t.h; c.fillStyle = '#336540';
+      for (let i = 0; i < 4; i++) { const y0 = base - ((base - tp) * i) / 4, hw = t.r * (1 - i / 4.8); c.beginPath(); c.moveTo(t.x - hw, y0); c.lineTo(t.x, y0 - ((base - tp) / 4) * 1.7); c.lineTo(t.x + hw, y0); c.fill(); }
+    } else {
+      const r = t.r, cy = GY - t.h; c.fillStyle = BUK[season];
+      circ(c, t.x, cy - r * 0.35, r); circ(c, t.x - r * 0.72, cy + r * 0.05, r * 0.66); circ(c, t.x + r * 0.7, cy, r * 0.7);
+      c.fillStyle = 'rgba(0,0,0,0.12)'; circ(c, t.x + r * 0.35, cy + r * 0.05, r * 0.55);
+    }
+  }
+  function drawStandHut(c, p) {   // the same geometry as post() in js/draw.js
+    const top = GY - 150;
+    c.strokeStyle = '#6b4a2b'; c.lineWidth = 6; c.beginPath(); c.moveTo(p.x - 40, GY); c.lineTo(p.x - 26, top); c.moveTo(p.x + 40, GY); c.lineTo(p.x + 26, top); c.stroke();
+    c.lineWidth = 3; c.beginPath(); for (let y = GY - 30; y > top; y -= 40) { c.moveTo(p.x - 36, y); c.lineTo(p.x + 36, y - 20); } c.stroke();
+    c.fillStyle = '#5a3d22'; c.fillRect(p.x - 36, top - 4, 72, 8);
+    c.fillStyle = '#7a5534'; c.fillRect(p.x - 30, top - 54, 60, 50);
+    c.fillStyle = '#2a1d12'; c.fillRect(p.x - 23, top - 45, 46, 18);
+    c.fillStyle = '#4a321c'; c.beginPath(); c.moveTo(p.x - 40, top - 52); c.lineTo(p.x, top - 78); c.lineTo(p.x + 40, top - 52); c.fill();
+  }
+  function drawBear(c, b) {
+    const rr = (x, y, w, h, r) => { c.beginPath(); c.roundRect(x, y, w, h, r); c.fill(); };
+    const el = (x, y, rx, ry) => { c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, 7); c.fill(); };
+    c.save(); c.translate(b.x, b.y); c.scale(b.dir, 1);
+    const sw = b.run ? Math.sin(G.time * 19) * 7 : 0;
+    c.fillStyle = '#56351d'; rr(-30 - sw, -24, 12, 24, 4); rr(12 + sw, -24, 12, 24, 4);
+    c.fillStyle = '#6b4226'; rr(-24 + sw, -24, 12, 24, 4); rr(20 - sw, -24, 12, 24, 4);
+    el(0, -34, 40, 22); el(14, -46, 19, 13); circ(c, -39, -40, 5); circ(c, 38, -44, 15); circ(c, 31, -57, 6);
+    c.fillStyle = '#9a6a44'; el(51, -40, 10, 7); c.fillStyle = '#1d1209'; circ(c, 59, -42, 3); circ(c, 42, -48, 2.2);
+    c.restore();
+  }
+  sceneSeason = function () { G.seasonIdx = season; };
+  sceneSize = function () {
+    szoom = crop ? zoom : Math.min(zoom, 1.3); const dpr = window.devicePixelRatio || 1;
+    const w = crop ? crop[1] : SV, h = crop ? crop[3] : 540;
+    scCv.style.width = w * szoom + 'px'; scCv.style.height = h * szoom + 'px';
+    scCv.width = Math.round(w * szoom * dpr); scCv.height = Math.round(h * szoom * dpr);
+  };
+  sceneStep = function (dt) {
+    G.time += dt; G.seasonIdx = season;
+    if (shotAt >= 0 && G.time >= shotAt) { shotAt = -1; ZS.fx.onShot(G, G.cam + 380); }
+    if (bear.run) {
+      bear.x += bear.dir * 300 * dt; bear.dustCd -= dt;
+      if (bear.x > 2500) bear.dir = -1; else if (bear.x < 900) bear.dir = 1;
+      if (bear.dustCd <= 0) { ZS.fx.dust(G, bear.x - bear.dir * 26, GY, 1, bear.dir); bear.dustCd = 0.07; }
+      bear.turn -= dt; if (bear.turn <= 0) { bear.turn = 2.6; bear.vy = -420; }
+    }
+    if (bear.vy !== 0 || bear.y < GY) { bear.vy += 1600 * dt; bear.y += bear.vy * dt; if (bear.y >= GY) { bear.y = GY; bear.vy = 0; ZS.fx.dust(G, bear.x, GY, 7); } }
+    if (bear.run) G.cam = Math.max(0, bear.x - SV * 0.38);
+    stand.lock = stand.locked ? 0.4 : 0;
+    stand.kick = Math.max(0, 1 - (G.time % 3) / 0.3);
+    if (stand.locked) stand.cross += (bear.x - stand.cross) * Math.min(1, dt * 10);
+    else { stand.cross += stand.crossDir * 150 * dt; if (stand.cross > stand.x + 650) stand.crossDir = -1; if (stand.cross < stand.x - 650) stand.crossDir = 1; }
+    if (walker.pause > 0) walker.pause -= dt;
+    else { walker.x += walker.dir * 48 * dt; if (walker.x < walker.from || walker.x > walker.to) { walker.dir *= -1; walker.pause = 1.5; } }
+    ZS.fx.update(G, dt, SV);
+  };
+  sceneDraw = function () {
+    const c = sctx, dpr = window.devicePixelRatio || 1;
+    if (crop) bear.run = false;
+    c.setTransform(dpr * szoom, 0, 0, dpr * szoom, 0, 0);
+    if (crop) { G.cam = crop[0] - crop[1] / 2; c.translate(0, -crop[2]); }
+    sky(c, 0, 0, SV, GY);
+    c.fillStyle = '#6b4f35'; c.fillRect(0, GY, SV, 100);
+    c.save(); c.translate(-Math.round(G.cam), 0);
+    ground(c, G.cam, SV);
+    for (const t of trees) if (t.x > G.cam - 200 && t.x < G.cam + SV + 200) drawTree(c, t);
+    ZS.fx.drawBack(c, G, SV);
+    drawStandHut(c, stand);
+    ZS.drawPostHunter(c, stand, G.time);
+    ZS.drawHuman(c, { id: 'sw', x: walker.x, dir: walker.dir, kind: 'walker', state: walker.pause > 0 ? 'idle' : 'walk' }, G.time);
+    ZS.drawHuman(c, { id: 'st', x: 1380, dir: 1, kind: 'tourist', state: 'film', aimAt: [bear.x, GY - 40] }, G.time);
+    ZS.drawHuman(c, { id: 'sp', x: 1960, dir: -1, kind: 'picker', state: 'idle' }, G.time);
+    ZS.drawHuman(c, { id: 'sz', x: 2150, dir: -1, kind: 'ztmh', state: Math.abs(bear.x - 2150) < 520 ? 'aim' : 'idle', aimAt: [bear.x, GY - 30], kick: Math.max(0, 1 - (G.time % 3) / 0.3) }, G.time);
+    drawBear(c, bear);
+    c.strokeStyle = stand.locked ? 'rgba(224,49,49,0.7)' : 'rgba(255,255,255,0.5)'; c.lineWidth = 1.5; c.setLineDash([6, 6]);
+    c.beginPath(); c.moveTo(stand.x, GY - 178); c.lineTo(stand.cross, GY - 30); c.stroke(); c.setLineDash([]);
+    ZS.fx.drawFront(c, G, SV);
+    c.restore();
+    $('info').textContent = 't = ' + time.toFixed(2) + ' s · particles ' + ZS.fx.count(G) + ' (ambient ' + G.fx.parts.length + ', birds ' + G.fx.birds.length + ', dust ' + G.fx.dust.length + ')';
+  };
+  $('shot').onclick = () => ZS.fx.onShot(G, G.cam + 380);
+  $('dust').onclick = () => ZS.fx.dust(G, bear.x, GY, 8);
+  $('run').onclick = () => { bear.run = !bear.run; $('run').classList.toggle('on', bear.run); };
+  $('lock').onclick = () => { stand.locked = !stand.locked; $('lock').classList.toggle('on', stand.locked); };
+  if (bear.run) $('run').classList.add('on');
+  if (q.has('lock')) { stand.locked = true; $('lock').classList.add('on'); }
+  ZS.fx.init(G);
+  G.cam = Math.max(0, bear.x - SV * 0.38);
+
+  function sim(dt) { time += dt; for (const c of cells) stepCell(c, dt); if (sceneStep) sceneStep(dt); }
+  function render() { drawGrid(); if (sceneDraw) sceneDraw(); }
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!paused) sim(dt);
+    render();
+    requestAnimationFrame(frame);
+  }
+
+  $('season').onchange = (e) => { season = +e.target.value; if (sceneSeason) sceneSeason(); };
+  $('zoom').onchange = (e) => { zoom = +e.target.value; sizeGrid(); if (sceneSize) sceneSize(); };
+  $('pause').onclick = () => { paused = !paused; $('pause').classList.toggle('on', paused); };
+  sizeGrid(); if (sceneSize) sceneSize();
+  const t0 = +q.get('t') || 0;
+  for (let s = 0; s < t0; s += 1 / 60) sim(1 / 60);
+  if (q.has('t')) { paused = true; $('pause').classList.add('on'); }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
