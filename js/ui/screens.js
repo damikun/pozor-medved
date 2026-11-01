@@ -4,15 +4,19 @@
   const ORDER = ['summer', 'winter'];
   const GITHUB = '<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>';
 
+  const tips = () => ZS.ui.tips;
+
   function show(html, kind) {
+    tips().stop();
     const card = $('screenCard');
     card.className = 'card' + (kind ? ' ' + kind : '');
+    $('screen').classList.toggle('with-corner', kind === 'start');
     card.innerHTML = html;
     $('screen').hidden = false;
     $('screen').scrollTop = 0;
     $('corner').hidden = true;
   }
-  function hide() { $('screen').hidden = true; $('corner').hidden = true; }
+  function hide() { tips().stop(); $('screen').hidden = true; $('corner').hidden = true; }
 
   function levelCard(id, i, done) {
     const T = ZS.LEVEL_TEXT[id];
@@ -21,6 +25,12 @@
       <span class="num">${i + 1}</span>
       <span class="body"><b>${T.name}</b>${tag}<small>${T.pick(ZS.LEVELS[id].fatGoal)}</small></span>
     </button>`;
+  }
+
+  function howTo(touch) {
+    const T = touch ? UI.tipsTouch : UI.tips;
+    const chips = ZS.howto.ids.map((id) => `<button type="button" class="chip" data-demo="${id}"><span class="k"></span><span class="t">${T[id]}</span></button>`).join('');
+    return `<div class="stage"><canvas aria-hidden="true"></canvas><span class="hud"></span><div class="cue"></div></div><div class="chips">${chips}</div>`;
   }
 
   function langPicker() {
@@ -51,8 +61,7 @@
       <h3 class="pick">${UI.chooseLevel}</h3>
       <div class="levels">${ORDER.map((id, i) => levelCard(id, i, done)).join('')}</div>
       <h3 class="pick">${UI.howTo}</h3>
-      <div class="tips">${(touch ? UI.tipsTouch : UI.tips).map(([k, t]) => `<div class="tip"><span class="ico">${k}</span><span class="txt">${t}</span></div>`).join('')}</div>
-      <p class="note">${UI.disclaimer}</p>`, 'start');
+      <div class="howto">${howTo(touch)}</div>`, 'start');
     $('screenCard').querySelectorAll('[data-level]').forEach((btn) => {
       btn.onclick = () => onPlay(btn.dataset.level);
       btn.onmouseenter = btn.onfocus = () => onPreview(btn.dataset.level);
@@ -60,6 +69,7 @@
     const sel = $('langSel');
     if (sel) sel.onchange = () => onLang(sel.value);
     corner(onLang);
+    tips().mount($('screenCard').querySelector('.howto'), touch);
   }
 
   function showPause(onResume, onMenu) {

@@ -79,5 +79,5 @@
     return g;
   }
 
-  ZS.sim.loop = { step, advance, cameraX };
+  ZS.sim.loop = { step, advance, cameraX, ageEffects };
 })();

@@ -75,12 +75,11 @@ canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
 .card .stat { background: #ece5d2; border-radius: 8px; padding: 8px 10px; }
 .card .stat b { display: block; font-size: 20px; }
 .card .stat span { font-size: 12px; color: var(--muted); }
-.card .note { font-size: 12px; color: var(--muted); margin: 12px 0 0; }
 .card button { font: 600 17px var(--font); background: var(--ok); color: #fff; border: 0; border-radius: 10px; padding: 12px 22px; cursor: pointer; }
 .card button:hover { filter: brightness(1.08); }
 .card button.ghost { background: #e7e0cc; color: var(--ink); }
 .card .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.card.start { max-width: 680px; padding: 20px 24px 16px; }
+.card.start { max-width: 860px; padding: 20px 24px 16px; }
 .card.pause { max-width: 400px; }
 .card .head { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 14px; margin: 0 0 6px; }
 .card .head h1 { margin: 0; }
@@ -96,6 +95,7 @@ canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
 #corner .menu button:hover, #corner .menu a:hover { background: #ece5d2; }
 #corner .menu button.on { background: var(--ok); color: #fff; }
 #corner .menu a { border-top: 1px solid #ece5d2; border-radius: 0 0 7px 7px; margin-top: 4px; color: var(--muted); }
+@media (max-width: 980px) { .screen.with-corner { padding-top: 64px; } }
 .card .lead { margin: 0 0 4px; }
 .card h3.pick { margin: 12px 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 .card .levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin: 0 0 14px; }
@@ -108,12 +108,58 @@ canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
 .card button.level small { display: block; font-size: 13px; opacity: 0.92; margin-top: 2px; }
 .card .tag { display: inline-block; vertical-align: 2px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; background: #f0c030; color: #3a2a00; border-radius: 4px; padding: 1px 6px; }
 .card .tag.done { background: rgba(255, 255, 255, 0.9); color: #2f7d4f; }
-.card .tips { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 0; }
-.card .tip { display: flex; flex-direction: column; gap: 5px; background: #ece5d2; border-radius: 10px; padding: 8px 9px; }
-.card .tip .ico { font-size: 20px; line-height: 1.15; white-space: nowrap; }
-.card .tip .ico kbd { font-size: 12px; vertical-align: 3px; }
-.card .tip .txt { font-size: 12.5px; line-height: 1.3; }
-.card.start .note { margin: 10px 0 0; }
+.card .howto { display: grid; gap: 8px; }
+.card .stage { position: relative; height: clamp(170px, 32vh, 250px); border-radius: 12px; overflow: hidden; background: #b9d4e0; }
+.card .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: auto; pointer-events: none; }
+.card .stage .hud { position: absolute; left: 10px; top: 9px; right: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; pointer-events: none; }
+.card .stage .cue { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 12px; padding: 16px 14px 9px;
+  background: linear-gradient(rgba(20, 26, 16, 0), rgba(20, 26, 16, 0.5)); pointer-events: none; }
+.card .stage .say { color: #fff; font: 700 16px/1.25 var(--font); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); animation: cueIn 0.4s ease-out; }
+.card .stage .say kbd { font: 700 13px/1 var(--font); padding: 2px 6px; background: rgba(247, 243, 232, 0.94); color: var(--ink); text-shadow: none; vertical-align: 1px; }
+.card .stage .keys { flex: none; display: flex; gap: 5px; animation: cueIn 0.4s ease-out; }
+@keyframes cueIn { from { opacity: 0; } }
+.card .howto kbd { transition: background-color 0.1s, color 0.1s, transform 0.1s, box-shadow 0.1s; }
+.card .howto kbd.on { background: #f0c030; color: #3a2a00; }
+.card .stage .keys kbd { display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 7px; border-radius: 6px; font: 700 15px/1 var(--font);
+  background: rgba(247, 243, 232, 0.95); color: var(--ink); box-shadow: 0 3px 0 rgba(29, 35, 24, 0.6); }
+.card .stage .keys kbd[data-k="Space"] { min-width: 52px; }
+.card .stage .keys kbd.on { background: #f0c030; color: #3a2a00; transform: translateY(3px); box-shadow: 0 0 0 3px rgba(255, 236, 160, 0.7); }
+.card .stage .keys.pads kbd { min-width: 32px; height: 32px; padding: 0; border-radius: 50%; font-size: 15px; background: rgba(20, 26, 16, 0.62); color: #fff; box-shadow: none; }
+.card .stage .keys.pads kbd.on { background: rgba(47, 125, 79, 0.95); transform: scale(1.1); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.8); }
+.card .stage .keys.pads kbd.sprint { background: rgba(232, 164, 0, 0.95); }
+.card .stage .mini { position: relative; width: 190px; max-width: 48%; height: 17px; border-radius: 5px; background: rgba(20, 26, 16, 0.62); overflow: hidden; }
+.card .stage .mini i { position: absolute; inset: 0 auto 0 0; width: 0; transition: width 0.25s; }
+.card .stage .mini b { position: relative; display: block; padding: 0 7px; font: 700 11px/17px var(--font); color: #fff; white-space: nowrap; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
+.card .stage .mini.fat i { background: var(--fat); }
+.card .stage .mini.syn i { background: var(--syn); }
+.card .stage .mini.panic i { background: var(--panic); }
+.card .stage .goal { font: 700 13px/1 var(--font); color: #fff; background: rgba(20, 26, 16, 0.62); border-radius: 5px; padding: 4px 7px; }
+.card .stage .goal.done { background: #d6336c; animation: pop 0.3s ease-out; }
+.card .stage .flag { font: 800 11px/1 var(--font); letter-spacing: 0.04em; text-transform: uppercase; color: #fff; background: #c0392b; border-radius: 4px; padding: 4px 7px; animation: pop 0.3s ease-out; }
+@keyframes pop { from { transform: scale(0.6); opacity: 0; } }
+.card .chips { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.card button.chip { display: block; width: 100%; min-width: 0; padding: 6px 8px; border-radius: 8px; background: #ece5d2; color: var(--ink); font: 400 11.5px/1.3 var(--font); text-align: left; box-shadow: inset 0 0 0 1.5px transparent; transition: background-color 0.2s, box-shadow 0.2s; }
+.card button.chip .t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card button.chip .k { float: left; display: flex; gap: 2px; margin: 0 5px 0 0; }
+.card button.chip .k:empty { display: none; }
+.card button.chip kbd { display: inline-grid; place-items: center; min-width: 15px; height: 15px; padding: 0 3px; border-radius: 3px; font: 700 9.5px/1 var(--font); background: #fff; color: var(--ink); box-shadow: 0 1px 0 rgba(29, 35, 24, 0.35); }
+.card button.chip .t kbd { display: inline; padding: 0 3px; vertical-align: 0; }
+.card button.chip .k kbd[data-k="Space"] { min-width: 24px; }
+.card button.chip.on { background: #fff8e1; box-shadow: inset 0 0 0 2px #f0c030; }
+.card button.chip kbd.on { background: #f0c030; color: #3a2a00; }
+.card button.chip .k.pads kbd { min-width: 17px; height: 17px; padding: 0; border-radius: 50%; font-size: 9px; background: rgba(20, 26, 16, 0.6); color: #fff; box-shadow: none; }
+.card button.chip .k.pads kbd.on { background: rgba(47, 125, 79, 0.95); }
+@media (prefers-reduced-motion: reduce) {
+  .card .howto * { animation: none !important; transition: none !important; }
+}
+
+@media (max-width: 720px) {
+  .card .stage { height: clamp(150px, 46vw, 240px); }
+  .card .chips { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: 5px; scrollbar-width: thin; }
+  .card button.chip { white-space: nowrap; padding: 6px 9px; }
+  .card button.chip .t { display: inline; }
+  .card button.chip .k { float: none; display: inline-flex; vertical-align: -2px; }
+}
 
 @media (max-width: 560px) {
   .bar { height: 18px; }
@@ -136,9 +182,18 @@ canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
   .card .stat b { font-size: 17px; }
   .card .stat span { font-size: 11px; }
   .card button { font-size: 16px; padding: 11px 18px; }
-  .card .tips { grid-template-columns: none; grid-template-rows: repeat(2, auto); grid-auto-flow: column; grid-auto-columns: 42%;
-    overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding-bottom: 6px; }
-  .card .tip { scroll-snap-align: start; }
+  .card .stage { height: 180px; }
+  .card .howto { gap: 6px; }
+  .card .chips { padding-bottom: 3px; }
+  .card button.chip { padding: 5px 9px; }
+  .card .stage .say { font-size: 13.5px; }
+  .card .stage .cue { gap: 9px; padding: 14px 10px 7px; }
+  .card .stage .keys kbd { min-width: 24px; height: 24px; font-size: 13px; padding: 0 5px; }
+  .card .stage .keys kbd[data-k="Space"] { min-width: 42px; }
+  .card .stage .keys.pads kbd { min-width: 28px; height: 28px; font-size: 13px; }
+  .card .stage .mini { height: 15px; }
+  .card .stage .mini b { font-size: 10px; line-height: 15px; }
+  .card .stage .flag { font-size: 9.5px; }
   .card .head { align-items: center; }
   .card .head .sub { order: 3; flex-basis: 100%; font-size: 14px; }
   .card .lang { order: 2; }
@@ -148,7 +203,6 @@ canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
   .card .levels { gap: 8px; margin: 0 0 10px; }
   .card button.level { padding: 10px 12px; }
   .card button.level small { font-size: 12.5px; }
-  .card.start .note { font-size: 11px; margin: 8px 0 0; }
 }
 
 @media (max-height: 720px) and (min-width: 561px) {
