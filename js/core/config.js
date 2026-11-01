@@ -31,6 +31,7 @@ ZS.COLORS = {
   shot: '#d62f27',
   story: '#5a3418',
   love: '#d6336c',
+  zap: '#d18a00',
 };
 
 ZS.REPO_URL = 'https://github.com/damikun/pozor-medved';
@@ -60,4 +61,5 @@ ZS.FOOD = {
   carrot:      { emoji: '🥕', fat: 2,  syn: 5,  panic: 6 },
   candy:       { emoji: '🍬', fat: 5,  syn: 8,  panic: 4 },
   chatabin:    { emoji: '🗑️', fat: 13, syn: 16, panic: 10 },
+  halusky:     { emoji: '🥟', fat: 6,  syn: 10, panic: 4 },
 };

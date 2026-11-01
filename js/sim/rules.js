@@ -101,12 +101,13 @@
     rules.float(g, shooter.x, fromY - 26, LABELS.bang, COLORS.shot);
     for (const o of g.shooters) { o.lock = 0; o.reload = Math.max(o.reload, 1.5); }
     if (at === 'tree') {
-      g.shots.push({ x1: fromX, y1: fromY, x2: shooter.cross, y2: GY - 60, t: 0.3 });
+      const hay = !!(b.hiding && b.hiding.hay), y = GY - (hay ? 48 : 60);
+      g.shots.push({ x1: fromX, y1: fromY, x2: shooter.cross, y2: y, t: 0.3 });
       for (let i = 0; i < 12; i++) {
-        g.particles.push({ x: shooter.cross, y: GY - 60, vx: (Math.random() - 0.5) * 200, vy: -Math.random() * 220, t: 0.9, color: '#8a6a48' });
+        g.particles.push({ x: shooter.cross, y, vx: (Math.random() - 0.5) * 200, vy: -Math.random() * 220, t: 0.9, color: hay ? '#d8b55b' : '#8a6a48' });
       }
-      rules.float(g, b.x, GY - 125, LABELS.treeHit, COLORS.good);
-      rules.say(g, NEWS.treeHit);
+      rules.float(g, b.x, GY - (hay ? 108 : 125), hay ? LABELS.hayHit : LABELS.treeHit, COLORS.good);
+      rules.say(g, hay ? NEWS.hayHit : NEWS.treeHit);
       return;
     }
     const sprinting = b.running && b.moving;

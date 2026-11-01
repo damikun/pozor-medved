@@ -56,6 +56,7 @@
     sim.hunters.update(g, dt);
     if (g.over) return;
     sim.people.update(g, dt);
+    sim.koliba.update(g, dt);
     sim.drones.update(g, dt);
     sim.wildlife.updateDogs(g, dt);
     sim.wildlife.updateSheep(g, dt);

@@ -125,6 +125,8 @@
       wake: ['Who’s throwing a disco out here?', 'It’s December!', 'Let me sleep…'],
       spray: ['Fake snow, fake bear.', 'I’m just a snowdrift.', 'Shh, I’m a pile of snow.'],
       ice: ['Who approved this ice rink?', 'Wheee!', 'I’ve got no brakes!'],
+      zap: ['Ow! Who turned the power on?', 'The fence works. Unlike the state.', 'Well, at least I got a free perm.', 'You jump this, you don’t sniff it.'],
+      hay: ['I’m just a haystack.', 'Needle in a haystack? Try a bear.', 'It tickles my nose…', 'The minister counts haystacks. Not me.'],
     },
 
     NEWS: {
@@ -238,6 +240,18 @@
       constitution: 'Constitutional act on the bear: The bear may not appeal.',
       decree: 'The government orders bears to hibernate. Any bear still awake is a problem bear.',
       drive: 'Hunters organise a New Year’s drive hunt. More of them head into the forest.',
+      koliba: [
+        'A bear strolled past the shepherd’s inn. Guests left through the window, the bill stayed on the table.',
+        'Panic at the shepherd’s inn: guests on the roof, waiter in the woods. Shepherd: The dumplings were good anyway.',
+        'Inn guests jumped out of the windows. MP Flinta wants bars fitted. Not on the windows, on the forest.',
+        'The inn reports guests running off without paying. Police are treating the bear as an accomplice.',
+        'A guest streamed live from the inn’s roof. Ministry: Proof that bears now climb roofs too.',
+      ],
+      haluskyEaten: [
+        'A bear ate the inn’s sheep-cheese dumplings. Shepherd: Finally a guest who cleared his plate.',
+        'A bear ate dumplings with bacon. Minister Strašiak: An attack on the national dish!',
+        'A bear licked a plate of halušky clean. The inn has offered him a job washing up.',
+      ],
       hug: {
         tourist: [
           'Video: The bear hugs a tourist. Two million views, and the panic is easing.',
@@ -270,6 +284,14 @@
           'The bear hugged St Nicholas. The devil filed a discrimination complaint.',
           'The bear hugged St Nicholas. The angel filmed it, the devil shared it, the minister banned it.',
           'St Nicholas got a hug from the bear. The bear got coal from the ministry.',
+        ],
+        guest: [
+          'A bear hugged an inn guest. He blames the third beer, the video doesn’t.',
+          'An inn guest got a bear hug. The shepherd billed him for a folklore show.',
+        ],
+        waiter: [
+          'A bear hugged a waiter. No tip, but at least he smiled.',
+          'A bear hugged the inn’s waiter. Dumplings on the floor, reviews at five stars.',
         ],
       },
       hugTired: [
@@ -314,6 +336,14 @@
           'The bear bit St Nicholas. Christmas is officially in danger.',
           'The bear bit St Nicholas. The devil defends the bear: Around here, the problem is me.',
           'The bear bit St Nicholas. Children suggest a punishment: coal and potatoes. Ministry: a rifle.',
+        ],
+        guest: [
+          'A bear bit an inn guest. Minister Strašiak: Proof that bears come for the dumplings.',
+          'A bear bit an inn guest. He wants a discount, the inn wants a cull, the bear wants dessert.',
+        ],
+        waiter: [
+          'A bear bit a waiter. The inn reports a service outage, guests notice no difference.',
+          'A bear bit the inn’s waiter. The ministry may declare waiters a protected species.',
         ],
       },
       stomp: [
@@ -360,6 +390,17 @@
         'The bear is on thin ice. So is the government, just without skates.',
         'The bear is sliding down the stream. The ministry put out a €4 million tender for road salt.',
       ],
+      zap: [
+        'Bear runs into a sheepfold fence. Shepherd: It cost €200 and it works. Ministry: A cull costs more, so it’s better.',
+        'An electric fence scared off a bear. The ministry advises against prevention: it doesn’t make a press conference.',
+        'Sheepfold fence stops a bear without a single shot. The hunters’ association calls it unfair competition.',
+      ],
+      hay: [
+        'Bear burrows into the hay. Minister Strašiak: It’s a needle in a haystack, only bigger and with claws.',
+        'Bear hides in the hay. Minister Strašiak orders the haystacks counted again.',
+        'Bear in a haystack. Ministries argue whether it’s an agricultural or an environmental haystack.',
+      ],
+      hayHit: 'Hunter shoots a haystack. Ministry reports a successful strike against livestock feed.',
       selfie: [
         'A bear selfie has three million likes, more than the whole government. More tourists head for Liptov.',
         'The bear smiled for a selfie. Ministry: He bared his teeth, which is aggressive behaviour.',
@@ -408,8 +449,9 @@
         carrot: 'snowman’s carrot',
         candy: 'St Nicholas’s sweets',
         chatabin: 'chalet dumpster',
+        halusky: 'sheep-cheese dumplings',
       },
-      art: { salas: 'SHEEPFOLD', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['GENERAL', 'WASTE'] },
+      art: { salas: 'SHEEPFOLD', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['GENERAL', 'WASTE'], fence: ['DANGER!', 'ELECTRIC', 'FENCE'] },
       wrongBear: '✝ another she-bear',
       birch: 'A birch won’t hide you!',
       hunterScared: 'Hunter spooked!',
@@ -430,11 +472,23 @@
       denStamp: ['CLOSED', 'no entry without a hug'],
       spray: 'Fake snow hides you',
       ice: 'Slippery!',
+      zap: 'BZZZ!',
+      hayHit: 'Hit the hay!',
+      hayHint: '↓ into the hay',
+      crawlHint: '↓ crawl',
+      fenceHint: '↑ jump it',
       shout: {
-        hug: { walker: 'Let go, I have a gun licence!', ztmh: 'This isn’t in the protocol!', poacher: 'I’m just picking mushrooms!', picker: 'Jesus, Mary and Joseph!', tourist: 'Mum, film this!', santa: 'Ho ho… HOOO!' },
-        bite: { walker: 'Ow, my honour!', ztmh: 'Ow! I’m hit!', poacher: 'Ow! Not a word to anyone!', picker: 'Help!', tourist: 'Owww!', santa: 'Ow, my staff!' },
+        hug: { walker: 'Let go, I have a gun licence!', ztmh: 'This isn’t in the protocol!', poacher: 'I’m just picking mushrooms!', picker: 'Jesus, Mary and Joseph!', tourist: 'Mum, film this!', santa: 'Ho ho… HOOO!', guest: 'I only came for the dumplings!', waiter: 'Do you have a booking?!' },
+        bite: { walker: 'Ow, my honour!', ztmh: 'Ow! I’m hit!', poacher: 'Ow! Not a word to anyone!', picker: 'Help!', tourist: 'Owww!', santa: 'Ow, my staff!', guest: 'Ow, I haven’t paid yet!', waiter: 'Ow! That’s not on the menu!' },
         selfie: 'Smile!',
         fall: 'Whoaaa!',
+      },
+      koliba: {
+        shouts: ['Bear!', 'Bear at the inn!', 'Run!', 'Every man for himself!'],
+        window: ['Out the window!', 'Hup!', 'Mummy!'],
+        roof: ['Help!', 'Onto the roof!', 'Hello, fire brigade?'],
+        waiter: ['My dumplings!', 'The bill!', 'Leave the tip to the bear!'],
+        film: '📱 Live from the roof!',
       },
       basket: 'mushrooms from a basket',
       icefish: 'trout from under the ice',
@@ -473,7 +527,7 @@
       howTo: 'How to play',
       tips: {
         walk: 'run, <kbd>Shift</kbd> sprint',
-        hide: 'hide behind a thick trunk',
+        hide: 'hide behind a thick trunk or in hay',
         climb: 'hold by a trunk: climb the tree',
         stomp: 'jump on a hunter’s head',
         hug: 'hug at least once or the den stays shut',
@@ -485,7 +539,7 @@
       },
       tipsTouch: {
         walk: 'run; double-tap and hold: sprint',
-        hide: 'hold by a thick trunk: hide',
+        hide: 'hold by a thick trunk or hay: hide',
         climb: 'tap: jump; hold by a trunk: climb',
         stomp: 'jump on a hunter’s head',
         hug: 'hug at least once or the den stays shut',
@@ -515,6 +569,7 @@
       goals: { fat: 'Fat', hug: 'Hug', ok: '✓', no: '✗' },
       pct: (n) => n + '%',
       inSpray: 'in the snow',
+      inHay: 'in the hay',
       badges: {
         problem: 'Problem bear',
         cull: 'Cull: 350 head',

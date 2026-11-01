@@ -70,7 +70,7 @@
     const W = L.w, S = LABELS.signs;
     Object.assign(L, {
       village: { from: 2300, to: 3520 },
-      salas: { from: 6900, to: 8000, koliba: 7120, pen: [7300, 7900] },
+      salas: { from: 6900, to: 8000, koliba: 7120, pen: [7300, 7900], fences: [7292, 7892], strunga: { x: 7550, w: 104 } },
       river: { from: 8200, to: 8660 },
       hotel: { x: 9300, w: 460, lift: 9930, chapel: 10180 },
       park: { from: 10350, to: 11850 },
@@ -81,7 +81,7 @@
     L.posts = [{ x: 1900 }, { x: 4560 }];
     L.logs = [
       { x: 1200, w: 96, h: 30 }, { x: 3920, w: 110, h: 34 }, { x: 4880, w: 90, h: 30 },
-      { x: 5650, w: 100, h: 32 }, { x: 6350, w: 96, h: 30 }, { x: 7500, w: 120, h: 36 },
+      { x: 5650, w: 100, h: 32 }, { x: 6350, w: 96, h: 30 },
       { x: 10700, w: 110, h: 34 }, { x: 11400, w: 96, h: 30 },
     ];
     L.stones = [{ x: 8300, w: 64 }, { x: 8425, w: 58 }, { x: 8550, w: 66 }];
@@ -132,7 +132,7 @@
       return r < 0.5 ? 'buk' : r < 0.92 ? 'smrek' : 'breza';
     }, (x) => (birchGrove(x) ? 85 + rng() * 40 : x >= L.park.to ? 170 + rng() * 110 : 115 + rng() * 85));
     L.trees = L.trees.filter((t) => Math.abs(t.x - 5950) > 70);
-    L.trees.push(makeTree(rng, 'buk', 5950), makeTree(rng, 'buk', 7040), makeTree(rng, 'buk', 7660));
+    L.trees.push(makeTree(rng, 'buk', 5950), makeTree(rng, 'buk', 7040), makeTree(rng, 'buk', 7760));
     L.trees.sort((a, b) => a.x - b.x);
 
     backTrees(L, (bx) => (bx > L.village.from && bx < L.village.to) || (bx > H.x - H.w / 2 && bx < H.x + H.w / 2));

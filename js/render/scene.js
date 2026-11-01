@@ -10,13 +10,32 @@
     return L.items.some((it) => it.type === type && it.x === x && it.eaten);
   }
 
-  function landmarks(ctx, g, vis, span) {
+  function haystack(ctx, g, hx, withBear) {
+    const b = g.bear, t = b.hideTree;
+    if (!t || !t.hay || t.x !== hx || !(b.hideBlend > 0)) { ZS.scenery.haystack(ctx, hx, g.time, 0); return; }
+    const who = b.hiding ? b : (b.fadeBear = Object.assign(b.fadeBear || {}, b, { hiding: t }));
+    const stir = b.hiding ? Math.max(1 - Math.min(1, (b.hideT || 0) / 0.6), b.danger ? 0.35 : 0) : 1 - b.hideBlend;
+    withBear(ZS.drawBearInHay, who, b.hideBlend);
+    ZS.scenery.haystack(ctx, hx, g.time, stir);
+    withBear(ZS.drawBearHayFront, who, b.hideBlend);
+  }
+
+  function penFront(ctx, g, span) {
+    const s = g.level.salas;
+    if (!s || !s.fences || !span(s.from, s.to, 300)) return;
+    if (s.strunga) ZS.scenery.strunga(ctx, s.strunga, g.time, 1, g.bear);
+    s.fences.forEach((fx, i) => ZS.scenery.gate(ctx, fx, g.time, 1, i === 0));
+  }
+
+  function landmarks(ctx, g, vis, span, withBear) {
     const L = g.level, S = ZS.scenery, A = ZS.winterArt;
-    for (const hx of L.haystacks) if (vis(hx, 80)) S.haystack(ctx, hx, g.time);
+    for (const hx of L.haystacks) if (vis(hx, 80)) haystack(ctx, g, hx, withBear);
     if (L.salas && span(L.salas.from, L.salas.to, 300)) {
-      S.koliba(ctx, L.salas.koliba, g.time);
-      for (const sh of g.sheep) S.sheep(ctx, sh, g.time);
+      S.koliba(ctx, L.salas.koliba, g.time, g.koliba);
       S.pen(ctx, L.salas.pen[0], L.salas.pen[1], g.time);
+      if (L.salas.fences) L.salas.fences.forEach((fx, i) => S.gate(ctx, fx, g.time, 0, i === 0));
+      if (L.salas.strunga) S.strunga(ctx, L.salas.strunga, g.time, 0);
+      for (const sh of g.sheep) S.sheep(ctx, sh, g.time);
     }
     if (L.hotel) {
       if (vis(L.hotel.x, L.hotel.w)) S.hotel(ctx, L.hotel.x, g.time);
@@ -109,7 +128,11 @@
     if (b.warn && !b.hiding && !b.inSpray) {
       const red = g.shooters.some((s) => s.lock > 0);
       label(ctx, '!', b.x, GY - 100 - Math.abs(Math.sin(g.time * 8)) * 6, 30, red ? '#e03131' : '#e8a400');
-      if (L.trees.some((t) => t.hide && Math.abs(t.x - b.x) < t.w / 2 + 40)) label(ctx, LABELS.hideHint, b.x, GY - 134, 14, '#1d1d1d');
+      const tree = L.trees.some((t) => t.hide && Math.abs(t.x - b.x) < t.w / 2 + 40), hay = !tree && L.haystacks.some((x) => Math.abs(x - b.x) < 72);
+      if (tree || hay) label(ctx, tree ? LABELS.hideHint : LABELS.hayHint, b.x, GY - 134, 14, '#1d1d1d');
+    } else if (b.onGround && !b.hiding && !b.act) {
+      const hint = b.bumpT > 0 && !b.crouch ? LABELS.crawlHint : b.zapT > 0.8 && b.zapT < 3.5 ? LABELS.fenceHint : null;
+      if (hint) label(ctx, hint, b.x, GY - 108 - Math.abs(Math.sin(g.time * 3)) * 3, 14, '#1d1d1d');
     }
     if (b.stamina < 0.99 && !b.hiding && !b.climbing) {
       ctx.fillStyle = 'rgba(20,26,16,0.55)'; ctx.fillRect(b.x - 26, GY - 82, 52, 6);
@@ -213,7 +236,7 @@
     P.den(ctx, L.goalDen, hugged && g.fat >= g.def.fatGoal, T.goalDen, g.time, g);
     if (!hugged && vis(L.goalDen, 120)) denStamp(ctx, g);
     for (const h of L.houses) if (vis(h.x, 220)) P.house(ctx, h, g);
-    landmarks(ctx, g, vis, span);
+    landmarks(ctx, g, vis, span, withBear);
     treesWithBear(ctx, g, vis, withBear);
     for (const s of L.signs) if (vis(s.x, 160)) P.sign(ctx, s, g);
     for (const p of L.posts) if (vis(p.x, 80)) P.post(ctx, p, g);
@@ -225,6 +248,8 @@
     if (!b.climbing && (b.hideBlend || 0) < 1) withBear(ZS.drawBear, b, 1 - (b.hideBlend || 0));
     if (held) ZS.drawHuman(ctx, view(g, held, g.shooters.includes(held)), g.time);
     if (!b.climbing) withBear(ZS.drawBearHugFront);
+    penFront(ctx, g, span);
+    if (b.zapT < 1.4) ZS.scenery.zap(ctx, b, g.time);
     for (const c of L.cannons) if (vis(c.x, 320)) ZS.winterArt.spray(ctx, c, g.time);
     bearCues(ctx, g);
     overlays(ctx, g, vis, viewW);

@@ -9,7 +9,8 @@
   };
   const { rrect } = ZS.gfx;
   const TAU = Math.PI * 2;
-  const RISE = 0.3, SPLIT = 0.55, TAKEOFF = 0.08, LAND = 0.2, DROP = 0.18;
+  const RISE = 0.3, SPLIT = 0.55, TAKEOFF = 0.08, LAND = 0.2, DROP = 0.18, DIVE = 0.34, SHOCK = 0.8;
+  const HAYC = ['#d8b55b', '#c29d44', '#ecd28b', '#9d7b30'];
 
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -113,7 +114,7 @@
   }
 
   const anim = new WeakMap();
-  const modeOf = (b) => (b.climbing ? 'climb' : b.hiding ? 'hide' : 'side');
+  const modeOf = (b) => (b.climbing ? 'climb' : b.hiding ? (b.hiding.hay ? 'hay' : 'hide') : 'side');
   const ramp = (v, target, speed, dt) => v + clamp(target - v, -speed * dt, speed * dt);
   const busy = (b) => (b.act || b.waking || (b.slide || 0) > 0.05 ? 1 : 0);
 
@@ -136,7 +137,8 @@
         toT: 0, landT: 0, dropT: 0, from: null, mode: modeOf(b), breath: 0, fear: b.danger ? 1 : 0,
         cov: b.covered ? 1 : 0, side: b.peekSide || 1,
         ao: null, ak: null, at: 0, ah: false, ax: 0, hk: 0, bz: busy(b), wk: b.waking ? 1 : 0, wt: b.wakeT || 0,
-        sl: clamp(b.slide || 0, 0, 1), cold: clamp(b.cold || 0, 0, 1), tg: b.tag ? 1 : 0, vap: 0.45, due: 0, vn: 0, vx: 0, puffs: [], P: null, Pt: -1, ga: 0, gf: 0, alx: 30, asw: null };
+        sl: clamp(b.slide || 0, 0, 1), cold: clamp(b.cold || 0, 0, 1), tg: b.tag ? 1 : 0, vap: 0.45, due: 0, vn: 0, vx: 0, puffs: [], P: null, Pt: -1, ga: 0, gf: 0, alx: 30, asw: null,
+        kw: b.crawl ? 1 : 0, hayOut: -9, hayX: 0 };
       actIn(s, b);
       anim.set(b, s);
       return s;
@@ -158,6 +160,7 @@
     s.mw = smooth(s.mwl); s.rw = smooth(s.rwl);
     s.cspd = ease(s.cspd, b.climbing && Math.abs(dy) < 80 ? Math.abs(dy) / dt : 0, 6, dt);
     s.cw = ease(s.cw, b.crouch ? 1 : 0, 6, dt);
+    s.kw = ease(s.kw, b.crawl ? 1 : 0, 8, dt);
     if (b.climbing && s.mode !== 'climb') { s.ga = s.aw > 0.001 ? s.aw : 0; s.gf = smooth((s.vy + 250) / 500); }
     s.aw = ease(s.aw, b.onGround || !free ? 0 : 1, b.onGround ? 22 : 16, dt);
     if (!b.onGround) s.vy = ease(s.vy, b.vy || 0, 20, dt);
@@ -194,9 +197,10 @@
     return s;
   }
 
-  function enter(s, mode) {
+  function enter(s, mode, time, x) {
     if (s.mode === mode) return;
-    if (mode === 'side') { s.from = s.mode; s.dropT = DROP; }
+    if (mode === 'side') { s.from = s.mode; s.dropT = s.mode === 'hay' ? 0 : DROP; }
+    if (s.mode === 'hay' && time !== undefined) { s.hayOut = time; s.hayX = x; }
     s.mode = mode;
   }
 
@@ -502,6 +506,11 @@
       flex: 1.25 * gf, headA: 0.04 + 0.06 * gp, headX: 3, headY: 2, ears: 1, swing: 0 };
     const P = { keep, yaw: [s.yp, s.ys, s.yh], bx: 0, jaw: 0, shut: 0, arc: 0, smile: 0, wide: 0, shake: 0, brow: 0, grin: 0, tag: s.tg, shx: 0, shw: 1 };
     for (const k in I) P[k] = lerp(lerp(I[k], LOW[k], cw), lerp(lerp(W[k], R[k], rw), K[k], cw), mw);
+    const kw = s.kw * cw;
+    if (kw > 0.001) {
+      P.by += 5 * kw; P.pitch += 0.02 * kw; P.hump *= 1 - 0.4 * kw; P.croup *= 1 - 0.4 * kw;
+      P.headA = lerp(P.headA, 0.08, kw); P.headX += 3.5 * kw; P.headY += 1 * kw; P.ears = lerp(P.ears, 1, kw);
+    }
     const q = (1 - mw) * (1 - cw) * (1 - aw) * (1 - rear) * (1 - s.bz);
     const sn = bump(time, 7.3, 1.5) * q;
     P.headA += -0.3 * sn + 0.03 * Math.sin(time * 40) * sn;
@@ -512,6 +521,16 @@
     let sx = 1 + 0.05 * aw * up, sy = 1 - 0.03 * aw * up;
     P.by += 8 * cr + 7 * sq; P.flex += 0.6 * cr; P.headA += 0.1 * cr + 0.18 * sq;
     sx *= 1 + 0.05 * cr + 0.07 * sq; sy *= 1 - 0.07 * cr - 0.1 * sq;
+    const zt = Number.isFinite(b.zapT) ? b.zapT : 9, zk = zt < SHOCK ? smooth(zt / 0.03) * (1 - smooth((zt - 0.42) / 0.38)) : 0;
+    P.bristle = zk;
+    P.flash = zt < 0.24 ? (Math.floor(zt / 0.06) % 2 ? 0.3 : 1) * (1 - zt / 0.24) : 0;
+    if (zk > 0.001) {
+      const j = Math.sin(time * 91) * zk, j2 = Math.sin(time * 67 + 1) * zk;
+      P.bx += 1.6 * j; P.by += 1.1 * j2 - 2 * zk; P.pitch += 0.035 * j2;
+      P.wide = Math.max(P.wide, zk); P.jaw = Math.max(P.jaw, zk * (0.22 + 0.18 * Math.abs(Math.sin(time * 40))));
+      P.ears = lerp(P.ears, 0, zk); P.flick += Math.sin(time * 70) * zk;
+      sx *= 1 + 0.04 * zk; sy *= 1 + 0.06 * zk;
+    }
     const br = Math.sin(s.breath);
     P.breath = br * lerp(1, 0.4, mw);
     sy *= 1 + 0.012 * br * (1 - mw);
@@ -605,6 +624,7 @@
     const ta = M(-40 + 3.5 * f + hr, -41 - 0.5 * cp), tc = cos(-40, -41);
     ctx.fillStyle = K.tail; ell(ctx, ta[0] - 0.8 * tc, ta[1], 3.3 * Math.max(0.5, Math.abs(tc)), 2.5, (P.pitch - 0.35) * Math.sign(tc || 1));
     ctx.fillStyle = K.fur; blob(ctx, pts); ctx.fill();
+    if (P.bristle > 0.02) bristle(ctx, pts, P.bristle, K);
     for (const [x, y, rx, ry] of [[10, -38, 16, 18], [-28, -37, 14, 15]]) {
       const q = T(x, y), w = Math.abs(Math.sin(sp.phi(q[0])));
       if (w > 0.02) { const m = sp.map(q[0], q[1], q[0], 0); ell(ctx, m[0], m[1], rx * w, ry); }
@@ -616,6 +636,33 @@
       ctx.fillStyle = col; ell(ctx, m[0], m[1], rx * Math.max(0.35, Math.abs(c)), ry, (P.pitch + rot) * Math.sign(c || 1));
     }
     ctx.restore();
+  }
+
+  function bristle(ctx, pts, k, K) {
+    const n = pts.length;
+    ctx.fillStyle = K.fur;
+    ctx.beginPath();
+    for (let i = 0; i < n * 2; i++) {
+      const a = pts[Math.floor(i / 2)], c = pts[(Math.floor(i / 2) + 1) % n], m = i % 2 ? 0.5 : 0;
+      const px = lerp(a[0], c[0], m), py = lerp(a[1], c[1], m), tx = c[0] - a[0], ty = c[1] - a[1], tl = Math.hypot(tx, ty) || 1;
+      const nx = ty / tl, ny = -tx / tl;
+      if (ny > 0.55) continue;
+      const len = (3.2 + 3.4 * frac(Math.sin(i * 12.9898) * 43758.5453)) * k * (ny < -0.4 ? 1.25 : 1), w = 2.2;
+      ctx.moveTo(px - (tx / tl) * w, py - (ty / tl) * w);
+      ctx.lineTo(px + nx * len + (tx / tl) * 0.6, py + ny * len + (ty / tl) * 0.6);
+      ctx.lineTo(px + (tx / tl) * w, py + (ty / tl) * w);
+    }
+    ctx.fill();
+  }
+
+  const FLASH = [255, 246, 208];
+  function flashPal(K, t) {
+    const p = Object.assign({}, K, { rgb: {} }), src = K.rgb || BASE;
+    for (const k of KEYS) {
+      p.rgb[k] = src[k].map((v, i) => Math.round(lerp(v, FLASH[i], t)));
+      p[k] = 'rgb(' + p.rgb[k].join(',') + ')';
+    }
+    return p;
   }
 
   function head(ctx, o, K) {
@@ -844,7 +891,7 @@
     ctx.save();
     ctx.translate(b.x, y);
     ctx.scale(o.squeeze * o.scale, o.scale);
-    drawSide(ctx, P, o.pal, part);
+    drawSide(ctx, P, P.flash > 0.01 ? flashPal(o.pal, 0.8 * P.flash) : o.pal, part);
     ctx.restore();
     if (part !== 1) return;
     if (s.due && s.cold > 0.04 && P.nose) {
@@ -902,12 +949,30 @@
       (c) => side(c, b, s, time, { rear: d, squeeze: 1, scale: lerp(1, 0.85, hid), pal: mixPal(hid), part }));
   }
 
+  function strawsOff(ctx, s, time) {
+    const age = time - s.hayOut;
+    if (!(age >= 0 && age < 1.1)) return;
+    const ga = ctx.globalAlpha;
+    ctx.lineCap = 'round'; ctx.lineWidth = 1.3;
+    for (let i = 0; i < 9; i++) {
+      const h = frac(Math.sin((i + 1) * 78.233) * 43758.5453), h2 = frac(h * 91.7 + 0.37), d = clamp((age - h * 0.25) / (0.55 + 0.4 * h2), 0, 1);
+      if (d <= 0 || d >= 1) continue;
+      const x0 = s.hayX + (h - 0.5) * 70, y0 = GY - 30 - h2 * 34, x = x0 + (h2 - 0.5) * 30 * d + Math.sin(d * 7 + i) * 3, y = y0 + d * d * (GY - 3 - y0);
+      const a = (h * 6 + time * (3 + 4 * h2)) % TAU, l = 3 + 3 * h2;
+      ctx.globalAlpha = ga * (1 - smooth((d - 0.75) / 0.25));
+      ctx.strokeStyle = HAYC[i % 4];
+      ctx.beginPath(); ctx.moveTo(x - Math.cos(a) * l, y - Math.sin(a) * l); ctx.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); ctx.stroke();
+    }
+    ctx.globalAlpha = ga;
+  }
+
   ZS.drawBear = function (ctx, b, time) {
     const s = track(b, time);
-    if (!b.hiding && !b.climbing) enter(s, 'side');
+    if (!b.hiding && !b.climbing) enter(s, 'side', time, b.x);
     puffs(ctx, s, time, 1);
     sideBear(ctx, b, s, time, 1);
     puffs(ctx, s, time, 0);
+    strawsOff(ctx, s, time);
   };
 
   ZS.drawBearHugFront = function (ctx, b, time) {
@@ -1047,6 +1112,83 @@
         side(c, b, s, time, { rear: r, squeeze: 1 - 0.4 * smooth((k - 0.2) / (SPLIT - 0.2)), scale: lerp(1, 0.88, r), pal: mixPal(0.8 * r) });
       } else upright(c, b, s, time, (k - SPLIT) / (1 - SPLIT));
     });
+  };
+
+  function hayFace(ctx, b, s, time, k) {
+    const t = b.hiding, f = s.fear, look = clamp(s.side, -1, 1), ht = b.hideT || 0, K = HID;
+    const tr = f * (Math.sin(time * 47) * 0.45 + Math.sin(time * 29 + 1) * 0.3);
+    const x = t.x + look * 5 + tr, y = GY - 50 + (1 - k) * 9 + Math.sin(time * 1.6) * 0.4;
+    const u = frac(time / 3.9 + t.shade), shut = u < 0.035 ? Math.sin((Math.PI * u) / 0.035) : 0;
+    const tw = Math.pow(Math.max(0, Math.sin(time * 1.3 + t.shade * 5)), 24) * Math.sin(time * 34);
+    ctx.save(); ctx.translate(x, y); ctx.scale(1.18, 1.18); ctx.translate(-x, -y);
+    ctx.fillStyle = 'rgba(70,44,12,0.5)'; ell(ctx, x, y + 2.5, 15 * k, 8.5 * k);
+    ctx.fillStyle = K.fur; ell(ctx, x, y + 2.2, 12.5 * k, 8 * k);
+    for (const σ of [-1, 1]) {
+      const ex = x + σ * 9 * k, ey = y - 5.5 - 2 * f + (1 - k) * 4;
+      ear(ctx, ex, ey, 4.3 * k, K.fur, K.ear, σ * (0.3 + 0.45 * f) + 0.4 * tw * (σ > 0 ? 1 : 0), 1 - 0.35 * f);
+      if (σ === (look < 0 ? -1 : 1) && s.tg > 0.01) tag(ctx, ex + σ * 3.2, ey + 2.4, s.tg * k, σ * 0.25 + 0.06 * Math.sin(time * 2.3), K);
+    }
+    const ga = ctx.globalAlpha;
+    for (const σ of [-1, 1]) {
+      const ex = x + σ * 4.4, ey = y + 0.6;
+      if (shut > 0.6 || k < 0.4) {
+        ctx.strokeStyle = K.dark; ctx.lineWidth = 1.1; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(ex - 2, ey); ctx.quadraticCurveTo(ex, ey + 1, ex + 2, ey); ctx.stroke();
+      } else {
+        eye(ctx, ex, ey, 0.6 + 0.4 * f, [look, 0.1], K);
+      }
+    }
+    ctx.globalAlpha = ga;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 10; i++) {
+      const h = frac(Math.sin((i + 3) * 12.9898) * 43758.5453), h2 = frac(h * 57.3 + 0.21);
+      const sx = x + (h - 0.5) * 32, sy = y + 5.5 + h2 * 5, a = -0.4 + 0.8 * h2 + 0.05 * Math.sin(time * 2 + i), l = 3.5 + 3.5 * h;
+      ctx.strokeStyle = HAYC[i % 4]; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(sx - Math.cos(a) * l, sy - Math.sin(a) * l); ctx.lineTo(sx + Math.cos(a) * l, sy + Math.sin(a) * l); ctx.stroke();
+    }
+    for (let i = 0; i < 3; i++) {
+      const sx = x + (i - 1) * 8 + Math.sin(i * 3.1) * 2, sy = y - 8 - (i === 1 ? 1.5 : 0), a = 0.5 * (i - 1) + 0.15 * Math.sin(time * 1.7 + i);
+      ctx.strokeStyle = HAYC[(i + 2) % 4]; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(sx - Math.cos(a) * 4, sy - Math.sin(a) * 4); ctx.lineTo(sx + Math.cos(a) * 4, sy + Math.sin(a) * 4); ctx.stroke();
+    }
+    ctx.restore();
+    const burst = 1 - smooth((ht - 0.25) / 0.6), act = clamp(Math.max(burst, 0.25 + 0.6 * f), 0, 1);
+    for (let i = 0; i < 9; i++) {
+      const h = frac(Math.sin((i + 11) * 78.233) * 43758.5453), h2 = frac(h * 31.7 + 0.43), p = 1 + 0.7 * h;
+      const uu = frac((time + h * p * 3) / p), x0 = t.x + (h - 0.5) * 48, y0 = GY - 52 - h2 * 34;
+      const fy = y0 + uu * uu * (GY - 3 - y0), fx = x0 + Math.sin(uu * 5 + i) * 4;
+      const al = (i < 2 + 7 * act ? 1 : 0) * smooth(uu / 0.1) * (1 - smooth((uu - 0.8) / 0.2)) * k;
+      if (al < 0.02) continue;
+      const a = time * (2 + 3 * h2) + i, l = 2.6 + 2 * h2;
+      ctx.globalAlpha = ga * al;
+      ctx.strokeStyle = HAYC[(i + 1) % 4]; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(fx - Math.cos(a) * l, fy - Math.sin(a) * l); ctx.lineTo(fx + Math.cos(a) * l, fy + Math.sin(a) * l); ctx.stroke();
+    }
+    ctx.globalAlpha = ga;
+  }
+
+  ZS.drawBearInHay = function (ctx, b, time) {
+    if (!b.hiding) return;
+    const s = track(b, time);
+    enter(s, 'hay');
+    const k = b.hideT == null ? 1 : clamp(b.hideT / DIVE, 0, 1);
+    if (k >= 1) return;
+    const e = smooth(k), x = b.hiding.x;
+    faded(ctx, Math.min(x, b.x) - 150, GY - 190, Math.max(x, b.x) + 150, GY + 20, (c) => {
+      c.save();
+      c.beginPath(); c.rect(x - 160, GY - 200, 320, 200.5); c.clip();
+      c.translate(0, 22 * e);
+      side(c, b, s, time, { rear: 0, squeeze: lerp(1, 0.42, e), scale: lerp(1, 0.78, e), pal: mixPal(0.9 * e) });
+      c.restore();
+    });
+  };
+
+  ZS.drawBearHayFront = function (ctx, b, time) {
+    if (!b.hiding) return;
+    const s = track(b, time);
+    const k = b.hideT == null ? 1 : smooth((b.hideT - DIVE * 0.6) / 0.3);
+    if (k <= 0.001) return;
+    hayFace(ctx, b, s, time, k);
   };
 
   ZS.drawBearInFront = function (ctx, b, time) {

@@ -51,8 +51,33 @@
     picker: LOOK.picker,
     santa: LOOK.santa,
   };
+  const GUESTS = [
+    { skin: '#f0c8a6', hair: '#5a3a22', coat: '#b8322a', check: 'rgba(40,16,14,0.42)', pants: '#3d5a80', boots: '#6a4528', sole: '#2a1a10',
+      scale: 1, walkS: 46, runS: 94, stoop: 0.02, carry: 'mug', belly: 2.6, top: 'flannel', hairdo: 'short', stache: 1, bootF: 0.4 },
+    { skin: '#f3cfb3', hair: '#8a4a26', coat: '#3f8f7a', pants: '#2e3440', boots: '#ece7dc', sole: '#9a8f80',
+      scale: 0.95, walkS: 44, runS: 92, stoop: 0.01, carry: 'mug', belly: 0.6, top: 'fleece', hairdo: 'pony', blush: 1, bootF: 0.14 },
+    { skin: '#eac2a0', hair: '#c9c6c0', coat: '#86806f', shirt: '#f2efe6', pants: '#5e4b3a', boots: '#2f2620', sole: '#120d0a', hat: '#4d463e',
+      scale: 1, walkS: 42, runS: 88, stoop: 0.07, carry: 'mug', belly: 3.6, top: 'cardigan', hairdo: 'flatcap', stache: 1, bootF: 0.22 },
+    { skin: '#e8b894', hair: '#2a201a', coat: '#e07a2e', pants: '#2f3b52', boots: '#f2f2f2', sole: '#c0392b', hat: '#2c5aa0',
+      scale: 1, walkS: 48, runS: 98, stoop: 0, carry: 'mug', belly: 0, top: 'hoodie', hairdo: 'cap', glasses: 1, bootF: 0.14 },
+  ];
+  LOOK.guest = GUESTS[0];
+  LOOK.waiter = {
+    skin: '#efc7a3', hair: '#2e2018', coat: '#f6f3ec', vest: '#1e1b19', trim: '#b8322a', pants: '#24211f', boots: '#161210', sole: '#050403',
+    scale: 1, walkS: 48, runS: 96, stoop: 0, carry: 'tray', belly: 1.6, top: 'vest', hairdo: 'slick', stache: 1, bootF: 0.16,
+  };
+  const lookOf = (kind, look) => (kind === 'guest' ? GUESTS[Math.abs(look | 0) % GUESTS.length] : LOOK[kind] || LOOK.walker);
+  const SIZED = new Map();
+  function sizedLook(L, s) {
+    let m = SIZED.get(L);
+    if (!m) SIZED.set(L, (m = new Map()));
+    let v = m.get(s);
+    if (!v) m.set(s, (v = Object.assign({}, L, { scale: L.scale * s })));
+    return v;
+  }
   const CAN_AIM = { walker: 1, ztmh: 1, poacher: 1 };
-  const SPECIAL = { down: 1, pickup: 1, hugged: 1, bitten: 1, drop: 1, climbStand: 1, selfie: 1 };
+  const SPECIAL = { down: 1, pickup: 1, hugged: 1, bitten: 1, drop: 1, climbStand: 1, selfie: 1, dive: 1, jump: 1, climbOut: 1, cling: 1 };
+  const INN = { dive: 1, jump: 1, climbOut: 1, cling: 1 };
 
   const shadeCache = {};
   function dk(hex, k) {
@@ -167,7 +192,7 @@
     hatA: 0, hatY: 0, hatS: 1, tsx: 1, stars: 0, sackA: 0, free: false, vs: 0, pw: 0, pa: 0, flash: 0, spin: 0,
     legN: mkLeg(), legF: mkLeg(), armN: mkArm(), armF: mkArm(),
     rf: { mode: '', ox: 0, oy: 0, ang: 0, behind: false, back: false, kick: 0, sx: 1 },
-    phone: { x: 0, y: 0, ang: 0 }, basket: { x: 0, y: 0, ang: 0 },
+    phone: { x: 0, y: 0, ang: 0 }, basket: { x: 0, y: 0, ang: 0 }, tray: { x: 0, y: 0, ang: 0 },
   };
   const SL = [];
   ['px', 'py', 'lean', 'sx', 'sy', 'hx', 'hy', 'hang', 'hatA', 'hatY', 'hatS', 'tsx', 'sackA'].forEach((k) => SL.push([R, k]));
@@ -239,13 +264,14 @@
     if (ck > 0) hipH = lerp(hipH, D.hip - 0.6 + amt * (2 * cos(ph) - 0.7), ck);
     hipH = lerp(hipH, D.hip - (film ? 1.5 : 3.2), stand);
     R.px = lerp(shift * 0.9, 0, amt) * (1 - aimK);
-    const reach = (x, y) => D.ank + y + sqrt(Math.max(0, LMAX * LMAX - (x - R.px) * (x - R.px)));
+    const sl = K.slope || 0;
+    const reach = (x, y) => D.ank + y - sl * x + sqrt(Math.max(0, LMAX * LMAX - (x - R.px) * (x - R.px)));
     hipH = Math.min(hipH, reach(nx, ny), reach(fx, fy));
     R.py = -hipH;
-    ik(R.px, R.py, nx, -(D.ank + ny), D.thigh, D.shin, 1); setLeg(R.legN, nr);
-    ik(R.px, R.py, fx, -(D.ank + fy), D.thigh, D.shin, 1); setLeg(R.legF, fr);
+    ik(R.px, R.py, nx, -(D.ank + ny) + sl * nx, D.thigh, D.shin, 1); setLeg(R.legN, nr + sl * 0.8);
+    ik(R.px, R.py, fx, -(D.ank + fy) + sl * fx, D.thigh, D.shin, 1); setLeg(R.legF, fr + sl * 0.8);
 
-    let lean = L.stoop + amt * (0.03 + 0.26 * runK);
+    let lean = L.stoop + amt * (0.03 + 0.26 * runK) - sl * 0.25;
     lean = lerp(lean, film ? 0.0 : 0.1, aimK);
     if (ck > 0) lean = lerp(lean, -0.08 + 0.07 * sin(TAU * p0 * 2) * amt, ck);
     R.lean = lean; R.cl = cos(lean); R.sl = sin(lean);
@@ -332,6 +358,15 @@
       gfx = gF > 0 ? lerp(gfx, TP.x, ck) : TP.x; gfy = gF > 0 ? lerp(gfy, TP.y, ck) : TP.y; gF = lerp(gF, 1, ck);
       uN = lerp(uN, -0.35, ck); fN = lerp(fN, 0.3, ck); uF = lerp(uF, -0.3, ck); fF = lerp(fF, 0.3, ck);
     }
+    if (K.balance) {
+      const w = sin(tm * 2.6 + sd);
+      uN = 1.35 + 0.25 * w; fN = 0.35; uF = -0.95 - 0.25 * w; fF = 0.45; gN = 0; gF = 0;
+    }
+    if (K.has && (L.carry === 'tray' || L.carry === 'mug')) {
+      const j = sin(TAU * p0 * 2) * 0.7 * amt, hi = L.carry === 'mug' && K.panic ? smooth(runK * amt * 1.5) : 0;
+      if (L.carry === 'tray') tp(9.5, -25 + j); else tp(lerp(10.5, 7, hi), lerp(-12.5, -33, hi) + j);
+      gN = 1; gnx = TP.x; gny = TP.y;
+    }
     arm(R.armN, uN, fN, gN, gnx, gny);
     arm(R.armF, uF, fF, gF, gfx, gfy);
   }
@@ -341,6 +376,9 @@
     if (L.carry === 'basket') {
       const sway = sin(TAU * p0 - 0.8) * 0.16 * amt + (K.panic ? sin(TAU * p0 * 2) * 0.12 * runK * amt : 0);
       R.basket.ang = sway; R.basket.x = a.wx + sin(sway) * 3; R.basket.y = a.wy + 3.2 * cos(sway);
+    } else if (L.carry === 'tray' || L.carry === 'mug') {
+      R.tray.x = a.wx; R.tray.y = a.wy;
+      R.tray.ang = K.panic ? 0.14 * sin(TAU * p0 * 2 + 1) * runK * amt : 0.04 * sin(TAU * p0 * 2) * amt;
     } else if (L.carry === 'phone') {
       const dir = atan2(a.wy - a.ey, a.wx - a.ex);
       R.phone.x = a.wx; R.phone.y = a.wy;
@@ -641,6 +679,7 @@
     else if (kind === 'poacher') bootF = L.win ? 0.5 : 0.4;
     else if (kind === 'walker' && L.win) bootF = 0.58;
     else if (kind === 'santa') bootF = 0.56;
+    else if (kind === 'guest' || kind === 'waiter') bootF = L.bootF;
     const mid = (a, b, t) => a + (b - a) * t;
     if (kind === 'tourist' && !ski) {
       limb(ctx, R.px, R.py, mid(R.px, lg.kx, 0.9), mid(R.py, lg.ky, 0.9), 8.8, 7.4, dk(thigh, f));
@@ -701,6 +740,7 @@
       ell(ctx, -5.2, -16, 4.4, 5.2);
       for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.moveTo(-5.6 + i * 3.6, 2.4); ctx.lineTo(-3.8 + i * 3.6, 6.4 - (i % 2) * 1.6); ctx.lineTo(-2 + i * 3.6, 2.4); ctx.fill(); }
     } else if (kind === 'picker') ell(ctx, -5.6, -15.5, 4.2, 5.4);
+    else if (kind === 'guest' && L.top === 'hoodie') { ctx.fillStyle = dk(L.coat, 0.84); ell(ctx, -5, -22.2, 4.8, 3.9); ctx.fillStyle = L.coat; }
     torsoPath(ctx, L.belly); ctx.fill();
     ctx.save();
     torsoPath(ctx, L.belly); ctx.clip();
@@ -767,10 +807,62 @@
       ctx.fillStyle = '#e8c547'; rr(ctx, 2.6 + L.belly * 0.45, -3.2, 3.8, 4.8, 0.7);
       ctx.fillStyle = '#1d1917'; ctx.fillRect(3.5 + L.belly * 0.45, -1.9, 2, 2.2);
       ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(-6.2, -21, 2.6, 18);
-    }
+    } else if (kind === 'guest') guestTop(ctx, L);
+    else if (kind === 'waiter') waiterTop(ctx, L);
     ctx.fillStyle = 'rgba(0,0,0,0.14)'; ctx.fillRect(-9, -26, 5, 32);
     ctx.restore();
     ctx.restore();
+  }
+
+  function guestTop(ctx, L) {
+    const b = L.belly;
+    if (L.top === 'flannel') {
+      ctx.fillStyle = L.check;
+      for (let x = -7; x < 10; x += 4) ctx.fillRect(x, -26, 1.6, 31);
+      for (let y = -21; y < 4; y += 4) ctx.fillRect(-9, y, 20, 1.6);
+      ctx.fillStyle = dk(L.coat, 0.7);
+      ctx.beginPath(); ctx.moveTo(0.4, -23.8); ctx.lineTo(4.4, -18.8); ctx.lineTo(6.4, -22.2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#efe6d6'; for (let i = 0; i < 4; i++) circle(ctx, 5.4 + b * 0.22 * i, -17 + i * 4.4, 0.6);
+      ctx.fillStyle = '#3b2a1e'; ctx.fillRect(-8, -1.2, 17 + b, 2.4);
+      ctx.fillStyle = '#c9a647'; ctx.fillRect(3.6 + b * 0.5, -1, 2, 2);
+    } else if (L.top === 'fleece') {
+      ctx.fillStyle = dk(L.coat, 0.78); rr(ctx, -2.6, -25.8, 9.6, 4.2, 1.8);
+      ctx.fillStyle = dk(L.coat, 0.6); ctx.fillRect(4.7, -22, 0.9, 25);
+      ctx.fillStyle = '#e4ddcc'; ctx.fillRect(4.5, -22.4, 1.3, 2.4);
+      ctx.fillStyle = 'rgba(255,255,255,0.13)'; ctx.fillRect(-7, -14, 16 + b, 1.1);
+      ctx.fillStyle = '#f1ece0'; circle(ctx, 1.6, -16.6, 0.9);
+    } else if (L.top === 'cardigan') {
+      ctx.fillStyle = L.shirt;
+      ctx.beginPath(); ctx.moveTo(0.2, -23.8); ctx.lineTo(6.4, -21.2); ctx.quadraticCurveTo(8 + b, -8, 7.4 + b, 3.4); ctx.lineTo(3, 3.4);
+      ctx.quadraticCurveTo(4.2, -10, 0.2, -23.8); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#8a3a2c'; ctx.beginPath(); ctx.moveTo(4.2, -21.6); ctx.lineTo(5.6, -14); ctx.lineTo(6.6, -21); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = dk(L.coat, 0.66); for (let i = 0; i < 4; i++) circle(ctx, 3.4 + i * 0.3, -15 + i * 4.4, 0.65);
+      ctx.fillStyle = dk(L.coat, 0.84); rr(ctx, -5, -8.4, 5.2, 4.6, 1);
+      ctx.strokeStyle = dk(L.coat, 0.9); ctx.lineWidth = 0.6;
+      ctx.beginPath(); for (let y = -19; y < 2; y += 3) { ctx.moveTo(-7.6, y); ctx.lineTo(1.8, y + 0.6); } ctx.stroke();
+    } else if (L.top === 'hoodie') {
+      ctx.fillStyle = dk(L.coat, 0.82); rr(ctx, -0.6, -8.6, 8.8 + b, 6.6, 2.4);
+      ctx.strokeStyle = '#f3efe6'; ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(2.8, -22.6); ctx.lineTo(3.2, -15.4); ctx.moveTo(5.6, -21.8); ctx.lineTo(6, -15); ctx.stroke();
+      ctx.fillStyle = dk(L.coat, 0.88); ctx.fillRect(-8, 0.2, 17 + b, 3);
+    }
+  }
+
+  function waiterTop(ctx, L) {
+    const b = L.belly;
+    ctx.fillStyle = L.vest;
+    ctx.beginPath();
+    ctx.moveTo(-5.8, 3); ctx.quadraticCurveTo(-7, -6, -6.8, -15); ctx.quadraticCurveTo(-6.6, -21, -3.6, -22.2);
+    ctx.lineTo(1.6, -11.6); ctx.lineTo(5, -20.6); ctx.quadraticCurveTo(7.8, -13, 7.1 + b, -6);
+    ctx.quadraticCurveTo(7.3 + b, 0, 5.6, 3); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = L.trim; ctx.lineWidth = 0.9;
+    ctx.beginPath(); ctx.moveTo(-3.6, -22.2); ctx.lineTo(1.6, -11.6); ctx.lineTo(5, -20.6); ctx.stroke();
+    const dots = [[5.4, -9, '#c0392b'], [5.9, -5, '#2f8f4e'], [5.8, -1.2, '#e3b33b'], [-4.6, -13, '#c0392b'], [-5, -7.6, '#2f8f4e']];
+    for (const [x, y, c] of dots) { ctx.fillStyle = c; circle(ctx, x, y, 0.85); }
+    ctx.fillStyle = L.trim;
+    ctx.beginPath(); ctx.moveTo(2.6, -22.6); ctx.lineTo(0.4, -24); ctx.lineTo(0.6, -21.2); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(2.6, -22.6); ctx.lineTo(4.8, -24.2); ctx.lineTo(4.8, -21.2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#121010'; ctx.fillRect(-8, -0.6, 17 + b, 2);
   }
 
   const Q = [0, 0], Q2 = [0, 0], SF = { ux: 0, uy: 1 };
@@ -887,7 +979,7 @@
       ctx.fillStyle = 'rgba(52,38,26,0.5)';
       ctx.beginPath(); ctx.arc(0, 0, D.hr, 0.15, 1.9); ctx.lineTo(1, 2); ctx.closePath(); ctx.fill();
     }
-    if (kind === 'picker' || kind === 'tourist' || kind === 'santa') { ctx.fillStyle = 'rgba(224,110,110,0.32)'; circle(ctx, 3 * yaw, 3, 1.7); }
+    if (kind === 'picker' || kind === 'tourist' || kind === 'santa' || L.blush) { ctx.fillStyle = 'rgba(224,110,110,0.32)'; circle(ctx, 3 * yaw, 3, 1.7); }
     const ex = 3.5 * yaw, blink = frac(tm / 3.7 + K.seed) < 0.025;
     const eye = '#2a1d12';
     if (fc === 3) {
@@ -942,8 +1034,9 @@
       ctx.beginPath(); ctx.moveTo(2.6 * yaw, 3.9); ctx.quadraticCurveTo(4.6 * yaw, 6.2, 6.6 * yaw, 3.6); ctx.stroke();
     } else if (kind !== 'santa') ctx.fillRect(3.4 * yaw, 4, 2.4 * yaw, 0.8);
     if (kind === 'walker') { ctx.fillStyle = '#5a3a24'; ell(ctx, 5 * yaw, 2.9, 3.1, 1.2); }
+    else if (L.stache && (fc === 0 || fc >= 5)) { ctx.fillStyle = dk(L.hair, 0.82); ell(ctx, 5 * yaw, 2.9, 3, 1.15); }
     if (kind === 'santa') { ctx.fillStyle = '#ffffff'; ell(ctx, 5 * yaw, 3, 3, 1.55, -0.3); ell(ctx, 7.9 * yaw, 3.4, 2.1, 1.35, 0.35); ctx.fillStyle = '#e4e0d7'; ell(ctx, 6.4 * yaw, 3.9, 1.6, 0.5); }
-    if (kind !== 'picker' && (R.hatA || R.hatY || R.hatS !== 1)) {
+    if (kind !== 'picker' && !((kind === 'guest' || kind === 'waiter') && !L.hat) && (R.hatA || R.hatY || R.hatS !== 1)) {
       const hk = kind === 'ztmh' && !win ? 2.4 : mask ? 0.35 : 1;
       ctx.save(); ctx.translate(0, R.hatY * (mask ? 0.4 : 1) - 4); ctx.rotate(R.hatA * hk); ctx.scale(1, R.hatS); ctx.translate(0, 4);
       hat(ctx, K, tm);
@@ -1068,6 +1161,40 @@
       ctx.fillStyle = L.trim; rr(ctx, -8.2, -7.6, 16.4, 3.8, 1.9);
       ctx.fillStyle = '#e6e1d6'; for (let x = -6.6; x < 7; x += 2.8) circle(ctx, x, -5.7, 0.6);
       ctx.fillStyle = L.trim; circle(ctx, -11.2 + sw * 0.3, -3.6 + sw, 2.6);
+    } else if (kind === 'guest' || kind === 'waiter') hairdo(ctx, K, tm);
+  }
+
+  function hairdo(ctx, K, tm) {
+    const L = K.L, d = L.hairdo;
+    if (d === 'cap') {
+      ctx.fillStyle = L.hat;
+      ctx.beginPath(); ctx.moveTo(-7.5, -2.2); ctx.quadraticCurveTo(-7.9, -11, 0, -11); ctx.quadraticCurveTo(7.3, -10.8, 7.6, -3.4); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = dk(L.hat, 0.78);
+      ctx.beginPath(); ctx.moveTo(4.4, -4.8); ctx.lineTo(13.2, -3.6); ctx.quadraticCurveTo(13.6, -2.1, 11.8, -1.9); ctx.lineTo(4.2, -2.6); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.85)'; rr(ctx, 1, -8.6, 3.6, 2.4, 0.8);
+      ctx.fillStyle = dk(L.hat, 1.25); circle(ctx, -0.4, -10.8, 1.1);
+      return;
+    }
+    if (d === 'flatcap') {
+      ctx.fillStyle = L.hat;
+      ctx.beginPath(); ctx.moveTo(-7.7, -2.6); ctx.quadraticCurveTo(-8.3, -9.8, -0.4, -10.3); ctx.quadraticCurveTo(7.6, -10.5, 10.8, -5.6);
+      ctx.quadraticCurveTo(10.6, -3.7, 7.6, -3.6); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = dk(L.hat, 0.76); ctx.fillRect(-7.7, -4.6, 15.6, 1.5);
+      ctx.strokeStyle = dk(L.hat, 1.25); ctx.lineWidth = 0.5;
+      ctx.beginPath(); ctx.moveTo(-5, -8.6); ctx.quadraticCurveTo(1, -9.6, 7.6, -6.4); ctx.moveTo(-6.4, -6.4); ctx.quadraticCurveTo(0.6, -7.6, 8.8, -5); ctx.stroke();
+      return;
+    }
+    ctx.fillStyle = L.hair;
+    ctx.beginPath(); ctx.moveTo(-7.4, 2); ctx.quadraticCurveTo(-8.6, -8.8, -0.2, -8.7); ctx.quadraticCurveTo(6.7, -8.5, 7.3, -4.1);
+    ctx.quadraticCurveTo(3.8, -6.5, 0.2, -5.4); ctx.quadraticCurveTo(-3.2, -4.4, -4.6, 2.2); ctx.closePath(); ctx.fill();
+    if (d === 'pony') {
+      const sw = sin(tm * 3 + K.seed) * 0.12 + (K.panic ? sin(tm * 15 + K.seed) * 0.4 : 0);
+      ctx.save(); ctx.translate(-6.2, -4.4); ctx.rotate(0.55 + sw);
+      ctx.beginPath(); ctx.moveTo(-1.4, -1.4); ctx.quadraticCurveTo(-5.8, 2.4, -3.2, 10.2); ctx.quadraticCurveTo(-0.2, 6.2, 1.6, 1.2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#d6336c'; circle(ctx, -0.2, -0.4, 1.35);
+      ctx.restore();
+    } else if (d === 'slick') {
+      ctx.fillStyle = 'rgba(255,255,255,0.24)'; ctx.fillRect(-3.6, -7.7, 5.2, 0.8);
     }
   }
 
@@ -1171,8 +1298,50 @@
 
   const K = {
     kind: 'walker', L: LOOK.walker, state: 'idle', face: 1, seed: 0, tx: 200, ty: -48,
-    panic: false, glasses: false, squint: false, small: false, kick: 0, armed: true, has: true,
+    panic: false, glasses: false, squint: false, small: false, kick: 0, armed: true, has: true, film: false, slope: 0, balance: false,
   };
+
+  function mugArt(ctx, x, y, a, s) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.scale(s, s);
+    ctx.strokeStyle = 'rgba(236,242,240,0.95)'; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.arc(-3.3, -3.4, 2, PI * 0.5, PI * 1.5); ctx.stroke();
+    ctx.fillStyle = 'rgba(236,242,240,0.92)'; rr(ctx, -2.9, -7.3, 5.8, 7.8, 0.9);
+    ctx.fillStyle = '#e8a033'; ctx.fillRect(-2.2, -5.6, 4.4, 5.4);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.fillRect(-1.8, -5.2, 0.9, 4.6);
+    ctx.fillStyle = '#fffaf0'; circle(ctx, -1.4, -6.6, 1.6); circle(ctx, 0.5, -7.1, 1.8); circle(ctx, 2, -6.5, 1.4);
+    ctx.restore();
+  }
+
+  function plateArt(ctx, x, y, s) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+    ctx.fillStyle = '#c9c4b8'; ell(ctx, 0, 0.4, 10.4, 2.6);
+    ctx.fillStyle = '#f7f5ef'; ell(ctx, 0, -0.2, 10, 2.2);
+    ctx.fillStyle = '#e9dbb0'; ell(ctx, 0, -2.6, 7.2, 3.4);
+    ctx.fillStyle = '#f8f1dc';
+    circle(ctx, -4, -3.2, 1.7); circle(ctx, -1.2, -4.6, 1.8); circle(ctx, 2, -4, 1.7); circle(ctx, 4.4, -2.7, 1.5); circle(ctx, 0.6, -2, 1.6);
+    ctx.fillStyle = '#a8452a'; circle(ctx, -2.4, -4.9, 0.8); circle(ctx, 1.8, -5.5, 0.75); circle(ctx, 3.6, -3.5, 0.7); circle(ctx, -4.6, -2.5, 0.65);
+    ctx.fillStyle = '#5b8f3a'; ctx.fillRect(-0.6, -6, 1.2, 0.6); ctx.fillRect(2.6, -4.7, 1, 0.5);
+    ctx.restore();
+  }
+
+  function trayArt(ctx, x, y, a, full) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+    ctx.fillStyle = '#8f969d'; ell(ctx, 0, 0.7, 11.6, 2.3);
+    ctx.fillStyle = '#d5d9dd'; ell(ctx, 0, 0, 11, 1.7);
+    ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(-7, -0.9, 6, 0.6);
+    if (full) { plateArt(ctx, -3, -0.5, 0.62); mugArt(ctx, 6.2, -0.1, 0, 0.72); }
+    ctx.restore();
+  }
+
+  function drawCarry(ctx, K) {
+    const t = R.tray;
+    if (K.L.carry === 'tray') {
+      trayArt(ctx, t.x + 1.2, t.y - 2.6, t.ang, true);
+    } else {
+      mugArt(ctx, t.x + 3.4, t.y + 3.2, t.ang, 1);
+      ctx.fillStyle = K.L.skin; circle(ctx, t.x, t.y + 0.4, 2.4);
+    }
+  }
 
   function render(ctx, tm, st, part) {
     const kind = K.kind, rf = R.rf, L = K.L, body = part !== 2, arms = part !== 1;
@@ -1198,6 +1367,8 @@
     drawArm(ctx, K, R.armN, false);
     if (kind === 'picker' && K.has) drawBasket(ctx, K, tm);
     if (kind === 'tourist' && K.has) drawPhone(ctx, K, tm, K.state === 'film' && st.aimK > 0.5);
+    if (K.film) drawPhone(ctx, K, tm, true);
+    if ((kind === 'guest' || kind === 'waiter') && K.has && !INN[K.sp]) drawCarry(ctx, K);
     if (R.stars > 0.01) drawStars(ctx, R.stars, tm, st.seed);
   }
 
@@ -1348,10 +1519,12 @@
   ZS.drawHuman = function (ctx, h, time) {
     if (!(time >= 0)) time = 0;
     const kind = LOOK[h.kind] ? h.kind : 'walker';
-    const L = (h.outfit === 'winter' && WLOOK[kind]) || LOOK[kind];
+    let L = kind === 'guest' ? lookOf(kind, h.look) : (h.outfit === 'winter' && WLOOK[kind]) || LOOK[kind];
+    if (h.size > 0 && h.size !== 1) L = sizedLook(L, h.size);
     let sp = SPECIAL[h.state] ? h.state : '';
     if ((sp === 'pickup' || sp === 'drop' || sp === 'climbStand') && !CAN_AIM[kind]) sp = '';
     if (sp === 'selfie' && kind !== 'tourist') sp = '';
+    if (INN[sp] && kind !== 'guest' && kind !== 'waiter') sp = '';
     let state = sp ? 'idle' : h.state;
     if (state !== 'walk' && state !== 'run' && state !== 'aim' && state !== 'film') state = 'idle';
     const armed = !!CAN_AIM[kind] && h.armed !== false && sp !== 'down' && sp !== 'pickup' && sp !== 'drop';
@@ -1376,7 +1549,9 @@
     const setK = () => {
       K.kind = kind; K.L = L; K.state = state; K.face = face; K.seed = st.seed; K.armed = armed; K.has = has; K.text = st.text;
       K.panic = state === 'run' && (kind === 'picker' || kind === 'tourist' || kind === 'santa' || !!h.scared);
-      K.glasses = kind === 'ztmh' || (kind === 'tourist' && !L.ski);
+      K.glasses = kind === 'ztmh' || (kind === 'tourist' && !L.ski) || !!L.glasses;
+      K.film = false; K.sp = sp; K.balance = state === 'walk' && !!h.balance;
+      K.slope = state === 'walk' && Number.isFinite(h.slope) ? clamp(h.slope * face, -0.8, 0.8) : 0;
       K.squint = state === 'aim' && st.aimK > 0.5;
       K.small = false; K.fs = 0; K.kick = clamp(h.kick || 0, 0, 1);
       if (targeted && at) { K.tx = face * (at[0] - h.x) / L.scale; K.ty = (at[1] - GY) / L.scale; } else { K.tx = 200; K.ty = -48; }
@@ -1400,6 +1575,10 @@
     else if (sp === 'hugged') solveHug(K, st, time, unit(h.hugK));
     else if (sp === 'bitten') solveBite(K, st, time, unit(h.bitK));
     else if (sp === 'selfie') solveSelfie(K, st, time, unit(h.selfieK));
+    else if (sp === 'dive') solveDive(K, st, time, unit(h.k));
+    else if (sp === 'jump') { st.dropT = time; solveDrop(K, st, time, smooth((unit(h.k) - 0.15) / 0.85), null); }
+    else if (sp === 'climbOut') solveClimbOut(K, st, time, unit(h.k), Number.isFinite(h.grip) ? (h.grip - by) / L.scale : -40);
+    else if (sp === 'cling') solveCling(K, st, time, h, face);
     else if (sp === 'drop') {
       dk0 = unit(h.dropK); sdp = lerp(POST_SCALE, L.scale, smooth(dk0 / 0.3));
       if (!(st.dropT >= 0) || time - st.dropT > 0.3 || time < st.dropT) {
@@ -1425,6 +1604,24 @@
     } else { st.mz[0] = 0; st.mz[1] = 0; st.gun = ''; }
 
     R.free = !!sp;
+    if (sp === 'dive' || sp === 'jump' || sp === 'climbOut') {
+      const k = unit(h.k), sc = L.scale * (sp === 'climbOut' ? 1 : lerp(0.82, 1, smooth(k / 0.3)));
+      const c = sp === 'dive' ? DV.c : sp === 'jump' ? 34 : 0, p0 = sp === 'dive' ? DV.p : c, spin = sp === 'dive' ? DV.spin : sp === 'jump' ? R.spin : 0;
+      const out = sp === 'climbOut' ? 0 : smooth((k - 0.12) / 0.2);
+      if (h.shadow !== false && out > 0.01) {
+        const sk = clamp(1 - (GY - by + c - p0) / 110, 0.25, 1);
+        ctx.fillStyle = 'rgba(15,22,8,' + (0.2 * sk * out).toFixed(3) + ')'; ell(ctx, h.x, GY + 1.2, 16 * sk, 2.8 * sk);
+      }
+      ctx.save();
+      if (h.clip) { ctx.beginPath(); ctx.rect(h.clip[0], h.clip[1], h.clip[2], h.clip[3]); ctx.clip(); }
+      ctx.translate(h.x, by); ctx.scale(face * sc, sc); ctx.translate(0, -c);
+      if (spin) ctx.rotate(spin);
+      ctx.translate(0, p0);
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      render(ctx, time, st, 0);
+      ctx.restore();
+      return;
+    }
     if (sp === 'drop') {
       const pst = st.post, cxs = pst ? pst.x : h.x, rev = pst ? smooth(dk0 / 0.26) : 1;
       const a0 = pst ? swayA(Number.isFinite(h.sway) ? h.sway : pst.sway) * (1 - smooth(dk0 / 0.3)) : 0;
@@ -1467,6 +1664,158 @@
     render(ctx, time, st, 0);
     ctx.restore();
     breathe(ctx, st, unit(h.cold), h.x, by, face * L.scale, L.scale, time, live ? dt : 0, st.runK * st.amt);
+  };
+
+  const DIVE = [
+    [0, 0, -22, 0.55, 0.2, -0.1, 6, -3.2, 0, -4, -3.2, 0, -0.7, 1.3, -0.6, 1.1, 0, 0, 1],
+    [0.12, 1.5, -31.5, 0.25, 0.05, 0, 8, -2, 0.5, -7, -6.5, 0.9, 2.5, 0.25, 2.3, 0.35, 0, 0, 1],
+    [0.3, 0, -32.3, 0, 0, 0.12, 1.5, -3.4, 0.9, -3.5, -6.5, 1.1, 2.95, 0.08, 2.85, 0.12, 0, 0, 1],
+    [0.47, 0, -32.3, 0.06, 0.1, 0.2, 2, -4, 0.8, -2.5, -7, 1, 2.75, 0.5, 2.65, 0.6, 0, 0, 1],
+    [0.58, 0.5, -17, 0.95, 0.55, 0.3, 7, -12.5, -0.6, 4, -9.5, -0.4, 1.25, 1.7, 1.05, 1.9, 0, 0, 1],
+    [0.8, 0.5, -17, 0.95, 0.55, 0.3, 7, -12.5, -0.6, 4, -9.5, -0.4, 1.25, 1.7, 1.05, 1.9, 0, 0, 1],
+    [0.92, 1, -24, 0.45, 0.15, 0, 7, -3.2, 0, -5, -3.4, 0.3, 0.7, 1.1, 0.3, 1.2, 0, 0, 1],
+    [1, 0, -31, 0.3, 0.05, 0, 6, -3.2, 0, -6, -4.5, 0.5, 2.1, 0.6, 1.6, 0.7, 0, 0, 1],
+  ];
+  const DV = { spin: 0, c: 32, p: 32 };
+  function still() {
+    R.hatA = 0; R.hatY = 0; R.hatS = 1; R.tsx = 1; R.yaw = 1; R.stars = 0; R.sackA = 0; R.vs = 0; R.pw = 0; R.flash = 0; R.spin = 0; R.rf.mode = '';
+  }
+
+  function solveDive(K, st, tm, k) {
+    spline(DIVE, k, PV);
+    const fl = plateau(k, 0.12, 0.2, 0.42, 0.5), w = tm * 21 + st.seed;
+    PV[5] += 2.5 * sin(w) * fl; PV[8] -= 2.5 * sin(w) * fl;
+    pose(PV);
+    arm(R.armN, PV[11], PV[12], 0, 0, 0);
+    arm(R.armF, PV[13], PV[14], 0, 0, 0);
+    still();
+    R.face = k < 0.6 ? 2 : k < 0.86 ? 3 : 2;
+    DV.spin = 1.35 * smooth((k - 0.1) / 0.32) + (TAU - 1.35) * smooth((k - 0.5) / 0.34);
+    DV.p = lerp(32, 16, smooth((k - 0.48) / 0.1));
+    DV.c = k < 0.5 ? lerp(32, 12, smooth((k - 0.33) / 0.17)) : lerp(12, 16, smooth((k - 0.5) / 0.08));
+  }
+
+  function solveClimbOut(K, st, tm, k, gy) {
+    for (let i = 0; i < 18; i++) PV[i] = STAND[i];
+    const push = smooth((k - 0.38) / 0.16), step = bump(k, 0.58, 0.92), stand = smooth((k - 0.86) / 0.14);
+    PV[2] = 0.05 + 0.32 * push * (1 - stand);
+    PV[1] = -32.3 + 3 * push * (1 - stand);
+    PV[5] = 3 + 4 * step; PV[6] = -3.2 - 13 * step; PV[7] = -0.3 * step;
+    PV[3] = -0.12 * (1 - push); PV[4] = -0.2 * (1 - push);
+    pose(PV);
+    const g = 1 - stand, y = clamp(gy, -72, -8), jig = sin(tm * 13 + st.seed) * 0.6 * (1 - push);
+    arm(R.armN, 0.05, 0.18, g, 7.5, y + jig);
+    arm(R.armF, 0.03, 0.18, g, -3, y - jig);
+    still();
+    R.face = k < 0.55 ? 2 : 0;
+  }
+
+  function solveCling(K, st, tm, h, face) {
+    const sd = st.seed, act = h.act, s = 0.571 * face, tr = sin(tm * 17 + sd) * (act === 'cling' ? 0.55 : 0.2), u = 1 / K.L.scale;
+    for (let i = 0; i < 18; i++) PV[i] = STAND[i];
+    PV[0] = -1 + tr * 0.4; PV[1] = -30.6 + tr * 0.3; PV[2] = act === 'film' ? 0.04 : 0.14;
+    PV[5] = 4; PV[6] = -3.2 + s * 4; PV[7] = Math.atan(s);
+    PV[8] = -4.5; PV[9] = -3.2 - s * 4.5; PV[10] = Math.atan(s);
+    PV[3] = act === 'cling' ? 0.1 : 0; PV[4] = act === 'wave' ? -0.12 : 0.04 * sin(tm * 1.3 + sd);
+    pose(PV);
+    const cx = ((Number.isFinite(h.reach) ? h.reach : 7) + 1) * face * u, top = -31.5 * u;
+    const ax = cx + 1.4 * Math.sign(cx), bx = cx + 0.8 * Math.sign(cx);
+    still();
+    if (act === 'film') {
+      const fwd = cx > 0;
+      arm(R.armF, 0.03, 0.18, 1, fwd ? bx : bx - 1, fwd ? top + 9 : top + 3);
+      const jx = sin(tm * 7.3 + sd) * 0.25, jy = sin(tm * 9.1 + sd) * 0.25;
+      arm(R.armN, 0.05, 0.18, 1, R.sx + 16 + jx, R.sy - 8 + jy);
+      R.hx = R.sx + 3; R.hy = R.sy - 10.6; R.hang = -0.06;
+      R.phone.x = R.armN.wx; R.phone.y = R.armN.wy; R.phone.ang = 0.04;
+      K.film = true;
+      R.face = 0;
+    } else {
+      arm(R.armN, 0.05, 0.18, 1, ax, top + tr * 0.3);
+      if (act === 'wave') arm(R.armF, 2.8 + 0.38 * sin(tm * 9 + sd), 0.35 + 0.3 * sin(tm * 9 + sd + 1), 0, 0, 0);
+      else arm(R.armF, 0.03, 0.18, 1, bx, top + 9 - tr * 0.3);
+      R.face = act === 'wave' ? (frac(tm * 0.8 + sd) < 0.5 ? 2 : 1) : 2;
+    }
+  }
+
+  function bustArms(b, time, sd) {
+    const act = b.act;
+    if (act === 'drink') {
+      const s = frac(time / 6.5 + sd / TAU), lift = plateau(s, 0, 0.06, 0.16, 0.24);
+      arm(R.armN, 0.05, 0.18, 1, lerp(6.5, R.hx + 6.4, lift), lerp(1, R.hy + 4.6, lift));
+      arm(R.armF, 0.03, 0.18, 1, -2, 2.4);
+      R.tray.x = R.armN.wx; R.tray.y = R.armN.wy; R.tray.ang = -0.9 * lift;
+      return lift;
+    }
+    if (act === 'eat') {
+      const s = frac(time / 2.8 + sd / TAU), lift = plateau(s, 0.1, 0.3, 0.45, 0.65);
+      arm(R.armN, 0.05, 0.18, 1, lerp(10.5, R.hx + 5.6, lift), lerp(-1.4, R.hy + 4, lift));
+      arm(R.armF, 0.03, 0.18, 1, -1.5, 2.4);
+      return lift;
+    }
+    if (act === 'alarm') {
+      const j = sin(time * 19 + sd) * 0.8;
+      arm(R.armN, 0.05, 0.18, 1, R.hx + 7.4 + j, R.hy - 5.5);
+      arm(R.armF, 0.03, 0.18, 1, R.hx - 4.6 - j, R.hy - 8);
+      return 0;
+    }
+    if (act === 'wave') {
+      arm(R.armN, 0.05, 0.18, 1, 8.5, -0.5);
+      arm(R.armF, 2.8 + 0.38 * sin(time * 9 + sd), 0.35 + 0.3 * sin(time * 9 + sd + 1), 0, 0, 0);
+      return 0;
+    }
+    if (act === 'film') {
+      const jx = sin(time * 7.3 + sd) * 0.25, jy = sin(time * 9.1 + sd) * 0.25;
+      arm(R.armN, 0.05, 0.18, 1, R.sx + 15.5 + jx, R.sy - 8.5 + jy);
+      arm(R.armF, 0.03, 0.18, 1, -5.5, -0.5);
+      R.phone.x = R.armN.wx; R.phone.y = R.armN.wy; R.phone.ang = 0.04;
+      K.film = true;
+      return 0;
+    }
+    const j = sin(time * 17 + sd) * 0.4;
+    arm(R.armN, 0.05, 0.18, 1, 8 + j, -0.6);
+    arm(R.armF, 0.03, 0.18, 1, -5.5 - j, -0.6);
+    return 0;
+  }
+
+  ZS.drawGuestBust = function (ctx, b, time) {
+    if (!(time >= 0)) time = 0;
+    const kind = b.kind === 'waiter' ? 'waiter' : 'guest', L = lookOf(kind, b.look), sd = hashSeed(b.seed || 1);
+    const up = unit(b.up), stand = unit(b.stand), act = b.act || 'eat', sc = (b.scale || 0.8) * L.scale, face = b.face < 0 ? -1 : 1;
+    if (up <= 0.001) return;
+    K.kind = kind; K.L = L; K.state = 'idle'; K.face = face; K.seed = sd; K.armed = false; K.has = false; K.text = 0;
+    K.panic = false; K.glasses = !!L.glasses; K.squint = false; K.small = false; K.fs = 0; K.kick = 0; K.film = false; K.slope = 0; K.balance = false; K.sp = '';
+    const shake = act === 'alarm' || act === 'peek' ? 1 : 0, bob = sin(time * 1.9 + sd) * 0.4 * (1 - stand);
+    const lean = 0.06 + sin(time * 0.7 + sd) * 0.03 - 0.08 * stand + (act === 'eat' ? 0.06 : 0);
+    R.px = sin(time * 19 + sd) * 0.5 * shake; R.py = lerp(44, b.hip === undefined ? 12 : b.hip, up) - 7 * stand + bob + (act === 'peek' ? 7 : 0);
+    R.lean = lean; R.cl = cos(lean); R.sl = sin(lean);
+    R.sx = R.px + D.tor * R.sl; R.sy = R.py - D.tor * R.cl;
+    const nd = lean * 0.75 + 0.03 + (act === 'film' ? -0.05 : 0);
+    R.hx = R.sx + D.neck * sin(nd); R.hy = R.sy - D.neck * cos(nd);
+    R.hang = lean * 0.35 + sin(time * 0.9 + sd) * 0.05 * (1 - shake) + (act === 'eat' || act === 'drink' ? 0.06 : 0);
+    still();
+    const chat = frac(time / 5.2 + sd / TAU);
+    R.face = act === 'alarm' || act === 'peek' ? 2 : act === 'wave' ? (frac(time * 0.8 + sd) < 0.5 ? 2 : 1) : act === 'film' ? 0 : chat < 0.22 ? 5 : 0;
+    const lift = bustArms(b, time, sd);
+    if (act === 'drink' && lift > 0.5) R.face = 0;
+    ctx.save();
+    if (b.clip) { ctx.beginPath(); ctx.rect(b.clip[0], b.clip[1], b.clip[2], b.clip[3]); ctx.clip(); }
+    ctx.translate(b.x, b.y); ctx.scale(face * sc, sc);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    drawArm(ctx, K, R.armF, true);
+    drawTorso(ctx, K, time);
+    drawHead(ctx, K, time);
+    if (act === 'eat') plateArt(ctx, 11.5, 1.6, 0.8);
+    drawArm(ctx, K, R.armN, false);
+    if (act === 'drink') { mugArt(ctx, R.tray.x + 3.4, R.tray.y + 3.2, R.tray.ang, 1); ctx.fillStyle = L.skin; circle(ctx, R.tray.x, R.tray.y + 0.4, 2.4); }
+    if (act === 'eat') {
+      const a = R.armN, gx = a.wx + 1.4, gy = a.wy - 1;
+      ctx.strokeStyle = '#b9bec4'; ctx.lineWidth = 0.9;
+      ctx.beginPath(); ctx.moveTo(a.wx - 1, a.wy + 1.6); ctx.lineTo(gx + 2.2, gy - 2.6); ctx.stroke();
+      if (lift > 0.2) { ctx.fillStyle = '#f3ead0'; circle(ctx, gx + 2.6, gy - 3, 1.3); }
+    }
+    if (K.film) drawPhone(ctx, K, time, true);
+    ctx.restore();
   };
 
   const WIN = { half: 23, top: GY - 195, bot: GY - 177 };
@@ -1720,6 +2069,24 @@
     ctx.restore();
   }
 
+  function droppedTray(ctx, p, time, d, y) {
+    const rest = resting(p, y);
+    if (rest) {
+      ctx.fillStyle = 'rgba(30,26,12,0.16)'; ell(ctx, p.x + d * 2, y + 0.6, 13, 2);
+      trayArt(ctx, p.x, y - 1.6, 0, false);
+      ctx.fillStyle = 'rgba(232,160,51,0.45)'; ell(ctx, p.x + d * 15, y - 0.2, 6.5, 1.3);
+      mugArt(ctx, p.x + d * 12, y - 2.9, d * PI / 2, 0.72);
+      return;
+    }
+    trayArt(ctx, p.x, y - 3, p.rot || 0, !!p.food);
+  }
+
+  function droppedMug(ctx, p, time, d, y) {
+    const rest = resting(p, y);
+    if (rest) { ctx.fillStyle = 'rgba(232,160,51,0.45)'; ell(ctx, p.x + d * 4, y - 0.2, 7, 1.4); }
+    mugArt(ctx, p.x, y - (rest ? 2.9 : 3.5), rest ? d * PI / 2 : p.rot || 0, 1);
+  }
+
   ZS.drawDropped = function (ctx, p, time) {
     if (!p) return;
     if (!(time >= 0)) time = 0;
@@ -1730,6 +2097,8 @@
     if (p.kind === 'basket') droppedBasket(ctx, p, time, d, y);
     else if (p.kind === 'phone') droppedPhone(ctx, p, time, d, y);
     else if (p.kind === 'sack') droppedSack(ctx, p, time, d, y);
+    else if (p.kind === 'tray') droppedTray(ctx, p, time, d, y);
+    else if (p.kind === 'mug') droppedMug(ctx, p, time, d, y);
     else droppedRifle(ctx, p, time);
     ctx.restore();
   };

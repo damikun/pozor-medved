@@ -788,12 +788,37 @@
 
   function chatabin(ctx, it) { ZS.scenery.container(ctx, it.x, it.locked, true); }
 
+  function halusky(ctx, it, time) {
+    const x = it.x, y = GY - 1.5, sd = hash(x * 0.023) * 30;
+    ctx.fillStyle = 'rgba(30,26,12,0.16)'; oval(ctx, x + 1, GY + 0.8, 16, 2.6, 0);
+    ctx.fillStyle = '#c9c4b8'; oval(ctx, x, y + 0.6, 14.5, 3.6, 0);
+    ctx.fillStyle = '#f7f5ef'; oval(ctx, x, y - 0.2, 14, 3, 0);
+    ctx.fillStyle = '#e3d2a0'; oval(ctx, x, y - 3.4, 10.6, 4.4, 0);
+    for (let i = 0; i < 12; i++) {
+      const a = hash(sd + i * 1.7), b = hash(sd + i * 3.1), px = x - 9 + a * 18, py = y - 2.4 - b * 4.6 - (1 - Math.abs(a - 0.5) * 2) * 2.6;
+      ctx.fillStyle = i % 3 ? '#f6eed6' : '#ecdcb2'; oval(ctx, px, py, 1.9 + b * 0.8, 1.4 + a * 0.5, (a - 0.5) * 1.2);
+    }
+    ctx.fillStyle = 'rgba(255,255,250,0.88)'; oval(ctx, x - 2, y - 6.6, 5, 1.8, -0.2); oval(ctx, x + 3.6, y - 5.4, 3.4, 1.4, 0.3);
+    for (let i = 0; i < 6; i++) {
+      const a = hash(sd + i * 5.3), b = hash(sd + i * 7.9);
+      ctx.fillStyle = i % 2 ? '#9c3b22' : '#c8673f'; ctx.fillRect(x - 7 + a * 14, y - 4 - b * 4.4, 2.2, 1.5);
+    }
+    ctx.fillStyle = '#4f8a3a';
+    for (let i = 0; i < 4; i++) ctx.fillRect(x - 6 + hash(sd + i * 9.1) * 12, y - 5 - hash(sd + i * 4.4) * 3, 1.3, 0.6);
+    for (let i = 0; i < 3; i++) {
+      const u = frac(time * 0.45 + i / 3), a = 0.26 * Math.sin(Math.PI * u);
+      ctx.fillStyle = 'rgba(255,255,255,' + a.toFixed(3) + ')';
+      circle(ctx, x - 5 + i * 5 + Math.sin(u * 6 + i) * 2, y - 9 - u * 15, 1.6 + u * 2.4);
+    }
+  }
+
   const LANDMARK = { feeder: 1, punch: 1, lokse: 1, sausage: 1, carrot: 1 };
   const WINTER_ITEM = { rosehip, rowan, snownut, frozenapple, candy, chatabin };
 
   function item(ctx, it, time, g) {
     const x = it.x;
     if (it.hidden || LANDMARK[it.type]) return;
+    if (it.type === 'halusky') { halusky(ctx, it, time); return; }
     if (WINTER_ITEM[it.type]) { WINTER_ITEM[it.type](ctx, it, time, g); return; }
     const W = cold(g);
     if (it.type === 'fish') {

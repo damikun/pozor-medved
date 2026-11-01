@@ -1,7 +1,8 @@
 (function () {
   const { CFG } = ZS;
   const bot = { reaction: 0.25, mode: null };
-  const HEAD_T = 0.583;
+  const HEAD_T = 0.583, TAKEOFF = [58, 72];
+  const cover = (L) => ZS.sim.bear.spots(L);
 
   function threat(g) {
     const b = g.bear;
@@ -29,9 +30,9 @@
   }
 
   function nearestTrunk(L, b) {
-    const ahead = L.trees.find((t) => t.hide && t.x > b.x + 10);
+    const spots = cover(L), ahead = spots.find((t) => t.x > b.x + 10);
     let behind = null;
-    for (const t of L.trees) if (t.hide && t.x < b.x - 10) behind = t;
+    for (const t of spots) if (t.x < b.x - 10) behind = t;
     if (!ahead || !behind) return ahead || behind;
     return ahead.x - b.x <= b.x - behind.x + 40 ? ahead : behind;
   }
@@ -47,6 +48,17 @@
       const f = dir > 0 ? lg.x - lg.w / 2 - b.x : b.x - (lg.x + lg.w / 2);
       if (f > 0 && f < 50) jump(g, 'Space');
     }
+    for (const fx of ZS.sim.bear.fences(L)) {
+      const d = (fx - b.x) * dir;
+      if (d > TAKEOFF[0] && d < TAKEOFF[1] && !b.stun) jump(g, 'Space');
+    }
+  }
+
+  function crawl(g, dir) {
+    const b = g.bear, s = ZS.sim.bear.shed(g.level);
+    if (!s || !b.onGround) return false;
+    const half = s.w / 2 + ZS.sim.bear.ROOF;
+    return Math.abs(b.x - s.x) < half + 14 && (s.x - b.x) * dir > -half;
   }
 
   function stompChance(g, dir) {
@@ -109,8 +121,8 @@
     }
     if (b.hiding && danger) { keys.add('ArrowDown'); return; }
     if (danger && b.inSpray) return;
-    const reach = (t) => t.hide && Math.abs(t.x - b.x) < t.w / 2 + 34;
-    if (danger && b.onGround && L.trees.some(reach)) { keys.add('ArrowDown'); return; }
+    const reach = (t) => Math.abs(t.x - b.x) < t.w / 2 + 34;
+    if (danger && b.onGround && cover(L).some(reach)) { keys.add('ArrowDown'); return; }
 
     if (!danger && !runner && b.onGround && g.fat < pace(g)) {
       const food = L.items.find((it) => !it.eaten && !it.locked && !ZS.FOOD[it.type].natural && Math.abs(it.x - b.x) < 24);
@@ -126,6 +138,7 @@
       keys.add('ShiftLeft');
     }
     keys.add(dir > 0 ? 'ArrowRight' : 'ArrowLeft');
+    if (crawl(g, dir)) { keys.add('ArrowDown'); return; }
     if (!runner && stompChance(g, dir)) jump(g, 'Space');
     else if (b.onGround) hopObstacles(g, dir);
   }

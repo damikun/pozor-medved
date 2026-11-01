@@ -125,6 +125,8 @@
       wake: ['Wer macht hier Disco?', 'Es ist doch Dezember!', 'Lasst mich schlafen…'],
       spray: ['Kunstschnee, Kunstbär.', 'Ich bin nur eine Schneewehe.', 'Pst, ich bin ein Schneehaufen.'],
       ice: ['Wer hat hier eine Eisbahn genehmigt?', 'Huiii!', 'Ich hab keine Bremsen!'],
+      zap: ['Au! Wer hat hier den Strom an?', 'Der Zaun funktioniert. Anders als der Staat.', 'Immerhin eine Gratis-Dauerwelle.', 'Drüberspringen, nicht dran schnuppern!'],
+      hay: ['Ich bin nur ein Heuhaufen.', 'Nadel im Heuhaufen? Versuch’s mit Bär.', 'Das kitzelt in der Nase…', 'Der Minister zählt Heuhaufen. Mich nicht.'],
     },
 
     NEWS: {
@@ -238,6 +240,18 @@
       constitution: 'Verfassungsgesetz über den Bären: Der Bär darf keine Rechtsmittel einlegen.',
       decree: 'Die Regierung verordnet Bären den Winterschlaf. Wer nicht schläft, ist ein Problembär.',
       drive: 'Jäger veranstalten eine Neujahrs-Treibjagd. Weitere ziehen in den Wald.',
+      koliba: [
+        'Ein Bär ging an der Almhütte vorbei. Die Gäste gingen durchs Fenster, die Rechnung blieb auf dem Tisch.',
+        'Panik in der Almhütte: Gäste auf dem Dach, Kellner im Wald. Senner: Die Nocken waren trotzdem gut.',
+        'Hüttengäste sprangen aus den Fenstern. Abgeordneter Flinta will Gitter. Nicht vor die Fenster, um den Wald.',
+        'Die Hütte meldet Zechprellerei. Die Polizei ermittelt gegen den Bären als Mittäter.',
+        'Ein Gast streamte live vom Hüttendach. Ministerium: Beweis, dass Bären jetzt auch auf Dächer klettern.',
+      ],
+      haluskyEaten: [
+        'Ein Bär aß die Brimsennocken der Hütte. Senner: Endlich ein Gast, der aufgegessen hat.',
+        'Ein Bär aß Nocken mit Speck. Minister Strašiak: Ein Angriff auf das Nationalgericht!',
+        'Ein Bär leckte einen Teller Halušky blank. Die Hütte bietet ihm einen Job als Tellerwäscher an.',
+      ],
       hug: {
         tourist: [
           'Video: Bär umarmt Touristen. Zwei Millionen Aufrufe, die Panik sinkt.',
@@ -270,6 +284,14 @@
           'Bär umarmt den Nikolaus. Der Krampus reicht Beschwerde wegen Diskriminierung ein.',
           'Bär umarmt den Nikolaus. Der Engel filmt, der Krampus teilt, der Minister verbietet.',
           'Der Nikolaus bekommt vom Bären eine Umarmung. Der Bär vom Ministerium die Rute.',
+        ],
+        guest: [
+          'Ein Bär umarmte einen Hüttengast. Der schiebt es aufs dritte Bier, das Video nicht.',
+          'Ein Hüttengast wurde vom Bären umarmt. Der Senner berechnete es als Folkloreprogramm.',
+        ],
+        waiter: [
+          'Ein Bär umarmte einen Kellner. Kein Trinkgeld, aber immerhin ein Lächeln.',
+          'Ein Bär umarmte den Hüttenkellner. Nocken am Boden, Bewertungen bei fünf Sternen.',
         ],
       },
       hugTired: [
@@ -314,6 +336,14 @@
           'Bär beißt den Nikolaus. Weihnachten ist offiziell in Gefahr.',
           'Bär beißt den Nikolaus. Der Krampus verteidigt ihn: Der Problemfall hier bin ich.',
           'Bär beißt den Nikolaus. Kinder fordern als Strafe die Rute. Ministerium: das Gewehr.',
+        ],
+        guest: [
+          'Ein Bär biss einen Hüttengast. Minister Strašiak: Beweis, dass Bären wegen der Nocken kommen.',
+          'Ein Bär biss einen Hüttengast. Er will Rabatt, die Hütte einen Abschuss, der Bär Nachtisch.',
+        ],
+        waiter: [
+          'Ein Bär biss einen Kellner. Die Hütte meldet Serviceausfall, die Gäste merken keinen Unterschied.',
+          'Ein Bär biss den Hüttenkellner. Das Ministerium will Kellner unter Artenschutz stellen.',
         ],
       },
       stomp: [
@@ -360,6 +390,17 @@
         'Der Bär ist auf dünnem Eis. Die Regierung auch, nur ohne Schlittschuhe.',
         'Bär schlittert über den Bach. Ministerium schreibt Streusalz für 4 Millionen aus.',
       ],
+      zap: [
+        'Bär läuft in den Zaun der Schafalm. Schäfer: 200 Euro, funktioniert. Ministerium: Abschuss ist teurer, also besser.',
+        'Elektrozaun vertreibt Bären. Das Ministerium rät von Prävention ab: Daraus wird keine Pressekonferenz.',
+        'Elektrozaun stoppt Bären ohne einen Schuss. Die Jägerschaft spricht von unlauterem Wettbewerb.',
+      ],
+      hay: [
+        'Bär gräbt sich ins Heu. Minister Strašiak: Die Nadel im Heuhaufen, nur größer und mit Krallen.',
+        'Bär versteckt sich im Heu. Minister Strašiak lässt die Heuhaufen neu zählen.',
+        'Bär im Heuhaufen. Die Ministerien streiten, ob es ein Agrar- oder ein Umwelt-Heuhaufen ist.',
+      ],
+      hayHit: 'Jäger schießt auf einen Heuhaufen. Ministerium meldet erfolgreichen Schlag gegen Viehfutter.',
       selfie: [
         'Selfie mit Bär: drei Millionen Likes, mehr als die ganze Regierung. Weitere Touristen fahren nach Liptov.',
         'Bär lächelt fürs Selfie. Ministerium: Er zeigte die Zähne, das ist Angriffsverhalten.',
@@ -408,8 +449,9 @@
         carrot: 'Karotte vom Schneemann',
         candy: 'Bonbons aus dem Nikolaussack',
         chatabin: 'Container an der Hütte',
+        halusky: 'Brimsennocken',
       },
-      art: { salas: 'SCHAFALM', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['REST-', 'MÜLL'] },
+      art: { salas: 'SCHAFALM', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['REST-', 'MÜLL'], fence: ['ACHTUNG!', 'ELEKTRO-', 'ZAUN'] },
       wrongBear: '✝ eine andere Bärin',
       birch: 'Die Birke versteckt dich nicht!',
       hunterScared: 'Der Jäger erschrickt!',
@@ -430,11 +472,23 @@
       denStamp: ['GESCHLOSSEN', 'Zutritt nur mit Umarmung'],
       spray: 'Im Kunstschnee sieht dich keiner',
       ice: 'Glatteis!',
+      zap: 'BZZZ!',
+      hayHit: 'Heu getroffen!',
+      hayHint: '↓ ins Heu',
+      crawlHint: '↓ kriechen',
+      fenceHint: '↑ drüberspringen',
       shout: {
-        hug: { walker: 'Lass mich, ich hab einen Waffenschein!', ztmh: 'Das steht nicht im Protokoll!', poacher: 'Ich weiß von nix!', picker: 'Jessas Maria!', tourist: 'Mama, film das!', santa: 'Ho-ho… hooo!' },
-        bite: { walker: 'Au, meine Ehre!', ztmh: 'Au! Treffer!', poacher: 'Au! Kein Wort zu niemandem!', picker: 'Hilfe!', tourist: 'Auuu!', santa: 'Au, mein Bischofsstab!' },
+        hug: { walker: 'Lass mich, ich hab einen Waffenschein!', ztmh: 'Das steht nicht im Protokoll!', poacher: 'Ich weiß von nix!', picker: 'Jessas Maria!', tourist: 'Mama, film das!', santa: 'Ho-ho… hooo!', guest: 'Ich wollte nur Nocken essen!', waiter: 'Haben Sie reserviert?!' },
+        bite: { walker: 'Au, meine Ehre!', ztmh: 'Au! Treffer!', poacher: 'Au! Kein Wort zu niemandem!', picker: 'Hilfe!', tourist: 'Auuu!', santa: 'Au, mein Bischofsstab!', guest: 'Au, ich hab noch nicht bezahlt!', waiter: 'Au! Das steht nicht auf der Karte!' },
         selfie: 'Lächeln!',
         fall: 'Uaaah!',
+      },
+      koliba: {
+        shouts: ['Bär!', 'Bär an der Hütte!', 'Lauft!', 'Rette sich, wer kann!'],
+        window: ['Durchs Fenster!', 'Hopp!', 'Mamaaa!'],
+        roof: ['Hilfe!', 'Aufs Dach!', 'Hallo, Feuerwehr?'],
+        waiter: ['Meine Nocken!', 'Die Rechnung!', 'Das Trinkgeld kriegt der Bär!'],
+        film: '📱 Live vom Dach!',
       },
       basket: 'Pilze aus dem Korb',
       icefish: 'Forelle unterm Eis',
@@ -473,7 +527,7 @@
       howTo: 'So wird gespielt',
       tips: {
         walk: 'laufen, <kbd>Shift</kbd> sprinten',
-        hide: 'versteck dich hinter einem dicken Stamm',
+        hide: 'Deckung: dicker Stamm oder Heu',
         climb: 'am Stamm halten: auf den Baum klettern',
         stomp: 'spring dem Jäger auf den Kopf',
         hug: 'erst umarmen, dann in die Höhle',
@@ -485,7 +539,7 @@
       },
       tipsTouch: {
         walk: 'laufen, 2× tippen und halten: Sprint',
-        hide: 'am dicken Stamm halten: verstecken',
+        hide: 'am dicken Stamm oder Heu halten: verstecken',
         climb: 'tippen: Sprung, am Stamm halten: klettern',
         stomp: 'spring dem Jäger auf den Kopf',
         hug: 'erst umarmen, dann in die Höhle',
@@ -515,6 +569,7 @@
       goals: { fat: 'Fett', hug: 'Umarmung', ok: '✓', no: '✗' },
       pct: (n) => n + '\u00a0%',
       inSpray: 'im Schnee',
+      inHay: 'im Heu',
       badges: {
         problem: 'Problembär',
         cull: 'Abschuss 350 Stück',

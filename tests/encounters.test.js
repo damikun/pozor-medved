@@ -30,7 +30,8 @@ function openGround(L) {
   for (let x = 1400; x < L.w - 1400; x += 5) {
     const clear = (a, m) => Math.abs(a - x) > m;
     if (L.trees.every((t) => clear(t.x, 200)) && L.logs.every((l) => clear(l.x, 260)) && L.items.every((it) => clear(it.x, 120))
-      && L.posts.every((p) => clear(p.x, 700)) && (!L.river || clear((L.river.from + L.river.to) / 2, 600))) return x;
+      && L.posts.every((p) => clear(p.x, 700)) && (!L.river || clear((L.river.from + L.river.to) / 2, 600))
+      && (!L.salas || x < L.salas.from - 600 || x > L.salas.to + 600)) return x;
   }
   throw new Error('no open ground in the level');
 }

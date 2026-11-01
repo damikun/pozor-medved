@@ -50,7 +50,7 @@
     bar('barTrip', Math.min(100, (b.x / g.level.goalDen) * 100));
     $('season').textContent = T.seasons[g.seasonKey] + ' · ' + T.until + ' ' + Math.ceil(Math.max(0, g.def.year - g.time)) + ' s';
     $('lives').textContent = '❤️'.repeat(Math.max(0, g.lives)) + ' · ' + UI.hugGoal(g.stats.hugs + g.stats.selfies)
-      + (b.hiding ? ' · ' + UI.behindTree : b.inSpray ? ' · ' + UI.inSpray : '');
+      + (b.hiding ? ' · ' + (b.hiding.hay ? UI.inHay : UI.behindTree) : b.inSpray ? ' · ' + UI.inSpray : '');
     const B = UI.badges, list = [];
     if (g.problem) list.push(badge(B.problem));
     if (g.flags.cull) list.push(badge(B.cull));

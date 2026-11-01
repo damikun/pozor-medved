@@ -127,6 +127,8 @@
     wake: ['Kto tu púšťa diskotéku?', 'Veď je december!', 'Dajte mi spať…'],
     spray: ['Umelý sneh, umelý medveď.', 'Ja som len závej.', 'Pšt, som kopa snehu.'],
     ice: ['Kto tu povolil klzisko?', 'Wííí!', 'Brzdy nemám!'],
+    zap: ['Áu! Kto tu pustil prúd?', 'Ohradník funguje. Na rozdiel od štátu.', 'Aspoň mám zadarmo trvalú.', 'Toto treba preskočiť, nie oňuchať.'],
+    hay: ['Som len kopa sena.', 'Ihla v kope sena? Skús medveďa.', 'Šteklí ma to v nose…', 'Minister ráta kopy sena. Mňa nie.'],
   };
 
   ZS.NEWS = {
@@ -240,6 +242,18 @@
     constitution: 'Ústavný zákon o medveďovi: Medveď sa nesmie odvolať.',
     decree: 'Vláda nariadila medveďom zimný spánok. Kto nespí, je problémový.',
     drive: 'Poľovníci zorganizovali novoročnú nadháňku. Do lesa idú ďalší.',
+    koliba: [
+      'Medveď prešiel okolo koliby. Hostia odišli oknom, účet zostal na stole.',
+      'Panika v kolibe pri salaši: hostia na streche, čašník v lese. Bača: Halušky boli aj tak dobré.',
+      'Hostia koliby skákali z okien. Poslanec Flinta navrhuje mreže. Nie na okná, na les.',
+      'Koliba hlási útek hostí bez zaplatenia. Polícia vyšetruje medveďa ako spolupáchateľa.',
+      'Hosť vysielal naživo zo strechy koliby. Ministerstvo: Dôkaz, že medvede už lezú aj na strechy.',
+    ],
+    haluskyEaten: [
+      'Medveď zjedol bryndzové halušky z koliby. Bača: Konečne hosť, ktorý dojedol.',
+      'Medveď zjedol halušky so slaninkou. Minister Strašiak: Útok na národné jedlo!',
+      'Medveď vylízal tanier halušiek. Koliba mu ponúka miesto umývača riadu.',
+    ],
     hug: {
       tourist: [
         'Video: Medveď objíma turistu. Dva milióny pozretí, panika klesá.',
@@ -272,6 +286,14 @@
         'Medveď objal Mikuláša. Čert podal sťažnosť na diskrimináciu.',
         'Medveď objal Mikuláša. Anjel to natočil, čert zdieľal, minister zakázal.',
         'Mikuláš dostal od medveďa objatie. Medveď od ministerstva uhlie.',
+      ],
+      guest: [
+        'Medveď objal hosťa z koliby. Hosť to zvaľuje na tretie pivo, video nie.',
+        'Hosť koliby dostal medvedie objatie. Bača mu ho naúčtoval ako folklórny program.',
+      ],
+      waiter: [
+        'Medveď objal čašníka. Prepitné nedal, ale aspoň sa usmial.',
+        'Medveď objal čašníka z koliby. Halušky na zemi, hodnotenie podniku päť hviezdičiek.',
       ],
     },
     hugTired: [
@@ -316,6 +338,14 @@
         'Medveď uhryzol Mikuláša. Vianoce sú oficiálne v ohrození.',
         'Medveď kusol Mikuláša. Čert ho bráni: Problémový som tu ja.',
         'Medveď kusol Mikuláša. Deti navrhujú trest: uhlie a zemiaky. Ministerstvo: guľovnica.',
+      ],
+      guest: [
+        'Medveď kusol hosťa z koliby. Minister Strašiak: Dôkaz, že medvede chodia na halušky.',
+        'Medveď kusol hosťa koliby. Hosť chce zľavu, koliba odstrel, medveď dezert.',
+      ],
+      waiter: [
+        'Medveď kusol čašníka. Koliba hlási výpadok obsluhy, hostia nevidia rozdiel.',
+        'Medveď kusol čašníka z koliby. Ministerstvo zvažuje vyhlásiť čašníkov za chránený druh.',
       ],
     },
     stomp: [
@@ -362,6 +392,17 @@
       'Medveď je na tenkom ľade. Vláda tiež, len bez korčúľ.',
       'Medveď sa kĺže po potoku. Ministerstvo vypísalo tender na posypovú soľ za 4 milióny.',
     ],
+    zap: [
+      'Medveď vrazil do ohradníka. Bača: Stál 200 eur a funguje. Ministerstvo: Odstrel je drahší, a teda lepší.',
+      'Elektrický ohradník odplašil medveďa. Ministerstvo prevenciu neodporúča, nedá sa z nej urobiť tlačovka.',
+      'Ohradník na salaši zabral bez jediného výstrelu. Poľovnícka komora hovorí o nekalej konkurencii.',
+    ],
+    hay: [
+      'Medveď sa zahrabal do sena. Minister Strašiak: Hľadáme ihlu v kope sena, len väčšiu a s pazúrmi.',
+      'Medveď sa schoval v sene. Minister Strašiak nariadil znova sčítať kopy sena.',
+      'Medveď je v kope sena. Rezorty sa hádajú, či je to poľnohospodárska, alebo environmentálna kopa.',
+    ],
+    hayHit: 'Poľovník strelil do kopy sena. Ministerstvo hlási úspešný zásah proti krmivu.',
     selfie: [
       'Selfie s medveďom má tri milióny lajkov, viac ako celá vláda. Na Liptov mieria ďalší turisti.',
       'Medveď sa na selfie usmial. Ministerstvo: Ukázal zuby, ide o útočné správanie.',
@@ -389,8 +430,9 @@
     wrongbear: '🐻', court: '⚖️', meat: '🍖', feeding: '🌽', poacher: '🔦', bins: '🔒', stalls: '🔒', census: '🧮',
     constitution: '📜', decree: '📜', drive: '📯',
     hug: '🤗', hugTired: '🥱', hugBan: '🚫', hugBanned: '🚫', bite: '🦷', stomp: '🥾', stompZtmh: '🥾',
-    denRefuse: '🛑', selfie: '📸', standFall: '🪜', hide: '🌳', climb: '🌲', spray: '🌫️', ice: '⛸️',
+    denRefuse: '🛑', selfie: '📸', standFall: '🪜', hide: '🌳', climb: '🌲', spray: '🌫️', ice: '⛸️', zap: '⚡', hay: '🌾', hayHit: '🌾',
     cornEaten: '🌽', sandwichEaten: '🥪', appleEaten: '🍎', tv: '📺',
+    koliba: '🍺', haluskyEaten: '🥟',
   };
 
   ZS.LABELS = {
@@ -425,8 +467,9 @@
       carrot: 'mrkva zo snehuliaka',
       candy: 'cukríky z Mikulášovho vreca',
       chatabin: 'kontajner pri chate',
+      halusky: 'bryndzové halušky',
     },
-    art: { salas: 'SALAŠ', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['KOMUNÁLNY', 'ODPAD'] },
+    art: { salas: 'SALAŠ', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['KOMUNÁLNY', 'ODPAD'], fence: ['POZOR!', 'ELEKTRICKÝ', 'OHRADNÍK'] },
     wrongBear: '✝ iná medvedica',
     birch: 'Breza ťa neschová!',
     hunterScared: 'Poľovník sa zľakol!',
@@ -447,11 +490,23 @@
     denStamp: ['ZATVORENÉ', 'bez objatia nevstupovať'],
     spray: 'V umelom snehu ťa nevidia',
     ice: 'Klzko!',
+    zap: 'BZZZ!',
+    hayHit: 'Trafil seno!',
+    hayHint: '↓ do sena',
+    crawlHint: '↓ plaz sa',
+    fenceHint: '↑ preskoč',
     shout: {
-      hug: { walker: 'Pusti ma, mám zbrojný pas!', ztmh: 'Toto nie je v protokole!', poacher: 'Ja nič, ja muzikant!', picker: 'Ježišmária!', tourist: 'Mami, natáčaj!', santa: 'Hó-hó… hóóó!' },
-      bite: { walker: 'Au, moja česť!', ztmh: 'Au! Zásah!', poacher: 'Au! Nikomu ani slovo!', picker: 'Pomóc!', tourist: 'Auuu!', santa: 'Au, moja berla!' },
+      hug: { walker: 'Pusti ma, mám zbrojný pas!', ztmh: 'Toto nie je v protokole!', poacher: 'Ja nič, ja muzikant!', picker: 'Ježišmária!', tourist: 'Mami, natáčaj!', santa: 'Hó-hó… hóóó!', guest: 'Ja som len na halušky!', waiter: 'Máte rezerváciu?!' },
+      bite: { walker: 'Au, moja česť!', ztmh: 'Au! Zásah!', poacher: 'Au! Nikomu ani slovo!', picker: 'Pomóc!', tourist: 'Auuu!', santa: 'Au, moja berla!', guest: 'Au, ešte som nezaplatil!', waiter: 'Au! To nie je na menu!' },
       selfie: 'Úsmev!',
       fall: 'Jéééj!',
+    },
+    koliba: {
+      shouts: ['Medveď!', 'Medveď pri kolibe!', 'Utekajte!', 'Zachráň sa, kto môžeš!'],
+      window: ['Cez okno!', 'Hop!', 'Mamííí!'],
+      roof: ['Pomóc!', 'Na strechu!', 'Haló, hasiči?'],
+      waiter: ['Moje halušky!', 'Účet!', 'Prepitné nechajte medveďovi!'],
+      film: '📱 Naživo zo strechy!',
     },
     basket: 'huby z košíka',
     icefish: 'pstruh spod ľadu',
@@ -490,7 +545,7 @@
     howTo: 'Ako sa hrá',
     tips: {
       walk: 'beh, <kbd>Shift</kbd> šprint',
-      hide: 'skry sa za hrubý kmeň',
+      hide: 'skry sa za hrubý kmeň či do sena',
       climb: 'podrž pri kmeni: vylez na strom',
       stomp: 'skoč poľovníkovi na hlavu',
       hug: 'aspoň raz objím, inak ťa brloh nepustí',
@@ -502,7 +557,7 @@
     },
     tipsTouch: {
       walk: 'beh, dvakrát ťukni a drž: šprint',
-      hide: 'drž pri hrubom kmeni: skry sa',
+      hide: 'drž pri hrubom kmeni či sene: skry sa',
       climb: 'ťukni: skok, drž pri kmeni: lez',
       stomp: 'skoč poľovníkovi na hlavu',
       hug: 'aspoň raz objím, inak ťa brloh nepustí',
@@ -532,6 +587,7 @@
     goals: { fat: 'Tuk', hug: 'Objatie', ok: '✓', no: '✗' },
     pct: (n) => n + '\u00a0%',
     inSpray: 'v snehu',
+    inHay: 'v sene',
     badges: {
       problem: 'Problémový medveď',
       cull: 'Odstrel 350 ks',

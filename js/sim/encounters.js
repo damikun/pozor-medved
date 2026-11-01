@@ -4,8 +4,8 @@
   const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
   const GUN = { walker: 'hunt', ztmh: 'tac', poacher: 'old', posed: 'hunt' };
-  const CARRY = { picker: 'basket', tourist: 'phone', santa: 'sack' };
-  const SPILL = { picker: ['mushroom', 'basket'], santa: ['candy'], tourist: ['sandwich'] };
+  const CARRY = { picker: 'basket', tourist: 'phone', santa: 'sack', guest: 'mug', waiter: 'tray' };
+  const SPILL = { picker: ['mushroom', 'basket'], santa: ['candy'], tourist: ['sandwich'], waiter: ['halusky'] };
   const SCALE = { ztmh: 1.04 };
   const CONTACT = { bite: 0.16, hug: 0.3, selfie: 0.3, shake: 0.3 };
   const HEAD = 78, GAP = 44, SNAP = 1.2, TOPPLE = 1.2, CABIN = 150, FETCH = 62, LEG = 30;
@@ -68,7 +68,7 @@
   function spill(g, o) {
     const s = SPILL[o.kind];
     if (!s || o.empty) return;
-    const n = o.kind === 'tourist' ? 1 : 2;
+    const n = o.kind === 'tourist' || o.kind === 'waiter' ? 1 : 2;
     for (let i = 0; i < n; i++) {
       const it = { type: s[0], x: clamp(o.x + o.dir * 10 + (i - (n - 1) / 2) * 26, 40, g.level.w - 40), eaten: false, locked: false };
       if (s[1]) it.labelKey = s[1];

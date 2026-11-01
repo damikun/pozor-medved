@@ -125,6 +125,8 @@
       wake: ['¿Quién montó esta discoteca?', '¡Pero si es diciembre!', 'Que me dejen dormir…'],
       spray: ['Nieve artificial, oso artificial.', 'Solo soy un ventisquero.', 'Shh, soy un montón de nieve.'],
       ice: ['¿Quién autorizó esta pista de hielo?', '¡Uiii!', '¡No tengo frenos!'],
+      zap: ['¡Ay! ¿Quién ha dado la luz?', 'La cerca funciona. El Estado, no.', 'Al menos, permanente gratis.', 'Esto se salta, no se olfatea.'],
+      hay: ['Solo soy un montón de heno.', '¿Aguja en un pajar? Prueba con un oso.', 'Me hace cosquillas en la nariz…', 'El ministro cuenta pajares. A mí no.'],
     },
 
     NEWS: {
@@ -238,6 +240,18 @@
       constitution: 'Ley constitucional del oso: El oso no puede recurrir.',
       decree: 'El Gobierno ordena a los osos hibernar. El que no duerma es problemático.',
       drive: 'Los cazadores organizan una batida de Año Nuevo. Llegan más cazadores al bosque.',
+      koliba: [
+        'Un oso pasó junto al mesón de la majada. Los clientes salieron por la ventana, la cuenta se quedó en la mesa.',
+        'Pánico en el mesón: clientes en el tejado, el camarero en el bosque. El pastor: Los ñoquis estaban ricos.',
+        'Clientes del mesón saltaron por las ventanas. El diputado Flinta pide rejas. No en las ventanas, en el bosque.',
+        'El mesón denuncia clientes que se fueron sin pagar. La policía investiga al oso como cómplice.',
+        'Un cliente emitió en directo desde el tejado del mesón. Ministerio: Prueba de que los osos ya trepan tejados.',
+      ],
+      haluskyEaten: [
+        'Un oso se comió los halušky del mesón. El pastor: Por fin un cliente que deja el plato limpio.',
+        'Un oso se comió ñoquis con tocino. Ministro Strašiak: ¡Un ataque al plato nacional!',
+        'Un oso dejó reluciente un plato de halušky. El mesón le ofrece trabajo de friegaplatos.',
+      ],
       hug: {
         tourist: [
           'Video: Un oso abraza a un turista. Dos millones de visitas, el pánico baja.',
@@ -270,6 +284,14 @@
           'Un oso abrazó a San Nicolás. El diablo presentó una queja por discriminación.',
           'Un oso abrazó a San Nicolás. El ángel lo grabó, el diablo lo compartió y el ministro lo prohibió.',
           'San Nicolás recibió un abrazo del oso. El oso, carbón del ministerio.',
+        ],
+        guest: [
+          'Un oso abrazó a un cliente del mesón. Él lo achaca a la tercera cerveza, el vídeo no.',
+          'Un cliente del mesón recibió un abrazo de oso. El pastor se lo cobró como espectáculo folclórico.',
+        ],
+        waiter: [
+          'Un oso abrazó a un camarero. Propina no dejó, pero al menos sonrió.',
+          'Un oso abrazó al camarero del mesón. Ñoquis por el suelo, reseñas de cinco estrellas.',
         ],
       },
       hugTired: [
@@ -314,6 +336,14 @@
           'Un oso mordió a San Nicolás. La Navidad está oficialmente en peligro.',
           'Un oso mordió a San Nicolás. El diablo lo defiende: Aquí el problemático soy yo.',
           'Un oso mordió a San Nicolás. Los niños proponen castigarlo con carbón. El ministerio, con el rifle.',
+        ],
+        guest: [
+          'Un oso mordió a un cliente del mesón. Ministro Strašiak: Prueba de que los osos vienen por los ñoquis.',
+          'Un oso mordió a un cliente del mesón. Él pide descuento, el mesón una batida, el oso el postre.',
+        ],
+        waiter: [
+          'Un oso mordió a un camarero. El mesón anuncia un corte del servicio; los clientes no notan nada.',
+          'Un oso mordió al camarero del mesón. El ministerio estudia declarar a los camareros especie protegida.',
         ],
       },
       stomp: [
@@ -360,6 +390,17 @@
         'El oso camina sobre hielo fino. El Gobierno también, pero sin patines.',
         'El oso se desliza por el arroyo. El ministerio licita sal para deshielo por 4 millones.',
       ],
+      zap: [
+        'Un oso choca con la cerca de la majada. Pastor: Costó 200 € y funciona. Ministerio: Abatirlo es más caro, luego mejor.',
+        'Una cerca eléctrica ahuyenta a un oso. El ministerio desaconseja la prevención: no da para una rueda de prensa.',
+        'La cerca de la majada frena a un oso sin un solo disparo. Los cazadores denuncian competencia desleal.',
+      ],
+      hay: [
+        'El oso se mete en el heno. Ministro Strašiak: Es una aguja en un pajar, solo que más grande y con garras.',
+        'El oso se esconde en el heno. El ministro Strašiak ordena volver a contar los pajares.',
+        'Oso en un pajar. Los ministerios discuten si es un pajar agrícola o medioambiental.',
+      ],
+      hayHit: 'Un cazador dispara a un pajar. El ministerio informa de un golpe certero contra el forraje.',
       selfie: [
         'Un selfie con el oso suma tres millones de likes, más que todo el Gobierno. Llegan más turistas a Liptov.',
         'El oso sonrió en el selfie. Ministerio: Enseñó los dientes; es conducta agresiva.',
@@ -408,8 +449,9 @@
         carrot: 'nariz del muñeco de nieve',
         candy: 'caramelos de San Nicolás',
         chatabin: 'contenedor del refugio',
+        halusky: 'halušky con queso de oveja',
       },
-      art: { salas: 'MAJADA', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['RESIDUOS', 'URBANOS'] },
+      art: { salas: 'MAJADA', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['RESIDUOS', 'URBANOS'], fence: ['¡PELIGRO!', 'CERCA', 'ELÉCTRICA'] },
       wrongBear: '✝ otra osa',
       birch: '¡Un abedul no te esconde!',
       hunterScared: '¡El cazador se asustó!',
@@ -430,11 +472,23 @@
       denStamp: ['CERRADO', 'prohibido pasar sin abrazo'],
       spray: 'En la nieve artificial no te ven',
       ice: '¡Resbala!',
+      zap: 'BZZZ!',
+      hayHit: '¡Le dio al heno!',
+      hayHint: '↓ al heno',
+      crawlHint: '↓ arrástrate',
+      fenceHint: '↑ sáltala',
       shout: {
-        hug: { walker: '¡Suéltame, tengo licencia de armas!', ztmh: '¡Esto no está en el protocolo!', poacher: '¡Yo solo pasaba por aquí!', picker: '¡Jesús, María y José!', tourist: '¡Mamá, graba!', santa: '¡Jo, jo… jooo!' },
-        bite: { walker: '¡Ay, mi honor!', ztmh: '¡Ay! ¡Me dieron!', poacher: '¡Ay! ¡Ni una palabra a nadie!', picker: '¡Socorro!', tourist: '¡Auuu!', santa: '¡Ay, mi báculo!' },
+        hug: { walker: '¡Suéltame, tengo licencia de armas!', ztmh: '¡Esto no está en el protocolo!', poacher: '¡Yo solo pasaba por aquí!', picker: '¡Jesús, María y José!', tourist: '¡Mamá, graba!', santa: '¡Jo, jo… jooo!', guest: '¡Solo vine por los ñoquis!', waiter: '¿Tiene reserva?' },
+        bite: { walker: '¡Ay, mi honor!', ztmh: '¡Ay! ¡Me dieron!', poacher: '¡Ay! ¡Ni una palabra a nadie!', picker: '¡Socorro!', tourist: '¡Auuu!', santa: '¡Ay, mi báculo!', guest: '¡Ay, que aún no he pagado!', waiter: '¡Ay! ¡Eso no está en la carta!' },
         selfie: '¡Sonríe!',
         fall: '¡Aaay!',
+      },
+      koliba: {
+        shouts: ['¡Oso!', '¡Un oso en el mesón!', '¡Corred!', '¡Sálvese quien pueda!'],
+        window: ['¡Por la ventana!', '¡Hop!', '¡Mamááá!'],
+        roof: ['¡Socorro!', '¡Al tejado!', '¿Hola, bomberos?'],
+        waiter: ['¡Mis ñoquis!', '¡La cuenta!', '¡La propina, para el oso!'],
+        film: '📱 ¡En directo desde el tejado!',
       },
       basket: 'setas de la cesta',
       icefish: 'trucha bajo el hielo',
@@ -473,7 +527,7 @@
       howTo: 'Cómo se juega',
       tips: {
         walk: 'correr, <kbd>Shift</kbd> sprint',
-        hide: 'escóndete tras un tronco grueso',
+        hide: 'escóndete: tronco grueso o heno',
         climb: 'mantén junto al tronco: trepa',
         stomp: 'salta sobre la cabeza del cazador',
         hug: 'abraza al menos una vez o no habrá osera',
@@ -485,7 +539,7 @@
       },
       tipsTouch: {
         walk: 'correr; doble toque y mantén: sprint',
-        hide: 'mantén junto a un tronco grueso: escóndete',
+        hide: 'mantén junto a un tronco o heno: escóndete',
         climb: 'toca: salto; mantén junto al tronco: trepa',
         stomp: 'salta sobre la cabeza del cazador',
         hug: 'abraza al menos una vez o no habrá osera',
@@ -515,6 +569,7 @@
       goals: { fat: 'Grasa', hug: 'Abrazo', ok: '✓', no: '✗' },
       pct: (n) => n + '\u00a0%',
       inSpray: 'en la nieve',
+      inHay: 'en el heno',
       badges: {
         problem: 'Oso problemático',
         cull: 'Abatimiento: 350 uds.',

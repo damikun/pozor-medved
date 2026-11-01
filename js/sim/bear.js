@@ -6,6 +6,8 @@
   const HALF = 38;
   const CLIMB_UP = 110, CLIMB_DOWN = 170, WAKE = 2.6, HOLD = 0.18;
   const COLD = { advent: 0.35, snow: 0.7, frost: 1 };
+  const FENCE = { top: 44, nose: 40, rump: 24, feet: 20, stun: 0.8, kick: 300, hop: 240, said: 40 };
+  const ROOF = 44, NONE = [];
 
   function create(L) {
     return {
@@ -14,16 +16,90 @@
       stamina: 1, tired: false, noiseT: 0, eating: false, eatT: 0,
       climbing: null, climbV: 0, climbT: 0, inCanopy: false, covered: false, upT: 0, offTree: false,
       act: null, waking: !!L && L.theme === 'winter', wakeT: 0, slide: 0, cold: 0, tag: false, inSpray: false, onIce: false,
-      trackD: 0, trackX: 240,
+      trackD: 0, trackX: 240, stun: 0, zapT: 9, zapX: 0, kx: 0, crawl: false, bumpT: 0,
     };
   }
 
+  const fencesOf = (L) => (L.salas && L.salas.fences) || NONE;
+  const shedOf = (L) => (L.salas && L.salas.strunga) || null;
+
+  function hayOf(L) {
+    return L.hayCover || (L.hayCover = L.haystacks.map((x, i) => ({ x, w: 64, hay: true, hide: true, shade: (0.31 + i * 0.618) % 1 })));
+  }
+
+  function spots(L) {
+    return L.coverSpots || (L.coverSpots = L.trees.filter((t) => t.hide).concat(hayOf(L)).sort((a, b) => a.x - b.x));
+  }
+
+  function underRoof(L, b) {
+    const s = shedOf(L);
+    return !!s && b.onGround && Math.abs(b.x - s.x) < s.w / 2 + ROOF;
+  }
+
+  function blockByShed(L, b, nx) {
+    const s = shedOf(L);
+    if (!s || (b.crouch && b.onGround)) return nx;
+    const half = s.w / 2 + ROOF;
+    if (b.x <= s.x - half && nx > s.x - half) { b.bumpT = 1.6; return s.x - half; }
+    if (b.x >= s.x + half && nx < s.x + half) { b.bumpT = 1.6; return s.x + half; }
+    return nx;
+  }
+
+  function reach(b) {
+    const f = b.onGround ? FENCE.nose : FENCE.feet, r = b.onGround ? FENCE.rump : FENCE.feet;
+    return b.dir < 0 ? [-f, r] : [-r, f];
+  }
+
+  function touching(b, x, fx) {
+    if (b.y <= GY - FENCE.top) return false;
+    const e = reach(b);
+    return fx > x + e[0] && fx < x + e[1];
+  }
+
+  function shock(g, b, fx) {
+    if (b.stun > 0) return;
+    const side = Math.sign(b.x - fx) || -b.dir;
+    b.stun = FENCE.stun; b.zapT = 0; b.zapX = fx; b.kx = side * FENCE.kick;
+    b.vy = Math.min(b.vy, -FENCE.hop); b.onGround = false; b.coyote = 0; b.jumpBuffer = 0;
+    b.hiding = null; b.crouch = false; b.covered = false; b.moving = false; b.running = false; b.eating = false; b.eatT = 0; b.vx = 0;
+    rules().float(g, fx, GY - 104, LABELS.zap, COLORS.zap);
+    rules().quip(g, ZS.QUIPS.zap, true);
+    if (!(g.time - g.zapSaid < FENCE.said)) { g.zapSaid = g.time; rules().say(g, NEWS.zap); }
+  }
+
+  function moveX(g, b, nx) {
+    const L = g.level;
+    nx = blockByShed(L, b, blockByLogs(L, b, nx));
+    for (const fx of fencesOf(L)) {
+      if (touching(b, b.x, fx) || !touching(b, nx, fx)) continue;
+      const e = reach(b);
+      nx = nx > b.x ? fx - e[1] : fx - e[0];
+      shock(g, b, fx);
+    }
+    return clamp(nx, 40, L.w - 40);
+  }
+
+  function zapCheck(g, b) {
+    if (b.stun > 0 || b.act || b.climbing) return;
+    for (const fx of fencesOf(g.level)) if (touching(b, b.x, fx)) { shock(g, b, fx); return; }
+  }
+
+  function stunned(g, b, dt) {
+    b.stun = Math.max(0, b.stun - dt);
+    b.moving = false; b.running = false; b.crouch = false; b.hiding = null; b.covered = false;
+    b.eating = false; b.eatT = 0; b.vx = 0; b.slide = 0;
+    g.input.downReleased = false;
+    b.x = moveX(g, b, b.x + b.kx * dt);
+    b.kx = b.stun > 0 ? b.kx * Math.exp(-dt * 5) : 0;
+    fadeHide(b, dt);
+  }
+
   function startHiding(g, b, t) {
-    b.pose = ZS.POSES[Math.floor(t.shade * ZS.POSES.length) % ZS.POSES.length];
+    b.pose = t.hay ? 'hay' : ZS.POSES[Math.floor(t.shade * ZS.POSES.length) % ZS.POSES.length];
     b.hideT = 0;
     if (g.time - (g.hideSaid || -99) > 45 && g.shooters.some((s) => Math.abs(s.x - b.x) < 700)) {
       g.hideSaid = g.time;
-      rules().say(g, NEWS.hide);
+      rules().say(g, t.hay ? NEWS.hay : NEWS.hide);
     }
     if (b.quipCd <= 0) {
       const list = ZS.QUIPS[b.pose];
@@ -41,8 +117,8 @@
     b.sweatT -= dt;
     if ((b.pose === 'sweat' || b.danger) && b.sweatT <= 0) {
       b.sweatT = 0.12;
-      const side = Math.random() < 0.5 ? -1 : 1;
-      g.particles.push({ x: b.x + side * 20, y: GY - 134, vx: side * (40 + Math.random() * 60), vy: -60 - Math.random() * 60, t: 0.8, color: '#5bc0eb', round: true });
+      const side = Math.random() < 0.5 ? -1 : 1, hay = !!b.hiding.hay;
+      g.particles.push({ x: b.x + side * (hay ? 13 : 20), y: GY - (hay ? 62 : 134), vx: side * (40 + Math.random() * 60), vy: -60 - Math.random() * 60, t: 0.8, color: '#5bc0eb', round: true });
     }
   }
 
@@ -113,7 +189,8 @@
     if (hide && b.onGround && !b.hideLatch) {
       if (!b.hiding) {
         const near = L.trees.filter((tr) => Math.abs(tr.x - b.x) < tr.w / 2 + 40);
-        const t = near.filter((tr) => tr.hide).sort((p, q) => Math.abs(p.x - b.x) - Math.abs(q.x - b.x))[0];
+        const hay = hayOf(L).filter((h) => Math.abs(h.x - b.x) < h.w / 2 + 40);
+        const t = near.filter((tr) => tr.hide).concat(hay).sort((p, q) => Math.abs(p.x - b.x) - Math.abs(q.x - b.x))[0];
         if (t) { b.hiding = t; startHiding(g, b, t); }
         else if (near.length && b.birchCd <= 0) { b.birchCd = 2; rules().float(g, b.x, GY - 95, LABELS.birch, COLORS.bad); }
       }
@@ -144,8 +221,7 @@
       const want = dx * (b.crouch ? CFG.CREEP : b.running ? CFG.RUN : CFG.WALK) * (b.inWater ? 0.6 : 1);
       if (ice) b.vx += (want - b.vx) * Math.min(1, dt * (dx ? 2.4 : 0.9));
       else b.vx = want;
-      const nx = b.x + b.vx * dt;
-      b.x = clamp(blockByLogs(L, b, nx), 40, L.w - 40);
+      b.x = moveX(g, b, b.x + b.vx * dt);
       if (b.moving) b.walkT += dt * (b.running ? 1.5 : b.crouch ? 0.6 : 1);
     } else {
       b.vx = 0;
@@ -168,6 +244,8 @@
       b.y = clamp(b.y, topY(trunk), GY - 6); b.jumpBuffer = 0; b.coyote = 0;
       b.hideBlend = 0; b.hideTree = null;
       ZS.fx.onShot(g, trunk.x);
+    } else if (underRoof(L, b)) {
+      b.jumpBuffer = 0;
     } else if ((jump || b.jumpBuffer > 0) && (b.onGround || b.coyote > 0)) {
       b.vy = -CFG.JUMP * (b.inWater ? 0.8 : 1); b.onGround = false; b.coyote = 0; b.jumpBuffer = 0;
     } else if (jump) {
@@ -292,19 +370,24 @@
     b.inv = Math.max(0, b.inv - dt);
     b.birchCd -= dt;
     b.quipCd -= dt;
+    b.zapT += dt;
+    b.bumpT = Math.max(0, b.bumpT - dt);
     b.tag = g.problem;
     b.cold = g.level.theme === 'winter' ? COLD[g.seasonKey] || 0 : 0;
     wake(g, b, dt, left || right || hide || jump || bite || hug);
     if (b.climbing) { climb(g, b, dt, up, hide, jump && inp.jumpKey === 'Space'); return; }
 
     if (b.act && (b.act.t += dt) >= b.act.dur) b.act = null;
-    if (!b.act && (bite || hug) && b.onGround && !b.hiding) startAct(g, b, bite ? 'bite' : 'hug');
-    if (b.act) {
+    if (!b.act && !b.stun && (bite || hug) && b.onGround && !b.hiding && !underRoof(g.level, b)) startAct(g, b, bite ? 'bite' : 'hug');
+    if (b.stun > 0) {
+      stunned(g, b, dt);
+    } else if (b.act) {
       b.moving = false; b.crouch = false; b.hiding = null; b.covered = false; b.eating = false; b.eatT = 0; b.vx = 0; b.slide = 0;
       g.input.downReleased = false;
       fadeHide(b, dt);
     } else {
       updateHiding(g, b, dt, hide);
+      if (!b.hiding && underRoof(g.level, b)) { b.crouch = true; b.running = false; }
       if (b.hiding) {
         b.x += (b.hiding.x - b.x) * Math.min(1, dt * 12);
         b.moving = false; b.vx = 0; b.slide = 0;
@@ -314,6 +397,9 @@
       }
     }
     updatePhysics(g, b, dt);
+    zapCheck(g, b);
+    const shed = shedOf(g.level);
+    b.crawl = !!shed && b.crouch && b.onGround && Math.abs(b.x - shed.x) < shed.w / 2 + ROOF + 18;
     inSpray(g, b);
     leaveTracks(g, b);
 
@@ -330,5 +416,5 @@
   }
 
   ZS.sim = ZS.sim || {};
-  ZS.sim.bear = { create, update, onIce };
+  ZS.sim.bear = { create, update, onIce, spots, touching, hay: hayOf, fences: fencesOf, shed: shedOf, FENCE, ROOF };
 })();
