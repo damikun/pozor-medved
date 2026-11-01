@@ -7,9 +7,9 @@ and the only safe place is behind a thick tree.
 **[▶ Play online](https://damikun.github.io/pozor-medved/?lang=en)** · [Slovensky](https://damikun.github.io/pozor-medved/)
 · [Deutsch](https://damikun.github.io/pozor-medved/?lang=de) · [Español](https://damikun.github.io/pozor-medved/?lang=es)
 
-<a href="https://damikun.github.io/pozor-medved/?lang=en"><img src="docs/screenshot.png" alt="Summer: the bear in a hunter's crosshair next to a billboard saying “There's a bear behind every tree!”"></a>
+<a href="https://damikun.github.io/pozor-medved/?lang=en"><img src="docs/summer.png" alt="Summer: the bear in a hunter's crosshair next to a billboard saying “There's a bear behind every tree!”"></a>
 
-<a href="https://damikun.github.io/pozor-medved/?lang=en"><img src="docs/screenshot-zima.png" alt="Winter: the bear at the Christmas market in Horný Strach with a skier and St Nicholas"></a>
+<a href="https://damikun.github.io/pozor-medved/?lang=en"><img src="docs/winter.png" alt="Winter: the bear at the Christmas market in Horný Strach with a skier and St Nicholas"></a>
 
 The game runs right in the browser, nothing to install. Offline, just open `index.html`.
 
