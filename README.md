@@ -37,5 +37,3 @@ with a tourist counts too. Without a hug the den won't let you in.
 | P | pause |
 
 On phones there are touch buttons, and 🤗 and 🦷 appear next to people.
-
-Characters, headlines and the villages are made up. The places around Pribylina are real.
