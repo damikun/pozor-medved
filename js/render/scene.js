@@ -138,6 +138,28 @@
     ctx.globalAlpha = 1;
   }
 
+  function denStamp(ctx, g) {
+    const x = g.level.goalDen, k = 0.5 + 0.5 * Math.sin(g.time * 2.4), [big, small] = LABELS.denStamp;
+    ctx.save();
+    ctx.translate(x, GY - 96);
+    ctx.rotate(-0.12 + 0.015 * Math.sin(g.time * 1.3));
+    ctx.globalAlpha = 0.86 + 0.1 * k;
+    ctx.font = '900 17px system-ui, sans-serif';
+    const wBig = ctx.measureText(big).width;
+    ctx.font = '700 9.5px system-ui, sans-serif';
+    const half = Math.max(64, Math.max(wBig, ctx.measureText(small).width) / 2 + 12);
+    ctx.fillStyle = 'rgba(255,248,236,0.82)';
+    ctx.fillRect(-half, -21, half * 2, 40);
+    ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 3;
+    ctx.strokeRect(-half, -21, half * 2, 40);
+    ctx.lineWidth = 1; ctx.strokeRect(-half + 4, -17, half * 2 - 8, 32);
+    ctx.fillStyle = '#c0392b'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(small, 0, 10);
+    ctx.font = '900 17px system-ui, sans-serif';
+    ctx.fillText(big, 0, -5);
+    ctx.restore();
+  }
+
   function overlays(ctx, g, vis, viewW) {
     const b = g.bear;
     for (const d of g.drones) P.drone(ctx, d, g.time);
@@ -187,7 +209,9 @@
     if (L.ice && span(L.ice.from, L.ice.to, 80)) ZS.winterArt.ice(ctx, L.ice.from, L.ice.to, g.time);
     for (const h of L.holes) if (vis(h.x, 60)) ZS.winterArt.hole(ctx, h.x, g.time);
     P.den(ctx, L.startDen, false, T.startDen, g.time, g);
-    P.den(ctx, L.goalDen, g.fat >= g.def.fatGoal, T.goalDen, g.time, g);
+    const hugged = ZS.sim.rules.hugged(g);
+    P.den(ctx, L.goalDen, hugged && g.fat >= g.def.fatGoal, T.goalDen, g.time, g);
+    if (!hugged && vis(L.goalDen, 120)) denStamp(ctx, g);
     for (const h of L.houses) if (vis(h.x, 220)) P.house(ctx, h, g);
     landmarks(ctx, g, vis, span);
     treesWithBear(ctx, g, vis, withBear);

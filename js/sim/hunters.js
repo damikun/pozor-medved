@@ -5,16 +5,16 @@
   const rules = () => ZS.sim.rules;
 
   const KIND = {
-    posed:   { aim: 1.25, sweep: 125, range: 480, speed: 0,   label: 'poľovník' },
-    walker:  { aim: 1.1,  sweep: 115, range: 380, speed: 48,  label: 'poľovník' },
-    ztmh:    { aim: 0.95, sweep: 150, range: 420, speed: 230, label: 'zásahový tím' },
-    poacher: { aim: 0.8,  sweep: 130, range: 400, speed: 70,  label: 'pytliak' },
+    posed:   { aim: 1.25, sweep: 125, range: 480, speed: 0 },
+    walker:  { aim: 1.1,  sweep: 115, range: 380, speed: 48 },
+    ztmh:    { aim: 0.95, sweep: 150, range: 420, speed: 230 },
+    poacher: { aim: 0.8,  sweep: 130, range: 400, speed: 70 },
   };
 
   function create(g, kind, o) {
     const k = KIND[kind];
     const s = Object.assign({
-      kind, label: k.label, aimTime: k.aim, sweep: k.sweep, range: k.range, speed: k.speed,
+      kind, aimTime: k.aim, sweep: k.sweep, range: k.range, speed: k.speed,
       x: 0, dir: -1, from: null, to: null, crossDir: 1, lock: 0, reload: 0, life: Infinity, pause: 0, lost: 0, alertX: null,
       sweepPause: 0, scaredT: 0, react: null, reactT: 0, armed: true, rifle: null, trackCd: 0,
     }, o);

@@ -10,7 +10,7 @@
   function changeSeason(g) {
     const seasons = g.def.seasons;
     const si = seasons.findIndex((s) => g.time < s.end);
-    if (si === -1) { sim.rules.end(g, 'starve'); return false; }
+    if (si === -1) { sim.rules.end(g, g.fat >= g.def.fatGoal && !sim.rules.hugged(g) ? 'lonely' : 'starve'); return false; }
     if (si !== g.seasonIdx) {
       g.seasonIdx = si;
       g.seasonKey = seasons[si].key;
@@ -67,7 +67,10 @@
     sim.politics.randomEvents(g, dt);
     ageEffects(g, dt);
 
-    if (g.bear.x >= g.level.goalDen - 20) { sim.rules.end(g, g.fat >= g.def.fatGoal ? 'win' : 'starve'); return; }
+    if (g.bear.x >= g.level.goalDen - 20) {
+      if (sim.rules.hugged(g)) { sim.rules.end(g, g.fat >= g.def.fatGoal ? 'win' : 'starve'); return; }
+      sim.rules.refuse(g);
+    }
     sim.rules.tickerStep(g, dt);
   }
 

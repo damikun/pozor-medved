@@ -495,9 +495,9 @@
       ctx.fillStyle = '#fff8e6'; ctx.fillRect(s.x - 100, GY - 176, 200, 106);
       ctx.strokeStyle = '#3b3b3b'; ctx.lineWidth = 3; ctx.strokeRect(s.x - 100, GY - 176, 200, 106);
       ctx.fillStyle = '#c0392b'; ctx.fillRect(s.x - 100, GY - 176, 200, 8);
-      label(ctx, L[0], s.x, GY - 146, 18, '#1d1d1d');
-      label(ctx, L[1], s.x, GY - 122, 18, '#1d1d1d');
-      label(ctx, s.by, s.x, GY - 92, 12, '#555', 500);
+      label(ctx, L[0], s.x, GY - 146, 18, '#1d1d1d', 700, 184);
+      label(ctx, L[1], s.x, GY - 122, 18, '#1d1d1d', 700, 184);
+      label(ctx, LABELS.signs.by, s.x, GY - 92, 12, '#555', 500, 184);
       if (!W) return;
       const sd = s.x * 0.01;
       ctx.fillStyle = W.snowShade; rrect(ctx, s.x - 103, GY - 181, 207, 8, 4);

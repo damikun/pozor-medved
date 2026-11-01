@@ -52,16 +52,25 @@
     g.bear.waking = false;
   }
 
+  function setLang(code) {
+    ZS.i18n.set(code, true);
+    hud.relabel();
+  }
+
   function menu() {
     if (g) g.running = false;
     hud.hidePlaying();
-    screens.showStart(done(), start, preview, touchy());
+    screens.showStart(done(), start, preview, touchy(), (code) => { setLang(code); menu(); });
+  }
+
+  function showPause() {
+    screens.showPause(togglePause, menu);
   }
 
   function togglePause() {
     if (!g || !g.running || g.over) return;
     g.paused = !g.paused;
-    if (g.paused) screens.showPause(togglePause, menu);
+    if (g.paused) showPause();
     else screens.hide();
   }
 
@@ -79,6 +88,7 @@
     if (vw !== window.innerWidth || vh !== window.innerHeight) resize();
     if (g.running && !g.over && !g.paused) {
       loop.step(g, dt);
+      hud.tick(dt);
       if (!g.over && (hudT -= dt) <= 0) { hudT = 0.1; hud.update(g); }
     }
     g.cam = loop.cameraX(g);
@@ -91,7 +101,7 @@
   input.listen({ onPause: togglePause });
   resize();
   g = rules.create(input.state, { viewW });
-  screens.showStart(done(), start, preview, touchy());
+  menu();
   requestAnimationFrame(frame);
 
   ZS.dev = ZS.dev || {};
@@ -105,7 +115,7 @@
   };
   ZS.dev.step = (seconds) => {
     loop.advance(g, seconds);
-    if (g.running) hud.update(g);
+    if (g.running) { hud.tick(seconds); hud.update(g); }
     if (viewW) ZS.draw(g, ctx, viewW, offY);
     return g;
   };

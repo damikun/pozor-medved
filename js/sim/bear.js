@@ -1,5 +1,5 @@
 (function () {
-  const { CFG, COLORS, LABELS } = ZS;
+  const { CFG, COLORS, LABELS, NEWS } = ZS;
   const GY = CFG.GROUND;
   const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
@@ -21,6 +21,10 @@
   function startHiding(g, b, t) {
     b.pose = ZS.POSES[Math.floor(t.shade * ZS.POSES.length) % ZS.POSES.length];
     b.hideT = 0;
+    if (g.time - (g.hideSaid || -99) > 45 && g.shooters.some((s) => Math.abs(s.x - b.x) < 700)) {
+      g.hideSaid = g.time;
+      rules().say(g, NEWS.hide);
+    }
     if (b.quipCd <= 0) {
       const list = ZS.QUIPS[b.pose];
       g.bubble = { text: list[Math.floor(Math.random() * list.length)], t: 2.4 };
@@ -77,6 +81,7 @@
     b.inCanopy = b.y <= coverY(t);
     b.covered = b.inCanopy;
     pickUp(g, b);
+    if (b.inCanopy && !was && !g.once.climb) { g.once.climb = true; rules().say(g, NEWS.climb); }
     if (b.inCanopy && !was && b.quipCd <= 0) {
       const list = ZS.QUIPS.climb;
       g.bubble = { text: list[Math.floor(Math.random() * list.length)], t: 2.4 };
@@ -150,6 +155,7 @@
       g.once.ice = true;
       rules().float(g, b.x, GY - 120, LABELS.ice, COLORS.story);
       rules().quip(g, ZS.QUIPS.ice, true);
+      rules().say(g, NEWS.ice);
     }
     const logAhead = L.logs.some((lg) => {
       const f = b.dir > 0 ? lg.x - lg.w / 2 - b.x : b.x - (lg.x + lg.w / 2);
@@ -214,6 +220,7 @@
       g.once.spray = true;
       rules().float(g, b.x, GY - 120, LABELS.spray, COLORS.good);
       rules().quip(g, ZS.QUIPS.spray, true);
+      rules().say(g, NEWS.spray);
     }
   }
 

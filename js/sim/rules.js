@@ -18,10 +18,10 @@
       time: 0, seasonIdx: 0, seasonKey: def.seasons[0].key, fat: def.startFat, syn: 0, panic: 0, lives: CFG.LIVES, cam: 0,
       flags: { press: false, emergency: false, drones: false, cull: false, meat: false, binsLocked: false, stallsLocked: false, hugBan: false, decree: false },
       courtUntil: 0, viralUntil: 0, hugBanAt: 0, lastKnown: null, lastHuman: -99, problem: false, nextEvent: 30, usedEvents: new Set(),
-      stats: { natural: 0, human: 0, seen: 0, hugs: 0, bites: 0, stomps: 0, selfies: 0 }, falls: 0, running: false, over: false, paused: false, ending: null,
+      stats: { natural: 0, human: 0, seen: 0, hugs: 0, bites: 0, stomps: 0, selfies: 0 }, falls: 0, refusals: 0, refusedAt: -99, running: false, over: false, paused: false, ending: null,
       bot, once: {},
-      headlines: (id === 'winter' ? ZS.WINTER_HEADLINES : ZS.HEADLINES).slice().sort(() => Math.random() - 0.5), headlineIdx: 0,
-      tickerT: 0, tickerQueue: [], tickerHot: false,
+      headlines: (id === 'winter' ? ZS.WINTER_HEADLINES : ZS.HEADLINES).map((_, i) => i).sort(() => Math.random() - 0.5), headlineIdx: 0,
+      tickerT: 0, tickerQueue: [], tickerHot: false, cycle: new Map(), saidAt: {},
     };
     for (const sp of level.spawns) {
       if (sp.kind === 'posed') g.shooters.push(sim.hunters.create(g, 'posed', { x: sp.x, range: sp.range }));
@@ -35,17 +35,26 @@
     return g;
   };
 
-  rules.say = function (g, text, hot) {
+  function next(g, list) {
+    const i = g.cycle.get(list) || 0;
+    g.cycle.set(list, i + 1);
+    return list[i % list.length];
+  }
+
+  rules.say = function (g, news, hot) {
+    const text = g && Array.isArray(news) ? next(g, news) : news;
     if (!g || g.tickerQueue.some((q) => q.text === text)) return;
     if (!hot && g.tickerQueue.length > 2) return;
-    g.tickerQueue.push({ text, hot: !!hot });
+    const at = hot ? g.tickerQueue.findIndex((q) => !q.hot) : -1;
+    g.tickerQueue.splice(at < 0 ? g.tickerQueue.length : at, 0, { text, hot: !!hot });
     if (hot && !g.tickerHot) g.tickerT = 0;
   };
 
   function tickerStep(g, dt) {
     g.tickerT -= dt;
     if (g.tickerT > 0) return;
-    const item = g.tickerQueue.shift() || { text: g.headlines[g.headlineIdx++ % g.headlines.length], hot: false };
+    const list = g.level.id === 'winter' ? ZS.WINTER_HEADLINES : ZS.HEADLINES;
+    const item = g.tickerQueue.shift() || { text: list[g.headlines[g.headlineIdx++ % g.headlines.length]], hot: false, filler: true };
     g.tickerHot = item.hot;
     g.tickerT = item.hot ? 7 : 6;
     rules.onNews(item);
@@ -68,16 +77,16 @@
     if (f.natural) g.stats.natural++; else { g.stats.human++; g.lastHuman = g.time; }
     if (f.syn) g.syn = Math.min(100, g.syn + f.syn);
     if (f.panic) g.panic = Math.min(100, g.panic + f.panic);
-    rules.float(g, it.x, GY - 80, LABELS.eaten(f, it), f.natural ? COLORS.good : COLORS.bad);
+    rules.float(g, it.x, GY - 80, LABELS.eaten(f.fat, LABELS[it.labelKey] || LABELS.food[it.type]), f.natural ? COLORS.good : COLORS.bad);
     if (it.type === 'carrot') {
       const sm = g.level.snowmen.find((s) => Math.abs(s.x - it.x) < 2);
       if (sm) sm.nose = false;
     }
     const news = NEWS[it.type + 'Eaten'];
-    if (news) rules.say(g, news);
+    if (news && !(g.time - g.saidAt[it.type] < 30)) { g.saidAt[it.type] = g.time; rules.say(g, news); }
     if (g.fat >= g.def.fatGoal && !g.readySaid) {
       g.readySaid = true;
-      rules.say(g, g.level.theme === 'winter' ? NEWS.readyForSleep : NEWS.readyForWinter, true);
+      rules.say(g, !rules.hugged(g) ? NEWS.readyNoHug : g.level.theme === 'winter' ? NEWS.readyForSleep : NEWS.readyForWinter, true);
     }
   };
 
@@ -116,6 +125,18 @@
     b.inv = 3;
     rules.float(g, b.x, GY - 115, LABELS.hit(g.lives), COLORS.shot);
     rules.say(g, shooter.kind === 'poacher' ? NEWS.poacherShot : NEWS.hunterShot, true);
+  };
+
+  rules.hugged = (g) => g.stats.hugs + g.stats.selfies > 0;
+
+  rules.refuse = function (g) {
+    const b = g.bear, x = g.level.goalDen - 22;
+    if (b.x > x) { b.x = x; b.vx = 0; }
+    if (g.time - g.refusedAt < 5) return;
+    g.refusedAt = g.time;
+    rules.float(g, g.level.goalDen, GY - 112, LABELS.denRefuse, COLORS.bad);
+    rules.say(g, NEWS.denRefuse[g.refusals++ % NEWS.denRefuse.length], true);
+    rules.quip(g, ZS.QUIPS.denRefuse, true);
   };
 
   function end(g, kind) {

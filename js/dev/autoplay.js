@@ -20,7 +20,7 @@
 
   function pace(g) {
     const start = g.def.startFat;
-    return start + (g.def.fatGoal + 4 - start) * Math.min(1, g.bear.x / g.level.goalDen);
+    return start + (g.def.fatGoal + 10 - start) * Math.min(1, g.bear.x / g.level.goalDen);
   }
 
   function jump(g, key) {
@@ -66,7 +66,9 @@
 
   function wantsHug(g, danger) {
     const o = g.bear.reach;
-    return !!o && !danger && !g.flags.hugBan && g.panic > 35 && ((o.kind === 'tourist' && g.stats.selfies < 2) || o.kind === 'santa');
+    if (!o || o.post || danger) return false;
+    if (!ZS.sim.rules.hugged(g)) return o.kind !== 'ztmh' && o.kind !== 'poacher';
+    return !g.flags.hugBan && g.panic > 35 && ((o.kind === 'tourist' && g.stats.selfies < 2) || o.kind === 'santa');
   }
 
   function autopilot(g, dt) {
@@ -83,6 +85,8 @@
     const danger = runner || (pilot.bold > 0 && pilot.danger < 2) ? 0 : pilot.danger;
     if (pilot.bold > 0 && !runner) keys.add('ShiftLeft');
 
+    if (ZS.sim.rules.hugged(g)) pilot.back = false;
+    else if (b.x >= L.goalDen - 40) pilot.back = true;
     if (b.act) return;
     if (b.climbing) {
       const honey = L.items.find((it) => !it.eaten && it.type === 'wildhoney' && Math.abs(it.x - b.climbing.x) < 20);
@@ -113,7 +117,7 @@
       if (food) return;
     }
 
-    let dir = 1;
+    let dir = pilot.back && !runner ? -1 : 1;
     if (danger) {
       const target = nearestTrunk(L, b);
       if (target) dir = Math.sign(target.x - b.x) || 1;

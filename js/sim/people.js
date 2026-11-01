@@ -4,7 +4,7 @@
   const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
   const SPEED = { tourist: 25, santa: 22, picker: 35 };
-  const SHY = { picker: NEWS.pickerSeen, santa: NEWS.santaSeen };
+  const SHY = { picker: 'pickerSeen', santa: 'santaSeen' };
 
   function create(g, kind, o) {
     return Object.assign({
@@ -37,7 +37,7 @@
       if (sees && SHY[p.kind]) {
         p.state = 'flee';
         p.dir = Math.sign(p.x - b.x) || 1;
-        rules().addPanic(g, 8, SHY[p.kind]);
+        rules().addPanic(g, 8, NEWS[SHY[p.kind]]);
         rules().spotted(g, p.x, GY - 100, LABELS.pickerSeen);
         ZS.sim.hunters.alert(g, b.x);
       } else if (sees && p.filmCd <= 0) {

@@ -2,6 +2,7 @@
 <html lang="sk">
 <head>
 <meta charset="utf-8">
+<meta name="default-language" content="sk">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-NV6DYPNM0Y"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -31,10 +32,10 @@
 
 <div id="hud" hidden>
   <div class="bars">
-    <div class="bar fat" id="barFat"><span>Tuk</span><i></i><em style="left: 85%"></em></div>
-    <div class="bar syn" id="barSyn"><span>Synantropia</span><i></i><em></em></div>
-    <div class="bar panic" id="barPanic"><span>Mediálna panika</span><i></i></div>
-    <div class="bar trip" id="barTrip"><span>Cesta do zimného brlohu</span><i></i></div>
+    <div class="bar fat" id="barFat"><span></span><i></i><em style="left: 85%"></em></div>
+    <div class="bar syn" id="barSyn"><span></span><i></i><em></em></div>
+    <div class="bar panic" id="barPanic"><span></span><i></i></div>
+    <div class="bar trip" id="barTrip"><span></span><i></i></div>
   </div>
   <div class="side">
     <div id="season"></div>
@@ -43,17 +44,23 @@
   <div id="badges"></div>
 </div>
 
-<div id="ticker" hidden><b>SPRÁVY</b><span id="tickerText"></span></div>
+<div id="ticker" hidden>
+  <div class="tv-label">
+    <div class="tv-bug"><b id="tvChannel"></b><i id="tvNum"></i></div>
+    <div class="tv-flag" id="tvFlag"></div>
+  </div>
+  <div class="tv-body" id="tvText"></div>
+</div>
 
 <div id="touch" hidden>
-  <button data-key="ArrowLeft" aria-label="Doľava">◀</button>
-  <button data-key="ArrowRight" aria-label="Doprava">▶</button>
+  <button data-key="ArrowLeft">◀</button>
+  <button data-key="ArrowRight">▶</button>
   <span class="gap"></span>
-  <button data-key="ArrowDown" aria-label="Schovať sa">🌲</button>
-  <button data-key="ArrowUp" aria-label="Skok">⤒</button>
+  <button data-key="ArrowDown">🌲</button>
+  <button data-key="ArrowUp">⤒</button>
   <div class="act" id="act">
-    <button data-key="KeyC" aria-label="Objať">🤗</button>
-    <button data-key="KeyX" aria-label="Kusnúť">🦷</button>
+    <button data-key="KeyC">🤗</button>
+    <button data-key="KeyX">🦷</button>
   </div>
 </div>
 
@@ -61,8 +68,14 @@
   <div class="card" id="screenCard"></div>
 </div>
 
+<div id="corner" hidden></div>
+
 <script src="js/core/config.js"></script>
 <script src="js/core/texts.js"></script>
+<script src="js/lang/en.js"></script>
+<script src="js/lang/de.js"></script>
+<script src="js/lang/es.js"></script>
+<script src="js/core/i18n.js"></script>
 <script src="js/core/util.js"></script>
 <script src="js/world/level.js"></script>
 <script src="js/world/winter.js"></script>

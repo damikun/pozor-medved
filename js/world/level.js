@@ -21,6 +21,10 @@
     };
   }
 
+  function sign(x, text, extra) {
+    return Object.defineProperty(Object.assign({ x }, extra), 'text', { get: text, enumerable: true });
+  }
+
   function add(L, type, x, extra) {
     L.items.push(Object.assign({ type, x, eaten: false, locked: false }, extra));
   }
@@ -82,16 +86,16 @@
     ];
     L.stones = [{ x: 8300, w: 64 }, { x: 8425, w: 58 }, { x: 8550, w: 66 }];
     L.signs = [
-      { x: 420, text: S.hide },
-      { x: 800, text: S.climb },
-      { x: 2305, text: ZS.LEVEL_TEXT.summer.village },
-      { x: 2130, text: '', by: S.by, billboard: true },
-      { x: 3580, text: S.stomp },
-      { x: 5100, text: S.skanzen },
-      { x: L.feeding - 70, text: S.feeding },
-      { x: 8110, text: S.ford },
-      { x: 10300, text: S.park },
-      { x: W - 470, text: S.goal },
+      sign(420, () => S.hide),
+      sign(800, () => S.climb),
+      sign(2305, () => ZS.LEVEL_TEXT.summer.village),
+      sign(2130, () => '', { billboard: true }),
+      sign(3580, () => S.stomp),
+      sign(5100, () => S.skanzen),
+      sign(L.feeding - 70, () => S.feeding),
+      sign(8110, () => S.ford),
+      sign(10300, () => S.park),
+      sign(W - 470, () => S.goal),
     ];
 
     [2510, 2800, 3075, 3350].forEach((x) => add(L, 'bin', x));
@@ -163,7 +167,7 @@
     return L;
   }
 
-  ZS.levelKit = { makeTree, base, add, forest, backTrees, scatter, honey, hills };
+  ZS.levelKit = { makeTree, base, sign, add, forest, backTrees, scatter, honey, hills };
   ZS.levelBuilders = { summer };
 
   ZS.makeLevel = function (id, seed) {

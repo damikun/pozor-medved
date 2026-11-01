@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const { createCanvas, makePath2D } = require('./mock-canvas');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const HEADLESS = /^js\/(core|world|sim|dev)\/|^js\/render\/fx\.js$|^js\/ui\/input\.js$/;
+const HEADLESS = /^js\/(core|lang|world|sim|dev)\/|^js\/render\/fx\.js$|^js\/ui\/input\.js$/;
 const RENDERER = /^js\/render\//;
 
 function pageScripts() {
@@ -13,12 +13,15 @@ function pageScripts() {
   return [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map((m) => m[1]);
 }
 
-function loadGame({ seed, withRenderer = false, problems = [] } = {}) {
+function loadGame({ seed, withRenderer = false, problems = [], location, localStorage, document } = {}) {
   const sandbox = { console };
   sandbox.window = sandbox;
+  if (location) sandbox.location = location;
+  if (localStorage) sandbox.localStorage = localStorage;
+  if (document) sandbox.document = document;
   if (withRenderer) {
     sandbox.Path2D = makePath2D(problems);
-    sandbox.document = { createElement: () => createCanvas(16, 16, problems) };
+    sandbox.document = Object.assign(sandbox.document || {}, { createElement: () => createCanvas(16, 16, problems) });
   }
   vm.createContext(sandbox);
   const scripts = pageScripts().filter((src) => HEADLESS.test(src) || (withRenderer && RENDERER.test(src)));

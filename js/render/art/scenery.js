@@ -44,8 +44,10 @@
   function line(ctx, x1, y1, x2, y2, w, col) {
     ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
   }
-  function txt(ctx, s, x, y, size, col, weight, spacing) {
+  function txt(ctx, s, x, y, size, col, weight, spacing, maxW) {
     ctx.font = (weight || 700) + ' ' + size + 'px system-ui, sans-serif';
+    const w = maxW ? ctx.measureText(s).width + (spacing || 0) * s.length : 0;
+    if (w > maxW) ctx.font = (weight || 700) + ' ' + (size * maxW / w) + 'px system-ui, sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     if ('letterSpacing' in ctx) ctx.letterSpacing = (spacing || 0) + 'px';
     ctx.fillStyle = col; ctx.fillText(s, x, y);
@@ -197,7 +199,7 @@
     ctx.fillStyle = '#b98c55'; rr(ctx, -24, 10, 48, 18, 2.5);
     ctx.fillStyle = 'rgba(0,0,0,0.16)'; ctx.fillRect(-24, 24, 48, 4);
     ctx.fillStyle = 'rgba(255,255,255,0.14)'; ctx.fillRect(-22, 11.5, 44, 1.6);
-    txt(ctx, 'SALAŠ', 0, 19.5, 12.5, '#35200f', 800, 0.8);
+    txt(ctx, ZS.LABELS.art.salas, 0, 19.5, 12.5, '#35200f', 800, 0.8, 44);
     ctx.restore();
     smoke(ctx, 52, -137, time, 1.7, 1);
     ctx.restore();
@@ -782,7 +784,7 @@
     ctx.fillStyle = '#5b3f27'; ctx.fillRect(-137, -111, 274, 36);
     ctx.fillStyle = '#2f4a35'; ctx.fillRect(-134, -108, 268, 30);
     ctx.fillStyle = 'rgba(255,255,255,0.07)'; ctx.fillRect(-134, -108, 268, 3);
-    const msg = 'HOTEL MEDVEDÍ RAJ ', stars = '****';
+    const msg = ZS.LABELS.art.hotel + ' ', stars = '****';
     ctx.font = '800 18px system-ui, sans-serif'; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
     const tw = ctx.measureText(msg + stars).width, k = Math.min(1, 236 / tw), w1 = ctx.measureText(msg).width * k;
     ctx.font = '800 ' + (18 * k) + 'px system-ui, sans-serif';
@@ -937,7 +939,8 @@
     ctx.fillStyle = 'rgba(255,255,255,0.15)'; ctx.fillRect(-45, -69, 90, 2.6); ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(-46, -60, 92, 2.4);
     ctx.fillStyle = '#17402a'; rr(ctx, -19, -65, 38, 4.6, 2.2);
     ctx.fillStyle = '#f4f1e6'; rr(ctx, -39, -51, 34, 17, 2.4);
-    txt(ctx, 'KOMUNÁLNY', -22, -46, 4.8, '#245a38', 800, 0); txt(ctx, 'ODPAD', -22, -39.2, 8, '#245a38', 900, 0.3);
+    const [w1, w2] = ZS.LABELS.art.waste;
+    txt(ctx, w1, -22, -46, 4.8, '#245a38', 800, 0, 31); txt(ctx, w2, -22, -39.2, 8, '#245a38', 900, 0.3, 31);
     if (locked) {
       ctx.fillStyle = '#f7d21e'; rr(ctx, 12, -54, 26, 26, 3.6);
       ctx.fillStyle = '#1d1d1d'; ell(ctx, 25, -37.5, 5.4, 4.4); circle(ctx, 19.2, -45, 2); circle(ctx, 23.4, -47.6, 2.1); circle(ctx, 27.8, -47.6, 2.1); circle(ctx, 32, -45, 2);

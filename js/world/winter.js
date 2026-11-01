@@ -24,16 +24,16 @@
     L.posts = [{ x: 1550 }, { x: 2640 }, { x: 8650 }];
     L.logs = [{ x: 1180, w: 100, h: 32 }, { x: 2960, w: 96, h: 30 }, { x: 7820, w: 110, h: 34 }, { x: 9600, w: 100, h: 32 }];
     L.signs = [
-      { x: 900, text: S.cannon },
-      { x: 1330, text: S.hide },
-      { x: 2130, text: S.feeder },
-      { x: 3530, text: S.ice },
-      { x: 4380, text: '', by: S.by, billboard: true },
-      { x: 4540, text: ZS.LEVEL_TEXT.winter.village },
-      { x: 7100, text: S.lift },
-      { x: 9150, text: S.quiet },
-      { x: 9950, text: S.cave },
-      { x: W - 470, text: S.winterGoal },
+      K.sign(900, () => S.cannon),
+      K.sign(1330, () => S.hide),
+      K.sign(2130, () => S.feeder),
+      K.sign(3530, () => S.ice),
+      K.sign(4380, () => '', { billboard: true }),
+      K.sign(4540, () => ZS.LEVEL_TEXT.winter.village),
+      K.sign(7100, () => S.lift),
+      K.sign(9150, () => S.quiet),
+      K.sign(9950, () => S.cave),
+      K.sign(W - 470, () => S.winterGoal),
     ];
 
     L.feeders.forEach((f) => K.add(L, 'feeder', f.x));

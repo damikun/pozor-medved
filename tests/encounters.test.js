@@ -132,7 +132,7 @@ test('C next to a mushroom picker hugs her: the video calms the panic, she drops
     assert.equal(g.stats.hugs, 1);
     assert.ok(g.panic < 40, 'panic ' + g.panic.toFixed(1));
     assert.ok(g.props.some((o) => o.kind === 'basket'));
-    assert.equal(L.items.filter((it) => it.type === 'mushroom' && it.label && Math.abs(it.x - x) < 80).length, 2);
+    assert.equal(L.items.filter((it) => it.type === 'mushroom' && it.labelKey === 'basket' && Math.abs(it.x - x) < 80).length, 2);
   });
 
   await t.test('after the hug she runs away', () => {

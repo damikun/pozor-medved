@@ -18,8 +18,10 @@
     ctx.drawImage(c, x - c.width / 2, y - c.height / 2);
   }
 
-  function label(ctx, text, x, y, size, color, weight) {
+  function label(ctx, text, x, y, size, color, weight, maxW) {
     ctx.font = (weight || 700) + ' ' + size + 'px system-ui, sans-serif';
+    const w = maxW ? ctx.measureText(text).width : 0;
+    if (w > maxW) ctx.font = (weight || 700) + ' ' + (size * maxW / w) + 'px system-ui, sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,0.85)';
     ctx.strokeText(text, x, y);
