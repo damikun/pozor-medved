@@ -3,18 +3,12 @@
 (function () {
   const { CFG } = ZS;
   const GY = CFG.GROUND;
+  const { mulberry32 } = ZS.util;
 
-  function mulberry32(seed) {
-    return function () {
-      seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
-      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  ZS.util = { mulberry32, clamp };
-
+  /**
+   * Builds the level from a seed: trees, food, logs, stones, signs, landmarks and the spawn list.
+   * Everything random comes from the seeded generator, so a seed always gives the same valley.
+   */
   ZS.makeLevel = function (seed) {
     const rng = mulberry32(seed || 11);
     const W = CFG.LEVEL_W;

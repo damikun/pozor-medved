@@ -1,0 +1,75 @@
+// One fixed simulation step, in the order everything has to happen, and a helper to run many of them.
+(function () {
+  const { CFG, NEWS } = ZS;
+  const GY = CFG.GROUND;
+  const sim = ZS.sim;
+
+  /** The camera keeps the bear a little left of centre and never shows past the ends of the level. */
+  function cameraX(g) {
+    return Math.max(0, Math.min(CFG.LEVEL_W - g.viewW, g.bear.x - g.viewW * 0.38));
+  }
+
+  function changeSeason(g) {
+    const si = CFG.SEASONS.findIndex((s) => g.time < s.end);
+    if (si === -1) { sim.rules.end(g, 'starve'); return false; }
+    if (si !== g.seasonIdx) {
+      g.seasonIdx = si;
+      if (si === 1) sim.rules.say(g, NEWS.summer);
+      if (si === 2) {
+        sim.rules.say(g, NEWS.mushrooms, true);
+        const x = Math.min(CFG.LEVEL_W - 600, g.bear.x + 900);
+        g.people.push(sim.people.create(g, 'picker', { from: x - 400, to: x + 400 }));
+      }
+    }
+    return true;
+  }
+
+  function updateMeters(g, dt) {
+    g.fat = Math.max(0, g.fat - CFG.METABOLISM * dt * (g.bear.running && g.bear.moving ? 4 : 1));
+    if (g.time - g.lastHuman > 8) g.syn = Math.max(0, g.syn - CFG.SYN_DECAY * dt);
+    g.panic = Math.max(0, g.panic - CFG.PANIC_DECAY * dt);
+  }
+
+  function ageEffects(g, dt) {
+    g.shots.forEach((sh) => { sh.t -= dt; });
+    g.shots = g.shots.filter((sh) => sh.t > 0);
+    g.particles.forEach((p) => { p.t -= dt; p.vy += 600 * dt; p.x += p.vx * dt; p.y += p.vy * dt; });
+    g.particles = g.particles.filter((p) => p.t > 0 && p.y < GY);
+    g.floaters.forEach((f) => { f.t -= dt; });
+    g.floaters = g.floaters.filter((f) => f.t > 0);
+    if (g.bubble && (g.bubble.t -= dt) <= 0) g.bubble = null;
+  }
+
+  /** Advances the run by dt seconds. */
+  function step(g, dt) {
+    if (g.bot && ZS.dev && ZS.dev.autopilot) ZS.dev.autopilot(g, dt);
+    g.time += dt;
+    if (!changeSeason(g)) return;
+    sim.bear.update(g, dt);
+    g.cam = cameraX(g);
+    ZS.fx.update(g, dt, g.viewW);
+    sim.hunters.update(g, dt);
+    if (g.over) return;
+    sim.people.update(g, dt);
+    sim.drones.update(g, dt);
+    sim.wildlife.updateDogs(g, dt);
+    sim.wildlife.updateSheep(g, dt);
+    sim.wildlife.updateFish(g, dt);
+
+    updateMeters(g, dt);
+    sim.politics.escalate(g);
+    sim.politics.randomEvents(g, dt);
+    ageEffects(g, dt);
+
+    if (g.bear.x >= g.level.winterDen - 20) { sim.rules.end(g, g.fat >= CFG.FAT_GOAL ? 'win' : 'starve'); return; }
+    sim.rules.tickerStep(g, dt);
+  }
+
+  /** Runs fixed 1/60 s steps for the given number of seconds, stopping when the run ends (tests and the dev API). */
+  function advance(g, seconds) {
+    for (let t = 0; t < seconds && g.running && !g.over; t += 1 / 60) step(g, 1 / 60);
+    return g;
+  }
+
+  ZS.sim.loop = { step, advance, cameraX };
+})();

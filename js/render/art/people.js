@@ -667,7 +667,7 @@
   };
 
   // --- The hunter in the window of the raised stand --------------------------------------------
-  // Geometry of post() in draw.js: the dark window is 46 wide, from GY - 195 to GY - 177 around s.x. Override with
+  // Geometry of post() in js/render/props.js: the dark window is 46 wide, from GY - 195 to GY - 177 around s.x. Override with
   // ZS.POST_WINDOW = { half, top, bot } if the stand is redrawn.
   const WIN = { half: 23, top: GY - 195, bot: GY - 177 };
   const POST_SCALE = 0.82;

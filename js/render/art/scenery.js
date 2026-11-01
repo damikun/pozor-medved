@@ -1,11 +1,11 @@
-// New scenery for the expanded level: shepherd's hut, electric sheep pen, sheep, dog, river with stepping stones and
-// trout, mountain hotel, ski lift, waste container, haystack and wayside chapel. Side view in the style of draw.js:
+// The valley's landmarks and animals: shepherd's hut, electric sheep pen, sheep, dog, river with stepping stones and
+// trout, mountain hotel, ski lift, waste container, haystack and wayside chapel. Side view in the style of js/render/props.js:
 // flat fills with subtle shading, no outlines, canvas paths only. Everything hangs on ZS.scenery.
 //
-// Call every function with the canvas already translated to world coordinates (as draw.js does). Each one saves and
+// Call every function with the canvas already translated to world coordinates (as js/render/scene.js does). Each one saves and
 // restores the context and draws standing on ZS.CFG.GROUND unless noted. `time` is game time in seconds and drives all
 // animation (never the wall clock), smoothly. Long things (pen, river, ski cable) skip what is off screen by looking at the
-// canvas transform; the rest should be culled by the caller, as draw.js does with vis().
+// canvas transform; the rest should be culled by the caller, as scene.js does with vis().
 //
 //   ZS.scenery.koliba(ctx, x, time)          shepherd's hut, 202 x 137 (+ smoke up to ~215), x = centre
 //   ZS.scenery.pen(ctx, x1, x2, time)        electric fence in the background, 62 tall, from x1 to x2 (+24 to the left of x1 for the energizer)
@@ -41,7 +41,7 @@
   const hash = (n) => frac(sin(n * 127.1 + 311.7) * 43758.5453);
   const hash2 = (a, b) => hash(a * 57.31 + b * 13.97 + 0.17);
 
-  // --- Drawing primitives (fill with the current fillStyle, like draw.js) -------------------------------
+  // --- Drawing primitives (fill with the current fillStyle, like ZS.gfx) -------------------------------
   function circle(ctx, x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
   function ell(ctx, x, y, rx, ry, rot) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot || 0, 0, TAU); ctx.fill(); }
   function rr(ctx, x, y, w, h, r) {
