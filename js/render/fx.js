@@ -42,7 +42,7 @@
 
   function init(g) {
     const f = g.fx = {
-      t: 0, wind: 14, flow: 0, camV: 0, lastCam: g.cam || 0, viewW: 900, spawnCd: 0, shafts: true,
+      t: 0, wind: 14, flow: 0, camV: 0, lastCam: g.cam || 0, viewW: 900, spawnCd: 0,
       parts: [], birds: [], dust: [],
     };
     const tg = TARGET[g.seasonIdx | 0] || TARGET[0];
@@ -309,7 +309,7 @@
     dust,
     drawBack(ctx, g, viewW) {
       const f = ensure(g); setView(f, g, viewW);
-      if (f.shafts) shafts(ctx, g, viewW);
+      shafts(ctx, g, viewW);
       drawLayer(ctx, g, viewW, 0);
     },
     drawFront(ctx, g, viewW) {
@@ -318,6 +318,5 @@
       for (const b of f.birds) bird(ctx, b);
       puffs(ctx, f);
     },
-    count(g) { return g.fx ? total(g.fx) : 0; },
   };
 })();

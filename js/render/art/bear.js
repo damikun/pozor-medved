@@ -20,7 +20,6 @@
   const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
   const frac = (v) => v - Math.floor(v);
   const ease = (v, target, rate, dt) => v + (target - v) * (1 - Math.exp(-rate * dt));
-  const backOut = (u) => 1 + 2.70158 * Math.pow(u - 1, 3) + 1.70158 * Math.pow(u - 1, 2);
 
   // Legs: 0 near fore, 1 far fore, 2 near hind, 3 far hind; offs is when each foot touches down.
   // A planted foot sweeps back duty * stride per cycle, exactly what the body covers, so it never slides.

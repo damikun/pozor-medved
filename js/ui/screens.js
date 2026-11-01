@@ -12,7 +12,7 @@
       <p>${UI.intro}</p>
       <ul>${UI.rules.map((r) => `<li>${r}</li>`).join('')}</ul>
       <p class="keys">${UI.keys}</p>
-      <div class="row"><button id="btnStart">${UI.play}</button><a class="alt" href="archive/v1-zhora/">${UI.legacyLink}</a></div>
+      <div class="row"><button id="btnStart">${UI.play}</button></div>
       <p class="note">${UI.disclaimer}</p>`);
     $('btnStart').onclick = onPlay;
   }

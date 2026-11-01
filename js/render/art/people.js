@@ -27,7 +27,6 @@
   const sin = Math.sin, cos = Math.cos, abs = Math.abs, hypot = Math.hypot, atan2 = Math.atan2, sqrt = Math.sqrt;
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
   const lerp = (a, b, t) => a + (b - a) * t;
-  const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
   const frac = (v) => v - Math.floor(v);
 
   // Proportions in world units: about 72 tall before a hat.
@@ -679,7 +678,7 @@
 
   ZS.drawPostHunter = function (ctx, s, time) {
     if (!(time >= 0)) time = 0;
-    const w = ZS.POST_WINDOW || WIN, L = LOOK.walker, sc = POST_SCALE;
+    const w = WIN, L = LOOK.walker, sc = POST_SCALE;
     const cross = s.cross === undefined ? s.x - 200 : s.cross;
     const want = cross >= s.x ? 1 : -1, lockWant = s.lock > 0 ? 1 : 0;
     let ps = posts.get(s);
@@ -747,8 +746,4 @@
     const st = posts.get(o) || byObj.get(k) || (k.id !== undefined && k.id !== null ? byId.get(k.id) : null);
     return st && st.mz && (st.mz[0] || st.mz[1]) ? st.mz : null;
   };
-
-  ZS.HUMAN_KINDS = ['walker', 'ztmh', 'poacher', 'picker', 'tourist'];
-  ZS.HUMAN_STATES = ['idle', 'walk', 'run', 'aim', 'film'];
-  ZS.HUMAN_LOOK = LOOK;   // read-only: palettes and stride lengths (the preview page uses them)
 })();

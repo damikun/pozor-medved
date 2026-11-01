@@ -106,7 +106,6 @@
     play: 'Hrať',
     again: 'Znova',
     resume: 'Pokračovať',
-    legacyLink: 'pôvodná verzia zhora',
     disclaimer: 'Postavy, obec aj titulky sú vymyslené. Fakty na konci hry sú skutočné a majú zdroj.',
     pauseTitle: 'Pauza',
     pauseText: 'Medveď čaká za stromom.',
@@ -137,7 +136,6 @@
     wrong: { text: 'Po útoku v Liptovskom Mikuláši (2024) opozícia tvrdila, že zastrelili inú medvedicu, než ktorá útočila.', src: 'CBS', url: 'https://www.cbsnews.com/news/bear-that-injured-5-shot-dead-slovakia-critics-wrong-bear-killed' },
     poach: { text: 'Spoločenská hodnota medveďa je najmenej 5 000 € a nelegálne zastrelených medveďov pribúda.', src: 'Noviny.sk', url: 'https://www.noviny.sk/krimi/712054-spolocenska-hodnota-medveda-je-minimalne-5-000-eur-pripady-nelegalne-zastrelenych-zvierat-pribudaju' },
     pop: { text: 'Genetická štúdia z roku 2023 odhadla na Slovensku asi 1 056 medveďov (1 012 – 1 275).', src: 'TASR / Startitup', url: 'https://www.startitup.sk/stat-ukazal-pravdu-o-medvedoch-nie-su-vobec-premnozene-ukazala-velka-studia/' },
-    bins: { text: 'Obce s veľkými šelmami musia mať zabezpečené kontajnerové stojiská a inšpekcia už pokutovala šesť obcí.', src: 'SITA', url: 'https://sita.sk/nasvidiek/kontajnerove-stojiska-su-pred-medvedmi-lepsie-zabezpecene-ako-minule-roky-uviedla-inspekcia/' },
   };
 
   // Endings by kind; `facts` are keys of ZS.FACTS shown on the end screen.

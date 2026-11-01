@@ -1165,18 +1165,4 @@
   API.chapel = chapel;
 
   // Footprints in world units. l / r: how far the drawing reaches left / right of the anchor x (negative l), h: height above the ground.
-  API.SIZE = {
-    koliba:    { l: -101, r: 101, h: 137, smokeH: 215, note: 'x = centre; the roof tips reach +-101, the chimney smoke goes up to about 215' },
-    pen:       { l: -24, r: 3, h: 62, note: 'x1..x2 is the fence, the energizer box sticks out 24 left of x1, posts every ~70' },
-    sheep:     { l: -26, r: 36, h: 42, note: 'x = centre of the body (about 50 long), the nose is up to 36 ahead when the head is up' },
-    dog:       { l: -39, r: 48, h: 64, note: 'x = centre of the body; rump to nose 71, the tail adds up to ~13 behind, barking puffs reach +60, head up 71 tall' },
-    river:     { l: -16, r: 16, h: 6, note: 'x1 - 16 .. x2 + 16 at the ground line, water surface at GROUND - 6, water and banks reach the bottom of the view' },
-    stone:     { l: -35, r: 35, h: 10, note: 'x = centre, w = width, top at GROUND - 10, the stone fades into the water below, swirls reach w/2 + 20 and a wake 34 to the right' },
-    fish:      { l: -13, r: 13, h: 13, note: '(x, y) = centre of the body, 26 long and about 13 high with the fins; spray trails ~13 behind it' },
-    hotel:     { l: -232, r: 234, h: 232, note: 'x = centre; the SUV is in front of the right wing, the chimney smoke goes up to about 260' },
-    skiLift:   { l: -25, r: 25, h: 214, note: 'x = centre of the pylon; the cable rises to the right (0.24) and sinks to the left, fading out 760 away' },
-    container: { l: -48, r: 48, h: 70, note: 'x = centre; the lock bar brackets reach +-51 when locked' },
-    haystack:  { l: -34, r: 36, h: 111, note: 'x = centre, the pole tip is the top' },
-    chapel:    { l: -47, r: 46, h: 151, note: 'x = centre, the cross is the top; sound arcs reach +-53 while the bell rings' },
-  };
 })();
