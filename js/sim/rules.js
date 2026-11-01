@@ -19,14 +19,14 @@
       flags: { press: false, emergency: false, drones: false, cull: false, meat: false, binsLocked: false, stallsLocked: false, hugBan: false, decree: false },
       courtUntil: 0, viralUntil: 0, hugBanAt: 0, lastKnown: null, lastHuman: -99, problem: false, nextEvent: 30, usedEvents: new Set(),
       stats: { natural: 0, human: 0, seen: 0, hugs: 0, bites: 0, stomps: 0, selfies: 0 }, falls: 0, refusals: 0, refusedAt: -99, running: false, over: false, paused: false, ending: null,
-      bot, once: {},
+      bot, once: {}, ride: null, liftCalm: 0,
       headlines: (id === 'winter' ? ZS.WINTER_HEADLINES : ZS.HEADLINES).map((_, i) => i).sort(() => Math.random() - 0.5), headlineIdx: 0,
       tickerT: 0, tickerQueue: [], tickerHot: false, cycle: new Map(), saidAt: {},
     };
     for (const sp of level.spawns) {
       if (sp.kind === 'posed') g.shooters.push(sim.hunters.create(g, 'posed', { x: sp.x, range: sp.range }));
       else if (sp.kind === 'walker') g.shooters.push(sim.hunters.create(g, 'walker', { x: sp.to, from: sp.from, to: sp.to, dir: -1 }));
-      else if (sp.kind === 'dog') g.dogs.push(sim.wildlife.createDog(sp));
+      else if (sp.kind === 'dog') g.dogs.push(sim.wildlife.createDog(sp, level));
       else if (sp.kind === 'sheep') g.sheep.push(sim.wildlife.createSheep(sp, g.sheep.length));
       else if (sp.kind === 'deer') g.deer.push(sim.wildlife.createDeer(sp));
       else g.people.push(sim.people.create(g, sp.kind, { from: sp.from, to: sp.to }));

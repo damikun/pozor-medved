@@ -20,21 +20,54 @@
     }
   }
 
-  function createDog(o) {
-    return { x: (o.from + o.to) / 2, from: o.from, to: o.to, dir: 1, state: 'walk', alert: 0, barkCd: 0, id: 'dog' };
+  function createDog(o, L) {
+    const d = { x: (o.from + o.to) / 2, from: o.from, to: o.to, dir: 1, state: 'walk', alert: 0, barkCd: 0, id: 'dog', y: 0, leap: null };
+    const f = ZS.sim.pen.wires(L), reach = ZS.sim.pen.LEAP.reach;
+    for (const fx of f || []) {
+      for (const k of ['from', 'to', 'x']) {
+        const r = reach + (k === 'x' ? 14 : 60);
+        if (Math.abs(d[k] - fx) < r) d[k] = d[k] < fx ? fx - r : fx + r;
+      }
+    }
+    return d;
+  }
+
+  function hop(d, dt) {
+    const p = d.leap, T = ZS.sim.pen.LEAP, up = T.gather + T.air;
+    p.t += dt;
+    if (p.t < T.gather) { p.phase = 'gather'; p.k = p.t / T.gather; d.x = p.x0; d.y = 0; }
+    else if (p.t < up) { const u = (p.t - T.gather) / T.air; p.phase = 'air'; p.k = u; d.x = p.x0 + (p.x1 - p.x0) * u; d.y = T.top * 4 * u * (1 - u); }
+    else if (p.t < up + T.land) { p.phase = 'land'; p.k = (p.t - up) / T.land; d.x = p.x1; d.y = 0; }
+    else { d.leap = null; d.x = p.x1; d.y = 0; d.state = 'run'; }
+  }
+
+  function trot(g, d, v, dt) {
+    const T = ZS.sim.pen.LEAP, nx = d.x + d.dir * v * dt, fx = ZS.sim.pen.ahead(g.level, d.x, d.dir);
+    if (fx !== null && Math.abs(fx - nx) <= T.reach) {
+      d.leap = { x0: d.x, x1: fx + d.dir * T.reach, fx, dir: d.dir, t: 0, phase: 'gather', k: 0 };
+      d.state = 'leap';
+      return;
+    }
+    d.x = nx;
+  }
+
+  function runup(g, d) {
+    const fx = ZS.sim.pen.ahead(g.level, d.x, d.dir);
+    return fx !== null && Math.abs(fx - d.x) < ZS.sim.pen.LEAP.reach + ZS.sim.pen.LEAP.runup;
   }
 
   function updateDogs(g, dt) {
     const b = g.bear;
     for (const d of g.dogs) {
       d.barkCd -= dt;
+      if (d.leap) { d.alert = Math.max(0, d.alert - dt); hop(d, dt); continue; }
       const dist = Math.abs(b.x - d.x);
       const sees = !b.covered && (dist < 150 || (dist < 430 && Math.sign(b.x - d.x) === d.dir));
       if (sees) d.alert = 3.5;
       if (d.alert > 0) {
         d.alert -= dt;
         d.dir = Math.sign(b.x - d.x) || d.dir;
-        if (dist > 160 && sees) { d.x += d.dir * 170 * dt; d.state = 'run'; } else d.state = 'bark';
+        if (dist > 160 && sees) { d.state = 'run'; trot(g, d, 170, dt); } else d.state = 'bark';
         if (sees && d.barkCd <= 0) {
           d.barkCd = 4;
           rules().addPanic(g, 6, NEWS.dogBark);
@@ -42,11 +75,12 @@
           ZS.sim.hunters.alert(g, b.x);
         }
       } else {
-        d.state = 'walk';
-        d.x += d.dir * 42 * dt;
-        if (d.x < d.from || d.x > d.to) { d.dir *= -1; d.x = clamp(d.x, d.from, d.to); }
+        const fast = runup(g, d);
+        d.state = fast ? 'run' : 'walk';
+        trot(g, d, fast ? 130 : 42, dt);
+        if (!d.leap && (d.x < d.from || d.x > d.to)) { d.dir *= -1; d.x = clamp(d.x, d.from, d.to); }
       }
-      d.x = clamp(d.x, d.from - 250, d.to + 250);
+      if (!d.leap) d.x = clamp(d.x, d.from - 250, d.to + 250);
     }
   }
 

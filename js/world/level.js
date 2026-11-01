@@ -76,6 +76,10 @@
       park: { from: 10350, to: 11850 },
       feeding: 4320,
       haystacks: [6960, 8040, 11980],
+      skanzen: {
+        from: 4780, to: 6010, gate: 5100, tower: 5398, well: 5470, notice: 5202, hen: 5214, fence: [4792, 5826], rail: [5838, 6008], loco: 5884,
+        houses: [{ x: 4846, gw: 84, sw: 92, hip: true, guard: true, smoke: true }, { x: 5772, gw: 86, sw: 90, flip: true, braid: true }],
+      },
     });
     L.houses = [{ x: 2420, w: 160 }, { x: 2700, w: 180 }, { x: 2990, w: 150 }, { x: 3260, w: 170 }];
     L.posts = [{ x: 1900 }, { x: 4560 }];
@@ -133,6 +137,7 @@
     }, (x) => (birchGrove(x) ? 85 + rng() * 40 : x >= L.park.to ? 170 + rng() * 110 : 115 + rng() * 85));
     L.trees = L.trees.filter((t) => Math.abs(t.x - 5950) > 70);
     L.trees.push(makeTree(rng, 'buk', 5950), makeTree(rng, 'buk', 7040), makeTree(rng, 'buk', 7760));
+    for (const t of L.trees) if (Math.abs(t.x - L.skanzen.tower) < 70) t.x = L.skanzen.tower + 142;
     L.trees.sort((a, b) => a.x - b.x);
 
     backTrees(L, (bx) => (bx > L.village.from && bx < L.village.to) || (bx > H.x - H.w / 2 && bx < H.x + H.w / 2));
@@ -163,6 +168,7 @@
     ];
     for (let i = 0; i < 5; i++) L.spawns.push({ kind: 'sheep', from: 7340, to: 7860, x: 7380 + i * 105 });
 
+    L.lift = { x: H.lift, tower: H.lift + 625 };
     hills(L);
     return L;
   }

@@ -11,7 +11,7 @@
       ice: { from: 3620, to: 3980 },
       park: { from: 9100, to: W - 300 },
       chata: { x: 6150 },
-      lift: 6960,
+      lift: { x: 6960, tower: 7510 },
       slope: { from: 6000, to: 7700 },
       feeding: 2300,
     });
@@ -59,7 +59,7 @@
       || (x > L.ice.from - 80 && x < L.ice.to + 80)
       || (x > L.village.from - 40 && x < L.village.to + 40)
       || (x > L.chata.x - 150 && x < L.chata.x + 260)
-      || Math.abs(x - L.lift) < 60
+      || Math.abs(x - L.lift.x) < 60
       || Math.abs(x - orchard) < 90
       || L.snowmen.some((s) => Math.abs(s.x - x) < 70)
       || L.posts.some((p) => Math.abs(p.x - x) < 80)

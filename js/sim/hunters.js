@@ -3,6 +3,7 @@
   const GY = CFG.GROUND;
   const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
+  const pen = () => ZS.sim.pen;
 
   const KIND = {
     posed:   { aim: 1.25, sweep: 125, range: 480, speed: 0 },
@@ -19,6 +20,9 @@
       sweepPause: 0, scaredT: 0, react: null, reactT: 0, armed: true, rifle: null, trackCd: 0,
     }, o);
     s.y = kind === 'posed' ? GY - 150 : GY;
+    const P = pen(), L = g && g.level;
+    if (kind === 'ztmh' && P.inside(L, s.x, P.KEEP.hunter)) s.x = P.band(L, P.KEEP.hunter)[0] - 60;
+    else if (kind !== 'posed') P.range(L, s, P.KEEP.hunter, 200);
     if (kind === 'posed') { s.home = s.x; s.sway = 0; s.wobble = 0; }
     s.cross = s.x + s.dir * 200;
     return s;
@@ -42,28 +46,50 @@
       return;
     }
     if (s.kind === 'walker' || s.kind === 'poacher') {
-      if (s.pause > 0) { s.pause -= dt; return; }
+      if (s.pause > 0) {
+        s.pause -= dt;
+        if (s.pause <= 0 && s.flip) { s.dir = s.flip; s.flip = 0; s.pause = 0.35; }
+        return;
+      }
       if (s.from !== null && (s.x < s.from - 2 || s.x > s.to + 2)) {
         const home = s.x < s.from ? 1 : -1;
         if (s.dir !== home) { s.dir = home; s.pause = 0.6; return; }
       }
       s.x += s.dir * s.speed * (g.flags.meat ? 1.25 : 1) * dt;
       if (s.from !== null && ((s.x < s.from && s.dir < 0) || (s.x > s.to && s.dir > 0)) && s.x > s.from - 6 && s.x < s.to + 6) {
-        s.dir *= -1; s.x = clamp(s.x, s.from, s.to); s.pause = 1.5;
+        s.x = clamp(s.x, s.from, s.to);
+        const wall = pen().ahead(L, s.x, s.dir);
+        if (wall !== null && Math.abs(wall - s.x) <= pen().KEEP.hunter + 8) { s.pause = 1.1; s.flip = -s.dir; }
+        else { s.dir *= -1; s.pause = 1.5; }
       } else if (L.rng() < dt * 0.12) {
         s.pause = 1 + L.rng() * 2;
         if (L.rng() < 0.5) s.dir *= -1;
       }
     } else if (s.kind === 'ztmh') {
       if (!g.problem || s.lost > 14) {
-        s.dir = -1; s.x -= 260 * dt;
-        if (s.x < g.cam - 300) s.dead = true;
+        const b = pen().band(L, pen().KEEP.hunter);
+        const out = s.out || (s.out = b && s.x >= b[1] && g.cam - 300 < b[1] ? 1 : -1);
+        s.dir = out; s.x += out * 260 * dt;
+        if (out < 0 ? s.x < g.cam - 300 : s.x > g.cam + g.viewW + 300) s.dead = true;
         return;
       }
+      s.out = 0;
       const tx = g.lastKnown !== null ? g.lastKnown : g.bear.x;
       if (Math.abs(tx - s.x) > 380) { s.dir = Math.sign(tx - s.x); s.x += s.dir * s.speed * dt; }
       else s.dir = Math.sign(g.bear.x - s.x) || s.dir;
     }
+  }
+
+  function fence(g, s, x0) {
+    const P = pen(), L = g.level, x = P.hold(L, x0, s.x, P.KEEP.hunter);
+    if (x === s.x) return;
+    s.x = x;
+    const away = P.side(L, x);
+    if (s.react === 'gone') s.dir = away;
+    else if (s.react === 'flee') s.reactT = Math.max(s.reactT, 3.2);
+    else if (s.react) return;
+    else if (s.scaredT > 0) { s.scaredT = 0; s.pause = 1.1; s.flip = away; }
+    else if (s.kind !== 'ztmh' && !(s.pause > 0)) { s.pause = 0.9; s.flip = away; }
   }
 
   function sweep(s, dt) {
@@ -100,23 +126,28 @@
 
   function update(g, dt) {
     const b = g.bear;
+    if (g.ride) { b.warn = false; return; }
     const quick = aimFactor(g);
-    const courtPause = g.time < g.courtUntil;
+    const courtPause = g.time < g.courtUntil, calm = g.time < (g.liftCalm || 0);
     let aiming = g.shooters.find((s) => s.lock > 0) || null;
     for (const s of g.shooters) {
       s.reload -= dt;
       if (s.kick > 0) s.kick = Math.max(0, s.kick - dt * 4);
       if (s.life !== Infinity && (s.life -= dt) <= 0 && !s.react) { s.react = 'gone'; s.reactT = 0; s.dir = Math.sign(s.x - b.x) || 1; }
       if (s.react) {
+        const x0 = s.x;
         ZS.sim.encounters.reactShooter(g, s, dt);
+        fence(g, s, x0);
         s.blocked = true;
         if (aiming === s) aiming = null;
         continue;
       }
       if (s.kind !== 'ztmh' && Math.abs(s.x - b.x) > 1500) continue;
       if (s.wobble > 0.05) { s.lock = 0; s.blocked = true; if (aiming === s) aiming = null; continue; }
+      const x0 = s.x;
       move(g, s, dt);
       if (s.dead) continue;
+      fence(g, s, x0);
       followTracks(g, s, dt);
 
       const d = Math.abs(b.x - s.x);
@@ -126,7 +157,7 @@
         rules().addPanic(g, 10, NEWS.hunterScared);
       }
       const facing = s.kind === 'posed' || Math.sign(b.x - s.x) === s.dir || d < 60;
-      const allowed = (s.kind === 'poacher' || !courtPause) && s.scaredT <= 0;
+      const allowed = (s.kind === 'poacher' || !courtPause) && s.scaredT <= 0 && !calm;
       const free = !aiming || aiming === s;
       s.blocked = !allowed;
 

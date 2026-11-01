@@ -6,171 +6,16 @@
     "mode": null,
     "expected": {
       "ending": "win",
-      "time": 171.0667,
-      "fat": 99.7283,
+      "time": 139.2167,
+      "fat": 99.0133,
       "lives": 5,
-      "x": 12281.354,
-      "syn": 9.69,
-      "panic": 96.93,
+      "x": 12282.5,
+      "syn": 16.0633,
+      "panic": 99.395,
       "stats": {
-        "natural": 28,
+        "natural": 24,
         "human": 1,
-        "seen": 36,
-        "hugs": 0,
-        "bites": 0,
-        "stomps": 7,
-        "selfies": 2
-      },
-      "flags": [
-        "press",
-        "emergency",
-        "drones",
-        "cull",
-        "meat"
-      ],
-      "events": [
-        "meat",
-        "poacher",
-        "constitution",
-        "wrongbear"
-      ],
-      "eaten": 29
-    }
-  },
-  {
-    "level": "summer",
-    "seed": 2,
-    "reaction": 0.25,
-    "mode": null,
-    "expected": {
-      "ending": "win",
-      "time": 153.4833,
-      "fat": 99.7283,
-      "lives": 3,
-      "x": 12281.893,
-      "syn": 11.7567,
-      "panic": 99.005,
-      "stats": {
-        "natural": 26,
-        "human": 2,
-        "seen": 23,
-        "hugs": 0,
-        "bites": 0,
-        "stomps": 4,
-        "selfies": 2
-      },
-      "flags": [
-        "press",
-        "emergency",
-        "drones",
-        "cull"
-      ],
-      "events": [
-        "constitution",
-        "wrongbear",
-        "census",
-        "poacher"
-      ],
-      "eaten": 28
-    }
-  },
-  {
-    "level": "summer",
-    "seed": 3,
-    "reaction": 0.6,
-    "mode": null,
-    "expected": {
-      "ending": "win",
-      "time": 148.0667,
-      "fat": 99.7283,
-      "lives": 4,
-      "x": 12281.354,
-      "syn": 20.06,
-      "panic": 95.9,
-      "stats": {
-        "natural": 28,
-        "human": 3,
-        "seen": 24,
-        "hugs": 1,
-        "bites": 0,
-        "stomps": 6,
-        "selfies": 2
-      },
-      "flags": [
-        "press",
-        "emergency",
-        "drones",
-        "cull",
-        "binsLocked"
-      ],
-      "events": [
-        "poacher",
-        "constitution",
-        "census",
-        "bins"
-      ],
-      "eaten": 31
-    }
-  },
-  {
-    "level": "summer",
-    "seed": 4,
-    "reaction": 0.25,
-    "mode": null,
-    "expected": {
-      "ending": "win",
-      "time": 238.55,
-      "fat": 99.7283,
-      "lives": 3,
-      "x": 12281.354,
-      "syn": 0,
-      "panic": 98.865,
-      "stats": {
-        "natural": 27,
-        "human": 1,
-        "seen": 35,
-        "hugs": 0,
-        "bites": 0,
-        "stomps": 4,
-        "selfies": 2
-      },
-      "flags": [
-        "press",
-        "emergency",
-        "drones",
-        "cull",
-        "meat",
-        "binsLocked"
-      ],
-      "events": [
-        "feeding",
-        "poacher",
-        "meat",
-        "constitution",
-        "bins",
-        "wrongbear",
-        "census"
-      ],
-      "eaten": 28
-    }
-  },
-  {
-    "level": "summer",
-    "seed": 5,
-    "reaction": 0.6,
-    "mode": null,
-    "expected": {
-      "ending": "win",
-      "time": 187.5833,
-      "fat": 99.7283,
-      "lives": 4,
-      "x": 12281.354,
-      "syn": 5.2967,
-      "panic": 96.83,
-      "stats": {
-        "natural": 27,
-        "human": 2,
-        "seen": 44,
+        "seen": 15,
         "hugs": 0,
         "bites": 0,
         "stomps": 8,
@@ -181,40 +26,38 @@
         "emergency",
         "drones",
         "cull",
-        "meat",
-        "binsLocked"
+        "meat"
       ],
       "events": [
-        "court",
-        "wrongbear",
-        "bins",
         "meat",
-        "feeding"
+        "court",
+        "census",
+        "poacher"
       ],
-      "eaten": 29
+      "eaten": 25
     }
   },
   {
     "level": "summer",
-    "seed": 6,
+    "seed": 2,
     "reaction": 0.25,
-    "mode": "runner",
+    "mode": null,
     "expected": {
-      "ending": "poacher",
-      "time": 231.85,
-      "fat": 40.5217,
-      "lives": 0,
-      "x": 12280.75,
-      "syn": 0,
-      "panic": 99.23,
+      "ending": "win",
+      "time": 160.7667,
+      "fat": 99.7283,
+      "lives": 2,
+      "x": 12281.354,
+      "syn": 10.3033,
+      "panic": 96.94,
       "stats": {
-        "natural": 21,
-        "human": 0,
-        "seen": 60,
+        "natural": 26,
+        "human": 2,
+        "seen": 21,
         "hugs": 0,
         "bites": 0,
-        "stomps": 1,
-        "selfies": 0
+        "stomps": 8,
+        "selfies": 2
       },
       "flags": [
         "press",
@@ -227,177 +70,109 @@
         "constitution",
         "feeding",
         "bins",
-        "court",
-        "census",
-        "poacher"
-      ],
-      "eaten": 21
-    }
-  },
-  {
-    "level": "summer",
-    "seed": 7,
-    "reaction": 0.6,
-    "mode": "runner",
-    "expected": {
-      "ending": "poacher",
-      "time": 116.6333,
-      "fat": 60.8033,
-      "lives": 0,
-      "x": 12280.75,
-      "syn": 0,
-      "panic": 34.945,
-      "stats": {
-        "natural": 20,
-        "human": 0,
-        "seen": 10,
-        "hugs": 0,
-        "bites": 0,
-        "stomps": 1,
-        "selfies": 0
-      },
-      "flags": [
-        "press",
-        "emergency",
-        "meat"
-      ],
-      "events": [
-        "wrongbear",
-        "meat",
-        "poacher"
-      ],
-      "eaten": 20
-    }
-  },
-  {
-    "level": "summer",
-    "seed": 8,
-    "reaction": 0.4,
-    "mode": null,
-    "expected": {
-      "ending": "win",
-      "time": 160.6667,
-      "fat": 98.1117,
-      "lives": 3,
-      "x": 12284.5,
-      "syn": 10.9367,
-      "panic": 99.225,
-      "stats": {
-        "natural": 27,
-        "human": 2,
-        "seen": 22,
-        "hugs": 0,
-        "bites": 0,
-        "stomps": 5,
-        "selfies": 2
-      },
-      "flags": [
-        "press",
-        "emergency",
-        "drones",
-        "cull"
-      ],
-      "events": [
-        "wrongbear",
-        "constitution",
-        "poacher",
-        "feeding"
-      ],
-      "eaten": 29
-    }
-  },
-  {
-    "level": "winter",
-    "seed": 1,
-    "reaction": 0.4,
-    "mode": null,
-    "expected": {
-      "ending": "win",
-      "time": 158.2167,
-      "fat": 76.4482,
-      "lives": 4,
-      "x": 10481.668,
-      "syn": 25.83,
-      "panic": 86.295,
-      "stats": {
-        "natural": 11,
-        "human": 2,
-        "seen": 17,
-        "hugs": 0,
-        "bites": 0,
-        "stomps": 7,
-        "selfies": 2
-      },
-      "flags": [
-        "press",
-        "emergency",
-        "drones",
-        "cull",
-        "decree"
-      ],
-      "events": [
-        "court",
-        "decree",
-        "wrongbear",
         "census"
       ],
-      "eaten": 13
+      "eaten": 28
     }
   },
   {
-    "level": "winter",
-    "seed": 2,
-    "reaction": 0.25,
-    "mode": null,
-    "expected": {
-      "ending": "win",
-      "time": 86.7167,
-      "fat": 94.3492,
-      "lives": 5,
-      "x": 10480.663,
-      "syn": 49.8,
-      "panic": 97.865,
-      "stats": {
-        "natural": 11,
-        "human": 2,
-        "seen": 10,
-        "hugs": 0,
-        "bites": 0,
-        "stomps": 4,
-        "selfies": 2
-      },
-      "flags": [
-        "press",
-        "emergency",
-        "drones",
-        "cull",
-        "decree"
-      ],
-      "events": [
-        "decree",
-        "court"
-      ],
-      "eaten": 13
-    }
-  },
-  {
-    "level": "winter",
+    "level": "summer",
     "seed": 3,
     "reaction": 0.6,
     "mode": null,
     "expected": {
       "ending": "win",
-      "time": 128.4667,
-      "fat": 78.9562,
-      "lives": 2,
-      "x": 10481.001,
-      "syn": 37.93,
-      "panic": 99.13,
+      "time": 172.2167,
+      "fat": 99.0283,
+      "lives": 4,
+      "x": 12282.5,
+      "syn": 15.8633,
+      "panic": 97.26,
       "stats": {
-        "natural": 11,
-        "human": 2,
-        "seen": 13,
+        "natural": 24,
+        "human": 3,
+        "seen": 23,
         "hugs": 1,
+        "bites": 0,
+        "stomps": 8,
+        "selfies": 2
+      },
+      "flags": [
+        "press",
+        "emergency",
+        "drones",
+        "cull",
+        "meat"
+      ],
+      "events": [
+        "poacher",
+        "constitution",
+        "court",
+        "feeding",
+        "meat"
+      ],
+      "eaten": 27
+    }
+  },
+  {
+    "level": "summer",
+    "seed": 4,
+    "reaction": 0.25,
+    "mode": null,
+    "expected": {
+      "ending": "win",
+      "time": 226.05,
+      "fat": 99.7283,
+      "lives": 4,
+      "x": 12281.354,
+      "syn": 0,
+      "panic": 96.28,
+      "stats": {
+        "natural": 26,
+        "human": 1,
+        "seen": 33,
+        "hugs": 0,
+        "bites": 0,
+        "stomps": 6,
+        "selfies": 2
+      },
+      "flags": [
+        "press",
+        "emergency",
+        "drones",
+        "cull",
+        "meat",
+        "binsLocked"
+      ],
+      "events": [
+        "feeding",
+        "poacher",
+        "meat",
+        "bins",
+        "wrongbear",
+        "census"
+      ],
+      "eaten": 27
+    }
+  },
+  {
+    "level": "summer",
+    "seed": 5,
+    "reaction": 0.6,
+    "mode": null,
+    "expected": {
+      "ending": "win",
+      "time": 147.5833,
+      "fat": 99.7283,
+      "lives": 4,
+      "x": 12281.354,
+      "syn": 13.3,
+      "panic": 70.035,
+      "stats": {
+        "natural": 26,
+        "human": 2,
+        "seen": 21,
+        "hugs": 0,
         "bites": 0,
         "stomps": 6,
         "selfies": 2
@@ -409,30 +184,65 @@
         "cull"
       ],
       "events": [
-        "drive",
-        "wrongbear",
-        "poacher"
+        "court",
+        "feeding",
+        "constitution",
+        "wrongbear"
       ],
-      "eaten": 13
+      "eaten": 28
     }
   },
   {
-    "level": "winter",
-    "seed": 4,
+    "level": "summer",
+    "seed": 6,
     "reaction": 0.25,
     "mode": "runner",
     "expected": {
-      "ending": "poacher",
-      "time": 69.0667,
-      "fat": 51.818,
+      "ending": "cull",
+      "time": 59.85,
+      "fat": 66.6217,
       "lives": 0,
-      "x": 10482.833,
+      "x": 9970,
       "syn": 0,
-      "panic": 52.57,
+      "panic": 81.985,
       "stats": {
-        "natural": 9,
+        "natural": 16,
         "human": 0,
-        "seen": 5,
+        "seen": 11,
+        "hugs": 0,
+        "bites": 0,
+        "stomps": 1,
+        "selfies": 0
+      },
+      "flags": [
+        "press",
+        "emergency",
+        "drones",
+        "cull"
+      ],
+      "events": [
+        "constitution"
+      ],
+      "eaten": 16
+    }
+  },
+  {
+    "level": "summer",
+    "seed": 7,
+    "reaction": 0.6,
+    "mode": "runner",
+    "expected": {
+      "ending": "hunted",
+      "time": 56.8,
+      "fat": 61.6217,
+      "lives": 0,
+      "x": 9970,
+      "syn": 0,
+      "panic": 44.9,
+      "stats": {
+        "natural": 15,
+        "human": 0,
+        "seen": 9,
         "hugs": 0,
         "bites": 0,
         "stomps": 1,
@@ -443,68 +253,29 @@
         "emergency"
       ],
       "events": [
-        "poacher",
-        "census"
+        "wrongbear"
       ],
-      "eaten": 9
+      "eaten": 15
     }
   },
   {
-    "level": "winter",
-    "seed": 5,
-    "reaction": 0.6,
-    "mode": null,
-    "expected": {
-      "ending": "win",
-      "time": 151.95,
-      "fat": 77.536,
-      "lives": 3,
-      "x": 10482.117,
-      "syn": 31.8533,
-      "panic": 99.07,
-      "stats": {
-        "natural": 11,
-        "human": 2,
-        "seen": 19,
-        "hugs": 1,
-        "bites": 0,
-        "stomps": 12,
-        "selfies": 2
-      },
-      "flags": [
-        "press",
-        "emergency",
-        "drones",
-        "cull",
-        "stallsLocked"
-      ],
-      "events": [
-        "census",
-        "drive",
-        "stalls",
-        "poacher"
-      ],
-      "eaten": 13
-    }
-  },
-  {
-    "level": "winter",
-    "seed": 6,
+    "level": "summer",
+    "seed": 8,
     "reaction": 0.4,
     "mode": null,
     "expected": {
       "ending": "win",
-      "time": 107.05,
-      "fat": 80.908,
-      "lives": 4,
-      "x": 10481.001,
-      "syn": 29.14,
-      "panic": 99.255,
+      "time": 161.9833,
+      "fat": 99.7283,
+      "lives": 5,
+      "x": 12281.354,
+      "syn": 10.6733,
+      "panic": 98.095,
       "stats": {
-        "natural": 11,
-        "human": 1,
-        "seen": 12,
-        "hugs": 1,
+        "natural": 27,
+        "human": 2,
+        "seen": 17,
+        "hugs": 0,
         "bites": 0,
         "stomps": 5,
         "selfies": 2
@@ -515,14 +286,239 @@
         "drones",
         "cull",
         "meat",
-        "stallsLocked"
+        "binsLocked"
       ],
       "events": [
         "wrongbear",
+        "constitution",
+        "meat",
+        "bins"
+      ],
+      "eaten": 29
+    }
+  },
+  {
+    "level": "winter",
+    "seed": 1,
+    "reaction": 0.4,
+    "mode": null,
+    "expected": {
+      "ending": "starve",
+      "time": 217.9667,
+      "fat": 64.2393,
+      "lives": 3,
+      "x": 10481.001,
+      "syn": 13.8833,
+      "panic": 98.74,
+      "stats": {
+        "natural": 10,
+        "human": 2,
+        "seen": 30,
+        "hugs": 0,
+        "bites": 0,
+        "stomps": 7,
+        "selfies": 2
+      },
+      "flags": [
+        "press",
+        "emergency",
+        "drones",
+        "cull",
+        "stallsLocked",
+        "decree"
+      ],
+      "events": [
+        "court",
+        "decree",
         "stalls",
-        "meat"
+        "drive",
+        "census"
       ],
       "eaten": 12
+    }
+  },
+  {
+    "level": "winter",
+    "seed": 2,
+    "reaction": 0.25,
+    "mode": null,
+    "expected": {
+      "ending": "win",
+      "time": 165.4333,
+      "fat": 80.923,
+      "lives": 5,
+      "x": 10480.21,
+      "syn": 34.0567,
+      "panic": 99.23,
+      "stats": {
+        "natural": 10,
+        "human": 2,
+        "seen": 21,
+        "hugs": 0,
+        "bites": 0,
+        "stomps": 5,
+        "selfies": 2
+      },
+      "flags": [
+        "press",
+        "emergency",
+        "drones",
+        "cull",
+        "decree"
+      ],
+      "events": [
+        "decree",
+        "wrongbear",
+        "poacher",
+        "drive"
+      ],
+      "eaten": 12
+    }
+  },
+  {
+    "level": "winter",
+    "seed": 3,
+    "reaction": 0.6,
+    "mode": null,
+    "expected": {
+      "ending": "win",
+      "time": 131.3833,
+      "fat": 80.9245,
+      "lives": 2,
+      "x": 10481.679,
+      "syn": 37.35,
+      "panic": 93.21,
+      "stats": {
+        "natural": 10,
+        "human": 2,
+        "seen": 9,
+        "hugs": 1,
+        "bites": 0,
+        "stomps": 5,
+        "selfies": 2
+      },
+      "flags": [
+        "press",
+        "emergency",
+        "drones",
+        "cull",
+        "decree"
+      ],
+      "events": [
+        "drive",
+        "wrongbear",
+        "decree"
+      ],
+      "eaten": 12
+    }
+  },
+  {
+    "level": "winter",
+    "seed": 4,
+    "reaction": 0.25,
+    "mode": "runner",
+    "expected": {
+      "ending": "hunted",
+      "time": 48.7333,
+      "fat": 44.1405,
+      "lives": 0,
+      "x": 7000,
+      "syn": 0,
+      "panic": 47.675,
+      "stats": {
+        "natural": 4,
+        "human": 0,
+        "seen": 5,
+        "hugs": 0,
+        "bites": 0,
+        "stomps": 0,
+        "selfies": 0
+      },
+      "flags": [
+        "press",
+        "emergency"
+      ],
+      "events": [
+        "poacher"
+      ],
+      "eaten": 4
+    }
+  },
+  {
+    "level": "winter",
+    "seed": 5,
+    "reaction": 0.6,
+    "mode": null,
+    "expected": {
+      "ending": "win",
+      "time": 147.9833,
+      "fat": 81.004,
+      "lives": 3,
+      "x": 10480.181,
+      "syn": 32.65,
+      "panic": 98.37,
+      "stats": {
+        "natural": 10,
+        "human": 2,
+        "seen": 16,
+        "hugs": 1,
+        "bites": 0,
+        "stomps": 9,
+        "selfies": 2
+      },
+      "flags": [
+        "press",
+        "emergency",
+        "drones",
+        "cull",
+        "decree"
+      ],
+      "events": [
+        "census",
+        "drive",
+        "court",
+        "decree"
+      ],
+      "eaten": 12
+    }
+  },
+  {
+    "level": "winter",
+    "seed": 6,
+    "reaction": 0.4,
+    "mode": null,
+    "expected": {
+      "ending": "win",
+      "time": 170.4667,
+      "fat": 70.6773,
+      "lives": 4,
+      "x": 10481.451,
+      "syn": 2.8567,
+      "panic": 98.735,
+      "stats": {
+        "natural": 10,
+        "human": 1,
+        "seen": 19,
+        "hugs": 1,
+        "bites": 0,
+        "stomps": 5,
+        "selfies": 1
+      },
+      "flags": [
+        "press",
+        "emergency",
+        "drones",
+        "cull",
+        "meat",
+        "decree"
+      ],
+      "events": [
+        "wrongbear",
+        "meat",
+        "decree",
+        "poacher"
+      ],
+      "eaten": 11
     }
   }
 ]

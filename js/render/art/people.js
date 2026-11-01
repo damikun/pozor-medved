@@ -76,7 +76,7 @@
     return v;
   }
   const CAN_AIM = { walker: 1, ztmh: 1, poacher: 1 };
-  const SPECIAL = { down: 1, pickup: 1, hugged: 1, bitten: 1, drop: 1, climbStand: 1, selfie: 1, dive: 1, jump: 1, climbOut: 1, cling: 1 };
+  const SPECIAL = { down: 1, pickup: 1, hugged: 1, bitten: 1, drop: 1, climbStand: 1, selfie: 1, dive: 1, jump: 1, climbOut: 1, cling: 1, hurdle: 1 };
   const INN = { dive: 1, jump: 1, climbOut: 1, cling: 1 };
 
   const shadeCache = {};
@@ -611,6 +611,29 @@
     [1].concat(FALL[1].slice(1)),
   ];
   const WP = new Float64Array(NSL), DPS = newPost(0, 0);
+
+  const HURDLE = [
+    [0, 1, -31, 0.32, -0.12, 0.02, 10, -14, 0.1, -12, -3.4, 0.7, -0.6, 1.1, 1.3, 0.5, 0, 0, 1],
+    [0.24, 2, -32, 0.46, -0.2, 0.02, 21, -22, -0.2, -20, -10, 0.9, -0.95, 0.8, 1.65, 0.25, -0.04, -0.6, 1],
+    [0.48, 2, -32.5, 0.55, -0.26, 0.02, 27, -28.5, -0.35, -26.5, -22, 0.6, -1.1, 0.9, 1.85, 0.1, -0.08, -1.6, 1],
+    [0.74, 1.5, -31.5, 0.42, -0.18, 0.02, 16, -12, -0.1, -5, -23, 0.9, -0.5, 1.0, 1.2, 0.5, -0.05, -1, 1],
+    [1, 1, -28.5, 0.3, -0.1, 0.02, 6, -3.3, 0, 7, -14, 0.4, 0.5, 1.2, -0.4, 1.0, 0, 0, 1],
+  ];
+
+  function solveHurdle(K, st, tm, k) {
+    const L = K.L, sd = st.seed;
+    spline(HURDLE, k, PV);
+    PV[3] += 0.04 * sin(tm * 9 + sd);
+    pose(PV);
+    still();
+    let gN = 0, gx = 0, gy = 0;
+    if (K.has && (L.carry === 'tray' || L.carry === 'mug')) { tp(10.5, -24 + 2 * sin(PI * k)); gN = 1; gx = TP.x; gy = TP.y; }
+    else if (K.has && L.carry === 'basket') { tp(7, -10); gN = 0.6; gx = TP.x; gy = TP.y; }
+    arm(R.armN, PV[11], PV[12], gN, gx, gy);
+    arm(R.armF, PV[13], PV[14], 0, 0, 0);
+    R.hatA = PV[15]; R.hatY = PV[16]; R.hatS = PV[17];
+    R.face = 1; R.breath = 0;
+  }
 
   function solveDrop(K, st, tm, k, wp) {
     const sd = st.seed, fl = plateau(k, 0.1, 0.25, 0.7, 0.9), f1 = tm * 19 + sd, f2 = tm * 15 + sd;
@@ -1545,7 +1568,7 @@
       st.sk = ease(st.sk, clutch ? 0.62 : 1, 8, dt);
       st.text = ease(st.text, text ? 1 : 0, 7, dt);
     } else { st.clutch = clutch ? 1 : 0; st.sling = st.clutch; st.sk = clutch ? 0.62 : 1; st.text = text ? 1 : 0; }
-    advance(st, h, L, state === 'walk' || state === 'run', state === 'run', targeted, face, time);
+    advance(st, h, L, state === 'walk' || state === 'run' || sp === 'hurdle', state === 'run' || sp === 'hurdle', targeted, face, time);
     const setK = () => {
       K.kind = kind; K.L = L; K.state = state; K.face = face; K.seed = st.seed; K.armed = armed; K.has = has; K.text = st.text;
       K.panic = state === 'run' && (kind === 'picker' || kind === 'tourist' || kind === 'santa' || !!h.scared);
@@ -1576,6 +1599,7 @@
     else if (sp === 'bitten') solveBite(K, st, time, unit(h.bitK));
     else if (sp === 'selfie') solveSelfie(K, st, time, unit(h.selfieK));
     else if (sp === 'dive') solveDive(K, st, time, unit(h.k));
+    else if (sp === 'hurdle') solveHurdle(K, st, time, unit(h.hurdleK));
     else if (sp === 'jump') { st.dropT = time; solveDrop(K, st, time, smooth((unit(h.k) - 0.15) / 0.85), null); }
     else if (sp === 'climbOut') solveClimbOut(K, st, time, unit(h.k), Number.isFinite(h.grip) ? (h.grip - by) / L.scale : -40);
     else if (sp === 'cling') solveCling(K, st, time, h, face);
@@ -1655,7 +1679,10 @@
     ctx.scale(face * L.scale, L.scale);
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     if (h.shadow !== false) {
-      if (sp) {
+      if (sp === 'hurdle') {
+        const up = (GY - by) / L.scale, sk = 1 - clamp(up / 120, 0, 0.5);
+        ctx.fillStyle = 'rgba(15,22,8,' + (0.2 * sk).toFixed(3) + ')'; ell(ctx, 4, 1.2 + up, 16 * sk, 2.8 * sk);
+      } else if (sp) {
         const lo = Math.min(-15, R.hx - 9, R.px - 12), hi = Math.max(15, R.hx + 9, R.px + 12);
         const air = clamp(-3.3 - Math.max(R.legN.ay, R.legF.ay), 0, 30), sk = 1 - air / 45;
         ctx.fillStyle = 'rgba(15,22,8,' + (0.2 * sk).toFixed(3) + ')'; ell(ctx, (lo + hi) / 2, 1.2, ((hi - lo) / 2) * sk, 2.8 * sk);

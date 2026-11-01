@@ -29,7 +29,7 @@
   }
 
   function updateMeters(g, dt) {
-    g.fat = Math.max(0, g.fat - g.def.metabolism * dt * (g.bear.running && g.bear.moving ? 4 : 1));
+    if (!g.ride) g.fat = Math.max(0, g.fat - g.def.metabolism * dt * (g.bear.running && g.bear.moving ? 4 : 1));
     if (g.time - g.lastHuman > 8) g.syn = Math.max(0, g.syn - CFG.SYN_DECAY * dt);
     g.panic = Math.max(0, g.panic - CFG.PANIC_DECAY * dt);
   }
@@ -45,11 +45,26 @@
     if (g.bubble && (g.bubble.t -= dt) <= 0) g.bubble = null;
   }
 
+  function riding(g, dt) {
+    const phase = g.ride.phase;
+    sim.lift.update(g, dt);
+    if (g.over) return;
+    g.cam = cameraX(g);
+    if (phase === 'board' || phase === 'back') ZS.fx.update(g, dt, g.viewW);
+    updateMeters(g, dt);
+    sim.politics.escalate(g);
+    sim.politics.randomEvents(g, dt);
+    ageEffects(g, dt);
+    sim.rules.tickerStep(g, dt);
+  }
+
   function step(g, dt) {
     if (g.bot && ZS.dev && ZS.dev.autopilot) ZS.dev.autopilot(g, dt);
     g.time += dt;
     if (!changeSeason(g)) return;
+    if (g.ride) { riding(g, dt); return; }
     sim.bear.update(g, dt);
+    if (sim.lift.check(g)) { g.cam = cameraX(g); sim.rules.tickerStep(g, dt); return; }
     sim.encounters.update(g, dt);
     g.cam = cameraX(g);
     ZS.fx.update(g, dt, g.viewW);
@@ -76,7 +91,7 @@
   }
 
   function advance(g, seconds) {
-    for (let t = 0; t < seconds && g.running && !g.over; t += 1 / 60) step(g, 1 / 60);
+    for (let t = 0; t < seconds && g.running && !g.over && !g.paused; t += 1 / 60) step(g, 1 / 60);
     return g;
   }
 

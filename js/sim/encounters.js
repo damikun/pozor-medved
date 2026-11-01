@@ -21,10 +21,10 @@
   const isShooter = (o) => !!GUN[o.kind];
 
   function target(g) {
-    const b = g.bear;
+    const b = g.bear, P = ZS.sim.pen;
     let best = null, bd = Infinity;
     for (const o of humans(g)) {
-      if (!free(o) || o.leaving) continue;
+      if (!free(o) || o.leaving || o.hurdle || P.inside(g.level, o.x, 0) || P.between(g.level, b.x, o.x)) continue;
       const dx = o.x - b.x, d = Math.abs(dx);
       if (d > CFG.REACH || (d > 18 && Math.sign(dx) !== b.dir)) continue;
       if (d < bd) { best = o; bd = d; }
@@ -69,8 +69,11 @@
     const s = SPILL[o.kind];
     if (!s || o.empty) return;
     const n = o.kind === 'tourist' || o.kind === 'waiter' ? 1 : 2;
+    const P = ZS.sim.pen;
     for (let i = 0; i < n; i++) {
-      const it = { type: s[0], x: clamp(o.x + o.dir * 10 + (i - (n - 1) / 2) * 26, 40, g.level.w - 40), eaten: false, locked: false };
+      let x = clamp(o.x + o.dir * 10 + (i - (n - 1) / 2) * 26, 40, g.level.w - 40);
+      if (P.inside(g.level, x, 36)) x = P.edge(g.level, o.x, 36 + i * 26);
+      const it = { type: s[0], x, eaten: false, locked: false };
       if (s[1]) it.labelKey = s[1];
       g.level.items.push(it);
     }
@@ -84,8 +87,15 @@
       kind, gun: GUN[o.kind], x: held ? held.x : o.x + o.dir * 8, y: held ? held.y : y || GY - 44, vx, vy, rot: held ? held.rot : 0,
       vr: (vx >= 0 ? 1 : -1) * (4 + Math.random() * 5), dir: held ? held.dir : o.dir, rest: false,
     };
+    if (ZS.sim.pen.wires(g.level) && lands(g, p, 60)) { p.vx = -p.vx; p.vr = -p.vr; if (lands(g, p, 60)) { p.vx = 0; p.vr *= 0.3; } }
     g.props.push(p);
     if (kind === 'rifle') { o.armed = false; o.rifle = p; } else { spill(g, o); o.empty = true; }
+  }
+
+  function lands(g, p, m) {
+    const q = { x: p.x, y: p.y, vx: p.vx, vy: p.vy, rot: p.rot, vr: p.vr, rest: false };
+    for (let i = 0; i < 600 && !q.rest; i++) fly(g, q, 1 / 60);
+    return ZS.sim.pen.inside(g.level, q.x, m) || ZS.sim.pen.between(g.level, p.x, q.x);
   }
 
   function knock(g, s) {
@@ -246,6 +256,10 @@
     const p = s.rifle;
     if (!p) { recover(g, s); return; }
     if (!p.rest) return;
+    if (ZS.sim.pen.inside(g.level, p.x, ZS.sim.pen.KEEP.hunter) || ZS.sim.pen.between(g.level, s.x, p.x)) {
+      s.rifle = null; s.armed = false; s.react = 'gone'; s.reactT = 0; s.dir = ZS.sim.pen.side(g.level, s.x);
+      return;
+    }
     const side = Math.abs(p.x - s.x) < 4 ? s.dir : Math.sign(p.x - s.x);
     const spot = p.x - side * 16, d = spot - s.x;
     if (Math.abs(d) < 22 && (Math.abs(d) < 2 || Math.sign(d) !== side)) {
@@ -314,22 +328,23 @@
     }
   }
 
-  function props(g, dt) {
-    for (const p of g.props) {
-      if (p.rest) continue;
-      p.vy += 1500 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
-      if (p.y >= GY) {
-        p.y = GY;
-        if (p.vy > 220) { p.vy *= -0.32; p.vx *= 0.55; p.vr *= 0.5; }
-        else {
-          p.vy = 0; p.vr = 0; p.vx *= Math.max(0, 1 - dt * 7);
-          const flat = Math.round(p.rot / (Math.PI * 2)) * Math.PI * 2;
-          p.rot += (flat - p.rot) * Math.min(1, dt * 9);
-          if (Math.abs(p.vx) < 4 && Math.abs(flat - p.rot) < 0.02) { p.rot = 0; p.rest = true; }
-        }
+  function fly(g, p, dt) {
+    p.vy += 1500 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
+    if (p.y >= GY) {
+      p.y = GY;
+      if (p.vy > 220) { p.vy *= -0.32; p.vx *= 0.55; p.vr *= 0.5; }
+      else {
+        p.vy = 0; p.vr = 0; p.vx *= Math.max(0, 1 - dt * 7);
+        const flat = Math.round(p.rot / (Math.PI * 2)) * Math.PI * 2;
+        p.rot += (flat - p.rot) * Math.min(1, dt * 9);
+        if (Math.abs(p.vx) < 4 && Math.abs(flat - p.rot) < 0.02) { p.rot = 0; p.rest = true; }
       }
-      p.x = clamp(p.x, 40, g.level.w - 40);
     }
+    p.x = clamp(p.x, 40, g.level.w - 40);
+  }
+
+  function props(g, dt) {
+    for (const p of g.props) if (!p.rest) fly(g, p, dt);
   }
 
   function update(g, dt) {

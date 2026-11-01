@@ -129,6 +129,8 @@
     ice: ['Kto tu povolil klzisko?', 'Wííí!', 'Brzdy nemám!'],
     zap: ['Áu! Kto tu pustil prúd?', 'Ohradník funguje. Na rozdiel od štátu.', 'Aspoň mám zadarmo trvalú.', 'Toto treba preskočiť, nie oňuchať.'],
     hay: ['Som len kopa sena.', 'Ihla v kope sena? Skús medveďa.', 'Šteklí ma to v nose…', 'Minister ráta kopy sena. Mňa nie.'],
+    lift: ['Skipas mám, strelivo nie.', 'Výhľad ako z pohľadnice. Cez mušku.', 'Hojdám sa, teda žijem.', 'Lanovkár, pridaj!'],
+    liftTop: ['Hore guláš za 19 €. Idem dole pešo.', 'Horná stanica? Ďakujem, stačilo.', 'Nabudúce radšej kabínkou.'],
   };
 
   ZS.NEWS = {
@@ -417,6 +419,29 @@
       'Z posedu vypadol poľovník. Ministerstvo vyhlásilo posed za problémový.',
       'Medveď otriasol posedom aj dôverou v štát.',
     ],
+    lift: [
+      'Medveď nastúpil na lanovku bez skipasu. Poľovníci sa pod ňou rozostavili.',
+      'Medveď sa vezie lanovkou. Minister Strašiak: Problém sa nám presúva do vyšších polôh.',
+      'Medveď predbehol rad pri lanovke. Nikto nenamietal.',
+    ],
+    liftMiss: [
+      'Poľovníci strieľajú na lanovku. Stredisko: Sedačky sú poistené, medveď nie.',
+      'Ďalšia rana vedľa. Poľovnícka komora žiada pomalšiu lanovku.',
+      'Lanovkár hlási streľbu na trati. Ministerstvo hlási úspešný preventívny zásah do vzduchu.',
+    ],
+    liftHit: [
+      'Zásah na lanovke! Minister Strašiak: Medveď sa správal problémovo. Hojdal sa.',
+      'Poľovník trafil medveďa na sedačke. Stredisko zvažuje zľavu na skipas pre poľovníkov.',
+    ],
+    liftTop: [
+      'Medveď vystúpil na hornej stanici, pozrel na ceny v bufete a vrátil sa dole.',
+      'Medveď sa zviezol hore aj dole. Stredisko eviduje o jedného platiaceho zákazníka menej.',
+    ],
+    liftClean: [
+      'Medveď prešiel lanovkou bez škrabanca. Minister Strašiak žiada odstrel lanovky.',
+      'Poľovníci vystrieľali na lanovke všetko. Medveď si ani neodopol bezpečnostnú tyč.',
+    ],
+    liftDrone: 'Armádny dron sprevádza medveďa na lanovke. Skipas nemá ani on.',
   };
 
   ZS.NEWS_ICON = {
@@ -433,6 +458,7 @@
     denRefuse: '🛑', selfie: '📸', standFall: '🪜', hide: '🌳', climb: '🌲', spray: '🌫️', ice: '⛸️', zap: '⚡', hay: '🌾', hayHit: '🌾',
     cornEaten: '🌽', sandwichEaten: '🥪', appleEaten: '🍎', tv: '📺',
     koliba: '🍺', haluskyEaten: '🥟',
+    lift: '🚠', liftMiss: '💨', liftHit: '💥', liftTop: '🏔️', liftClean: '🚠', liftDrone: '🚁',
   };
 
   ZS.LABELS = {
@@ -470,6 +496,7 @@
       halusky: 'bryndzové halušky',
     },
     art: { salas: 'SALAŠ', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['KOMUNÁLNY', 'ODPAD'], fence: ['POZOR!', 'ELEKTRICKÝ', 'OHRADNÍK'] },
+    skanzen: { name: ['MÚZEUM', 'LIPTOVSKEJ DEDINY'], notice: ['Medveď nie je', 'exponát!'] },
     wrongBear: '✝ iná medvedica',
     birch: 'Breza ťa neschová!',
     hunterScared: 'Poľovník sa zľakol!',
@@ -514,6 +541,18 @@
     billboardWinter: ['Zimný spánok', 'je povinný!'],
     stallSigns: { punch: 'PUNČ', lokse: 'LOKŠE', sausage: 'KLOBÁSY' },
     apresSki: 'APRÈS-SKI',
+    lift: {
+      banner: 'Lanovka: hojdaj sedačkou ← →',
+      bannerTouch: 'Lanovka: hojdaj sedačkou ◀ ▶',
+      dodge: '← →',
+      dodgeTouch: '◀ ▶',
+      arrived: 'Horná stanica!',
+      station: 'LANOVKA',
+      top: 'HORNÁ STANICA',
+      bufet: 'BUFET',
+    ticket: 'POKLADŇA',
+      price: 'Guláš 19 €',
+    },
     signs: {
       hide: 'Drž ↓ pri hrubom strome',
       climb: 'Drž ↑ pri strome = lez hore',
@@ -521,7 +560,7 @@
       feeding: 'vnadisko',
       ford: 'Belá – brod',
       skanzen: 'Skanzen Pribylina: zatvorené, medveď',
-      park: 'TANAP – Račkova dolina',
+      park: 'TANAP – medveď je tu doma',
       goal: 'Zimný brloh →',
       cannon: 'Snežné delo – v oblaku ťa nevidia',
       feeder: 'krmelec',

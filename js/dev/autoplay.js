@@ -83,10 +83,24 @@
     return !g.flags.hugBan && g.panic > 35 && ((o.kind === 'tourist' && g.stats.selfies < 2) || o.kind === 'santa');
   }
 
+  function swingTo(g, dt) {
+    const keys = g.input.keys, r = g.ride, lift = ZS.sim.lift;
+    if (bot.mode === 'runner' || r.phase !== 'ride') return;
+    const p = r.pilot || (r.pilot = { t: 0, goal: 0 });
+    p.t -= dt || 0;
+    if (p.t <= 0) { p.t = bot.reaction; p.goal = lift.safest(r); }
+    const u = lift.sway(r), v = Math.cos(r.th) * r.w;
+    let dir = Math.sign(p.goal);
+    if (!dir) { const e = -(u + v * 0.32); dir = e > 0.06 ? 1 : e < -0.06 ? -1 : 0; }
+    if (dir > 0) keys.add('ArrowRight');
+    else if (dir < 0) keys.add('ArrowLeft');
+  }
+
   function autopilot(g, dt) {
     const b = g.bear, L = g.level, keys = g.input.keys;
     const runner = bot.mode === 'runner';
     keys.clear();
+    if (g.ride) { swingTo(g, dt); return; }
     const pilot = g.pilot || (g.pilot = { t: 0, danger: 0, wait: 0, bold: 0, alarm: -9 });
     pilot.t -= dt || 0;
     if (pilot.t <= 0) { pilot.t = bot.reaction; pilot.danger = threat(g); }

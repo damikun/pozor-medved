@@ -108,3 +108,45 @@ for (const level of ['summer', 'winter']) {
     assert.deepEqual(problems.slice(0, 5), [], `${problems.length} bad canvas calls`);
   });
 }
+
+const RIDES = [
+  { name: 'summer, landscape 1280x720', width: 1280, height: 720, dpr: 1, seed: 3, level: 'summer', time: 20 },
+  { name: 'summer autumn with the drone, portrait 390x844', width: 390, height: 844, dpr: 3, seed: 4, level: 'summer', time: 250 },
+  { name: 'winter, landscape 1280x720', width: 1280, height: 720, dpr: 2, seed: 5, level: 'winter', time: 100 },
+  { name: 'winter frost with the drone, portrait 390x844', width: 390, height: 844, dpr: 2, seed: 6, level: 'winter', time: 200 },
+];
+
+for (const c of RIDES) {
+  test(`the chairlift ride draws cleanly from the station to the top and back, ${c.name}`, () => {
+    const { ZS, g, problems, draw } = stage(c);
+    const { input } = ZS.ui;
+    g.nextEvent = 1e9;
+    g.time = c.time;
+    g.lives = 99;
+    g.problem = c.seed % 2 === 0;
+    g.bear.waking = false;
+    const x = ZS.sim.lift.station(g.level);
+    g.bear.x = x - 120; g.bear.dir = 1;
+    input.press('ArrowRight', true);
+    const seen = new Set(), results = new Set();
+    let frames = 0;
+    for (let i = 0; i < 60 * 34 && !g.over; i++) {
+      if (g.ride && g.ride.phase === 'ride') {
+        const right = g.ride.t > 5 && g.ride.t % 2.5 < 1;
+        input.release(right ? 'ArrowLeft' : 'ArrowRight');
+        if (g.ride.t > 5) input.press(right ? 'ArrowRight' : 'ArrowLeft', true);
+        else input.release('ArrowLeft');
+      }
+      ZS.sim.loop.step(g, 1 / 60);
+      if (g.ride) { seen.add(g.ride.phase); for (const s of g.ride.shots) if (s.result) results.add(s.result); }
+      if (i % 2 === 0) { draw(); frames++; }
+      if (seen.has('back') && !g.ride) break;
+    }
+    input.release('ArrowLeft'); input.release('ArrowRight');
+    for (let i = 0; i < 30; i++) { ZS.sim.loop.step(g, 1 / 60); draw(); }
+    assert.deepEqual([...seen], ['board', 'ride', 'arrive', 'back']);
+    assert.ok(results.has('hit') && (results.has('spark') || results.has('miss')), [...results].join(','));
+    assert.ok(frames > 700, frames + ' frames');
+    assert.deepEqual(problems.slice(0, 5), [], `${problems.length} bad canvas calls`);
+  });
+}

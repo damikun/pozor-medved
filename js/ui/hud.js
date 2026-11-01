@@ -2,7 +2,7 @@
   const { UI } = ZS;
   const $ = (id) => document.getElementById(id);
   const NEWS_HOLD = 2;
-  let badgeHtml = '', levelId = null, reachOn = null, icons = null;
+  let badgeHtml = '', levelId = null, reachOn = null, icons = null, rideOn = null;
   const tv = { hold: 0, next: null };
 
   const TOUCH = { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'hide', ArrowUp: 'jump', KeyC: 'hug', KeyX: 'bite' };
@@ -34,6 +34,8 @@
   }
 
   function hidePlaying() {
+    rideOn = null;
+    $('touch').classList.remove('ride');
     $('hud').hidden = true;
     $('ticker').hidden = true;
     setTouch(false);
@@ -65,8 +67,10 @@
     if (g.flags.stallsLocked) list.push(badge(B.stallsLocked, 'calm'));
     const html = list.join('');
     if (html !== badgeHtml) { badgeHtml = html; $('badges').innerHTML = html; }
-    const reach = !!b.reach && !g.over;
+    const reach = !!b.reach && !g.over && !g.ride;
     if (reach !== reachOn) { reachOn = reach; $('act').classList.toggle('on', reach); }
+    const ride = !!g.ride && !g.over;
+    if (ride !== rideOn) { rideOn = ride; $('touch').classList.toggle('ride', ride); }
   }
 
   function badge(text, variant) {

@@ -127,6 +127,8 @@
       ice: ['¿Quién autorizó esta pista de hielo?', '¡Uiii!', '¡No tengo frenos!'],
       zap: ['¡Ay! ¿Quién ha dado la luz?', 'La cerca funciona. El Estado, no.', 'Al menos, permanente gratis.', 'Esto se salta, no se olfatea.'],
       hay: ['Solo soy un montón de heno.', '¿Aguja en un pajar? Prueba con un oso.', 'Me hace cosquillas en la nariz…', 'El ministro cuenta pajares. A mí no.'],
+      lift: ['Forfait tengo, munición no.', 'Vista de postal. Por la mirilla.', 'Me balanceo, luego existo.', '¡Más rápido, telesilla!'],
+      liftTop: ['Arriba, gulash a 19 €. Bajo andando.', '¿Estación superior? Gracias, ya vi bastante.', 'La próxima, en telecabina.'],
     },
 
     NEWS: {
@@ -415,6 +417,29 @@
         'Un cazador se cayó del puesto. El ministerio declara problemático el puesto.',
         'El oso sacudió el puesto de caza y la confianza en el Estado.',
       ],
+      lift: [
+        'Un oso subió al telesilla sin forfait. Los cazadores tomaron posiciones debajo.',
+        'Un oso viaja en telesilla. Ministro Strašiak: El problema se traslada a cotas más altas.',
+        'Un oso se coló en la cola del telesilla. Nadie protestó.',
+      ],
+      liftMiss: [
+        'Cazadores disparan al telesilla. La estación: Las sillas están aseguradas, el oso no.',
+        'Otro tiro fallado. La Cámara de Caza pide un telesilla más lento.',
+        'El operario avisa de disparos en la línea. El ministerio: exitoso ataque preventivo contra el aire.',
+      ],
+      liftHit: [
+        '¡Impacto en el telesilla! Ministro Strašiak: El oso se comportaba de forma problemática. Se balanceaba.',
+        'Un cazador alcanzó al oso en la silla. La estación estudia descuentos de forfait para cazadores.',
+      ],
+      liftTop: [
+        'El oso se apeó en la estación superior, vio los precios del bar y volvió a bajar.',
+        'El oso subió y volvió a bajar. La estación registra un cliente de pago menos.',
+      ],
+      liftClean: [
+        'El oso pasó el telesilla sin un rasguño. Ministro Strašiak exige abatir el telesilla.',
+        'Los cazadores vaciaron sus rifles en el telesilla. El oso ni levantó la barra de seguridad.',
+      ],
+      liftDrone: 'Un dron del ejército escolta al oso en el telesilla. Tampoco tiene forfait.',
     },
 
     LABELS: {
@@ -452,6 +477,7 @@
         halusky: 'halušky con queso de oveja',
       },
       art: { salas: 'MAJADA', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['RESIDUOS', 'URBANOS'], fence: ['¡PELIGRO!', 'CERCA', 'ELÉCTRICA'] },
+      skanzen: { name: ['MUSEO DE LA', 'ALDEA DE LIPTOV'], notice: ['¡El oso no está', 'en exposición!'] },
       wrongBear: '✝ otra osa',
       birch: '¡Un abedul no te esconde!',
       hunterScared: '¡El cazador se asustó!',
@@ -496,6 +522,18 @@
       billboardWinter: ['¡La hibernación', 'es obligatoria!'],
       stallSigns: { punch: 'PONCHE', lokse: 'LOKŠE', sausage: 'SALCHICHAS' },
       apresSki: 'APRÈS-SKI',
+      lift: {
+        banner: 'Telesilla: balancea la silla ← →',
+        bannerTouch: 'Telesilla: balancea la silla ◀ ▶',
+        dodge: '← →',
+        dodgeTouch: '◀ ▶',
+        arrived: '¡Estación superior!',
+        station: 'TELESILLA',
+        top: 'ESTACIÓN SUPERIOR',
+        bufet: 'BAR',
+      ticket: 'TAQUILLA',
+        price: 'Gulash 19 €',
+      },
       signs: {
         hide: 'Mantén ↓ en un tronco grueso',
         climb: 'Mantén ↑ en el árbol = trepa',
@@ -503,7 +541,7 @@
         feeding: 'cebadero',
         ford: 'Belá – vado',
         skanzen: 'Museo de Pribylina: cerrado por oso',
-        park: 'TANAP – Račkova dolina',
+        park: 'TANAP – el oso está en casa',
         goal: 'Osera de invierno →',
         cannon: 'Cañón de nieve – en su nube no te ven',
         feeder: 'comedero',

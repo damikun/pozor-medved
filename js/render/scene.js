@@ -30,6 +30,7 @@
   function landmarks(ctx, g, vis, span, withBear) {
     const L = g.level, S = ZS.scenery, A = ZS.winterArt;
     for (const hx of L.haystacks) if (vis(hx, 80)) haystack(ctx, g, hx, withBear);
+    if (L.skanzen && span(L.skanzen.from, L.skanzen.to, 260)) S.skanzen(ctx, L.skanzen, g);
     if (L.salas && span(L.salas.from, L.salas.to, 300)) {
       S.koliba(ctx, L.salas.koliba, g.time, g.koliba);
       S.pen(ctx, L.salas.pen[0], L.salas.pen[1], g.time);
@@ -37,11 +38,9 @@
       if (L.salas.strunga) S.strunga(ctx, L.salas.strunga, g.time, 0);
       for (const sh of g.sheep) S.sheep(ctx, sh, g.time);
     }
-    if (L.hotel) {
-      if (vis(L.hotel.x, L.hotel.w)) S.hotel(ctx, L.hotel.x, g.time);
-      if (span(L.hotel.lift - 800, L.hotel.lift + 400, 0)) S.skiLift(ctx, L.hotel.lift, g.time);
-      if (vis(L.hotel.chapel, 120)) S.chapel(ctx, L.hotel.chapel, g.time);
-    }
+    if (L.hotel && vis(L.hotel.x, L.hotel.w)) S.hotel(ctx, L.hotel.x, g.time);
+    if (L.lift && span(L.lift.x - 160, L.lift.tower + 3200, 0)) S.skiLift(ctx, L.lift, g.time, L.theme === 'winter');
+    if (L.hotel && vis(L.hotel.chapel, 120)) S.chapel(ctx, L.hotel.chapel, g.time);
     for (const c of L.cannons) if (vis(c.x, 320)) A.cannon(ctx, c, g.time);
     for (const f of L.feeders) {
       if (!vis(f.x, 140)) continue;
@@ -54,7 +53,6 @@
       A.stall(ctx, s, g.time);
     }
     if (L.chata && vis(L.chata.x, 240)) A.chata(ctx, L.chata.x, g.time);
-    if (L.lift && span(L.lift - 800, L.lift + 400, 0)) S.skiLift(ctx, L.lift, g.time, true);
     for (const s of L.snowmen) if (vis(s.x, 90)) A.snowman(ctx, s, g.time);
   }
 
@@ -104,6 +102,7 @@
       h.scared = o.state === 'flee';
       h.state = o.state === 'flee' ? 'run' : o.kind === 'tourist' && o.filmCd > 7 && !o.texting ? 'film' : 'walk';
     }
+    if (o.hurdle) { h.state = 'hurdle'; h.hurdleK = o.hurdle.k; }
     return h;
   }
 
@@ -201,6 +200,7 @@
     }
     ZS.fx.drawFront(ctx, g, viewW);
     for (const f of g.floaters) {
+      if (f.ride) continue;
       ctx.globalAlpha = Math.min(1, f.t);
       label(ctx, f.text, f.x, f.y - (1.6 - f.t) * 30, 16, f.color);
       ctx.globalAlpha = 1;
@@ -209,7 +209,9 @@
   }
 
   ZS.draw = function (g, ctx, viewW, offY) {
-    const L = g.level, b = g.bear, cam = g.cam, T = ZS.LEVEL_TEXT[L.id];
+    const lift = ZS.render.lift;
+    if (g.ride && lift.inside(g)) { lift.draw(g, ctx, viewW, offY); return; }
+    const L = g.level, b = g.bear, cam = g.cam, T = ZS.LEVEL_TEXT[L.id], zoom = g.ride ? lift.zoom(g) : null;
     const vis = (x, m) => x > cam - m && x < cam + viewW + m;
     const span = (a, z, m) => z > cam - m && a < cam + viewW + m;
     const hurt = b.inv > 0 ? 0.45 + 0.35 * Math.cos(g.time * 14) : 1;
@@ -219,6 +221,7 @@
 
     ctx.save();
     ctx.translate(0, offY);
+    if (zoom) { ctx.translate(zoom.x, zoom.y); ctx.scale(zoom.k, zoom.k); ctx.translate(-zoom.x, -zoom.y); }
     B.sky(ctx, g, viewW, offY);
     if (L.slope) ZS.winterArt.slope(ctx, g, viewW, offY);
     B.backForest(ctx, g, viewW, offY);
@@ -254,5 +257,6 @@
     bearCues(ctx, g);
     overlays(ctx, g, vis, viewW);
     ctx.restore();
+    if (zoom) lift.cover(g, ctx, viewW, offY);
   };
 })();

@@ -27,6 +27,8 @@ canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
 #touch button { pointer-events: auto; width: 64px; height: 64px; border-radius: 50%; border: 0; background: rgba(20, 26, 16, 0.55); color: #fff; font-size: 26px; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; transition: background 0.15s; }
 #touch button.sprint { background: rgba(232, 164, 0, 0.75); }
 #touch .gap { flex: 1; }
+#touch.ride button[data-key="ArrowDown"], #touch.ride button[data-key="ArrowUp"] { visibility: hidden; }
+#touch.ride button[data-key="ArrowLeft"], #touch.ride button[data-key="ArrowRight"] { background: rgba(20, 26, 16, 0.72); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.55); }
 #touch .act { position: absolute; right: 12px; bottom: 76px; display: flex; gap: 10px; opacity: 0; transform: translateY(8px) scale(0.9); transition: opacity 0.18s, transform 0.18s; pointer-events: none; }
 #touch .act.on { opacity: 1; transform: none; }
 #touch .act.on button { pointer-events: auto; }

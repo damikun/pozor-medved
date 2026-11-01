@@ -127,6 +127,8 @@
       ice: ['Wer hat hier eine Eisbahn genehmigt?', 'Huiii!', 'Ich hab keine Bremsen!'],
       zap: ['Au! Wer hat hier den Strom an?', 'Der Zaun funktioniert. Anders als der Staat.', 'Immerhin eine Gratis-Dauerwelle.', 'Drüberspringen, nicht dran schnuppern!'],
       hay: ['Ich bin nur ein Heuhaufen.', 'Nadel im Heuhaufen? Versuch’s mit Bär.', 'Das kitzelt in der Nase…', 'Der Minister zählt Heuhaufen. Mich nicht.'],
+      lift: ['Skipass hab ich, Munition nicht.', 'Postkartenblick. Durchs Zielfernrohr.', 'Ich schaukle, also bin ich.', 'Liftwart, schneller!'],
+      liftTop: ['Oben Gulasch für 19 €. Ich geh zu Fuß.', 'Bergstation? Danke, das reicht.', 'Nächstes Mal nehm ich die Gondel.'],
     },
 
     NEWS: {
@@ -415,6 +417,29 @@
         'Vom Hochsitz fiel ein Jäger. Das Ministerium erklärt den Hochsitz zum Problemfall.',
         'Der Bär erschüttert den Hochsitz und das Vertrauen in den Staat.',
       ],
+      lift: [
+        'Ein Bär fährt ohne Skipass Sessellift. Die Jäger gehen darunter in Stellung.',
+        'Ein Bär fährt Sessellift. Minister Strašiak: Das Problem verlagert sich in höhere Lagen.',
+        'Ein Bär hat sich am Lift vorgedrängelt. Niemand hat sich beschwert.',
+      ],
+      liftMiss: [
+        'Jäger schießen auf den Sessellift. Skigebiet: Die Sessel sind versichert, der Bär nicht.',
+        'Wieder daneben. Die Jagdkammer fordert einen langsameren Lift.',
+        'Der Liftwart meldet Schüsse an der Strecke. Ministerium: erfolgreicher Präventivschlag gegen die Luft.',
+      ],
+      liftHit: [
+        'Treffer am Sessellift! Minister Strašiak: Der Bär verhielt sich auffällig. Er schaukelte.',
+        'Ein Jäger traf den Bären im Sessel. Das Skigebiet erwägt Skipass-Rabatte für Jäger.',
+      ],
+      liftTop: [
+        'Der Bär stieg an der Bergstation aus, sah die Imbisspreise und fuhr wieder hinunter.',
+        'Der Bär fuhr rauf und wieder runter. Das Skigebiet meldet einen zahlenden Kunden weniger.',
+      ],
+      liftClean: [
+        'Der Bär fuhr ohne Kratzer Sessellift. Minister Strašiak fordert den Abschuss des Lifts.',
+        'Die Jäger haben am Lift alles verschossen. Der Bär hat nicht mal den Bügel geöffnet.',
+      ],
+      liftDrone: 'Eine Armeedrohne begleitet den Bären am Sessellift. Einen Skipass hat sie auch nicht.',
     },
 
     LABELS: {
@@ -452,6 +477,7 @@
         halusky: 'Brimsennocken',
       },
       art: { salas: 'SCHAFALM', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['REST-', 'MÜLL'], fence: ['ACHTUNG!', 'ELEKTRO-', 'ZAUN'] },
+      skanzen: { name: ['DORFMUSEUM', 'LIPTOV'], notice: ['Der Bär ist', 'kein Exponat!'] },
       wrongBear: '✝ eine andere Bärin',
       birch: 'Die Birke versteckt dich nicht!',
       hunterScared: 'Der Jäger erschrickt!',
@@ -496,6 +522,18 @@
       billboardWinter: ['Winterschlaf', 'ist Pflicht!'],
       stallSigns: { punch: 'PUNSCH', lokse: 'LOKŠE', sausage: 'WÜRSTE' },
       apresSki: 'APRÈS-SKI',
+      lift: {
+        banner: 'Sessellift: Schaukle den Sessel ← →',
+        bannerTouch: 'Sessellift: Schaukle den Sessel ◀ ▶',
+        dodge: '← →',
+        dodgeTouch: '◀ ▶',
+        arrived: 'Bergstation!',
+        station: 'SESSELLIFT',
+        top: 'BERGSTATION',
+        bufet: 'IMBISS',
+      ticket: 'KASSE',
+        price: 'Gulasch 19 €',
+      },
       signs: {
         hide: 'Halte ↓ am dicken Baum',
         climb: 'Halte ↑ am Baum = klettern',
@@ -503,7 +541,7 @@
         feeding: 'Köderplatz',
         ford: 'Belá – Furt',
         skanzen: 'Museumsdorf Pribylina: wegen Bär zu',
-        park: 'TANAP – Račkova dolina',
+        park: 'TANAP – Heimat des Bären',
         goal: 'Winterhöhle →',
         cannon: 'Schneekanone – Wolke tarnt dich',
         feeder: 'Futterkrippe',

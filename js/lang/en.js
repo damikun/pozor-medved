@@ -127,6 +127,8 @@
       ice: ['Who approved this ice rink?', 'Wheee!', 'I’ve got no brakes!'],
       zap: ['Ow! Who turned the power on?', 'The fence works. Unlike the state.', 'Well, at least I got a free perm.', 'You jump this, you don’t sniff it.'],
       hay: ['I’m just a haystack.', 'Needle in a haystack? Try a bear.', 'It tickles my nose…', 'The minister counts haystacks. Not me.'],
+      lift: ['Got a ski pass. No ammo.', 'Postcard view. Through a rifle scope.', 'I swing, therefore I am.', 'Faster, lift guy!'],
+      liftTop: ['Goulash for €19 up here. I’ll walk down.', 'Top station? Thanks, I’ve seen enough.', 'Next time I’m taking the gondola.'],
     },
 
     NEWS: {
@@ -415,6 +417,29 @@
         'A hunter fell from a stand. The ministry has declared the stand a problem stand.',
         'The bear shook a hunting stand and public trust in the state.',
       ],
+      lift: [
+        'A bear boarded the chairlift without a ski pass. Hunters took up positions below.',
+        'A bear is riding the chairlift. Minister Strašiak: The problem is moving to higher altitudes.',
+        'A bear jumped the chairlift queue. Nobody objected.',
+      ],
+      liftMiss: [
+        'Hunters are firing at the chairlift. Resort: The chairs are insured, the bear is not.',
+        'Another miss. The Hunting Chamber demands a slower chairlift.',
+        'Lift operator reports gunfire on the line. Ministry reports a successful preventive strike on the air.',
+      ],
+      liftHit: [
+        'Hit on the chairlift! Minister Strašiak: The bear behaved problematically. It swung.',
+        'A hunter hit the bear on its chair. The resort is considering ski pass discounts for hunters.',
+      ],
+      liftTop: [
+        'The bear got off at the top station, checked the snack bar prices and rode back down.',
+        'The bear rode up and back down. The resort reports one paying customer fewer.',
+      ],
+      liftClean: [
+        'The bear rode the chairlift without a scratch. Minister Strašiak demands a cull of the chairlift.',
+        'Hunters emptied their rifles at the chairlift. The bear never even raised the safety bar.',
+      ],
+      liftDrone: 'An army drone is escorting the bear up the chairlift. It has no ski pass either.',
     },
 
     LABELS: {
@@ -452,6 +477,7 @@
         halusky: 'sheep-cheese dumplings',
       },
       art: { salas: 'SHEEPFOLD', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['GENERAL', 'WASTE'], fence: ['DANGER!', 'ELECTRIC', 'FENCE'] },
+      skanzen: { name: ['MUSEUM OF THE', 'LIPTOV VILLAGE'], notice: ['The bear is not', 'an exhibit!'] },
       wrongBear: '✝ another she-bear',
       birch: 'A birch won’t hide you!',
       hunterScared: 'Hunter spooked!',
@@ -496,6 +522,18 @@
       billboardWinter: ['Hibernation', 'is mandatory!'],
       stallSigns: { punch: 'PUNCH', lokse: 'LOKŠE', sausage: 'SAUSAGES' },
       apresSki: 'APRÈS-SKI',
+      lift: {
+        banner: 'Chairlift: swing the chair ← →',
+        bannerTouch: 'Chairlift: swing the chair ◀ ▶',
+        dodge: '← →',
+        dodgeTouch: '◀ ▶',
+        arrived: 'Top station!',
+        station: 'CHAIRLIFT',
+        top: 'TOP STATION',
+        bufet: 'SNACK BAR',
+      ticket: 'TICKETS',
+        price: 'Goulash €19',
+      },
       signs: {
         hide: 'Hold ↓ by a thick tree',
         climb: 'Hold ↑ by a tree = climb',
@@ -503,7 +541,7 @@
         feeding: 'bait site',
         ford: 'Belá – ford',
         skanzen: 'Pribylina open-air museum: closed, bear',
-        park: 'TANAP – Račkova dolina',
+        park: 'TANAP – home of the bear',
         goal: 'Winter den →',
         cannon: 'Snow cannon – the cloud hides you',
         feeder: 'deer feeder',

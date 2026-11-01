@@ -3,14 +3,39 @@
   const GY = CFG.GROUND;
   const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
+  const pen = () => ZS.sim.pen;
   const SPEED = { tourist: 25, santa: 22, picker: 35 };
   const SHY = { picker: 'pickerSeen', santa: 'santaSeen' };
 
   function create(g, kind, o) {
-    return Object.assign({
+    const p = Object.assign({
       kind, x: (o.from + o.to) / 2, dir: 1, speed: SPEED[kind] || 30, state: 'walk', pause: 0, filmCd: 0, dropCd: 8,
-      react: null, reactT: 0, empty: false, clutch: false,
+      react: null, reactT: 0, empty: false, clutch: false, hurdle: null,
     }, o);
+    if (o.from !== o.to) pen().range(g && g.level, p, pen().KEEP.person, 200);
+    return p;
+  }
+
+  function flee(g, p, dt) {
+    const P = pen(), L = g.level;
+    if (p.hurdle) { P.hurdleStep(p, dt); return; }
+    const v = p.leaving ? p.speed * 1.4 : (p.clutch ? 170 : 210) * (P.inside(L, p.x, 0) ? P.HURDLE.inside : 1);
+    const nx = p.x + p.dir * v * dt;
+    if (p.leaving) {
+      const hx = P.hold(L, p.x, nx, P.KEEP.person);
+      if (hx !== nx) p.dir *= -1;
+      p.x = hx;
+      return;
+    }
+    const fx = P.ahead(L, p.x, p.dir);
+    if (fx !== null && Math.abs(fx - nx) <= P.HURDLE.reach) { P.hurdleAt(p, fx, p.dir); P.hurdleStep(p, dt); return; }
+    p.x = nx;
+  }
+
+  function crumbs(L, p) {
+    let x = p.x + 30 * p.dir;
+    if (pen().inside(L, x, 40)) x = p.x - 30 * p.dir;
+    return x;
   }
 
   function update(g, dt) {
@@ -21,15 +46,16 @@
         ZS.sim.encounters.reactPerson(g, p, dt);
         continue;
       }
-      if (p.state === 'flee' || p.leaving) {
-        p.x += p.dir * (p.leaving ? p.speed * 1.4 : p.clutch ? 170 : 210) * dt;
+      if (p.state === 'flee' || p.leaving || p.hurdle) {
+        flee(g, p, dt);
         if (Math.abs(p.x - b.x) > 1600 || p.x < -200 || p.x > L.w + 200) p.dead = true;
         continue;
       }
       if (p.pause > 0) p.pause -= dt;
       else {
-        p.x += p.dir * p.speed * dt;
-        if (p.x < p.from || p.x > p.to) { p.dir *= -1; p.x = clamp(p.x, p.from, p.to); p.pause = 2; }
+        const nx = p.x + p.dir * p.speed * dt, hx = pen().hold(L, p.x, nx, pen().KEEP.person);
+        p.x = hx;
+        if (hx !== nx || p.x < p.from || p.x > p.to) { p.dir *= -1; p.x = clamp(p.x, p.from, p.to); p.pause = 2; }
       }
       const d = Math.abs(b.x - p.x);
       const ahead = Math.sign(b.x - p.x) === p.dir;
@@ -48,7 +74,7 @@
       if (p.kind === 'tourist' && p.dropCd <= 0) {
         p.dropCd = 18;
         if (L.items.filter((it) => it.type === 'sandwich' && !it.eaten).length < 3) {
-          L.items.push({ type: 'sandwich', x: p.x + 30 * p.dir, eaten: false, locked: false });
+          L.items.push({ type: 'sandwich', x: crumbs(L, p), eaten: false, locked: false });
         }
       }
     }

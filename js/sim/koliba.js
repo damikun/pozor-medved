@@ -223,7 +223,7 @@
   function tray(g, k) {
     for (const o of k.out) {
       const p = o.p;
-      if (o.dropped || !p || p.dead || p.empty || p.react || g.time < o.trayAt) continue;
+      if (o.dropped || !p || p.dead || p.empty || p.react || g.time < o.trayAt || p.hurdle || ZS.sim.pen.inside(g.level, p.x, 90)) continue;
       o.dropped = true;
       if (!o.drops) continue;
       const food = k.food < FOOD_MAX && !g.level.items.some((it) => it.type === 'halusky' && !it.eaten);

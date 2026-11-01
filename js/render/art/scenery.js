@@ -846,9 +846,22 @@
     ctx.restore();
   }
 
+  function leapPose(lp) {
+    const k = clamp(lp.k, 0, 1), P = LP;
+    P.air = 0; P.crouch = 0; P.pitch = 0; P.fold = 0; P.reach = 0;
+    if (lp.phase === 'gather') { P.crouch = sstep(0, 1, k); P.pitch = -0.16 * P.crouch; }
+    else if (lp.phase === 'air') {
+      P.air = 1; P.pitch = lerp(-0.34, 0.3, sstep(0.06, 0.94, k));
+      P.fold = sstep(0.04, 0.42, k); P.reach = sstep(0.56, 0.92, k);
+    } else { P.crouch = 1 - sstep(0, 1, k); P.pitch = 0.2 * P.crouch; }
+    return P;
+  }
+  const LP = { air: 0, crouch: 0, pitch: 0, fold: 0, reach: 0 };
+
   function dog(ctx, d, time) {
     const st = stateOf('dog', d, time, newAnimal), sd = st.seed;
-    const mode = d.state === 'walk' || d.state === 'run' || d.state === 'bark' ? d.state : 'idle', dir = d.dir < 0 ? -1 : 1;
+    const lp = d.state === 'leap' && d.leap ? leapPose(d.leap) : null;
+    const mode = lp ? 'run' : d.state === 'walk' || d.state === 'run' || d.state === 'bark' ? d.state : 'idle', dir = d.dir < 0 ? -1 : 1;
     advance(st, d.x, dir, time, { sw: 34, sr: 96, fmax: 3.4, vmin: 9, vrun: 130, wantRun: mode === 'run', hint: mode === 'walk' || mode === 'run', head: 0, bark: mode === 'bark' ? 1 : 0 });
     const amt = st.amt, rk = st.runK, bk = st.bark, brace = bk * (1 - amt);
     barkAt(time, sd); const pulse = BK.p * bk, bw = BK.w;
@@ -859,15 +872,26 @@
       const l = DLEG[i];
       footAt(st.phase + lerp(l[3], l[4], st.gait), duty, half, lift);
       fx4[i] = lerp(lerp(l[5], l[6], bk), FT.x + (l[1] ? 1.5 + rk * 4 : -1 + rk * 3), amt); fy4[i] = lerp(0, FT.y, amt);
+      if (lp) {
+        const tx = l[1] ? lerp(7, 13, lp.reach) : lerp(-15, -3, lp.fold) + 5 * lp.reach, ty = l[1] ? lerp(15, 5, lp.reach) : lerp(5, 13, lp.fold) - 4 * lp.reach;
+        fx4[i] = lerp(fx4[i] + (l[1] ? 0 : 3 * lp.crouch), tx, lp.air); fy4[i] = lerp(fy4[i], ty, lp.air);
+      }
       const lm = l[1] ? LM[1] : LM[2];
       drop[l[1]] = Math.max(drop[l[1]], REST[l[1]] - (fy4[i] + sqrt(Math.max(0, lm * lm - fx4[i] * fx4[i]))));
     }
-    const dy = Math.max(drop[0], drop[1], 0) + brace * 1.2;
-    const breath = 1 + 0.012 * sin(time * 2.2 + sd), pitch = rk * amt * 0.06 * sin(TAU * (st.phase + 0.1)) + brace * 0.04;
+    const dy = Math.max(drop[0], drop[1], 0) + brace * 1.2 + (lp ? lp.crouch * 5 : 0), lpt = lp ? lp.pitch : 0;
+    const breath = 1 + 0.012 * sin(time * 2.2 + sd), pitch = rk * amt * (lp ? 0 : 0.06) * sin(TAU * (st.phase + 0.1)) + brace * 0.04 + lpt;
     ctx.save(); ctx.translate(d.x, GY); ctx.scale(dir * 0.9, 0.9);
-    ctx.fillStyle = 'rgba(25,25,12,0.17)'; ell(ctx, 1, 0.8, 37, 3.6);
+    const up = Math.max(0, d.y || 0) / 0.9;
+    if (up > 0.01) {
+      const sk = 1 - clamp(up / 150, 0, 0.55);
+      ctx.fillStyle = 'rgba(25,25,12,' + (0.17 * sk).toFixed(3) + ')'; ell(ctx, 1, 0.8, 37 * sk, 3.6 * sk);
+      ctx.translate(0, -up);
+    } else { ctx.fillStyle = 'rgba(25,25,12,0.17)'; ell(ctx, 1, 0.8, 37, 3.6); }
     const leg = (i) => {
-      const l = DLEG[i], hx = l[0], front = l[1], hy = -(REST[front] - dy), far = l[2];
+      const l = DLEG[i], front = l[1], far = l[2];
+      let hx = l[0], hy = -(REST[front] - dy);
+      if (lpt) { const c = cos(lpt), sn = sin(lpt), ry = 34 - REST[front]; hx = l[0] * c - ry * sn; hy = l[0] * sn + ry * c - 34 + dy; }
       ik(hx, hy, hx + fx4[i], -fy4[i], front ? 16 : 14, front ? 11 : 13.5, front ? 1 : -1);
       const col = far ? DG.far : DG.coat;
       limb(ctx, hx, hy, IK.mx, IK.my, front ? 9 : 12, front ? 6.8 : 7, col); limb(ctx, IK.mx, IK.my, IK.ex, IK.ey, front ? 6.8 : 6.4, 5.2, col);
@@ -1232,7 +1256,7 @@
   }
   API.hotel = hotel;
 
-  const LIFT_H = 214, LIFT_SLOPE = 0.24, CHAIRS = ['#d2382b', '#e8b92a', '#2f6fb3'], JACKETS = ['#e8590c', '#2f86c8', '#7b5ea7', '#2f8f4e'], SKIS = ['#e8402f', '#2a6fd1', '#f6c624', '#7b2fbf'];
+  const LIFT_H = 214, CHAIRS = ['#d2382b', '#e8b92a', '#2f6fb3'], JACKETS = ['#e8590c', '#2f86c8', '#7b5ea7', '#2f8f4e'], SKIS = ['#e8402f', '#2a6fd1', '#f6c624', '#7b2fbf'];
 
   function liftChair(ctx, k, face, far, time, dxp, a, snowy) {
     ctx.save(); ctx.globalAlpha = a;
@@ -1276,29 +1300,59 @@
     ctx.restore();
   }
 
-  function skiLift(ctx, x, time, snowy) {
-    const vr = viewRange(ctx, 90), cy = (wx) => GY - LIFT_H - LIFT_SLOPE * (wx - x), xl = Math.max(vr[0], x - 760), xr = vr[1];
-    const fade = (wx) => sstep(x - 760, x - 440, wx), ang = -atan2(LIFT_SLOPE, 1);
-    if (xr < x - 760 || xl > x + 3000) return;
-    ctx.save();
-    const cable = (off, rgb, al, w) => {
-      const g = ctx.createLinearGradient(x - 760, 0, x - 440, 0);
-      g.addColorStop(0, 'rgba(' + rgb + ',0)'); g.addColorStop(1, 'rgba(' + rgb + ',' + al + ')');
-      ctx.strokeStyle = g; ctx.lineWidth = w; ctx.lineCap = 'butt';
-      ctx.beginPath(); ctx.moveTo(xl, cy(xl) + off); ctx.lineTo(xr, cy(xr) + off); ctx.stroke();
-    };
-    const chairs = (far) => {
-      const LEN = 2160, face = far ? -1 : 1;
-      for (let k = 0; k < 12; k++) {
-        const pos = ((k * 180 + (far ? 90 - time * 30 : time * 30)) % LEN + LEN) % LEN, wx = x - 1080 + pos;
-        if (wx < vr[0] - 40 || wx > vr[1] + 40) continue;
-        const a = fade(wx) * sstep(0, 60, pos) * sstep(0, 60, LEN - pos); if (a < 0.02) continue;
-        ctx.save(); ctx.translate(wx, cy(wx) + (far ? -3.5 : 0));
-        liftChair(ctx, k, face, far, time, wx - x, a * (far ? 0.92 : 1), snowy); ctx.restore();
-      }
-    };
-    cable(-3.5, '74,82,90', 1, 1.5);
-    chairs(true);
+  const BULL = 64;
+
+  function booth(ctx, time, snowy) {
+    ctx.fillStyle = 'rgba(28,22,10,0.15)'; ell(ctx, -88, 0.5, 24, 2.6);
+    ctx.fillStyle = '#b98a58'; ctx.fillRect(-106, -38, 36, 38);
+    ctx.strokeStyle = 'rgba(70,40,18,0.25)'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let y = -33; y < 0; y += 5) { ctx.moveTo(-106, y); ctx.lineTo(-70, y); }
+    ctx.stroke();
+    ctx.fillStyle = '#4a3220'; ctx.fillRect(-101, -31, 26, 16);
+    ctx.fillStyle = '#e9b64c'; ctx.fillRect(-99, -29, 22, 12);
+    ctx.fillStyle = 'rgba(255,238,170,' + (0.7 + 0.15 * sin(time * 0.8)).toFixed(3) + ')'; ctx.fillRect(-99, -29, 22, 12);
+    const nod = 0.6 * sin(time * 0.7) + Math.max(0, sin(time * 0.23));
+    ctx.fillStyle = '#2f3a2a'; rr(ctx, -93, -22, 11, 6, 2);
+    ctx.fillStyle = '#f0c8a0'; circle(ctx, -87.5, -24.5 + nod * 0.6, 2.7);
+    ctx.fillStyle = '#c0392b'; ctx.beginPath(); ctx.arc(-87.5, -25 + nod * 0.6, 2.9, PI, TAU); ctx.fill();
+    ctx.fillStyle = '#f2efe6'; ctx.fillRect(-84, -22.5, 6, 4.5);
+    ctx.fillStyle = '#4a3220'; ctx.fillRect(-88.5, -29, 1.4, 12);
+    ctx.fillStyle = '#6a4a2b'; ctx.fillRect(-103, -14, 30, 2.4);
+    ctx.fillStyle = '#4e3d35'; poly(ctx, [-110, -37, -88, -50, -66, -37, -66, -34, -88, -47, -110, -34]);
+    ctx.fillStyle = 'rgba(255,235,200,0.14)'; poly(ctx, [-110, -37, -88, -50, -88, -48.6, -110, -35.6]);
+    if (snowy) { snowCap(ctx, -110, -88, -38, 3, 9.1); snowCap(ctx, -88, -66, -38, 3, 9.7); icicles(ctx, -108, -68, -34, 5, 5, 9.3); }
+    ctx.fillStyle = '#5a3d22'; ctx.fillRect(-100, -56, 1.6, 8); ctx.fillRect(-77.6, -56, 1.6, 8);
+    ctx.fillStyle = '#2f4a35'; rr(ctx, -106, -64, 36, 10, 2);
+    txt(ctx, ZS.LABELS.lift.ticket, -88, -58.6, 6.4, '#f5edd2', 800, 0.4, 32);
+    if (snowy) snowCap(ctx, -106, -70, -64, 2.4, 9.9);
+  }
+
+  function terminal(ctx, time, snowy) {
+    ctx.fillStyle = 'rgba(28,22,10,0.14)'; ell(ctx, 6, 0.5, 78, 4);
+    ctx.fillStyle = '#a8a59d'; ctx.fillRect(-66, -8, 142, 8); ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.fillRect(-66, -8, 142, 2);
+    ctx.fillStyle = '#8a6a48'; ctx.fillRect(4, -11, 74, 4);
+    ctx.fillStyle = 'rgba(0,0,0,0.18)'; for (let i = 0; i < 9; i++) ctx.fillRect(6 + i * 8.2, -11, 1, 4);
+    ctx.fillStyle = '#f0c030'; ctx.fillRect(30, -11.4, 3, 4.4);
+    ctx.fillStyle = '#7c8791'; poly(ctx, [-36, -8, -27, -8, -29, -56, -35, -56]);
+    ctx.fillStyle = '#66707a'; poly(ctx, [-21, -8, -12, -8, -16, -56, -22, -56]);
+    line(ctx, -32, -12, -18, -50, 1.6, '#5c6770'); line(ctx, -16, -12, -32, -50, 1.6, '#5c6770');
+    for (const px of [-4, 70]) { ctx.fillStyle = '#5a4630'; ctx.fillRect(px - 1.5, -98 - (px > 0 ? 6 : 0), 3, 88 + (px > 0 ? 6 : 0)); }
+    ctx.fillStyle = '#c0392b'; poly(ctx, [-10, -96, 78, -108, 80, -102, -8, -90]);
+    ctx.fillStyle = 'rgba(0,0,0,0.2)'; poly(ctx, [-8, -90, 80, -102, 80, -100, -8, -88]);
+    ctx.fillStyle = 'rgba(255,255,255,0.18)'; poly(ctx, [-10, -96, 78, -108, 78, -106.6, -10, -94.6]);
+    if (snowy) { ctx.save(); ctx.translate(0, 0); snowCap(ctx, -8, 78, -97 - 0.5, 3.4, 4.1); ctx.restore(); icicles(ctx, -6, 76, -90, 9, 6, 4.4); }
+    ctx.save(); ctx.translate(0, -BULL);
+    ctx.fillStyle = '#2b3138'; ell(ctx, -18, 9, 36, 4.4);
+    ctx.fillStyle = '#4f5962'; rr(ctx, -64, -16, 86, 26, 12);
+    ctx.fillStyle = 'rgba(255,255,255,0.15)'; rr(ctx, -60, -15, 78, 5, 3);
+    ctx.fillStyle = '#e8b92a'; ctx.fillRect(-60, 4, 78, 3.4);
+    ctx.fillStyle = '#2b3138'; rr(ctx, 14, -11, 10, 18, 4);
+    txt(ctx, ZS.LABELS.lift.station, -22, -4, 8.6, '#f5f2e8', 800, 1, 62);
+    if (snowy) snowCap(ctx, -62, 20, -15.5, 4, 3.3);
+    ctx.restore();
+  }
+
+  function pylon(ctx, x, snowy, ang) {
     ctx.save(); ctx.translate(x, GY);
     ctx.fillStyle = '#a8a59d'; ctx.fillRect(-25, -10, 50, 10); ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.fillRect(-25, -10, 50, 2.4);
     ctx.fillStyle = '#8f8c84'; ctx.fillRect(-19, -15, 38, 5);
@@ -1331,8 +1385,32 @@
       ctx.fillStyle = '#f5f8fb'; ell(ctx, 0, -10.6, 28, 2.4);
     }
     ctx.restore();
-    cable(0, '37,43,49', 1, 1.9); cable(-0.7, '223,230,234', 0.5, 0.6);
+  }
+
+  function skiLift(ctx, lift, time, snowy) {
+    const x = lift.x, top = lift.tower, slope = (LIFT_H - BULL) / (top - x), vr = viewRange(ctx, 90);
+    const cy = (wx) => GY - BULL - slope * (wx - x), x0 = x + 16, xr = vr[1], ang = -atan2(slope, 1);
+    if (xr < x - 140 || vr[0] > x + 3200) return;
+    ctx.save();
+    const cable = (off, col, w) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'butt'; ctx.beginPath(); ctx.moveTo(x0, cy(x0) + off); ctx.lineTo(xr, cy(xr) + off); ctx.stroke(); };
+    const chairs = (far) => {
+      const LEN = 2160, face = far ? -1 : 1;
+      for (let k = 0; k < 12; k++) {
+        const pos = ((k * 180 + (far ? 90 : 0) + time * 30) % LEN + LEN) % LEN, wx = far ? x0 + LEN - pos : x0 + pos;
+        if (wx < vr[0] - 40 || wx > vr[1] + 40) continue;
+        const a = sstep(x + 14, x + 46, wx); if (a < 0.02) continue;
+        ctx.save(); ctx.translate(wx, cy(wx) + (far ? -3.5 : 0));
+        liftChair(ctx, k, face, far, time, wx - top, a * (far ? 0.92 : 1), snowy); ctx.restore();
+      }
+    };
+    ctx.save(); ctx.translate(x - 62, GY); booth(ctx, time, snowy); ctx.restore();
+    cable(-3.5, 'rgb(74,82,90)', 1.5);
+    chairs(true);
+    pylon(ctx, top, snowy, ang);
+    cable(0, 'rgb(37,43,49)', 1.9); cable(-0.7, 'rgba(223,230,234,0.5)', 0.6);
     chairs(false);
+    ctx.translate(x, GY);
+    terminal(ctx, time, snowy);
     ctx.restore();
   }
   API.skiLift = skiLift;
