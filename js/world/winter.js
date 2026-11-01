@@ -1,0 +1,108 @@
+(function () {
+  const { CFG, LABELS } = ZS;
+  const GY = CFG.GROUND;
+  const K = ZS.levelKit;
+
+  ZS.levelBuilders.winter = function (rng) {
+    const L = K.base('winter', rng);
+    const W = L.w, S = LABELS.signs;
+    Object.assign(L, {
+      village: { from: 4280, to: 5900 },
+      ice: { from: 3620, to: 3980 },
+      park: { from: 9100, to: W - 300 },
+      chata: { x: 6150 },
+      lift: 6960,
+      slope: { from: 6000, to: 7700 },
+      feeding: 2300,
+    });
+    L.cannons = [{ x: 410, dir: 1 }, { x: 6520, dir: 1 }];
+    L.feeders = [{ x: L.feeding }];
+    L.stalls = [{ x: 4840, kind: 'punch' }, { x: 5050, kind: 'lokse' }, { x: 5260, kind: 'sausage' }];
+    L.snowmen = [{ x: 5800, nose: true }, { x: 7260, nose: true }];
+    L.holes = [{ x: 3800 }];
+    L.houses = [{ x: 4690, w: 160 }, { x: 5620, w: 170 }];
+    L.posts = [{ x: 1550 }, { x: 2640 }, { x: 8650 }];
+    L.logs = [{ x: 1180, w: 100, h: 32 }, { x: 2960, w: 96, h: 30 }, { x: 7820, w: 110, h: 34 }, { x: 9600, w: 100, h: 32 }];
+    L.signs = [
+      { x: 900, text: S.cannon },
+      { x: 1330, text: S.hide },
+      { x: 2130, text: S.feeder },
+      { x: 3530, text: S.ice },
+      { x: 4380, text: '', by: S.by, billboard: true },
+      { x: 4540, text: ZS.LEVEL_TEXT.winter.village },
+      { x: 7100, text: S.lift },
+      { x: 9150, text: S.quiet },
+      { x: 9950, text: S.cave },
+      { x: W - 470, text: S.winterGoal },
+    ];
+
+    L.feeders.forEach((f) => K.add(L, 'feeder', f.x));
+    L.stalls.forEach((s) => K.add(L, s.kind, s.x));
+    L.snowmen.forEach((s) => K.add(L, 'carrot', s.x));
+    K.add(L, 'chatabin', L.chata.x + 190);
+
+    const xmas = Object.assign(K.makeTree(rng, 'smrek', 5440), { xmas: true, h: 250, r: 78, w: 40 });
+    L.trees.push(xmas);
+    const orchard = 3260;
+    L.trees.push(K.makeTree(rng, 'jablon', orchard));
+    K.add(L, 'frozenapple', orchard + 26);
+    K.add(L, 'frozenapple', orchard - 30, { y: GY - 160 });
+    K.add(L, 'frozenapple', orchard + 28, { y: GY - 148 });
+
+    const spray = (x) => L.cannons.some((c) => {
+      const a = c.x - 70, b = c.x + c.dir * 250;
+      return x > Math.min(a, b) - 20 && x < Math.max(a, b) + 20;
+    });
+    const blocked = (x) => x < 300 || x > W - 480
+      || spray(x)
+      || Math.abs(x - L.feeding) < 120
+      || (x > L.ice.from - 80 && x < L.ice.to + 80)
+      || (x > L.village.from - 40 && x < L.village.to + 40)
+      || (x > L.chata.x - 150 && x < L.chata.x + 260)
+      || Math.abs(x - L.lift) < 60
+      || Math.abs(x - orchard) < 90
+      || L.snowmen.some((s) => Math.abs(s.x - x) < 70)
+      || L.posts.some((p) => Math.abs(p.x - x) < 80)
+      || L.logs.some((l) => Math.abs(l.x - x) < l.w / 2 + 80)
+      || L.signs.some((s) => Math.abs(s.x - x) < (s.billboard ? 150 : 95));
+    K.forest(L, blocked, (x) => {
+      if (x > L.park.from) return rng() < 0.85 ? 'smrek' : 'buk';
+      const r = rng();
+      return r < 0.62 ? 'smrek' : r < 0.93 ? 'buk' : 'breza';
+    }, (x) => (x > L.park.from ? 150 + rng() * 100 : 115 + rng() * 85));
+    const extra = [['smrek', 4105], ['buk', 4215], ['buk', 5975]];
+    L.trees = L.trees.filter((t) => t.xmas || t.kind === 'jablon' || !extra.some(([, x]) => Math.abs(t.x - x) < 90));
+    extra.forEach(([kind, x]) => L.trees.push(K.makeTree(rng, kind, x)));
+    L.trees.sort((a, b) => a.x - b.x);
+
+    K.backTrees(L, (bx) => (bx > L.village.from && bx < L.village.to) || (bx > L.chata.x - 120 && bx < L.chata.x + 120));
+
+    K.scatter(L, (fx) => (fx > L.village.from - 60 && fx < L.village.to + 60)
+      || (fx > L.ice.from - 40 && fx < L.ice.to + 40)
+      || Math.abs(fx - L.feeding) < 140
+      || (fx > L.chata.x - 160 && fx < L.chata.x + 260)
+      || spray(fx), 11,
+    (r) => (r < 0.32 ? 'rosehip' : r < 0.7 ? 'snownut' : 'rowan'));
+    K.honey(L, 4);
+    L.holes.forEach((h) => K.add(L, 'fish', h.x, { y: GY + 30, hidden: true, jumpT: 1 + rng() * 2, jump: -1, label: LABELS.icefish }));
+    L.items.sort((a, b) => a.x - b.x);
+
+    L.spawns = [
+      { kind: 'posed', x: 1550, range: 470 },
+      { kind: 'posed', x: 2640, range: 480 },
+      { kind: 'posed', x: 8650, range: 480 },
+      { kind: 'walker', from: 2850, to: 3500 },
+      { kind: 'walker', from: 7450, to: 8350 },
+      { kind: 'walker', from: 8800, to: 9700 },
+      { kind: 'tourist', from: 4420, to: 5300 },
+      { kind: 'tourist', from: 4700, to: 5700 },
+      { kind: 'santa', from: 4600, to: 5500 },
+      { kind: 'tourist', from: 6000, to: 6900 },
+      { kind: 'tourist', from: 6650, to: 7350 },
+    ];
+    [2120, 2260, 2470].forEach((x, i) => L.spawns.push({ kind: 'deer', from: 1960, to: 2640, x, i }));
+
+    K.hills(L);
+    return L;
+  };
+})();

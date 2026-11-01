@@ -4,14 +4,17 @@
   const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
   const HALF = 38;
-  const CLIMB_UP = 110, CLIMB_DOWN = 170;
+  const CLIMB_UP = 110, CLIMB_DOWN = 170, WAKE = 2.6, HOLD = 0.18;
+  const COLD = { advent: 0.35, snow: 0.7, frost: 1 };
 
-  function create() {
+  function create(L) {
     return {
-      x: 240, y: GY, vy: 0, dir: 1, onGround: true, hiding: null, crouch: false, moving: false, running: false,
+      x: 240, y: GY, vy: 0, vx: 0, dir: 1, onGround: true, hiding: null, crouch: false, moving: false, running: false,
       inv: 0, walkT: 0, birchCd: 0, pose: 'stiff', hideT: 0, quipCd: 0, sweatT: 0, danger: false, peekSide: 1,
       stamina: 1, tired: false, noiseT: 0, eating: false, eatT: 0,
-      climbing: null, climbV: 0, climbT: 0, inCanopy: false, covered: false,
+      climbing: null, climbV: 0, climbT: 0, inCanopy: false, covered: false, upT: 0, offTree: false,
+      act: null, waking: !!L && L.theme === 'winter', wakeT: 0, slide: 0, cold: 0, tag: false, inSpray: false, onIce: false,
+      trackD: 0, trackX: 240,
     };
   }
 
@@ -53,11 +56,11 @@
 
   function climb(g, b, dt, up, down, jump) {
     const t = b.climbing;
-    b.running = false; b.moving = false; b.crouch = false; b.hiding = null; b.eating = false;
+    b.running = false; b.moving = false; b.crouch = false; b.hiding = null; b.eating = false; b.vx = 0;
     b.climbT += dt;
     b.x += (t.x - b.x) * Math.min(1, dt * 12);
     if (jump) {
-      b.climbing = null; b.inCanopy = false; b.covered = false;
+      b.climbing = null; b.inCanopy = false; b.covered = false; b.offTree = true;
       b.x = t.x + b.dir * (t.w / 2 + 24); b.vy = -150; b.onGround = false;
       return;
     }
@@ -115,31 +118,48 @@
     b.crouch = hide && !b.hiding && b.onGround && !b.hideLatch;
     b.covered = !!b.hiding;
     if (b.hiding) b.hideTree = b.hiding;
+    fadeHide(b, dt);
+  }
+
+  function fadeHide(b, dt) {
     b.hideBlend = clamp((b.hideBlend || 0) + (b.hiding ? dt : -dt) / 0.18, 0, 1);
     if (!b.hiding && b.hideBlend === 0) b.hideTree = null;
   }
 
-  function walkClimbOrJump(g, b, dt, keys, left, right, hide, jump) {
+  const onIce = (L, b) => !!L.ice && b.onGround && b.y >= GY - 1 && b.x > L.ice.from && b.x < L.ice.to;
+
+  function walkClimbOrJump(g, b, dt, left, right, hide, jump) {
     const L = g.level;
     const dx = (right ? 1 : 0) - (left ? 1 : 0);
     if (dx) b.dir = dx;
     b.moving = dx !== 0;
     if (b.inWater) b.running = false;
-    if (b.moving) {
-      const speed = (b.crouch ? CFG.CREEP : b.running ? CFG.RUN : CFG.WALK) * (b.inWater ? 0.6 : 1);
-      const nx = b.x + dx * speed * dt;
-      b.x = clamp(blockByLogs(L, b, nx), 40, CFG.LEVEL_W - 40);
-      b.walkT += dt * (b.running ? 1.5 : b.crouch ? 0.6 : 1);
+    const ice = onIce(L, b);
+    if (b.moving || (ice && Math.abs(b.vx) > 1)) {
+      const want = dx * (b.crouch ? CFG.CREEP : b.running ? CFG.RUN : CFG.WALK) * (b.inWater ? 0.6 : 1);
+      if (ice) b.vx += (want - b.vx) * Math.min(1, dt * (dx ? 2.4 : 0.9));
+      else b.vx = want;
+      const nx = b.x + b.vx * dt;
+      b.x = clamp(blockByLogs(L, b, nx), 40, L.w - 40);
+      if (b.moving) b.walkT += dt * (b.running ? 1.5 : b.crouch ? 0.6 : 1);
+    } else {
+      b.vx = 0;
     }
-    const up = keys.has('ArrowUp') || keys.has('KeyW');
+    b.slide = ice && !dx && Math.abs(b.vx) > 15 ? Math.min(1, Math.abs(b.vx) / 110) : 0;
+    if (ice && !g.once.ice) {
+      g.once.ice = true;
+      rules().float(g, b.x, GY - 120, LABELS.ice, COLORS.story);
+      rules().quip(g, ZS.QUIPS.ice, true);
+    }
     const logAhead = L.logs.some((lg) => {
       const f = b.dir > 0 ? lg.x - lg.w / 2 - b.x : b.x - (lg.x + lg.w / 2);
       return f > -10 && f < 90;
     });
-    const trunk = b.onGround && !hide && !logAhead && (up || (jump && g.input.jumpKey !== 'Space'))
+    const trunk = b.upT >= HOLD && !b.offTree && !left && !right && !b.slide && !hide && !logAhead
       && L.trees.find((tr) => tr.hide && Math.abs(tr.x - b.x) < tr.w / 2 + 30);
     if (trunk) {
-      b.climbing = trunk; b.climbT = 0; b.climbV = -1; b.inCanopy = false; b.onGround = false; b.vy = 0; b.y = GY - 6;
+      b.climbing = trunk; b.climbT = 0; b.climbV = -1; b.inCanopy = false; b.onGround = false; b.vy = 0; b.vx = 0;
+      b.y = clamp(b.y, topY(trunk), GY - 6); b.jumpBuffer = 0; b.coyote = 0;
       b.hideBlend = 0; b.hideTree = null;
       ZS.fx.onShot(g, trunk.x);
     } else if ((jump || b.jumpBuffer > 0) && (b.onGround || b.coyote > 0)) {
@@ -163,7 +183,7 @@
     b.y += b.vy * dt;
     if (b.y >= floor) {
       if (!b.onGround && b.vy > 250) ZS.fx.dust(g, b.x, floor, 6);
-      b.y = floor; b.vy = 0; b.onGround = true;
+      b.y = floor; b.vy = 0; b.onGround = true; b.offTree = false;
     } else {
       b.onGround = false;
     }
@@ -171,6 +191,7 @@
     b.jumpBuffer = Math.max(0, (b.jumpBuffer || 0) - dt);
     const r = L.river;
     b.inWater = !!r && b.onGround && b.y >= GY - 1 && b.x > r.from + 15 && b.x < r.to - 15;
+    b.onIce = onIce(L, b);
     if (b.inWater && b.moving && (b.splashT = (b.splashT || 0) - dt) <= 0) {
       b.splashT = 0.1;
       g.particles.push({ x: b.x + (Math.random() - 0.5) * 60, y: GY - 8, vx: (Math.random() - 0.5) * 90, vy: -90 - Math.random() * 80, t: 0.6, color: '#bfe3f5', round: true });
@@ -179,6 +200,31 @@
       b.dustT = 0.08;
       ZS.fx.dust(g, b.x - b.dir * 26, b.y, 1, b.dir);
     }
+  }
+
+  function inSpray(g, b) {
+    const L = g.level;
+    b.inSpray = !b.act && b.y > GY - 60 && L.cannons.some((c) => {
+      const a = c.x + c.dir * 50, e = c.x + c.dir * 230;
+      return b.x > Math.min(a, e) && b.x < Math.max(a, e);
+    });
+    if (!b.inSpray) return;
+    b.covered = true;
+    if (!g.once.spray) {
+      g.once.spray = true;
+      rules().float(g, b.x, GY - 120, LABELS.spray, COLORS.good);
+      rules().quip(g, ZS.QUIPS.spray, true);
+    }
+  }
+
+  function leaveTracks(g, b) {
+    if (g.level.theme !== 'winter' || !b.onGround || b.onIce || b.y < GY - 2) { b.trackX = b.x; return; }
+    b.trackD += Math.abs(b.x - b.trackX);
+    b.trackX = b.x;
+    if (b.trackD < 30) return;
+    b.trackD = 0;
+    g.tracks.push({ x: b.x, t: g.time, dir: b.dir, run: b.running });
+    if (g.tracks.length > 150) g.tracks.shift();
   }
 
   function pickUp(g, b) {
@@ -194,7 +240,7 @@
   }
 
   function raidHumanFood(g, b, dt) {
-    const it = b.onGround && !b.moving && !b.hiding
+    const it = b.onGround && !b.moving && !b.hiding && !b.slide
       ? g.level.items.find((i) => !i.eaten && !i.locked && !ZS.FOOD[i.type].natural && Math.abs(i.x - b.x) < 30) : null;
     b.eating = !!it;
     if (it) {
@@ -205,28 +251,64 @@
     }
   }
 
+  const DUR = { bite: CFG.BITE, hug: CFG.HUG, selfie: CFG.SELFIE, shake: CFG.SHAKE };
+
+  function startAct(g, b, key) {
+    const E = ZS.sim.encounters;
+    const person = E.target(g), post = key === 'hug' && !person ? E.stand(g) : null;
+    const kind = post ? 'shake' : key === 'hug' && person && person.kind === 'tourist' ? 'selfie' : key;
+    const target = person || post;
+    b.act = { kind, t: 0, dur: DUR[kind], dir: b.dir, hit: !!target, target, done: false };
+    b.moving = false; b.running = false; b.crouch = false; b.eating = false; b.eatT = 0; b.vx = 0;
+    if (target) E.begin(g, b.act);
+  }
+
+  function wake(g, b, dt, input) {
+    if (!b.wakeSaid && g.level.theme === 'winter' && g.time > 0.9) { b.wakeSaid = true; rules().quip(g, ZS.QUIPS.wake, true); }
+    if (!b.waking) return;
+    b.wakeT += dt;
+    if (input || b.wakeT >= WAKE) b.waking = false;
+  }
+
   function update(g, dt) {
-    const b = g.bear, keys = g.input.keys;
+    const b = g.bear, inp = g.input, keys = inp.keys;
     const left = keys.has('ArrowLeft') || keys.has('KeyA');
     const right = keys.has('ArrowRight') || keys.has('KeyD');
     const hide = keys.has('ArrowDown') || keys.has('KeyS');
-    const jump = g.input.jumpPressed;
-    g.input.jumpPressed = false;
-    updateStamina(b, keys, dt, left, right, hide);
+    const up = keys.has('ArrowUp') || keys.has('KeyW');
+    const jump = inp.jumpPressed, bite = inp.bitePressed, hug = inp.hugPressed;
+    inp.jumpPressed = false; inp.bitePressed = false; inp.hugPressed = false;
+    b.upT = up ? (jump && inp.jumpKey !== 'Space' ? 0 : b.upT + dt) : 0;
+    b.prevY = b.y;
+    if (b.stompT !== undefined) b.stompT += dt;
+    updateStamina(b, keys, dt, left, right, hide || !!b.act);
     b.inv = Math.max(0, b.inv - dt);
     b.birchCd -= dt;
     b.quipCd -= dt;
-    if (b.climbing) { climb(g, b, dt, keys.has('ArrowUp') || keys.has('KeyW'), hide, jump && g.input.jumpKey === 'Space'); return; }
+    b.tag = g.problem;
+    b.cold = g.level.theme === 'winter' ? COLD[g.seasonKey] || 0 : 0;
+    wake(g, b, dt, left || right || hide || jump || bite || hug);
+    if (b.climbing) { climb(g, b, dt, up, hide, jump && inp.jumpKey === 'Space'); return; }
 
-    updateHiding(g, b, dt, hide);
-    if (b.hiding) {
-      b.x += (b.hiding.x - b.x) * Math.min(1, dt * 12);
-      b.moving = false;
-      whileHiding(g, b, dt);
+    if (b.act && (b.act.t += dt) >= b.act.dur) b.act = null;
+    if (!b.act && (bite || hug) && b.onGround && !b.hiding) startAct(g, b, bite ? 'bite' : 'hug');
+    if (b.act) {
+      b.moving = false; b.crouch = false; b.hiding = null; b.covered = false; b.eating = false; b.eatT = 0; b.vx = 0; b.slide = 0;
+      g.input.downReleased = false;
+      fadeHide(b, dt);
     } else {
-      walkClimbOrJump(g, b, dt, keys, left, right, hide, jump);
+      updateHiding(g, b, dt, hide);
+      if (b.hiding) {
+        b.x += (b.hiding.x - b.x) * Math.min(1, dt * 12);
+        b.moving = false; b.vx = 0; b.slide = 0;
+        whileHiding(g, b, dt);
+      } else {
+        walkClimbOrJump(g, b, dt, left, right, hide, jump);
+      }
     }
     updatePhysics(g, b, dt);
+    inSpray(g, b);
+    leaveTracks(g, b);
 
     b.noiseT -= dt;
     if (b.running && b.moving && b.noiseT <= 0) {
@@ -234,10 +316,12 @@
       for (const s of g.shooters) if (Math.abs(s.x - b.x) < s.range + 100) s.alertX = b.x;
     }
 
-    pickUp(g, b);
-    raidHumanFood(g, b, dt);
+    if (!b.act) {
+      pickUp(g, b);
+      raidHumanFood(g, b, dt);
+    }
   }
 
   ZS.sim = ZS.sim || {};
-  ZS.sim.bear = { create, update };
+  ZS.sim.bear = { create, update, onIce };
 })();

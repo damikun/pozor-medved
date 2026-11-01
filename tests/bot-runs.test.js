@@ -10,13 +10,13 @@ const VIEW_W = 480;
 const runs = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 const round = (value, digits) => Number(value.toFixed(digits));
 
-function play({ seed, reaction, mode }) {
+function play({ seed, reaction, mode, level = 'summer' }) {
   const ZS = loadGame({ seed });
   const { rules, loop } = ZS.sim;
   Object.assign(ZS.dev.bot, { reaction, mode });
-  const g = rules.create(ZS.ui.input.state, { viewW: VIEW_W, bot: true });
+  const g = rules.create(ZS.ui.input.state, { viewW: VIEW_W, bot: true, level });
   g.running = true;
-  rules.say(g, ZS.NEWS.springStart);
+  rules.say(g, level === 'winter' ? ZS.NEWS.winterStart : ZS.NEWS.springStart);
   for (let i = 0; i < 1500 && !g.over; i++) loop.advance(g, 0.5);
   return {
     ending: g.ending,
@@ -36,7 +36,7 @@ if (process.env.UPDATE_FIXTURES) {
   });
 } else {
   for (const run of runs) {
-    test(`bot run, seed ${run.seed}, reaction ${run.reaction} s${run.mode ? ', ' + run.mode : ''}`, () => {
+    test(`bot run, ${run.level || 'summer'}, seed ${run.seed}, reaction ${run.reaction} s${run.mode ? ', ' + run.mode : ''}`, () => {
       assert.deepEqual(play(run), run.expected);
     });
   }

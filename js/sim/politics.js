@@ -5,17 +5,19 @@
   const say = (g, text, hot) => sim.rules.say(g, text, hot);
 
   function spawnAhead(g, kind, extra) {
-    let x = Math.min(CFG.LEVEL_W - 250, g.bear.x + g.viewW * 0.75 + Math.random() * 500);
-    for (let i = 0; i < 6 && g.shooters.some((s) => Math.abs(s.x - x) < 500); i++) x = Math.min(CFG.LEVEL_W - 250, x + 450);
+    const edge = g.level.w - 250;
+    let x = Math.min(edge, g.bear.x + g.viewW * 0.75 + Math.random() * 500);
+    for (let i = 0; i < 6 && g.shooters.some((s) => Math.abs(s.x - x) < 500); i++) x = Math.min(edge, x + 450);
     g.shooters.push(sim.hunters.create(g, kind, Object.assign({ x, from: x - 500, to: x + 200, dir: -1 }, extra)));
   }
 
   function escalate(g) {
-    const f = g.flags;
-    if (!f.press && g.panic >= 25) { f.press = true; spawnAhead(g, 'walker'); say(g, NEWS.press, true); }
+    const f = g.flags, winter = g.level.theme === 'winter';
+    if (!f.press && g.panic >= 25) { f.press = true; spawnAhead(g, 'walker'); say(g, winter ? NEWS.pressWinter : NEWS.press, true); }
     if (!f.emergency && g.panic >= 45) { f.emergency = true; spawnAhead(g, 'walker'); say(g, NEWS.emergency, true); }
     if (!f.drones && g.panic >= 65) { f.drones = true; g.drones.push(sim.drones.create(g, 0), sim.drones.create(g, 3)); say(g, NEWS.drones, true); }
     if (!f.cull && g.panic >= 85) { f.cull = true; spawnAhead(g, 'walker'); spawnAhead(g, 'walker'); say(g, NEWS.cull, true); }
+    if (!f.hugBan && g.hugBanAt && g.time >= g.hugBanAt) { f.hugBan = true; say(g, NEWS.hugBan, true); }
     if (!g.problem && g.syn >= CFG.PROBLEM) {
       g.problem = true;
       if (!g.shooters.some((s) => s.kind === 'ztmh')) g.shooters.push(sim.hunters.create(g, 'ztmh', { x: g.cam - 150, dir: 1 }));
@@ -34,10 +36,17 @@
     meat(g) { g.flags.meat = true; say(g, NEWS.meat, true); },
     poacher(g) { spawnAhead(g, 'poacher', { life: 40 }); say(g, NEWS.poacher, true); },
     bins(g) { g.flags.binsLocked = true; g.level.items.forEach((it) => { if (it.type === 'bin') it.locked = true; }); say(g, NEWS.bins); },
+    stalls(g) {
+      g.flags.stallsLocked = true;
+      g.level.items.forEach((it) => { if (it.type === 'punch' || it.type === 'lokse' || it.type === 'sausage') it.locked = true; });
+      say(g, NEWS.stalls);
+    },
     census(g) { g.panic = Math.min(100, g.panic + 6); say(g, NEWS.census); },
     constitution(g) { g.panic = Math.min(100, g.panic + 4); say(g, NEWS.constitution, true); },
+    decree(g) { g.flags.decree = true; g.panic = Math.min(100, g.panic + 5); say(g, NEWS.decree, true); },
+    drive(g) { spawnAhead(g, 'walker'); spawnAhead(g, 'walker'); say(g, NEWS.drive, true); },
     feeding(g) {
-      const x = Math.min(CFG.LEVEL_W - 500, g.bear.x + g.viewW + 300);
+      const x = Math.min(g.level.w - 500, g.bear.x + g.viewW + 300);
       for (let i = 0; i < 2; i++) g.level.items.push({ type: 'corn', x: x + i * 40, eaten: false, locked: false });
       g.level.items.sort((a, b) => a.x - b.x);
       g.level.posts.push({ x: x + 170 });
@@ -45,12 +54,16 @@
       say(g, NEWS.feeding, true);
     },
   };
+  const POOL = {
+    summer: ['wrongbear', 'court', 'meat', 'poacher', 'bins', 'census', 'constitution', 'feeding'],
+    winter: ['wrongbear', 'court', 'meat', 'poacher', 'stalls', 'census', 'decree', 'drive'],
+  };
 
   function randomEvents(g, dt) {
     g.nextEvent -= dt;
     if (g.nextEvent > 0) return;
     g.nextEvent = 28 + Math.random() * 12;
-    const pool = Object.keys(EVENTS).filter((k) => !g.usedEvents.has(k));
+    const pool = POOL[g.level.id].filter((k) => !g.usedEvents.has(k));
     if (!pool.length) return;
     const k = pool[Math.floor(Math.random() * pool.length)];
     g.usedEvents.add(k);

@@ -8,17 +8,19 @@
     onEnd: () => {},
   };
 
-  rules.create = function (input, { viewW = CFG.MIN_VIEW_W, bot = false } = {}) {
-    const level = ZS.makeLevel(11);
+  rules.create = function (input, { viewW = CFG.MIN_VIEW_W, bot = false, level: id = 'summer' } = {}) {
+    const def = ZS.LEVELS[id];
+    const level = ZS.makeLevel(id, 11);
     const g = {
-      level, bear: sim.bear.create(), input, viewW,
-      shooters: [], people: [], drones: [], dogs: [], sheep: [], floaters: [], shots: [], particles: [], bubble: null,
-      time: 0, seasonIdx: 0, fat: CFG.START_FAT, syn: 0, panic: 0, lives: CFG.LIVES, cam: 0,
-      flags: { press: false, emergency: false, drones: false, cull: false, meat: false, binsLocked: false },
-      courtUntil: 0, lastKnown: null, lastHuman: -99, problem: false, nextEvent: 30, usedEvents: new Set(),
-      stats: { natural: 0, human: 0, seen: 0 }, running: false, over: false, paused: false, ending: null,
-      bot,
-      headlines: ZS.HEADLINES.slice().sort(() => Math.random() - 0.5), headlineIdx: 0,
+      level, def, bear: sim.bear.create(level), input, viewW,
+      shooters: [], people: [], drones: [], dogs: [], sheep: [], deer: [], props: [], tracks: [],
+      floaters: [], shots: [], particles: [], bubble: null,
+      time: 0, seasonIdx: 0, seasonKey: def.seasons[0].key, fat: def.startFat, syn: 0, panic: 0, lives: CFG.LIVES, cam: 0,
+      flags: { press: false, emergency: false, drones: false, cull: false, meat: false, binsLocked: false, stallsLocked: false, hugBan: false, decree: false },
+      courtUntil: 0, viralUntil: 0, hugBanAt: 0, lastKnown: null, lastHuman: -99, problem: false, nextEvent: 30, usedEvents: new Set(),
+      stats: { natural: 0, human: 0, seen: 0, hugs: 0, bites: 0, stomps: 0, selfies: 0 }, falls: 0, running: false, over: false, paused: false, ending: null,
+      bot, once: {},
+      headlines: (id === 'winter' ? ZS.WINTER_HEADLINES : ZS.HEADLINES).slice().sort(() => Math.random() - 0.5), headlineIdx: 0,
       tickerT: 0, tickerQueue: [], tickerHot: false,
     };
     for (const sp of level.spawns) {
@@ -26,6 +28,7 @@
       else if (sp.kind === 'walker') g.shooters.push(sim.hunters.create(g, 'walker', { x: sp.to, from: sp.from, to: sp.to, dir: -1 }));
       else if (sp.kind === 'dog') g.dogs.push(sim.wildlife.createDog(sp));
       else if (sp.kind === 'sheep') g.sheep.push(sim.wildlife.createSheep(sp, g.sheep.length));
+      else if (sp.kind === 'deer') g.deer.push(sim.wildlife.createDeer(sp));
       else g.people.push(sim.people.create(g, sp.kind, { from: sp.from, to: sp.to }));
     }
     ZS.fx.init(g);
@@ -48,8 +51,14 @@
     rules.onNews(item);
   }
 
+  rules.quip = function (g, list, force) {
+    if (!force && g.bear.quipCd > 0) return;
+    g.bubble = { text: list[Math.floor(Math.random() * list.length)], t: 2.4 };
+    g.bear.quipCd = 5;
+  };
+
   rules.float = function (g, x, y, text, color) { g.floaters.push({ x, y, text, color, t: 1.6 }); };
-  rules.addPanic = function (g, n, news, hot) { g.panic = Math.min(100, g.panic + n); if (news) rules.say(g, news, hot); };
+  rules.addPanic = function (g, n, news, hot) { g.panic = Math.max(0, Math.min(100, g.panic + n)); if (news) rules.say(g, news, hot); };
   rules.spotted = function (g, x, y, text) { g.stats.seen++; rules.float(g, x, y, text, COLORS.seen); };
 
   rules.eat = function (g, it) {
@@ -59,13 +68,16 @@
     if (f.natural) g.stats.natural++; else { g.stats.human++; g.lastHuman = g.time; }
     if (f.syn) g.syn = Math.min(100, g.syn + f.syn);
     if (f.panic) g.panic = Math.min(100, g.panic + f.panic);
-    rules.float(g, it.x, GY - 80, LABELS.eaten(f), f.natural ? COLORS.good : COLORS.bad);
-    if (it.type === 'bin') rules.say(g, NEWS.binEaten);
-    if (it.type === 'hive') rules.say(g, NEWS.hiveEaten);
-    if (it.type === 'container') rules.say(g, NEWS.containerEaten);
-    if (g.fat >= CFG.FAT_GOAL && !g.readySaid) {
+    rules.float(g, it.x, GY - 80, LABELS.eaten(f, it), f.natural ? COLORS.good : COLORS.bad);
+    if (it.type === 'carrot') {
+      const sm = g.level.snowmen.find((s) => Math.abs(s.x - it.x) < 2);
+      if (sm) sm.nose = false;
+    }
+    const news = NEWS[it.type + 'Eaten'];
+    if (news) rules.say(g, news);
+    if (g.fat >= g.def.fatGoal && !g.readySaid) {
       g.readySaid = true;
-      rules.say(g, NEWS.readyForWinter, true);
+      rules.say(g, g.level.theme === 'winter' ? NEWS.readyForSleep : NEWS.readyForWinter, true);
     }
   };
 

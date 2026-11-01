@@ -69,6 +69,35 @@
     }
   }
 
+  function createDeer(o) {
+    return { x: o.x, from: o.from, to: o.to, dir: o.i % 2 ? -1 : 1, state: 'graze', t: 1 + o.i * 1.3, fear: 0, id: 'deer' + o.i };
+  }
+
+  function updateDeer(g, dt) {
+    const b = g.bear;
+    for (const d of g.deer) {
+      d.t -= dt;
+      const dist = Math.abs(b.x - d.x);
+      if (dist < 280 && !b.covered && d.state !== 'flee') { d.state = 'flee'; d.fear = 3.5; d.dir = Math.sign(d.x - b.x) || 1; }
+      if (d.state === 'flee') {
+        d.fear -= dt;
+        d.x = clamp(d.x + d.dir * 230 * dt, d.from - 900, d.to + 900);
+        if (d.fear <= 0) { d.state = 'look'; d.t = 2 + (d.x % 1.5); }
+        continue;
+      }
+      if (d.state === 'walk') {
+        d.x += d.dir * 30 * dt;
+        if (d.x < d.from || d.x > d.to) d.dir = d.x < d.from ? 1 : -1;
+      }
+      if (d.t <= 0) {
+        const away = d.x < d.from - 40 || d.x > d.to + 40;
+        d.state = away ? 'walk' : d.state === 'graze' ? (d.x % 3 < 1.4 ? 'look' : 'walk') : 'graze';
+        if (away) d.dir = d.x < d.from ? 1 : -1;
+        d.t = d.state === 'graze' ? 3 + (d.x % 2.5) : d.state === 'look' ? 1.6 : 2.2;
+      }
+    }
+  }
+
   ZS.sim = ZS.sim || {};
-  ZS.sim.wildlife = { updateFish, createDog, updateDogs, createSheep, updateSheep };
+  ZS.sim.wildlife = { updateFish, createDog, updateDogs, createSheep, updateSheep, createDeer, updateDeer };
 })();

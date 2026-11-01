@@ -6,7 +6,18 @@
   const ctx = canvas.getContext('2d');
   const BOT = /[?&]bot\b/.test(location.search);
   const PORTRAIT_MIN_W = 480;
-  let g = null, vw = 0, vh = 0, viewW = 0, offY = 0, last = 0, hudT = 0;
+  const SAVE = 'zaStromom.done';
+  let g = null, vw = 0, vh = 0, viewW = 0, offY = 0, last = 0, hudT = 0, current = 'summer';
+
+  const touchy = () => window.matchMedia('(pointer: coarse)').matches;
+
+  function done() {
+    try { return JSON.parse(localStorage.getItem(SAVE)) || {}; } catch (e) { return {}; }
+  }
+
+  function markDone(id) {
+    try { localStorage.setItem(SAVE, JSON.stringify(Object.assign(done(), { [id]: true }))); } catch (e) { return; }
+  }
 
   function resize() {
     vw = window.innerWidth; vh = window.innerHeight;
@@ -23,20 +34,34 @@
     if (g) g.viewW = viewW;
   }
 
-  function start() {
+  function start(level) {
+    current = level || current;
     input.state.keys.clear();
-    g = rules.create(input.state, { viewW, bot: BOT });
+    g = rules.create(input.state, { viewW, bot: BOT, level: current });
+    g.touch = touchy();
     g.running = true;
-    hud.showPlaying();
+    hud.showPlaying(g);
     screens.hide();
     if (document.activeElement) document.activeElement.blur();
-    rules.say(g, NEWS.springStart);
+    rules.say(g, current === 'winter' ? NEWS.winterStart : NEWS.springStart);
+  }
+
+  function preview(level) {
+    if (g.running || g.level.id === level) return;
+    g = rules.create(input.state, { viewW, level });
+    g.bear.waking = false;
+  }
+
+  function menu() {
+    if (g) g.running = false;
+    hud.hidePlaying();
+    screens.showStart(done(), start, preview, touchy());
   }
 
   function togglePause() {
     if (!g || !g.running || g.over) return;
     g.paused = !g.paused;
-    if (g.paused) screens.showPause(togglePause);
+    if (g.paused) screens.showPause(togglePause, menu);
     else screens.hide();
   }
 
@@ -44,7 +69,8 @@
   rules.onEnd = (run) => {
     hud.update(run);
     hud.setTouch(false);
-    screens.showEnd(run, start);
+    if (run.ending === 'win') markDone(run.level.id);
+    screens.showEnd(run, { onAgain: () => start(run.level.id), onNext: () => start('winter'), onMenu: menu });
   };
 
   function frame(ts) {
@@ -65,12 +91,18 @@
   input.listen({ onPause: togglePause });
   resize();
   g = rules.create(input.state, { viewW });
-  screens.showStart(start);
+  screens.showStart(done(), start, preview, touchy());
   requestAnimationFrame(frame);
 
   ZS.dev = ZS.dev || {};
   ZS.dev.game = () => g;
-  ZS.dev.restart = start;
+  ZS.dev.restart = () => start();
+  ZS.dev.start = (level) => start(level);
+  ZS.dev.teleport = (x) => {
+    g.bear.x = x; g.bear.trackX = x; g.bear.waking = false;
+    g.cam = loop.cameraX(g);
+    return g;
+  };
   ZS.dev.step = (seconds) => {
     loop.advance(g, seconds);
     if (g.running) hud.update(g);

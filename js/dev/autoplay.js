@@ -1,12 +1,13 @@
 (function () {
   const { CFG } = ZS;
   const bot = { reaction: 0.25, mode: null };
+  const HEAD_T = 0.583;
 
   function threat(g) {
     const b = g.bear;
     let worst = 0;
     for (const s of g.shooters) {
-      if (s.blocked || s.scaredT > 0 || Math.abs(s.x - b.x) > s.range + 120) continue;
+      if (s.react || s.blocked || s.scaredT > 0 || Math.abs(s.x - b.x) > s.range + 120) continue;
       if (s.kind === 'posed' && Math.abs(s.x - b.x) < 60) continue;
       if (s.lock > 0) return 2;
       const d = Math.abs(s.cross - b.x);
@@ -18,7 +19,8 @@
   }
 
   function pace(g) {
-    return 20 + (CFG.FAT_GOAL - 20) * Math.min(1, g.bear.x / g.level.winterDen) - 5;
+    const start = g.def.startFat;
+    return start + (g.def.fatGoal + 4 - start) * Math.min(1, g.bear.x / g.level.goalDen);
   }
 
   function jump(g, key) {
@@ -47,23 +49,52 @@
     }
   }
 
+  function stompChance(g, dir) {
+    const b = g.bear;
+    if (!b.onGround || b.climbing) return false;
+    const speed = b.running && b.moving ? CFG.RUN : CFG.WALK;
+    for (const s of g.shooters) {
+      if (s.kind === 'posed' || (s.react && s.react !== 'fetch' && s.react !== 'pickup')) continue;
+      const d = (s.x - b.x) * dir;
+      if (d < 40 || d > 190) continue;
+      const v = s.react === 'fetch' ? 62 : s.react || s.pause > 0 ? 0 : s.speed * (g.flags.meat ? 1.25 : 1);
+      const closing = speed - s.dir * dir * v;
+      if (Math.abs(d - closing * HEAD_T) < 9) return true;
+    }
+    return false;
+  }
+
+  function wantsHug(g, danger) {
+    const o = g.bear.reach;
+    return !!o && !danger && !g.flags.hugBan && g.panic > 35 && ((o.kind === 'tourist' && g.stats.selfies < 2) || o.kind === 'santa');
+  }
+
   function autopilot(g, dt) {
     const b = g.bear, L = g.level, keys = g.input.keys;
     const runner = bot.mode === 'runner';
     keys.clear();
-    const pilot = g.pilot || (g.pilot = { t: 0, danger: 0 });
+    const pilot = g.pilot || (g.pilot = { t: 0, danger: 0, wait: 0, bold: 0, alarm: -9 });
     pilot.t -= dt || 0;
     if (pilot.t <= 0) { pilot.t = bot.reaction; pilot.danger = threat(g); }
-    const danger = runner ? 0 : pilot.danger;
+    if (pilot.danger) pilot.alarm = g.time;
+    pilot.wait = b.hiding ? pilot.wait + (dt || 0) : Math.max(0, pilot.wait - (dt || 0) * 0.25);
+    if (pilot.wait > 7 && pilot.danger < 2) { pilot.bold = 3.5; pilot.wait = 0; }
+    pilot.bold = Math.max(0, pilot.bold - (dt || 0));
+    const danger = runner || (pilot.bold > 0 && pilot.danger < 2) ? 0 : pilot.danger;
+    if (pilot.bold > 0 && !runner) keys.add('ShiftLeft');
 
+    if (b.act) return;
     if (b.climbing) {
       const honey = L.items.find((it) => !it.eaten && it.type === 'wildhoney' && Math.abs(it.x - b.climbing.x) < 20);
       keys.add(honey || danger ? 'ArrowUp' : 'ArrowDown');
       return;
     }
-    if (!danger && !runner && b.onGround) {
+    if (!runner && wantsHug(g, danger)) { g.input.hugPressed = true; return; }
+    const st = b.reach && b.reach.post ? b.reach : null;
+    if (!runner && st && st.shooter && !st.shooter.react && g.time - pilot.alarm < 3) { g.input.hugPressed = true; return; }
+    if (!danger && !runner && (b.onGround || b.vy < 0)) {
       const honey = L.items.find((it) => !it.eaten && it.type === 'wildhoney' && Math.abs(it.x - b.x) < 26);
-      if (honey) { jump(g, 'ArrowUp'); keys.add('ArrowUp'); return; }
+      if (honey) { if (b.onGround) jump(g, 'ArrowUp'); keys.add('ArrowUp'); return; }
     }
     if (b.inWater && !danger && !runner) {
       const fish = L.items.find((it) => it.type === 'fish' && !it.eaten && Math.abs((it.x0 || it.x) - b.x) < 30);
@@ -73,6 +104,7 @@
       pilot.fishT = 0;
     }
     if (b.hiding && danger) { keys.add('ArrowDown'); return; }
+    if (danger && b.inSpray) return;
     const reach = (t) => t.hide && Math.abs(t.x - b.x) < t.w / 2 + 34;
     if (danger && b.onGround && L.trees.some(reach)) { keys.add('ArrowDown'); return; }
 
@@ -86,11 +118,12 @@
       const target = nearestTrunk(L, b);
       if (target) dir = Math.sign(target.x - b.x) || 1;
       keys.add('ShiftLeft');
-    } else if (runner || g.time > CFG.YEAR - 40) {
+    } else if (runner || g.time > g.def.year - 40) {
       keys.add('ShiftLeft');
     }
     keys.add(dir > 0 ? 'ArrowRight' : 'ArrowLeft');
-    if (b.onGround) hopObstacles(g, dir);
+    if (!runner && stompChance(g, dir)) jump(g, 'Space');
+    else if (b.onGround) hopObstacles(g, dir);
   }
 
   ZS.dev = ZS.dev || {};

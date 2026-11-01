@@ -4,8 +4,10 @@
   const C = {
     fur: '#6b4226', far: '#4e2f19', leg: '#5b371f', muzzle: '#9a6a44', dark: '#1d1209', ear: '#3f2614',
     tail: '#5a3720', claw: '#e4d6bb', clawFar: '#9c8a70', eye: '#f4efe6', pad: '#2b1a10',
+    throat: '#3a1510', tongue: '#c25a5c', tag: '#f6c814', tagEdge: '#b98a0c',
     shade: 'rgba(30,14,4,0.17)', soft: 'rgba(30,14,4,0.09)', light: 'rgba(255,226,190,0.06)',
   };
+  const { rrect } = ZS.gfx;
   const TAU = Math.PI * 2;
   const RISE = 0.3, SPLIT = 0.55, TAKEOFF = 0.08, LAND = 0.2, DROP = 0.18;
 
@@ -76,7 +78,7 @@
   }
 
   const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
-  const KEYS = ['fur', 'far', 'leg', 'muzzle', 'dark', 'ear', 'tail', 'claw', 'clawFar', 'eye', 'pad'];
+  const KEYS = ['fur', 'far', 'leg', 'muzzle', 'dark', 'ear', 'tail', 'claw', 'clawFar', 'eye', 'pad', 'throat', 'tongue', 'tag', 'tagEdge'];
   const BASE = {}, SHADE = {};
   for (const k of KEYS) { BASE[k] = rgb(C[k]); SHADE[k] = BASE[k].map((v) => Math.round(v * 0.78)); }
   C.rgb = BASE;
@@ -113,6 +115,17 @@
   const anim = new WeakMap();
   const modeOf = (b) => (b.climbing ? 'climb' : b.hiding ? 'hide' : 'side');
   const ramp = (v, target, speed, dt) => v + clamp(target - v, -speed * dt, speed * dt);
+  const busy = (b) => (b.act || b.waking || (b.slide || 0) > 0.05 ? 1 : 0);
+
+  function actIn(s, b) {
+    const a = b.act;
+    if (!a) return;
+    if (a !== s.ao) { s.ao = a; s.hk = a.hit ? 1 : 0; }
+    s.ak = a.kind; s.at = a.t || 0; s.ah = !!a.hit; s.ax = 1;
+    const d = (a.dir || b.dir) < 0 ? -1 : 1;
+    s.alx = Number.isFinite(a.legX) ? (a.legX - b.x) * d : 30;
+    s.asw = Number.isFinite(a.sway) ? a.sway * d : null;
+  }
 
   function track(b, time) {
     let s = anim.get(b);
@@ -121,7 +134,10 @@
       s = { t: time, px: b.x, py: b.y, phase: 0, mwl: 0, mw: 0, rwl: 0, rw: 0, cspd: 0, cw: b.crouch ? 1 : 0, aw: 0,
         face: b.dir || 1, tu: b.dir < 0 ? 1 : 0, lead: 1, yh: head, ys: head, yp: head, vy: b.vy || 0, shY: b.y, ground: b.onGround, groundY: b.y, airT: 0,
         toT: 0, landT: 0, dropT: 0, from: null, mode: modeOf(b), breath: 0, fear: b.danger ? 1 : 0,
-        cov: b.covered ? 1 : 0, side: b.peekSide || 1 };
+        cov: b.covered ? 1 : 0, side: b.peekSide || 1,
+        ao: null, ak: null, at: 0, ah: false, ax: 0, hk: 0, bz: busy(b), wk: b.waking ? 1 : 0, wt: b.wakeT || 0,
+        sl: clamp(b.slide || 0, 0, 1), cold: clamp(b.cold || 0, 0, 1), tg: b.tag ? 1 : 0, vap: 0.45, due: 0, vn: 0, vx: 0, puffs: [], P: null, Pt: -1, ga: 0, gf: 0, alx: 30, asw: null };
+      actIn(s, b);
       anim.set(b, s);
       return s;
     }
@@ -132,15 +148,17 @@
     const dx = b.x - s.px, dy = b.y - s.py, free = !b.hiding && !b.climbing;
     s.px = b.x; s.py = b.y;
     let v = 0;
+    s.vx = 0;
     if (free && Math.abs(dx) < 80) {
       s.phase = frac(s.phase + Math.abs(dx) / lerp(lerp(WALK.stride, RUN.stride, s.rw), STALK.stride, s.cw));
-      v = Math.abs(dx) / dt;
+      v = Math.abs(dx) / dt; s.vx = dx / dt;
     }
     s.mwl = ramp(s.mwl, smooth(v / lerp(130, 60, s.cw)), 4, dt);
     s.rwl = ramp(s.rwl, smooth((v - 205) / 85), 3.5, dt);
     s.mw = smooth(s.mwl); s.rw = smooth(s.rwl);
     s.cspd = ease(s.cspd, b.climbing && Math.abs(dy) < 80 ? Math.abs(dy) / dt : 0, 6, dt);
     s.cw = ease(s.cw, b.crouch ? 1 : 0, 6, dt);
+    if (b.climbing && s.mode !== 'climb') { s.ga = s.aw > 0.001 ? s.aw : 0; s.gf = smooth((s.vy + 250) / 500); }
     s.aw = ease(s.aw, b.onGround || !free ? 0 : 1, b.onGround ? 22 : 16, dt);
     if (!b.onGround) s.vy = ease(s.vy, b.vy || 0, 20, dt);
     s.fear = ease(s.fear, b.danger ? 1 : 0, 4, dt);
@@ -154,9 +172,21 @@
     s.toT = Math.max(0, s.toT - dt);
     s.landT = Math.max(0, s.landT - dt);
     s.dropT = Math.max(0, s.dropT - dt);
-    const goal = b.dir < 0 ? 1 : 0;
+    const A = b.act;
+    if (A) actIn(s, b); else s.ax = ramp(s.ax, 0, 1 / 0.15, dt);
+    s.hk = ease(s.hk, s.ah ? 1 : 0, 12, dt);
+    s.bz = ramp(s.bz, busy(b), 6, dt);
+    s.wk = ramp(s.wk, b.waking ? 1 : 0, 4, dt);
+    if (b.waking) s.wt = b.wakeT || 0;
+    s.sl = ease(s.sl, clamp(b.slide || 0, 0, 1), 9, dt);
+    s.cold = ease(s.cold, clamp(b.cold || 0, 0, 1), 3, dt);
+    s.tg = ramp(s.tg, b.tag ? 1 : 0, 3, dt);
+    s.vap += dt / lerp(lerp(1.4, 1.05, s.mw), 0.7, s.rw);
+    if (s.vap >= 1) { s.vap -= Math.floor(s.vap); s.due = 1; }
+    if (s.wk > 0.5 && s.cold > 0.04 && s.wt >= 1.3 && s.wt - dt < 1.3) s.due = 2;
+    const goal = (A ? A.dir || b.dir : b.dir) < 0 ? 1 : 0;
     s.lead = ramp(s.lead, goal > s.tu ? 1 : goal < s.tu ? -1 : s.lead, 8, dt);
-    s.tu = ramp(s.tu, goal, 1 / 0.42, dt);
+    s.tu = ramp(s.tu, goal, 1 / (A ? 0.2 : 0.42), dt);
     const part = (k) => Math.PI * smooth((s.tu - 0.5 + s.lead * k + 0.35) / 0.7);
     s.yh = part(0.12); s.ys = part(0); s.yp = part(-0.12);
     s.face += clamp((b.dir || 1) - s.face, -dt * 8, dt * 8);
@@ -214,10 +244,10 @@
   }
 
   function bodyTf(P) {
-    const c = Math.cos(P.pitch), s = Math.sin(P.pitch), px = P.pivot[0], py = P.pivot[1];
+    const c = Math.cos(P.pitch), s = Math.sin(P.pitch), px = P.pivot[0], py = P.pivot[1], ox = P.bx || 0;
     return (x, y) => {
       const dx = x - px, dy = y - py;
-      return [(px + dx * c - dy * s) * P.sx, (py + dx * s + dy * c + P.by) * P.sy];
+      return [(px + dx * c - dy * s + ox) * P.sx, (py + dx * s + dy * c + P.by) * P.sy];
     };
   }
 
@@ -242,6 +272,220 @@
     });
   }
 
+  const key = (t, k) => {
+    if (t <= k[0]) return k[1];
+    for (let i = 2; i < k.length; i += 2) if (t < k[i]) return lerp(k[i - 1], k[i + 1], smooth((t - k[i - 2]) / (k[i] - k[i - 2])));
+    return k[k.length - 1];
+  };
+  const once = (t, a, d) => { const u = (t - a) / d; return u > 0 && u < 1 ? Math.pow(Math.sin(Math.PI * u), 2) : 0; };
+
+  const BITE = {
+    bx: [0, 0, 0.07, -3.5, 0.15, 8, 0.2, 8.5, 0.28, 3.5, 0.42, 0],
+    hx: [0, 0, 0.07, -2.5, 0.15, 7, 0.21, 6, 0.29, 1.5, 0.42, 0],
+    ha: [0, 0, 0.07, -0.1, 0.125, -0.16, 0.16, 0.12, 0.24, 0.07, 0.42, 0],
+    pt: [0, 0, 0.07, -0.05, 0.15, 0.07, 0.26, 0.02, 0.42, 0],
+    by: [0, 0, 0.07, 2, 0.15, 1.5, 0.42, 0],
+    jaw: [0.02, 0, 0.125, 1.1, 0.16, 0],
+    sk: [0.16, 0, 0.18, 1, 0.26, 1, 0.32, 0],
+    ear: [0, 0, 0.06, 1, 0.3, 1, 0.42, 0],
+    wd: [0, 0, 0.06, 0.6, 0.13, 0.4, 0.16, 0],
+    sh: [0.13, 0, 0.16, 0.7, 0.27, 0.7, 0.35, 0],
+  };
+  const HUG = {
+    up: [0.02, 0, 0.24, 1, 1.46, 1, 1.68, 0],
+    bx: [0.06, 0, 0.3, 1, 1.4, 1, 1.62, 0],
+    arm: [0.03, 0, 0.14, 1, 0.3, 2, 1.4, 2, 1.5, 1, 1.66, 0],
+    face: [0.26, 0, 0.38, 1, 1.36, 1, 1.47, 0],
+    look: [0.04, 0, 0.14, 1, 0.3, 0, 1.42, 0, 1.52, 1, 1.66, 0],
+    air: [0.26, 0, 0.36, 1, 0.56, 1, 0.68, 0],
+    stare: [0.6, 0, 0.76, 1, 1.32, 1, 1.46, 0],
+    rock: [0.3, 0, 0.45, 1, 1.25, 1, 1.4, 0],
+    step: [[0.06, 0.2, 1.4, 1.53], [0.14, 0.29, 1.48, 1.62]],
+  };
+  const WAKE = {
+    st: [0.12, 0, 0.55, 1, 0.92, 1, 1.22, 0],
+    yw: [1, 0, 1.32, 1, 1.72, 1, 1.98, 0],
+    jaw: [1.04, 0, 1.36, 1.15, 1.66, 1.22, 1.94, 0],
+    sk: [1.98, 0, 2.06, 1, 2.28, 1, 2.46, 0],
+    sh: [0, 1, 0.3, 1, 0.55, 0.6, 0.95, 0.6, 1.1, 1, 1.96, 1, 2.06, 0],
+    dz: [0, 1, 0.35, 1, 0.7, 0],
+    zz: [1.9, 1, 2.05, 0],
+  };
+  const SHAKE = {
+    up: [0.02, 0, 0.27, 1, 1.52, 1, 1.86, 0],
+    bx: [0.04, 0, 0.28, 1, 1.5, 1, 1.82, 0],
+    arm: [0.04, 0, 0.17, 1, 0.3, 2, 1.5, 2, 1.6, 1, 1.84, 0],
+    grip: [0.24, 0, 0.32, 1, 1.47, 1, 1.56, 0],
+    mad: [0.1, 0, 0.3, 1, 1.2, 1, 1.32, 0],
+    smug: [1.22, 0, 1.36, 1, 1.7, 1, 1.9, 0],
+    look: [0.08, 0, 0.3, 1, 1.22, 1, 1.42, 0],
+    step: [[0.04, 0.17, 1.52, 1.66], [0.11, 0.25, 1.6, 1.78]],
+  };
+  const SELFIE = {
+    up: [0.02, 0, 0.35, 1, 1.62, 1, 2.12, 0],
+    bx: [0.04, 0, 0.35, 1, 1.62, 1, 2.1, 0],
+    arm: [0.06, 0, 0.2, 1, 0.38, 2, 1.6, 2, 1.76, 1, 2.06, 0],
+    grin: [0.22, 0, 0.45, 1, 1.75, 1, 2, 0],
+    glad: [1.3, 0, 1.42, 1, 1.72, 1, 1.86, 0],
+    step: [[0.05, 0.2, 1.62, 1.78], [0.12, 0.28, 1.7, 1.86]],
+  };
+  const MV = { up: 0, sx: 1, sy: 1, hug: 0, ht: 0, hit: 0, reach: 0, lf: 0, sq: 0, nf: 0, wake: 0, wt: 0, slide: 0, tuck: 0, touch: 0, cy: 0, any: false,
+    grab: 0, ph: 0, st: null, dang: 0, o: [0, 0, 0], hn: [0, 0, 0], hf: [0, 0, 0] };
+  const put = (v, x, y, a) => { v[0] = x; v[1] = y; v[2] = a; };
+  const FRONT = { hug: 1, selfie: 1 };
+
+  function moves(b, s, time, P) {
+    const M = MV, act = s.ax > 0.001 ? s.ak : null, st = b.stompT;
+    M.up = 0; M.sx = 1; M.sy = 1; M.hug = 0; M.wake = 0; M.slide = 0; M.tuck = 0; M.touch = 0; M.grab = 0; M.dang = 0;
+    M.nf = Math.cos(s.ys) >= 0 ? 0 : 1;
+    if (act === 'bite') {
+      const t = s.at, w = s.ax, k = (n) => key(t, BITE[n]) * w, sk = k('sk') * Math.sin((t - 0.16) * 56);
+      P.bx += k('bx'); P.headX += k('hx'); P.headA += k('ha') + 0.09 * sk; P.pitch += k('pt'); P.by += k('by');
+      P.ears = lerp(P.ears, 0.75, k('ear')); P.jaw = Math.max(P.jaw, k('jaw')); P.shake += 0.32 * sk;
+      P.wide = Math.max(P.wide, k('wd')); P.shut = Math.max(P.shut, k('sh'));
+    }
+    if (act === 'hug') {
+      const t = s.at, w = s.ax, h = s.hk, u = key(t, HUG.up) * w, lk = key(t, HUG.look) * w;
+      const f = lerp(key(t, HUG.air), key(t, HUG.face), h) * w, sa = key(t, HUG.stare) * (1 - h) * w;
+      const k = t / 1.7, hu = smooth(k / 0.17) * (1 - smooth((k - 0.83) / 0.12)), sk = (k - 0.2) / 0.6;
+      const sq = (sk > 0 && sk < 1 ? Math.pow(Math.sin(Math.PI * sk * 3), 2) * hu : 0) * w, r = Math.sin((t - 0.3) * 6.5) * key(t, HUG.rock) * w;
+      M.hug = w; M.ht = t; M.hit = h; M.up = u; M.sq = sq; M.lf = (7 * hu + 1.3 * sq) * w * h; M.reach = lerp(14, 34, h);
+      const ro = smooth((t - 0.7) / 0.2), lf = M.lf;
+      M.grab = w; M.ph = key(t, HUG.arm) * w; M.st = HUG.step;
+      put(M.o, lerp(15, 7, ro), lerp(4, -15, ro), lerp(0.4, -1.1, ro));
+      put(M.hn, lerp(M.reach + 1, 41.5 - 1.5 * sq, h), lerp(-68, -42 - lf, h), lerp(2.9, 1.8, h));
+      put(M.hf, lerp(M.reach + 4, 40 - 1.5 * sq, h), lerp(-62, -47 - lf, h), lerp(2.6, 1.65, h));
+      P.pitch = lerp(P.pitch, -1.45 + 0.04 * r + 0.03 * sq, u);
+      P.by = lerp(P.by, lerp(-2, 2.5, h), u);
+      P.headA = lerp(P.headA, 1.45 + lerp(0.12, 0.42, h) - 0.07 * r + 0.06 * sq, u) - 0.55 * lk;
+      P.headX = lerp(P.headX, 1, u); P.headY = lerp(P.headY, -8 * h, u);
+      P.ears = lerp(P.ears, 0.1, u);
+      P.bx += key(t, HUG.bx) * w * M.reach;
+      P.shut = Math.max(P.shut, f, sa * once(t, 1.02, 0.16)); P.arc = lerp(P.arc, 1, f); P.smile = Math.max(P.smile, f);
+      P.turn = Math.max(P.turn, sa); P.wide = Math.max(P.wide, 0.5 * sa);
+    }
+    if (act === 'shake') {
+      const t = s.at, w = s.ax, u = key(t, SHAKE.up) * w, g = key(t, SHAKE.grip) * w, an = key(t, SHAKE.mad) * w;
+      const sm = key(t, SHAKE.smug) * w, lk = key(t, SHAKE.look) * w, L = clamp(s.alx - 8, 4, 44);
+      const sw = s.asw === null ? 12 * Math.sin((t - 0.3) * TAU * 3.2) * smooth((t - 0.3) / 0.3) : s.asw, ps = 0.35 * sw * g;
+      M.grab = w; M.ht = t; M.up = u; M.ph = key(t, SHAKE.arm) * w; M.st = SHAKE.step; M.reach = L - 7;
+      const ro = smooth((t - 1.45) / 0.12);
+      put(M.o, lerp(14, 8, ro), lerp(2, -9, ro), lerp(0.3, -0.7, ro));
+      put(M.hn, L - 4 + ps, -60, 0.45);
+      put(M.hf, L - 2.5 + ps, -70, 0.3);
+      P.pitch = lerp(P.pitch, -1.3 + 0.012 * ps, u);
+      P.by = lerp(P.by, 1.5 + 1.2 * Math.abs(Math.sin(time * 20)) * g, u);
+      P.bx += key(t, SHAKE.bx) * w * M.reach + 1.2 * ps;
+      P.headA = lerp(P.headA, 1.3 - 0.4 * lk + 0.18 * (1 - lk) + 0.012 * ps + 0.04 * Math.sin(time * 37) * g, u);
+      P.headX = lerp(P.headX, 1, u); P.headY = lerp(P.headY, -2, u);
+      P.ears = lerp(P.ears, 1, an);
+      P.shut = Math.max(P.shut, 0.38 * an, 0.55 * sm); P.arc = lerp(P.arc, 1, sm); P.brow = Math.max(P.brow, an);
+      P.jaw = Math.max(P.jaw, (0.2 + 0.05 * Math.sin(time * 31)) * an);
+      P.smile = Math.max(P.smile, sm); P.grin = Math.max(P.grin, 0.7 * sm);
+      P.shake += 0.08 * Math.sin(time * 23) * g;
+    }
+    if (act === 'selfie') {
+      const t = s.at, w = s.ax, u = key(t, SELFIE.up) * w, gr = key(t, SELFIE.grin) * w, gl = key(t, SELFIE.glad) * w;
+      M.grab = w; M.ht = t; M.up = u; M.ph = key(t, SELFIE.arm) * w; M.st = SELFIE.step; M.reach = 9; M.dang = 1;
+      put(M.o, 10, 8, 0.5);
+      put(M.hn, 31 + 0.6 * Math.sin(time * 6), -61 + 0.4 * Math.sin(time * 6 + 1), 0.55);
+      P.pitch = lerp(P.pitch, -0.88, u);
+      P.by = lerp(P.by, -1, u);
+      P.bx += key(t, SELFIE.bx) * w * M.reach;
+      P.headA = lerp(P.headA, 0.88 + 0.05 + 0.03 * Math.sin(time * 6), u);
+      P.headX = lerp(P.headX, 5.5, u); P.headY = lerp(P.headY, -2.5, u);
+      P.ears = lerp(P.ears, 0.1, u);
+      P.smile = Math.max(P.smile, gr); P.grin = Math.max(P.grin, gr);
+      P.shut = Math.max(P.shut, once(t, 1.14, 0.17) * w, 0.5 * gl); P.arc = lerp(P.arc, 1, gl);
+      P.look = [1, lerp(0.15, 0.5, smooth((t - 1.3) / 0.25)) * u];
+    }
+    if (s.wk > 0.001) {
+      const t = s.wt, w = s.wk, k = (n) => key(t, WAKE[n]) * w, sw = k('st'), yw = k('yw'), sk = k('sk'), dz = k('dz');
+      const tr = sw * smooth((t - 0.5) / 0.1) * (1 - smooth((t - 0.88) / 0.1)) * Math.sin(time * 33);
+      M.wake = w; M.wt = t;
+      P.pitch += 0.36 * sw - 0.08 * yw + 0.006 * tr;
+      P.by += 1.5 * sw + 0.4 * tr - yw;
+      P.flex -= 0.35 * sw;
+      P.headA += 0.2 * sw - 1 * yw + 0.16 * dz;
+      P.headX += 5 * sw - 1.5 * yw; P.headY += 2 * sw - 1.5 * yw;
+      P.ears = lerp(P.ears, 0.6, Math.max(yw, 0.5 * dz));
+      P.jaw = Math.max(P.jaw, k('jaw') * (1 + 0.04 * Math.sin(time * 23)));
+      P.shake += 0.5 * sk * Math.sin((t - 1.98) * 36);
+      P.flick += 0.8 * sk * Math.sin(time * 48);
+      P.shut = Math.max(P.shut, k('sh'), w * (once(t, 2.22, 0.14) + once(t, 2.42, 0.13)));
+      P.arc = lerp(P.arc, -0.8, k('zz'));
+    }
+    if (s.sl > 0.001) {
+      const w = s.sl, wob = Math.sin(time * 7.7);
+      M.slide = w;
+      P.pitch += (-0.17 + 0.035 * wob) * w; P.by += 3 * w;
+      P.headA -= 0.3 * w; P.headX -= 3 * w; P.headY -= 1.5 * w;
+      P.ears = lerp(P.ears, 0.85, w);
+      P.wide = Math.max(P.wide, 0.9 * w); P.jaw = Math.max(P.jaw, 0.22 * w);
+    }
+    if (typeof st === 'number' && st >= 0 && st < 0.9) {
+      const sq = smooth(st / 0.02) * (1 - smooth((st - 0.03) / 0.15)), sr = smooth((st - 0.05) / 0.05) * (1 - smooth((st - 0.1) / 0.12));
+      const tk = smooth((st - 0.05) / 0.09) * (1 - smooth((st - 0.3) / 0.3)), pl = smooth((st - 0.03) / 0.1) * (1 - smooth((st - 0.55) / 0.25));
+      M.touch = 1 - smooth((st - 0.03) / 0.06); M.cy = Math.min(14, 430 * st - 800 * st * st);
+      M.tuck = tk; M.sx = (1 + 0.16 * sq) * (1 - 0.04 * sr); M.sy = (1 - 0.22 * sq) * (1 + 0.07 * sr);
+      P.by += 9 * sq; P.pitch -= 0.1 * tk;
+      P.shut = Math.max(P.shut, pl); P.arc = lerp(P.arc, 1, pl); P.smile = Math.max(P.smile, pl);
+      P.ears = lerp(P.ears, 0.15, pl);
+    }
+    M.any = M.grab > 0 || M.wake > 0 || M.slide > 0 || M.tuck > 0 || M.touch > 0;
+    P.split = !!(b.act && FRONT[b.act.kind] && b.act.hit);
+    return M;
+  }
+
+  function limb(M, e, i, root) {
+    const fore = i < 2, far = i % 2 === 1, L = LEG[fore ? 0 : 1];
+    if (M.grab > 0) {
+      const t = M.ht;
+      if (fore) {
+        const k = M.ph;
+        if (k > 0.001) {
+          const n = i === M.nf, o = [root[0] + M.o[0], root[1] + M.o[1], M.o[2]];
+          const H = n ? M.hn : M.dang ? [root[0] + 3, root[1] + 25, 1.2] : M.hf;
+          const a = k < 1 ? e : o, z = k < 1 ? o : H, f = k < 1 ? k : k - 1;
+          e[0] = lerp(a[0], z[0], f); e[1] = lerp(a[1], z[1], f); e[2] = lerp(a[2], z[2], f);
+        }
+      } else {
+        const w = M.st[far ? 1 : 0], k1 = clamp((t - w[0]) / (w[1] - w[0]), 0, 1), k2 = clamp((t - w[2]) / (w[3] - w[2]), 0, 1);
+        e[0] += (smooth(k1) - smooth(k2)) * M.reach * M.grab;
+        e[1] -= 4 * (Math.sin(Math.PI * k1) + Math.sin(Math.PI * k2)) * M.grab;
+      }
+    }
+    if (M.wake > 0) {
+      const k = key(M.wt, WAKE.st) * M.wake;
+      e[0] += (fore ? 22 : -3) * k;
+      if (fore) { e[1] -= 4 * Math.sin(Math.PI * k); e[2] = lerp(e[2], -0.1, k); }
+    }
+    if (M.slide > 0) {
+      const a = fore ? -0.4 : -0.3, A = fromHeel(L, L.toe + STAND[i] + (fore ? 15 : -11) - L.foot[0] - L.foot[2], 0, a);
+      e[0] = lerp(e[0], A[0], M.slide); e[1] = lerp(e[1], A[1], M.slide); e[2] = lerp(e[2], a, M.slide);
+    }
+    if (M.touch > 0) {
+      const A = fromToe(L, root[0] + (fore ? 9 : 7) + (far ? -3 : 1), M.cy, 0);
+      e[0] = lerp(e[0], A[0], M.touch); e[1] = lerp(e[1], A[1], M.touch); e[2] = lerp(e[2], 0, M.touch);
+    }
+    if (M.tuck > 0) {
+      const A = fore ? [root[0] + 4 + (far ? -3 : 1), root[1] + 15, 2.2] : [root[0] + 13 + (far ? -3 : 1), root[1] + 14, 0.55];
+      e[0] = lerp(e[0], A[0], M.tuck); e[1] = lerp(e[1], A[1], M.tuck); e[2] = lerp(e[2], A[2], M.tuck);
+    }
+  }
+
+  function airBody(P, fall, w) {
+    P.pitch = lerp(P.pitch, lerp(-0.2, 0.14, fall), w);
+    P.flex = lerp(P.flex, lerp(-0.8, 0.5, fall), w);
+    P.headA = lerp(P.headA, lerp(0.12, -0.04, fall), w);
+    P.ears = lerp(P.ears, 0.6, w);
+    P.by = lerp(P.by, 0, w);
+  }
+  function airFoot(i, root, fall) {
+    const fore = i < 2, u = fore ? [6, 21, 1.45] : [-20, 38, 0.9], d = fore ? [16, 31, -0.25] : [8, 24, 0.35], ta = lerp(u[2], d[2], fall);
+    return fromToe(LEG[fore ? 0 : 1], root[0] + lerp(u[0], d[0], fall) + (i % 2 ? -3 : 2), root[1] + lerp(u[1], d[1], fall), ta).concat(ta);
+  }
+
   function pose(b, s, time, rear) {
     const mw = s.mw, rw = s.rw, cw = s.cw, ph = s.phase;
     const tu = 1 - s.toT / TAKEOFF, keep = 1 - smooth(tu), cr = (Math.sin(Math.PI * tu) * (1 - tu)) / 0.58;
@@ -256,19 +500,15 @@
     Object.assign(K, { by: K.by + 11, pitch: K.pitch + 0.05, hump: K.hump * 1.3, headA: K.headA + 0.14, headX: 4, headY: K.headY + 2, ears: 0.35, swing: 0 });
     const R = { by: -1.6 * Math.cos(TAU * (ph - 0.9)) - 0.3, pitch: -0.06 * gp, hump: 1.5 * gf, roll: 0, croup: -0.8 * gf, hroll: 0,
       flex: 1.25 * gf, headA: 0.04 + 0.06 * gp, headX: 3, headY: 2, ears: 1, swing: 0 };
-    const P = { keep, yaw: [s.yp, s.ys, s.yh] };
+    const P = { keep, yaw: [s.yp, s.ys, s.yh], bx: 0, jaw: 0, shut: 0, arc: 0, smile: 0, wide: 0, shake: 0, brow: 0, grin: 0, tag: s.tg, shx: 0, shw: 1 };
     for (const k in I) P[k] = lerp(lerp(I[k], LOW[k], cw), lerp(lerp(W[k], R[k], rw), K[k], cw), mw);
-    const q = (1 - mw) * (1 - cw) * (1 - aw) * (1 - rear);
+    const q = (1 - mw) * (1 - cw) * (1 - aw) * (1 - rear) * (1 - s.bz);
     const sn = bump(time, 7.3, 1.5) * q;
     P.headA += -0.3 * sn + 0.03 * Math.sin(time * 40) * sn;
     P.headX += 1.5 * sn;
     P.turn = hold(time, 11.7, 2.4, 0.5, 3.1) * q;
     P.flick = Math.sin(time * 48) * bump(time, 5.3, 0.4, 1.7) * q;
-    P.pitch = lerp(P.pitch, lerp(-0.2, 0.14, fall), aw);
-    P.flex = lerp(P.flex, lerp(-0.8, 0.5, fall), aw);
-    P.headA = lerp(P.headA, lerp(0.12, -0.04, fall), aw);
-    P.ears = lerp(P.ears, 0.6, aw);
-    P.by = lerp(P.by, 0, aw);
+    airBody(P, fall, aw);
     let sx = 1 + 0.05 * aw * up, sy = 1 - 0.03 * aw * up;
     P.by += 8 * cr + 7 * sq; P.flex += 0.6 * cr; P.headA += 0.1 * cr + 0.18 * sq;
     sx *= 1 + 0.05 * cr + 0.07 * sq; sy *= 1 - 0.07 * cr - 0.1 * sq;
@@ -276,9 +516,13 @@
     P.breath = br * lerp(1, 0.4, mw);
     sy *= 1 + 0.012 * br * (1 - mw);
     P.pitch = lerp(P.pitch, -1.0, rear); P.by -= 3 * rear; P.headA += 0.7 * rear; P.ears += 0.3 * rear;
-    P.pivot = [lerp(-4, -25, rear), -35.5];
+    const M = moves(b, s, time, P);
+    P.sway = 0.1 * Math.sin(time * 2.3) + 0.15 * P.swing - 0.8 * P.shake;
+    sx *= M.sx; sy *= M.sy;
+    P.pivot = [lerp(lerp(-4, -25, rear), -25, M.up), -35.5];
     P.sx = sx; P.sy = sy;
     P.T = bodyTf(P);
+    P.shx = P.bx * Math.cos(s.ys); P.shw = 1 - 0.3 * M.up;
     const tg = [];
     for (let i = 0; i < 4; i++) {
       const fore = i < 2, far = i % 2 === 1, k = fore ? 0 : 1, L = LEG[k], root = rootOf(P, i);
@@ -288,17 +532,18 @@
       const st = fromToe(L, L.toe + lerp(STAND[i], (fore ? 12 : 2) + STAND[i] * 0.5, cw), 0, 0);
       let ex = lerp(st[0], go[0], mw), ey = lerp(st[1], go[1], mw) - 4 * Math.sin(fore ? s.ys : s.yp), ea = go[2] * mw;
       if (aw > 0.001) {
-        const u = fore ? [6, 21, 1.45] : [-20, 38, 0.9], d = fore ? [16, 31, -0.25] : [8, 24, 0.35], ta = lerp(u[2], d[2], fall);
-        const A = fromToe(L, root[0] + lerp(u[0], d[0], fall) + (far ? -3 : 2), root[1] + lerp(u[1], d[1], fall), ta);
-        ex = lerp(ex, A[0], aw); ey = lerp(ey, A[1], aw); ea = lerp(ea, ta, aw);
+        const A = airFoot(i, root, fall);
+        ex = lerp(ex, A[0], aw); ey = lerp(ey, A[1], aw); ea = lerp(ea, A[2], aw);
       }
       if (rear > 0.001 && fore) {
         const A = fromToe(L, root[0] + 6 - (far ? 3 : 0), root[1] + 25, 1.2);
         ex = lerp(ex, A[0], rear); ey = lerp(ey, A[1], rear); ea = lerp(ea, 1.2, rear);
       }
-      tg.push([ex, ey, ea]);
+      const e = [ex, ey, ea];
+      if (M.any) limb(M, e, i, root);
+      tg.push(e);
     }
-    settle(P, tg, (1 - aw) * (1 - rear));
+    settle(P, tg, (1 - aw) * (1 - rear) * (1 - M.up));
     return P;
   }
 
@@ -375,7 +620,7 @@
 
   function head(ctx, o, K) {
     const yaw = o.yaw || 0, cy = Math.cos(yaw), sy = Math.sin(yaw), t = o.tilt || 0, ct = Math.cos(t), st = Math.sin(t);
-    const eb = clamp(o.ears || 0, 0, 1), fl = o.flick || 0, ga = ctx.globalAlpha;
+    const eb = clamp(o.ears || 0, 0, 1), fl = o.flick || 0, ga = ctx.globalAlpha, jw = o.jaw || 0, sm = o.smile || 0;
     const pt = (x, y, z) => { const xr = x * ct - y * st, yr = x * st + y * ct; return [xr * cy - z * sy, yr, xr * sy + z * cy]; };
     const solid = (x, y, a, w, h) => { const p = pt(x, y, 0); ell(ctx, p[0], p[1], Math.hypot(a * cy, w * sy), h, t * cy); };
     const ears = [-1, 1].map((z) => {
@@ -385,19 +630,36 @@
     const drawEar = (e) => {
       const r = 4.2, flat = 1 - 0.45 * eb, rot = (-0.6 * eb + 0.5 * fl * e.near) * (cy < 0 ? -1 : 1);
       ear(ctx, e.p[0], e.p[1], r, tint(K, 'far', 'fur', e.near), e.near > 0.5 ? K.ear : false, rot, flat);
+      if (o.tag > 0.01 && e.near >= 0.5) tag(ctx, e.p[0] + (cy < 0 ? -1.2 : 1.2), e.p[1] + 2.3 * flat, o.tag, o.sway || 0, K);
     };
     for (const e of ears) if (e.near < 0.5) drawEar(e);
+    let J = null;
+    if (jw > 0.001) {
+      const a = jw * 0.85, ca = Math.cos(a), sa = Math.sin(a), hx = HINGE[0], hy = HINGE[1];
+      J = { a, p: (x, y, z) => pt(hx + (x - hx) * ca - (y - hy) * sa, hy + (x - hx) * sa + (y - hy) * ca, z) };
+      mouth(ctx, pt, J, K, cy, sy, t);
+      chin(ctx, J, jw, K, cy, sy, t);
+    }
     ctx.fillStyle = K.fur;
     solid(-1.5, -2.5, 10.5, 8.5, 9.5);
     solid(5, 3.5, 8.5, 7.5, 5.5);
     ctx.fillStyle = K.muzzle;
-    solid(16, 4, 6, 4.5, 3);
+    if (!J) solid(16, 4, 6, 4.5, 3);
+    else if (jw < 0.25) {
+      const c = J.p(16, 4, 0);
+      ctx.globalAlpha = ga * (1 - smooth(jw / 0.25));
+      ell(ctx, c[0], c[1], Math.hypot(6 * cy, 4.5 * sy), 3, (t + J.a) * cy);
+      ctx.globalAlpha = ga;
+    }
     const s0 = pt(11.5, -1.5, 0), s1 = pt(25.8, -0.8, 0), n = pt(27.4, -1.4, 0);
     seg(ctx, s0[0], s0[1], 5.4, s1[0], s1[1], 4);
+    if (J) fangs(ctx, pt, jw, K);
+    const gr = o.grin > 0.01 ? smooth(o.grin) * (J ? 1 - smooth(jw / 0.15) : 1) : 0;
+    if (gr > 0.01) grin(ctx, pt, gr, ga * Math.abs(cy), K);
     ctx.fillStyle = K.dark;
     ell(ctx, n[0], n[1], 2.7 + 0.9 * Math.abs(sy), 2.3 + 0.2 * Math.abs(sy));
-    const m0 = pt(25, 2.6, 0), mc = pt(20.5, 4.6, 0), m1 = pt(15.8, 4.2, 0);
-    ctx.globalAlpha = ga * Math.abs(cy);
+    const m0 = pt(25, 2.6, 0), mc = pt(20.5, 4.6 + 0.9 * sm, 0), m1 = pt(15.8 - 0.6 * sm, 4.2 - 1.7 * sm, 0);
+    ctx.globalAlpha = ga * Math.abs(cy) * (J ? 1 - smooth(jw / 0.12) : 1) * (gr ? 1 - smooth(gr / 0.3) : 1);
     ctx.strokeStyle = 'rgba(29,18,9,0.55)'; ctx.lineWidth = 0.9;
     ctx.beginPath(); ctx.moveTo(m0[0], m0[1]); ctx.quadraticCurveTo(mc[0], mc[1], m1[0], m1[1]); ctx.stroke();
     const lk = o.look || [1, 0], look = [lk[0] * cy, lk[1]];
@@ -406,7 +668,13 @@
       const e = pt(8.4, -5.4, z), a = smooth((e[2] - 0.5) / 2.5);
       if (a <= 0) continue;
       ctx.globalAlpha = ga * a;
-      eye(ctx, e[0], e[1], o.wide || 0, look, K);
+      if (o.shut > 0.001) lid(ctx, pt, z, e, o, look, K); else eye(ctx, e[0], e[1], o.wide || 0, look, K);
+      if (o.brow > 0.01) {
+        const b0 = pt(6, -8.9, z), b1 = pt(10.9, -6.9, z);
+        ctx.globalAlpha = ga * a * smooth(o.brow);
+        ctx.strokeStyle = K.dark; ctx.lineWidth = 1.25; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(b0[0], b0[1]); ctx.lineTo(b1[0], b1[1]); ctx.stroke();
+      }
       if (!front || e[2] > front.d) front = { z, d: e[2] };
     }
     ctx.globalAlpha = ga;
@@ -415,6 +683,110 @@
       drop(ctx, p[0], p[1], o.cry[1]);
     }
     for (const e of ears) if (e.near >= 0.5) drawEar(e);
+    return n;
+  }
+
+  const HINGE = [10, 2.8];
+  const MOUTH = [[12, 3, 0], [26, 2.5, 0], [25.2, 2.3, 1], [12, 2.6, 1]];
+  const JAW = [[12, 2.2], [24.8, 2.1], [26, 2.8, 0.6], [24.6, 3.15, 1.6], [22, 3.3, 1.8], [18, 4.2, 0.8], [12, 4.2]];
+
+  function hull(ctx, p) {
+    p.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), h = [];
+    for (const q of p) { while (h.length >= 2 && cr(h[h.length - 2], h[h.length - 1], q) <= 0) h.pop(); h.push(q); }
+    const lo = h.length + 1;
+    for (let i = p.length - 2; i >= 0; i--) { while (h.length >= lo && cr(h[h.length - 2], h[h.length - 1], p[i]) <= 0) h.pop(); h.push(p[i]); }
+    h.pop();
+    ctx.beginPath();
+    h.forEach((q, i) => (i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])));
+    ctx.closePath();
+  }
+
+  function tooth(ctx, a, b, c) {
+    ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(c[0], c[1]); ctx.lineTo(b[0], b[1]); ctx.closePath(); ctx.fill();
+  }
+
+  function mouth(ctx, pt, J, K, cy, sy, t) {
+    const p = [];
+    for (const [x, y, j] of MOUTH) for (const z of [-2.6, 2.6]) p.push((j ? J.p : pt)(x, y, z));
+    hull(ctx, p);
+    ctx.fillStyle = K.throat; ctx.fill();
+    ctx.save();
+    ctx.clip();
+    const c = J.p(18.5, 0.9, 0), d = J.p(20.2, 0.3, 0);
+    ctx.fillStyle = K.tongue; ell(ctx, c[0], c[1], Math.hypot(5.2 * cy, 2.4 * sy), 1.8, (t + J.a) * cy);
+    ctx.fillStyle = 'rgba(255,214,206,0.35)'; ell(ctx, d[0], d[1], Math.hypot(2 * cy, 1 * sy), 0.6, (t + J.a) * cy);
+    ctx.restore();
+  }
+
+  function strip(ctx, f, x0, x1, y, h) {
+    const a = f(x0, y, 0), b = f(x1, y, 0), c = f(x1, y + h, 0), d = f(x0, y + h, 0);
+    ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.lineTo(d[0], d[1]); ctx.closePath(); ctx.fill();
+  }
+
+  function chin(ctx, J, jw, K, cy, sy, t) {
+    const c = J.p(16, 4, 0), k = smooth(jw / 0.35), g = smooth(jw / 0.4);
+    ctx.fillStyle = K.muzzle;
+    ell(ctx, c[0], c[1], Math.hypot(6 * cy, 4.5 * sy), 3, (t + J.a) * cy);
+    ctx.beginPath();
+    JAW.forEach(([x, y, d], i) => { const p = J.p(x, y + (d || 0) * g, 0); if (i) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); });
+    ctx.closePath(); ctx.fill();
+    if (k < 0.02) return;
+    ctx.fillStyle = K.eye;
+    for (const z of [-1.9, 1.9]) tooth(ctx, J.p(21.4, 2.3, z), J.p(22.9, 2.2, z), J.p(22.3, 2.2 - 2.5 * k, z));
+    strip(ctx, J.p, 23.8, 25.4, 2.25, -1.1 * k);
+  }
+
+  function fangs(ctx, pt, jw, K) {
+    const k = smooth(jw / 0.3);
+    if (k < 0.02) return;
+    ctx.fillStyle = K.eye;
+    for (const z of [-1.9, 1.9]) tooth(ctx, pt(22.3, 3.15, z), pt(23.9, 3.05, z), pt(23.1, 3 + 3 * k, z));
+    strip(ctx, pt, 24.4, 26.1, 2.85, 1.2 * k);
+  }
+
+  function grin(ctx, pt, g, a, K) {
+    const u0 = pt(25.3, 2.4, 0), uc = pt(20, 3.1, 0), c = pt(14.3, 1.5 - 0.7 * g, 0), lc = pt(19.3, 4.4 + 2 * g, 0), l0 = pt(24.8, 2.8 + 1.1 * g, 0);
+    const m0 = pt(25, 2.65 + 0.5 * g, 0), mm = pt(19.6, 3.6 + 0.9 * g, 0), m1 = pt(15, 2 - 0.4 * g, 0), ga = ctx.globalAlpha;
+    ctx.globalAlpha = a * smooth(g / 0.35);
+    ctx.fillStyle = K.eye;
+    ctx.beginPath(); ctx.moveTo(u0[0], u0[1]); ctx.quadraticCurveTo(uc[0], uc[1], c[0], c[1]); ctx.quadraticCurveTo(lc[0], lc[1], l0[0], l0[1]); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(29,18,9,0.75)'; ctx.lineWidth = 0.8; ctx.stroke();
+    ctx.lineWidth = 0.45; ctx.beginPath(); ctx.moveTo(m0[0], m0[1]); ctx.quadraticCurveTo(mm[0], mm[1], m1[0], m1[1]); ctx.stroke();
+    ctx.globalAlpha = ga;
+  }
+
+  function lid(ctx, pt, z, e, o, look, K) {
+    const sh = clamp(o.shut, 0, 1), arc = o.arc || 0;
+    if (sh < 0.97) {
+      ctx.save(); ctx.translate(0, e[1]); ctx.scale(1, 1 - sh); ctx.translate(0, -e[1]);
+      eye(ctx, e[0], e[1], o.wide || 0, look, K);
+      ctx.restore();
+    }
+    const k = smooth((sh - 0.4) / 0.5);
+    if (k <= 0.01) return;
+    const ga = ctx.globalAlpha, p0 = pt(6.1, -5.1 + 0.9 * arc, z), p1 = pt(8.4, -5.3 - 2.4 * arc, z), p2 = pt(10.7, -5.1 + 0.9 * arc, z);
+    ctx.globalAlpha = ga * k;
+    ctx.strokeStyle = K.dark; ctx.lineWidth = 1.1; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.quadraticCurveTo(p1[0], p1[1], p2[0], p2[1]); ctx.stroke();
+    ctx.globalAlpha = ga;
+  }
+
+  function tag(ctx, x, y, k, sw, K) {
+    const s = smooth(k);
+    if (s < 0.05) return;
+    const m = ctx.getTransform ? ctx.getTransform() : { a: 1, b: 0, c: 0, d: 1 };
+    let r = Math.atan2(m.c, m.a);
+    if (m.d * Math.cos(r) - m.b * Math.sin(r) < 0) r += Math.PI;
+    ctx.save();
+    ctx.translate(x, y); ctx.rotate(r + sw);
+    ctx.scale(m.a * m.d - m.b * m.c < 0 ? -s : s, s);
+    ctx.fillStyle = K.tagEdge; rrect(ctx, -2, 0.2, 4, 5, 1.1);
+    ctx.fillStyle = K.tag; rrect(ctx, -1.65, 0.5, 3.3, 4.4, 0.9);
+    ctx.fillStyle = K.dark; ctx.font = '700 2.6px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('13', 0, 2.8);
+    ctx.fillStyle = K.tagEdge; ell(ctx, 0, 0.35, 0.75, 0.75);
+    ctx.restore();
   }
 
   function eye(ctx, x, y, w, lk, K) {
@@ -431,40 +803,75 @@
     ctx.fill();
   }
 
-  function drawSide(ctx, P, K) {
+  function drawSide(ctx, P, K, part) {
     const sp = spine(P.yaw);
     const legs = P.legs.map((g) => {
       const xa = g.root[0], z = g.far ? -5 : 5, f = sp.phi(xa);
       return { g, xa, z, f, near: smooth(0.5 + (z * Math.cos(f)) / 8) };
     }).sort((a, b) => a.near - b.near);
+    const arm = part && P.split ? legs.find((l) => l.g.fore && l.near >= 0.5) : null;
+    if (part === 2) { if (arm) drawLeg(ctx, arm, K, sp); return; }
     for (const l of legs) if (l.near < 0.5) drawLeg(ctx, l, K, sp);
     drawBody(ctx, P, K, sp);
     const hp = P.T(27 - 3 * P.flex, -41), hm = sp.map(hp[0], hp[1], hp[0], 0), tilt = P.pitch + P.headA;
-    const yaw = P.yaw[2] + Math.cos(P.yaw[2]) * (0.3 + 0.6 * (P.turn || 0) + 0.12 * (P.swing || 0));
+    const yaw = P.yaw[2] + Math.cos(P.yaw[2]) * (0.3 + 0.6 * (P.turn || 0) + 0.12 * (P.swing || 0) + (P.shake || 0));
     const drawHead = () => {
+      const hx = hm[0] + (P.headX + 7 * Math.cos(tilt) - 2 * Math.sin(tilt)) * Math.cos(yaw), hy = hm[1] + P.headY + 7 * Math.sin(tilt) + 2 * Math.cos(tilt);
       ctx.save();
-      ctx.translate(hm[0] + (P.headX + 7 * Math.cos(tilt) - 2 * Math.sin(tilt)) * Math.cos(yaw), hm[1] + P.headY + 7 * Math.sin(tilt) + 2 * Math.cos(tilt));
+      ctx.translate(hx, hy);
       ctx.scale(0.96, 0.96);
-      head(ctx, { yaw, tilt, ears: P.ears, flick: P.flick, wide: P.wide, look: P.look, cry: P.cry }, K);
+      const n = head(ctx, { yaw, tilt, ears: P.ears, flick: P.flick, wide: P.wide, look: P.look, cry: P.cry,
+        jaw: P.jaw, shut: P.shut, arc: P.arc, smile: P.smile, brow: P.brow, grin: P.grin, tag: P.tag, sway: P.sway }, K);
       ctx.restore();
+      P.nose = [hx + 0.96 * n[0], hy + 0.96 * n[1]];
     };
     const facing = Math.sin(P.yaw[2]) > 0.5;
     if (!facing) drawHead();
-    for (const l of legs) if (l.near >= 0.5) drawLeg(ctx, l, K, sp);
+    for (const l of legs) if (l.near >= 0.5 && l !== arm) drawLeg(ctx, l, K, sp);
     if (facing) drawHead();
   }
 
   function side(ctx, b, s, time, o) {
-    const P = pose(b, s, time, o.rear);
+    const part = o.part || 0;
+    const P = part === 2 && s.P && s.Pt === time ? s.P : pose(b, s, time, o.rear);
+    if (part === 1) { s.P = P; s.Pt = time; }
     const y = b.y + (s.groundY - b.y) * P.keep;
-    const fy = s.shY, sk = clamp(1 - Math.max(0, fy - y) / 220, 0.35, 1) * o.scale;
-    ctx.fillStyle = 'rgba(0,0,0,' + (0.12 * sk).toFixed(3) + ')';
-    ell(ctx, b.x, fy + 1, 40 * sk, 4.5 * sk);
+    if (part !== 2) {
+      const fy = s.shY, sk = clamp(1 - Math.max(0, fy - y) / 220, 0.35, 1) * o.scale;
+      ctx.fillStyle = 'rgba(0,0,0,' + (0.12 * sk).toFixed(3) + ')';
+      ell(ctx, b.x + P.shx, fy + 1, 40 * sk * P.shw, 4.5 * sk);
+    }
     ctx.save();
     ctx.translate(b.x, y);
     ctx.scale(o.squeeze * o.scale, o.scale);
-    drawSide(ctx, P, o.pal);
+    drawSide(ctx, P, o.pal, part);
     ctx.restore();
+    if (part !== 1) return;
+    if (s.due && s.cold > 0.04 && P.nose) {
+      const i = s.vn % 4, p = s.puffs[i] || (s.puffs[i] = { x: 0, y: 0, t: 0, d: 1, n: 0, k: 1, v: 0, m: 0 });
+      p.x = b.x + P.nose[0] * o.squeeze * o.scale; p.y = y + P.nose[1] * o.scale; p.t = time;
+      p.d = Math.cos(P.yaw[2]) < 0 ? -1 : 1; p.n = s.vn++; p.k = s.due; p.v = s.vx; p.m = s.mw > 0.3 ? 1 : 0;
+    }
+    s.due = 0;
+  }
+
+  const PUFF = 1.3;
+  function puffs(ctx, s, time, m) {
+    if (s.cold <= 0.01) return;
+    for (const p of s.puffs) {
+      const life = PUFF * (p.k > 1 ? 1.5 : 1), age = time - p.t;
+      if (p.m !== m || !(age >= 0 && age < life)) continue;
+      const u = age / life, h = frac(Math.sin(p.n * 78.233) * 43758.5453), g = p.k > 1 ? 1.9 : 1;
+      const a = s.cold * (0.45 + 0.15 * s.cold) * smooth(age / 0.07) * (1 - u) * (1 - u);
+      if (a < 0.004) continue;
+      const out = (7 + 3 * h) * g * (1 - Math.exp(-age * 6)) - 6 * age;
+      const x = p.x + p.d * out + p.v * 0.22 * (1 - Math.exp(-age / 0.22)), yy = p.y - (8 + 3 * h) * age - 3 * u * g;
+      const r = (1.6 + 5.5 * Math.sqrt(u)) * g * (0.8 + 0.3 * s.cold);
+      ctx.fillStyle = 'rgba(236,243,250,' + a.toFixed(3) + ')';
+      ell(ctx, x, yy, r, r * 0.8);
+      ell(ctx, x + p.d * r * 0.7, yy + r * 0.25, r * 0.7, r * 0.6);
+      ell(ctx, x - p.d * r * 0.5, yy - r * 0.35, r * 0.6, r * 0.5);
+    }
   }
 
   let layer = null;
@@ -488,13 +895,25 @@
     ctx.restore();
   }
 
-  ZS.drawBear = function (ctx, b, time) {
-    const s = track(b, time);
-    if (!b.hiding && !b.climbing) enter(s, 'side');
+  function sideBear(ctx, b, s, time, part) {
     const d = s.dropT > 0 ? smooth(s.dropT / DROP) : 0, hid = s.from === 'hide' ? d : 0;
     const lo = Math.min(b.y, s.groundY), hi = Math.max(b.y, s.groundY);
     faded(ctx, b.x - 140, lo - 170, b.x + 140, hi + 20,
-      (c) => side(c, b, s, time, { rear: d, squeeze: 1, scale: lerp(1, 0.85, hid), pal: mixPal(hid) }));
+      (c) => side(c, b, s, time, { rear: d, squeeze: 1, scale: lerp(1, 0.85, hid), pal: mixPal(hid), part }));
+  }
+
+  ZS.drawBear = function (ctx, b, time) {
+    const s = track(b, time);
+    if (!b.hiding && !b.climbing) enter(s, 'side');
+    puffs(ctx, s, time, 1);
+    sideBear(ctx, b, s, time, 1);
+    puffs(ctx, s, time, 0);
+  };
+
+  ZS.drawBearHugFront = function (ctx, b, time) {
+    const a = b.act;
+    if (!a || !FRONT[a.kind] || !a.hit || b.hiding || b.climbing) return;
+    sideBear(ctx, b, track(b, time), time, 2);
   };
 
   const CLIMB = { stride: 40, duty: 0.62, lift: [6, 5], offs: [0, 0.5, 0.3, 0.8], toe: [28, -24], kick: [0, 0], reach: [2, 1] };
@@ -503,7 +922,7 @@
     const m = smooth(s.cspd / 40), ph = frac((GY - b.y) / CLIMB.stride), f = s.fear * e, cv = s.cov * e;
     const gp = Math.sin(TAU * ph) * m;
     const P = { pivot: [-4, -35.5], sx: 1, sy: 1, hump: 0, roll: 0, croup: 0, hroll: 0, swing: 0, turn: 0.7 * cv,
-      flick: 0, keep: 0, headX: 0, headY: 0, yaw: [0, 0, 0] };
+      flick: 0, keep: 0, headX: 0, headY: 0, yaw: [0, 0, 0], tag: s.tg, sway: 0.1 * Math.sin(time * 2.3) };
     P.by = (8 + 3 * cv) * e;
     P.pitch = 0.015 * Math.sin(time * 1.3) * (1 - m);
     P.flex = 0.35 * gp * e;
@@ -511,6 +930,8 @@
     P.headA = lerp(0.1, 0.32 - 0.05 * gp + cv * (0.6 + 0.08 * Math.sin(time * 2.7)), e);
     P.ears = Math.max(0.25 * m * e, 0.5 * cv, f);
     P.wide = Math.max(f, 0.6 * cv);
+    const w = s.ga * (1 - e);
+    if (w > 0) airBody(P, s.gf, w);
     const phi = th + P.pitch + P.headA;
     P.look = [lerp(1, Math.sin(phi), cv), lerp(0, Math.cos(phi), cv)];
     P.cry = tear(time, f);
@@ -521,11 +942,13 @@
       const c = cycle(frac(ph - CLIMB.offs[i]), CLIMB, i);
       const still = (far ? 3 : -3) * (fore ? 1 : -1) + Math.sin(time * 1.1 + i * 1.7) * 0.7 * (1 - m);
       const base = CLIMB.toe[k] + (fore ? -3 : 3) * cv, grip = fore ? 0.25 : 0.12;
-      const hold = fromToe(L, base + still, 0, grip), stand = fromToe(L, L.toe + STAND[i], 0, 0);
+      const hold = fromToe(L, base + still, 0, grip);
+      let stand = fromToe(L, L.toe + STAND[i], 0, 0).concat(0);
+      if (s.ga) { const A = airFoot(i, rootOf(P, i), s.gf); stand = stand.map((v, j) => lerp(v, A[j], s.ga)); }
       const cx = lerp(hold[0], base + c[0], m), cy = lerp(hold[1], c[1], m) + (far ? 3 : 0), ca = lerp(grip, c[2], m);
-      tg.push([lerp(stand[0], cx, e), lerp(stand[1], cy, e), ca * e]);
+      tg.push([lerp(stand[0], cx, e), lerp(stand[1], cy, e), lerp(stand[2], ca, e)]);
     }
-    settle(P, tg, 1);
+    settle(P, tg, 1 - w);
     return P;
   }
 
@@ -567,7 +990,7 @@
     const sd = s.side < 0 ? -1 : 1, peek = pose === 'peek' ? peekAmt(ht, f) * smooth(Math.abs(s.side)) : 0;
     const shake = f * (Math.sin(time * 47) * 0.45 + Math.sin(time * 29 + 1) * 0.3);
     return { t: b.hiding, h: b.hiding.w / 2, ht, f, pose, sd, side: s.side, peek, br: Math.sin(ht * (pose === 'stiff' ? 1.3 : 2)),
-      dx: shake + sway + sd * peek * 1.4, tilt: pose === 'sweat' ? Math.sin(ht * 2.1) * 1.2 : 0 };
+      dx: shake + sway + sd * peek * 1.4, tilt: pose === 'sweat' ? Math.sin(ht * 2.1) * 1.2 : 0, tag: s.tg };
   }
 
   function upright(ctx, b, s, time, u) {
@@ -596,6 +1019,7 @@
       const tw = Q.pose === 'sweat' ? Math.pow(Math.max(0, Math.sin(Q.ht * 1.9 + σ * 1.3)), 18) * Math.sin(Q.ht * 38) : 0;
       const x = h - 2.6 - 3 * Q.f + 0.8 * tw, y = -112 + 3 * Q.f + 0.3 * Math.max(0, Q.br) - σ * tl * 0.5;
       ear(ctx, σ * x, y, 4.4, K.fur, K.ear, σ * (0.35 * tw + 0.5 * Q.f), 1 - 0.4 * Q.f);
+      if (σ === Q.sd && Q.tag > 0.01) tag(ctx, σ * (x + 3.3), y + 2.2, Q.tag, σ * (0.25 + 0.35 * tw) + 0.06 * Math.sin(time * 2.3), K);
     }
     ctx.globalAlpha = ga;
     ctx.restore();
@@ -608,7 +1032,7 @@
     ctx.translate(edge + sd * lerp(-26, lerp(-3, -5.2, Q.f), Q.peek) + Q.dx * 0.4, y);
     ctx.scale(sd * 0.85, 0.85);
     head(ctx, { yaw: 0.15, tilt: -0.1 * Q.peek + 0.03 * Math.sin(time * 1.7), ears: 0.3 + 0.7 * Q.f,
-      wide: 0.4 + 0.6 * Q.f, look: [1, 0.15], cry: tear(time, Q.f) }, K);
+      wide: 0.4 + 0.6 * Q.f, look: [1, 0.15], cry: tear(time, Q.f), tag: Q.tag, sway: 0.1 * Math.sin(time * 2.3) }, K);
     ctx.restore();
   }
 

@@ -102,6 +102,18 @@
     }
   }
 
+  function snowCap(ctx, x0, x1, y, h, seed) {
+    const n = Math.max(3, Math.round((x1 - x0) / 9)), p = [x0 - 1.5, y + 1.2];
+    for (let i = 0; i <= n; i++) p.push(lerp(x0, x1, i / n), y - h * (0.35 + 0.65 * Math.pow(sin(PI * i / n), 0.4)) - (hash2(seed, i) - 0.5) * h * 0.4);
+    p.push(x1 + 1.5, y + 1.2);
+    ctx.fillStyle = 'rgba(150,176,204,0.55)'; ctx.save(); ctx.translate(0.6, 1.3); poly(ctx, p); ctx.restore();
+    ctx.fillStyle = '#f5f8fb'; poly(ctx, p);
+  }
+  function icicles(ctx, x0, x1, y, n, len, seed) {
+    ctx.fillStyle = 'rgba(200,228,245,0.92)';
+    for (let i = 0; i < n; i++) { const ix = lerp(x0, x1, (i + 0.5) / n) + (hash(i * 2.9 + seed) - 0.5) * 3, il = len * (0.4 + hash(i * 3.3 + seed) * 0.6); poly(ctx, [ix - 1.1, y, ix + 1.1, y, ix + 0.15, y + il]); }
+  }
+
   const LOG = ['#4a3122', '#553826', '#472e1f', '#5b3f2c', '#4e3424'];
   let roofGeo = null;
   function hutRoof() {
@@ -806,29 +818,51 @@
   }
   API.hotel = hotel;
 
-  const LIFT_H = 214, LIFT_SLOPE = 0.24, CHAIRS = ['#d2382b', '#e8b92a', '#2f6fb3'], JACKETS = ['#e8590c', '#2f86c8', '#7b5ea7', '#2f8f4e'];
+  const LIFT_H = 214, LIFT_SLOPE = 0.24, CHAIRS = ['#d2382b', '#e8b92a', '#2f6fb3'], JACKETS = ['#e8590c', '#2f86c8', '#7b5ea7', '#2f8f4e'], SKIS = ['#e8402f', '#2a6fd1', '#f6c624', '#7b2fbf'];
 
-  function liftChair(ctx, k, face, far, time, dxp, a) {
+  function liftChair(ctx, k, face, far, time, dxp, a, snowy) {
     ctx.save(); ctx.globalAlpha = a;
     const sw = 0.06 * sin(time * 1.15 + k * 2.1) + 0.04 * sin(time * 2.3 + k * 0.7) + 0.05 * exp(-dxp * dxp / 900) * sin(dxp * 0.14);
     ctx.rotate(sw); ctx.scale(face * (far ? 0.88 : 1), far ? 0.88 : 1);
     const body = far ? dk(CHAIRS[k % 3], 0.78) : CHAIRS[k % 3];
     ctx.fillStyle = far ? '#2c3238' : '#1f252b'; rr(ctx, -3.6, -3.4, 7.2, 5.4, 1.4);
     line(ctx, 0, 1, 0, 25, 1.8, far ? '#323941' : '#3a4147');
-    if (hash(k * 1.3 + (far ? 5 : 0)) > 0.3) {
+    const rider = hash(k * 1.3 + (far ? 5 : 0)) > 0.3;
+    if (rider) {
       const jc = JACKETS[(k + (far ? 1 : 0)) % 4];
+      if (snowy) {
+        const sb = hash(k * 2.7 + (far ? 3 : 0)) > 0.7, sw2 = 0.05 * sin(time * 1.7 + k * 1.3);
+        ctx.save(); ctx.translate(18.8, 40.4); ctx.rotate(0.06 + sw2);
+        if (sb) { ctx.fillStyle = far ? dk(SKIS[k % 4], 0.78) : SKIS[k % 4]; rr(ctx, -14, -1, 26, 3.2, 1.6); ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(-11, -0.4, 18, 0.8); }
+        else {
+          ctx.fillStyle = far ? dk(SKIS[k % 4], 0.78) : SKIS[k % 4]; rr(ctx, -13, -0.6, 32, 2, 1);
+          ctx.beginPath(); ctx.moveTo(18, -0.6); ctx.quadraticCurveTo(22, -0.6, 22.4, -3.4); ctx.lineTo(21, -3); ctx.quadraticCurveTo(20.4, 1.2, 17, 1.4); ctx.closePath(); ctx.fill();
+        }
+        ctx.restore();
+      }
       ctx.fillStyle = far ? dk(jc, 0.78) : jc; rr(ctx, -3.4, 8.5, 11, 17, 4);
-      limb(ctx, 3, 25.4, 15, 25.4, 5.2, 4.6, '#33415c'); limb(ctx, 15, 25.4, 17.4, 37.4, 4.4, 3.8, '#33415c');
+      limb(ctx, 3, 25.4, 15, 25.4, 5.2, 4.6, snowy ? '#2b3340' : '#33415c'); limb(ctx, 15, 25.4, 17.4, 37.4, 4.4, 3.8, snowy ? '#2b3340' : '#33415c');
       ctx.fillStyle = '#1d1d1d'; ell(ctx, 18.8, 39, 4.4, 1.5);
       ctx.fillStyle = '#f0c8a0'; circle(ctx, 3.6, 4.2, 4.1);
-      ctx.fillStyle = JACKETS[(k + 2) % 4]; ctx.beginPath(); ctx.arc(3.4, 3.8, 4.4, PI, TAU); ctx.fill(); circle(ctx, 3.4, -0.9, 1.3);
+      ctx.fillStyle = JACKETS[(k + 2) % 4]; ctx.beginPath(); ctx.arc(3.4, 3.8, 4.4, PI, TAU); ctx.fill();
+      if (snowy) {
+        ctx.fillStyle = 'rgba(255,255,255,0.3)'; ell(ctx, 2, 1.4, 2, 1, -0.3);
+        ctx.fillStyle = '#26282c'; rr(ctx, 3.4, 2.6, 5, 2.6, 1.1);
+        ctx.fillStyle = far ? '#b98a3c' : '#ffb347'; rr(ctx, 4.4, 3, 3.6, 1.6, 0.8);
+      } else circle(ctx, 3.4, -0.9, 1.3);
     }
     ctx.fillStyle = body; rr(ctx, -6.5, 24, 25, 4.4, 1.6); rr(ctx, -8, 8, 4.8, 20, 1.8);
     ctx.strokeStyle = '#b9bfc5'; ctx.lineWidth = 1.7; ctx.lineJoin = 'round'; ctx.beginPath(); ctx.moveTo(0, 9); ctx.lineTo(13, 12.5); ctx.lineTo(17, 26.5); ctx.stroke();
+    if (snowy) {
+      snowCap(ctx, -8.4, -2.8, 8, 2.2, k + 0.5);
+      if (!rider) snowCap(ctx, -6.5, 18.5, 24, 3.2, k);
+      snowCap(ctx, -3.8, 3.8, -3.4, 1.8, k + 0.2);
+      icicles(ctx, -5, 17, 28.4, 3, 4, k);
+    }
     ctx.restore();
   }
 
-  function skiLift(ctx, x, time) {
+  function skiLift(ctx, x, time, snowy) {
     const vr = viewRange(ctx, 90), cy = (wx) => GY - LIFT_H - LIFT_SLOPE * (wx - x), xl = Math.max(vr[0], x - 760), xr = vr[1];
     const fade = (wx) => sstep(x - 760, x - 440, wx), ang = -atan2(LIFT_SLOPE, 1);
     if (xr < x - 760 || xl > x + 3000) return;
@@ -846,7 +880,7 @@
         if (wx < vr[0] - 40 || wx > vr[1] + 40) continue;
         const a = fade(wx) * sstep(0, 60, pos) * sstep(0, 60, LEN - pos); if (a < 0.02) continue;
         ctx.save(); ctx.translate(wx, cy(wx) + (far ? -3.5 : 0));
-        liftChair(ctx, k, face, far, time, wx - x, a * (far ? 0.92 : 1)); ctx.restore();
+        liftChair(ctx, k, face, far, time, wx - x, a * (far ? 0.92 : 1), snowy); ctx.restore();
       }
     };
     cable(-3.5, '74,82,90', 1, 1.5);
@@ -873,6 +907,15 @@
       ctx.restore();
     }
     ctx.fillStyle = '#e8b92a'; ctx.fillRect(-27, -206, 4, 7); ctx.fillRect(23, -206, 4, 7);
+    if (snowy) {
+      snowCap(ctx, -28, 28, -207, 4.2, x * 0.01);
+      icicles(ctx, -25, 25, -198, 9, 9, x * 0.01);
+      snowCap(ctx, -26, 26, -10, 3.4, x * 0.01 + 3); snowCap(ctx, -20, 20, -15, 2.4, x * 0.01 + 4);
+      ctx.fillStyle = '#f5f8fb';
+      for (let i = 0; i < 9; i++) { const h = 15 + i * 20.5 + 10.25; ell(ctx, 0, -h - 1.2, 2.6 - i * 0.12, 1.1); }
+      ctx.fillStyle = 'rgba(150,176,204,0.55)'; ell(ctx, 0, -10, 30, 3);
+      ctx.fillStyle = '#f5f8fb'; ell(ctx, 0, -10.6, 28, 2.4);
+    }
     ctx.restore();
     cable(0, '37,43,49', 1, 1.9); cable(-0.7, '223,230,234', 0.5, 0.6);
     chairs(false);
@@ -880,7 +923,7 @@
   }
   API.skiLift = skiLift;
 
-  function container(ctx, x, locked) {
+  function container(ctx, x, locked, snowy) {
     ctx.save(); ctx.translate(x, GY);
     ctx.fillStyle = 'rgba(25,25,12,0.2)'; ell(ctx, 0, 0.8, 52, 3.4);
     ctx.fillStyle = '#1d2024'; circle(ctx, -35, -5.5, 5.5); circle(ctx, 35, -5.5, 5.5);
@@ -906,6 +949,14 @@
       ctx.strokeStyle = '#8c969d'; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.arc(2, -57, 5, PI, 0); ctx.stroke();
       ctx.fillStyle = '#d9a82e'; rr(ctx, -5.5, -57, 15, 12, 2.6); ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(-4.5, -56, 13, 2);
       ctx.fillStyle = '#4a3410'; circle(ctx, 2, -52, 1.6); ctx.fillRect(1.4, -52, 1.2, 3.4);
+    }
+    if (snowy) {
+      snowCap(ctx, -49, 49, -70, 5.2, x * 0.01);
+      icicles(ctx, -44, 44, -58, 7, 5, x * 0.01);
+      ctx.fillStyle = '#f5f8fb'; ctx.beginPath(); ctx.arc(-35, -5.5, 5.8, PI * 1.15, PI * 1.85); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.arc(35, -5.5, 5.8, PI * 1.15, PI * 1.85); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(150,176,204,0.5)'; ell(ctx, 0, -0.4, 50, 2.6);
+      ctx.fillStyle = '#f5f8fb'; blob(ctx, [-54, 1, -46, -4, -38, -1.6, -30, -3.4, 32, -3, 40, -4.6, 48, -2, 56, 1]);
     }
     ctx.restore();
   }

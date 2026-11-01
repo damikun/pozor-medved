@@ -3,18 +3,27 @@
   const GY = CFG.GROUND;
   const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
+  const SPEED = { tourist: 25, santa: 22, picker: 35 };
+  const SHY = { picker: NEWS.pickerSeen, santa: NEWS.santaSeen };
 
   function create(g, kind, o) {
-    return Object.assign({ kind, x: (o.from + o.to) / 2, dir: 1, speed: kind === 'tourist' ? 25 : 35, state: 'walk', pause: 0, filmCd: 0, dropCd: 8 }, o);
+    return Object.assign({
+      kind, x: (o.from + o.to) / 2, dir: 1, speed: SPEED[kind] || 30, state: 'walk', pause: 0, filmCd: 0, dropCd: 8,
+      react: null, reactT: 0, empty: false, clutch: false,
+    }, o);
   }
 
   function update(g, dt) {
     const b = g.bear, L = g.level;
     for (const p of g.people) {
       p.filmCd -= dt; p.dropCd -= dt;
-      if (p.state === 'flee') {
-        p.x += p.dir * 210 * dt;
-        if (Math.abs(p.x - b.x) > 1600) p.dead = true;
+      if (p.react) {
+        ZS.sim.encounters.reactPerson(g, p, dt);
+        continue;
+      }
+      if (p.state === 'flee' || p.leaving) {
+        p.x += p.dir * (p.leaving ? p.speed * 1.4 : p.clutch ? 170 : 210) * dt;
+        if (Math.abs(p.x - b.x) > 1600 || p.x < -200 || p.x > L.w + 200) p.dead = true;
         continue;
       }
       if (p.pause > 0) p.pause -= dt;
@@ -25,10 +34,10 @@
       const d = Math.abs(b.x - p.x);
       const ahead = Math.sign(b.x - p.x) === p.dir;
       const sees = (!b.covered || (b.hiding && d < 55)) && (d < 110 || (ahead && d < (p.kind === 'tourist' ? 380 : 300)));
-      if (sees && p.kind === 'picker') {
+      if (sees && SHY[p.kind]) {
         p.state = 'flee';
         p.dir = Math.sign(p.x - b.x) || 1;
-        rules().addPanic(g, 8, NEWS.pickerSeen);
+        rules().addPanic(g, 8, SHY[p.kind]);
         rules().spotted(g, p.x, GY - 100, LABELS.pickerSeen);
         ZS.sim.hunters.alert(g, b.x);
       } else if (sees && p.filmCd <= 0) {

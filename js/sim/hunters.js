@@ -16,9 +16,10 @@
     const s = Object.assign({
       kind, label: k.label, aimTime: k.aim, sweep: k.sweep, range: k.range, speed: k.speed,
       x: 0, dir: -1, from: null, to: null, crossDir: 1, lock: 0, reload: 0, life: Infinity, pause: 0, lost: 0, alertX: null,
-      sweepPause: 0, scaredT: 0,
+      sweepPause: 0, scaredT: 0, react: null, reactT: 0, armed: true, rifle: null, trackCd: 0,
     }, o);
     s.y = kind === 'posed' ? GY - 150 : GY;
+    if (kind === 'posed') { s.home = s.x; s.sway = 0; s.wobble = 0; }
     s.cross = s.x + s.dir * 200;
     return s;
   }
@@ -37,13 +38,17 @@
     const L = g.level;
     if (s.scaredT > 0) {
       s.scaredT -= dt;
-      s.x = clamp(s.x + s.dir * s.speed * 2.2 * dt, 40, CFG.LEVEL_W - 40);
+      s.x = clamp(s.x + s.dir * s.speed * 2.2 * dt, 40, L.w - 40);
       return;
     }
     if (s.kind === 'walker' || s.kind === 'poacher') {
       if (s.pause > 0) { s.pause -= dt; return; }
+      if (s.from !== null && (s.x < s.from - 2 || s.x > s.to + 2)) {
+        const home = s.x < s.from ? 1 : -1;
+        if (s.dir !== home) { s.dir = home; s.pause = 0.6; return; }
+      }
       s.x += s.dir * s.speed * (g.flags.meat ? 1.25 : 1) * dt;
-      if (s.from !== null && (s.x < s.from || s.x > s.to)) {
+      if (s.from !== null && ((s.x < s.from && s.dir < 0) || (s.x > s.to && s.dir > 0)) && s.x > s.from - 6 && s.x < s.to + 6) {
         s.dir *= -1; s.x = clamp(s.x, s.from, s.to); s.pause = 1.5;
       } else if (L.rng() < dt * 0.12) {
         s.pause = 1 + L.rng() * 2;
@@ -78,6 +83,17 @@
     }
   }
 
+  function followTracks(g, s, dt) {
+    if (s.kind !== 'walker' || !g.tracks.length || (s.trackCd -= dt) > 0) return;
+    const fresh = g.tracks.find((t) => g.time - t.t < 8 && Math.abs(t.x - s.x) < 22);
+    if (!fresh) return;
+    s.trackCd = 9;
+    s.alertX = g.bear.x;
+    s.dir = Math.sign(g.bear.x - s.x) || s.dir;
+    rules().float(g, s.x, GY - 104, LABELS.tracks, COLORS.seen);
+    if (!g.once.tracks) { g.once.tracks = true; rules().say(g, NEWS.tracks); }
+  }
+
   function aimFactor(g) {
     return g.flags.cull ? 0.85 : g.flags.emergency ? 0.92 : 1;
   }
@@ -90,10 +106,18 @@
     for (const s of g.shooters) {
       s.reload -= dt;
       if (s.kick > 0) s.kick = Math.max(0, s.kick - dt * 4);
-      if (s.life !== Infinity && (s.life -= dt) <= 0) { s.dead = true; continue; }
+      if (s.life !== Infinity && (s.life -= dt) <= 0 && !s.react) { s.react = 'gone'; s.reactT = 0; s.dir = Math.sign(s.x - b.x) || 1; }
+      if (s.react) {
+        ZS.sim.encounters.reactShooter(g, s, dt);
+        s.blocked = true;
+        if (aiming === s) aiming = null;
+        continue;
+      }
       if (s.kind !== 'ztmh' && Math.abs(s.x - b.x) > 1500) continue;
+      if (s.wobble > 0.05) { s.lock = 0; s.blocked = true; if (aiming === s) aiming = null; continue; }
       move(g, s, dt);
       if (s.dead) continue;
+      followTracks(g, s, dt);
 
       const d = Math.abs(b.x - s.x);
       if (b.hiding && d < 32 && s.kind !== 'posed' && s.scaredT <= 0) {
@@ -126,7 +150,7 @@
       sweep(s, dt);
     }
     g.shooters = g.shooters.filter((s) => !s.dead);
-    b.warn = !b.covered && g.shooters.some((s) => s.lock > 0 || (Math.abs(s.cross - b.x) < 200 && Math.abs(s.x - b.x) < s.range));
+    b.warn = !b.covered && g.shooters.some((s) => !s.react && (s.lock > 0 || (Math.abs(s.cross - b.x) < 200 && Math.abs(s.x - b.x) < s.range)));
   }
 
   ZS.sim = ZS.sim || {};

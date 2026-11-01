@@ -12,6 +12,18 @@
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Za stromom</title>
+<meta name="description" content="Satirická hra o medveďovi z Liptova: schovaj sa za strom, zvaľ poľovníka z posedu, urob si selfie s turistom a prežij leto aj zimu.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Za stromom – satirická hra o medveďovi z Liptova">
+<meta property="og:description" content="Politici z medveďov robia vinníkov všetkého a poľovníci strieľajú aj tam, kde sú chránené. Jediná istota je hrubý strom. Hraj priamo v prehliadači.">
+<meta property="og:url" content="https://damikun.github.io/pozor-medved/">
+<meta property="og:image" content="https://damikun.github.io/pozor-medved/docs/share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Medveď pri billboarde „Medveď je za každým stromom!“ a zvalený poľovník pod posedom">
+<meta property="og:locale" content="sk_SK">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐻</text></svg>">
 <link rel="stylesheet" href="css/game.css">
 </head>
 <body>
@@ -39,6 +51,10 @@
   <span class="gap"></span>
   <button data-key="ArrowDown" aria-label="Schovať sa">🌲</button>
   <button data-key="ArrowUp" aria-label="Skok">⤒</button>
+  <div class="act" id="act">
+    <button data-key="KeyC" aria-label="Objať">🤗</button>
+    <button data-key="KeyX" aria-label="Kusnúť">🦷</button>
+  </div>
 </div>
 
 <div id="screen" class="screen">
@@ -49,11 +65,13 @@
 <script src="js/core/texts.js"></script>
 <script src="js/core/util.js"></script>
 <script src="js/world/level.js"></script>
+<script src="js/world/winter.js"></script>
 <script src="js/sim/bear.js"></script>
 <script src="js/sim/hunters.js"></script>
 <script src="js/sim/people.js"></script>
 <script src="js/sim/drones.js"></script>
 <script src="js/sim/wildlife.js"></script>
+<script src="js/sim/encounters.js"></script>
 <script src="js/sim/rules.js"></script>
 <script src="js/sim/politics.js"></script>
 <script src="js/sim/loop.js"></script>
@@ -61,6 +79,7 @@
 <script src="js/render/fx.js"></script>
 <script src="js/render/art/people.js"></script>
 <script src="js/render/art/scenery.js"></script>
+<script src="js/render/art/winter.js"></script>
 <script src="js/render/art/bear.js"></script>
 <script src="js/render/backdrop.js"></script>
 <script src="js/render/props.js"></script>

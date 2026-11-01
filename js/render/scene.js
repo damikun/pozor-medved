@@ -4,18 +4,39 @@
   const { label, circle, ellipse } = ZS.gfx;
   const P = ZS.render.props;
   const B = ZS.render.backdrop;
+  const OWN_ART = { feeder: 1, punch: 1, lokse: 1, sausage: 1, carrot: 1 };
+
+  function eatenAt(L, type, x) {
+    return L.items.some((it) => it.type === type && it.x === x && it.eaten);
+  }
 
   function landmarks(ctx, g, vis, span) {
-    const L = g.level, S = ZS.scenery;
+    const L = g.level, S = ZS.scenery, A = ZS.winterArt;
     for (const hx of L.haystacks) if (vis(hx, 80)) S.haystack(ctx, hx, g.time);
-    if (span(L.salas.from, L.salas.to, 300)) {
+    if (L.salas && span(L.salas.from, L.salas.to, 300)) {
       S.koliba(ctx, L.salas.koliba, g.time);
       for (const sh of g.sheep) S.sheep(ctx, sh, g.time);
       S.pen(ctx, L.salas.pen[0], L.salas.pen[1], g.time);
     }
-    if (vis(L.hotel.x, L.hotel.w)) S.hotel(ctx, L.hotel.x, g.time);
-    if (span(L.hotel.lift - 800, L.hotel.lift + 400, 0)) S.skiLift(ctx, L.hotel.lift, g.time);
-    if (vis(L.hotel.chapel, 120)) S.chapel(ctx, L.hotel.chapel, g.time);
+    if (L.hotel) {
+      if (vis(L.hotel.x, L.hotel.w)) S.hotel(ctx, L.hotel.x, g.time);
+      if (span(L.hotel.lift - 800, L.hotel.lift + 400, 0)) S.skiLift(ctx, L.hotel.lift, g.time);
+      if (vis(L.hotel.chapel, 120)) S.chapel(ctx, L.hotel.chapel, g.time);
+    }
+    for (const c of L.cannons) if (vis(c.x, 320)) A.cannon(ctx, c, g.time);
+    for (const f of L.feeders) {
+      if (!vis(f.x, 140)) continue;
+      f.eaten = eatenAt(L, 'feeder', f.x);
+      A.feeder(ctx, f, g.time);
+    }
+    for (const s of L.stalls) {
+      if (!vis(s.x, 140)) continue;
+      s.eaten = eatenAt(L, s.kind, s.x);
+      A.stall(ctx, s, g.time);
+    }
+    if (L.chata && vis(L.chata.x, 240)) A.chata(ctx, L.chata.x, g.time);
+    if (L.lift && span(L.lift - 800, L.lift + 400, 0)) S.skiLift(ctx, L.lift, g.time, true);
+    for (const s of L.snowmen) if (vis(s.x, 90)) A.snowman(ctx, s, g.time);
   }
 
   function treesWithBear(ctx, g, vis, withBear) {
@@ -23,41 +44,58 @@
     for (const t of g.level.trees) {
       if (!vis(t.x, 170)) continue;
       if (t === b.climbing) {
-        P.trunk(ctx, t);
+        P.trunk(ctx, t, g);
         withBear(ZS.drawBearClimbing);
-        P.crown(ctx, t, season);
+        P.crown(ctx, t, season, g);
       } else if (t === b.hideTree && b.hideBlend > 0) {
         const who = b.hiding ? b : (b.fadeBear = Object.assign(b.fadeBear || {}, b, { hiding: t }));
         withBear(ZS.drawBearBehindTree, who, b.hideBlend);
-        P.tree(ctx, t, season);
+        P.tree(ctx, t, season, g);
         withBear(ZS.drawBearInFront, who, b.hideBlend);
       } else {
-        P.tree(ctx, t, season);
+        P.tree(ctx, t, season, g);
       }
     }
   }
 
-  function figures(ctx, g, vis) {
-    const b = g.bear;
-    for (const p of g.people) {
-      if (!vis(p.x, 40)) continue;
-      const h = p.h || (p.h = { aimAt: [0, 0] });
-      h.x = p.x; h.dir = p.dir; h.kind = p.kind;
-      h.state = p.state === 'flee' ? 'run' : p.kind === 'tourist' && p.filmCd > 7 ? 'film' : 'walk';
-      h.aimAt[0] = b.x; h.aimAt[1] = GY - 50;
-      ZS.drawHuman(ctx, h, g.time);
+  function view(g, o, shooter) {
+    const b = g.bear, r = o.react;
+    const h = o.h || (o.h = { aimAt: [0, 0] });
+    h.x = o.x; h.y = o.fy; h.dir = o.dir; h.kind = o.kind === 'posed' ? 'walker' : o.kind; h.outfit = g.level.theme; h.cold = b.cold;
+    h.armed = !shooter || o.armed !== false; h.empty = !!o.empty; h.clutch = !!o.clutch; h.texting = !!o.texting;
+    h.scared = false; h.kick = 0; h.rifleDir = o.rifleDir; h.rifleX = o.pickX;
+    h.aimAt[0] = b.x; h.aimAt[1] = GY - 50;
+    if (r === 'down') { h.state = 'down'; h.downPhase = o.downPhase; h.downK = o.downK; }
+    else if (r === 'drop') { h.state = 'drop'; h.dropK = o.dropK; }
+    else if (r === 'climb') { h.state = 'climbStand'; h.climbK = o.climbK; }
+    else if (r === 'home') h.state = 'walk';
+    else if (r === 'selfie') { h.state = 'selfie'; h.selfieK = o.selfieK; }
+    else if (r === 'hugged') { h.state = 'hugged'; h.hugK = o.hugK; }
+    else if (r === 'bitten') { h.state = 'bitten'; h.bitK = o.bitK; }
+    else if (r === 'pickup') { h.state = 'pickup'; h.pickK = o.pickK; }
+    else if (r === 'flee') { h.state = 'run'; h.scared = true; }
+    else if (r === 'gone') { h.state = o.clutch ? 'run' : 'walk'; h.scared = o.clutch; }
+    else if (r === 'fetch') h.state = o.rifle && o.rifle.rest ? 'walk' : 'idle';
+    else if (shooter) {
+      h.scared = o.scaredT > 0;
+      h.state = o.scaredT > 0 ? 'run' : o.lock > 0 || o.kick > 0 ? 'aim' : 'walk';
+      h.kick = o.kick || 0;
+      h.aimAt[0] = o.cross; h.aimAt[1] = GY - 30;
+    } else {
+      h.scared = o.state === 'flee';
+      h.state = o.state === 'flee' ? 'run' : o.kind === 'tourist' && o.filmCd > 7 && !o.texting ? 'film' : 'walk';
     }
+    return h;
+  }
+
+  function figures(ctx, g, vis, held) {
+    for (const p of g.people) if (p !== held && vis(p.x, 40)) ZS.drawHuman(ctx, view(g, p, false), g.time);
     for (const d of g.dogs) if (vis(d.x, 60)) ZS.scenery.dog(ctx, d, g.time);
+    for (const d of g.deer) if (vis(d.x, 70)) ZS.winterArt.deer(ctx, d, g.time);
     for (const s of g.shooters) {
-      if (!vis(s.x, 60)) continue;
-      if (s.kind === 'posed') { ZS.drawPostHunter(ctx, s, g.time); continue; }
-      const h = s.h || (s.h = { aimAt: [0, 0] });
-      h.x = s.x; h.dir = s.dir; h.kind = s.kind;
-      h.scared = s.scaredT > 0;
-      h.state = s.scaredT > 0 ? 'run' : s.lock > 0 || s.kick > 0 ? 'aim' : 'walk';
-      h.kick = s.kick || 0;
-      h.aimAt[0] = s.cross; h.aimAt[1] = GY - 30;
-      ZS.drawHuman(ctx, h, g.time);
+      if (s === held || !vis(s.x, 60)) continue;
+      if (s.kind === 'posed' && !s.react) { s.outfit = g.level.theme; s.cold = g.bear.cold; ZS.drawPostHunter(ctx, s, g.time); continue; }
+      ZS.drawHuman(ctx, view(g, s, true), g.time);
     }
   }
 
@@ -68,7 +106,7 @@
       ctx.strokeStyle = 'rgba(230,245,255,0.7)'; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.ellipse(b.x, GY - 6, 50 + Math.sin(g.time * 6) * 6, 6, 0, 0, Math.PI * 2); ctx.stroke();
     }
-    if (b.warn && !b.hiding) {
+    if (b.warn && !b.hiding && !b.inSpray) {
       const red = g.shooters.some((s) => s.lock > 0);
       label(ctx, '!', b.x, GY - 100 - Math.abs(Math.sin(g.time * 8)) * 6, 30, red ? '#e03131' : '#e8a400');
       if (L.trees.some((t) => t.hide && Math.abs(t.x - b.x) < t.w / 2 + 40)) label(ctx, LABELS.hideHint, b.x, GY - 134, 14, '#1d1d1d');
@@ -81,13 +119,30 @@
       ctx.strokeStyle = '#2f7d4f'; ctx.lineWidth = 4;
       ctx.beginPath(); ctx.arc(b.x + b.dir * 34, GY - 70, 11, -Math.PI / 2, -Math.PI / 2 + (b.eatT / 0.5) * Math.PI * 2); ctx.stroke();
     }
+    if (b.reach && !g.touch && !b.warn) {
+      const o = b.reach, post = o.post;
+      ctx.globalAlpha = 0.92;
+      label(ctx, post ? LABELS.interactStand : o.kind === 'tourist' ? LABELS.interactSelfie : LABELS.interact,
+        post ? post.x : o.x, (post ? GY - 92 : GY - 108) - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function heart(ctx, x, y, r, a) {
+    ctx.globalAlpha = a;
+    ctx.beginPath();
+    ctx.moveTo(x, y + r * 0.9);
+    ctx.bezierCurveTo(x - r * 1.6, y - r * 0.2, x - r * 0.7, y - r * 1.3, x, y - r * 0.45);
+    ctx.bezierCurveTo(x + r * 0.7, y - r * 1.3, x + r * 1.6, y - r * 0.2, x, y + r * 0.9);
+    ctx.fill();
+    ctx.globalAlpha = 1;
   }
 
   function overlays(ctx, g, vis, viewW) {
     const b = g.bear;
     for (const d of g.drones) P.drone(ctx, d, g.time);
     const aim = ZS.sim.hunters.aimFactor(g);
-    for (const s of g.shooters) if (vis(s.cross, 60) && Math.abs(s.x - b.x) < 1500) P.crosshair(ctx, s, aim);
+    for (const s of g.shooters) if (!s.react && vis(s.cross, 60) && Math.abs(s.x - b.x) < 1500) P.crosshair(ctx, s, aim, g);
     for (const sh of g.shots) {
       const a = sh.t / 0.3;
       ctx.strokeStyle = 'rgba(255,220,120,' + a + ')'; ctx.lineWidth = 2;
@@ -96,7 +151,8 @@
     }
     for (const p of g.particles) {
       ctx.fillStyle = p.color;
-      if (p.round) circle(ctx, p.x, p.y, 2.6); else ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+      if (p.heart) heart(ctx, p.x, p.y, 5 + Math.min(1, p.t) * 2, Math.min(1, p.t * 1.5));
+      else if (p.round) circle(ctx, p.x, p.y, 2.6); else ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
     }
     ZS.fx.drawFront(ctx, g, viewW);
     for (const f of g.floaters) {
@@ -108,34 +164,44 @@
   }
 
   ZS.draw = function (g, ctx, viewW, offY) {
-    const L = g.level, b = g.bear, cam = g.cam;
+    const L = g.level, b = g.bear, cam = g.cam, T = ZS.LEVEL_TEXT[L.id];
     const vis = (x, m) => x > cam - m && x < cam + viewW + m;
     const span = (a, z, m) => z > cam - m && a < cam + viewW + m;
     const hurt = b.inv > 0 ? 0.45 + 0.35 * Math.cos(g.time * 14) : 1;
     const withBear = (fn, who = b, alpha = 1) => { ctx.globalAlpha = hurt * alpha; fn(ctx, who, g.time); ctx.globalAlpha = 1; };
+    const t = b.act && b.act.target;
+    const held = t && ((b.act.kind === 'hug' && t.react === 'hugged') || (b.act.kind === 'selfie' && t.react === 'selfie')) ? t : null;
 
     ctx.save();
     ctx.translate(0, offY);
     B.sky(ctx, g, viewW, offY);
+    if (L.slope) ZS.winterArt.slope(ctx, g, viewW, offY);
     B.backForest(ctx, g, viewW, offY);
     ctx.translate(-Math.round(cam), 0);
-    B.ground(ctx, cam, viewW);
-    if (span(L.river.from, L.river.to, 60)) {
+    B.ground(ctx, cam, viewW, g);
+    if (g.tracks.length) B.tracks(ctx, g, viewW);
+    if (L.river && span(L.river.from, L.river.to, 60)) {
       ZS.scenery.river(ctx, L.river.from, L.river.to, g.time);
       for (const st of L.stones) ZS.scenery.stone(ctx, st.x, st.w, g.time);
     }
-    P.den(ctx, L.startDen, false, LABELS.springDen, g.time);
-    P.den(ctx, L.winterDen, g.fat >= CFG.FAT_GOAL, LABELS.winterDen, g.time);
-    for (const h of L.houses) if (vis(h.x, 220)) P.house(ctx, h);
+    if (L.ice && span(L.ice.from, L.ice.to, 80)) ZS.winterArt.ice(ctx, L.ice.from, L.ice.to, g.time);
+    for (const h of L.holes) if (vis(h.x, 60)) ZS.winterArt.hole(ctx, h.x, g.time);
+    P.den(ctx, L.startDen, false, T.startDen, g.time, g);
+    P.den(ctx, L.goalDen, g.fat >= g.def.fatGoal, T.goalDen, g.time, g);
+    for (const h of L.houses) if (vis(h.x, 220)) P.house(ctx, h, g);
     landmarks(ctx, g, vis, span);
     treesWithBear(ctx, g, vis, withBear);
-    for (const s of L.signs) if (vis(s.x, 160)) P.sign(ctx, s);
-    for (const p of L.posts) if (vis(p.x, 80)) P.post(ctx, p);
-    for (const lg of L.logs) if (vis(lg.x, 80)) P.log(ctx, lg);
-    for (const it of L.items) if (!it.eaten && vis(it.x, 60)) P.item(ctx, it, g.time);
+    for (const s of L.signs) if (vis(s.x, 160)) P.sign(ctx, s, g);
+    for (const p of L.posts) if (vis(p.x, 80)) P.post(ctx, p, g);
+    for (const lg of L.logs) if (vis(lg.x, 80)) P.log(ctx, lg, g);
+    for (const it of L.items) if (!it.eaten && !OWN_ART[it.type] && vis(it.x, 60)) P.item(ctx, it, g.time, g);
+    for (const p of g.props) if (vis(p.x, 60)) ZS.drawDropped(ctx, p, g.time);
     ZS.fx.drawBack(ctx, g, viewW);
-    figures(ctx, g, vis);
+    figures(ctx, g, vis, held);
     if (!b.climbing && (b.hideBlend || 0) < 1) withBear(ZS.drawBear, b, 1 - (b.hideBlend || 0));
+    if (held) ZS.drawHuman(ctx, view(g, held, g.shooters.includes(held)), g.time);
+    if (!b.climbing) withBear(ZS.drawBearHugFront);
+    for (const c of L.cannons) if (vis(c.x, 320)) ZS.winterArt.spray(ctx, c, g.time);
     bearCues(ctx, g);
     overlays(ctx, g, vis, viewW);
     ctx.restore();
