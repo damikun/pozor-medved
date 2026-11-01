@@ -1,11 +1,9 @@
-// Drawing of the world's props in world space: trees, houses, hunting stands, logs, signs, dens, food,
-// crosshairs, drones and the speech bubble. The animated bear, people and scenery live in js/render/art.
 (function () {
   const { CFG, LABELS } = ZS;
   const GY = CFG.GROUND;
   const { emoji, label, rrect, circle, ellipse } = ZS.gfx;
-  const BUK = ['#7cc35a', '#4f9a43', '#d8892f'];      // beech leaves by season
-  const BREZA = ['#a8d66a', '#8cc152', '#e6c34a'];    // birch leaves by season
+  const BUK = ['#7cc35a', '#4f9a43', '#d8892f'];
+  const BREZA = ['#a8d66a', '#8cc152', '#e6c34a'];
   const BARK = { buk: '#9b958b', smrek: '#6b4a32', breza: '#f1efe8', jablon: '#7a5534' };
 
   function trunk(ctx, t) {
@@ -63,7 +61,6 @@
     ctx.fillStyle = '#7a4b2a'; ctx.fillRect(h.x - 15, GY - 54, 30, 54);
   }
 
-  // A raised hunting stand (posed); the hunter in its window is drawn by js/render/art/people.js.
   function post(ctx, p) {
     const top = GY - 150;
     ctx.strokeStyle = '#6b4a2b'; ctx.lineWidth = 6;
@@ -108,7 +105,6 @@
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s.text, s.x, GY - 74);
   }
 
-  // A den in a hillside; the winter den glows once the bear is fat enough.
   function den(ctx, x, glow, name, time) {
     ctx.fillStyle = '#6d5a46';
     ctx.beginPath(); ctx.moveTo(x - 150, GY); ctx.quadraticCurveTo(x, GY - 230, x + 150, GY); ctx.closePath(); ctx.fill();
@@ -125,7 +121,6 @@
     const x = it.x;
     if (it.hidden) return;
     if (it.type === 'fish') {
-      // One descriptor per trout, so the scenery art can turn it along its jump arc.
       const f = it.fd || (it.fd = { id: 'fish' + Math.round(it.x0 || it.x), wiggle: (it.x0 || it.x) % 6 });
       f.x = x; f.y = it.y; f.dir = it.dir || 1;
       ZS.scenery.fish(ctx, f, time);
@@ -133,7 +128,6 @@
     }
     if (it.type === 'container') { ZS.scenery.container(ctx, x, it.locked); return; }
     if (it.y !== undefined) {
-      // Up in a tree: wild honey in a hollow, or apples in the crown.
       if (it.type === 'wildhoney') {
         ctx.fillStyle = '#2a1d12'; ellipse(ctx, x, it.y + 4, 9, 14);
         emoji(ctx, '🐝', x + 15, it.y - 15, 11);
@@ -164,7 +158,6 @@
     }
   }
 
-  // A hunter's crosshair with a dashed sight line; red with a progress ring while it is aiming.
   function crosshair(ctx, s, aimFactor) {
     const x = s.cross, y = GY - 30, locked = s.lock > 0;
     const from = s.kind === 'posed' ? [s.x, GY - 178] : [s.x + s.dir * 20, GY - 48];
@@ -193,7 +186,6 @@
     ctx.fillStyle = Math.sin(time * 6) > 0 ? '#ff3b30' : '#7a1d18'; circle(ctx, d.x, d.y + 6, 2.5);
   }
 
-  // The bear's speech bubble, fading in and out with t.
   function bubble(ctx, x, y, text, t) {
     ctx.globalAlpha = Math.min(1, t * 2);
     ctx.font = '600 15px system-ui, sans-serif';

@@ -1,12 +1,9 @@
-// People in the forest: mushroom pickers who flee and raise the alarm, and tourists who film the bear
-// and leave sandwiches behind. Neither can shoot, but both feed the media panic.
 (function () {
   const { CFG, LABELS, NEWS } = ZS;
   const GY = CFG.GROUND;
   const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
 
-  /** kind: 'picker' or 'tourist'; o: { from, to } is the stretch the person wanders. */
   function create(g, kind, o) {
     return Object.assign({ kind, x: (o.from + o.to) / 2, dir: 1, speed: kind === 'tourist' ? 25 : 35, state: 'walk', pause: 0, filmCd: 0, dropCd: 8 }, o);
   }

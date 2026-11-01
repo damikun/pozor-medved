@@ -1,12 +1,9 @@
-// Politics: media panic drives a one-way escalation (press conference, emergency, drones, the cull of 350),
-// a problem bear brings out the intervention team, and every half minute or so a satirical event happens.
 (function () {
   const { CFG, COLORS, LABELS, NEWS } = ZS;
   const GY = CFG.GROUND;
   const sim = ZS.sim;
   const say = (g, text, hot) => sim.rules.say(g, text, hot);
 
-  // New hunters appear ahead of the bear and keep their distance from the ones already in the forest.
   function spawnAhead(g, kind, extra) {
     let x = Math.min(CFG.LEVEL_W - 250, g.bear.x + g.viewW * 0.75 + Math.random() * 500);
     for (let i = 0; i < 6 && g.shooters.some((s) => Math.abs(s.x - x) < 500); i++) x = Math.min(CFG.LEVEL_W - 250, x + 450);
@@ -27,7 +24,6 @@
     if (g.problem && g.syn < CFG.CALM) { g.problem = false; say(g, NEWS.calm); }
   }
 
-  // Each event happens at most once per run.
   const EVENTS = {
     wrongbear(g) {
       g.panic = Math.max(0, g.panic - 25);

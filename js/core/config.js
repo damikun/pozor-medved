@@ -1,11 +1,5 @@
-// Game configuration: world size, timing, movement and balance numbers, and the food table.
-// Every script hangs off the single global namespace `ZS`; this file must load first.
 window.ZS = window.ZS || {};
 
-/**
- * World units: the view is VIEW_H (540) high and the ground line sits at y = GROUND; y points down.
- * Speeds are units per second and times are seconds.
- */
 ZS.CFG = {
   LEVEL_W: 12600, VIEW_H: 540, GROUND: 450, MIN_VIEW_W: 760,
   YEAR: 360,
@@ -25,19 +19,14 @@ ZS.CFG = {
   VILLAGE_NAME: 'Dolný Strach',
 };
 
-/** Colours of the floating texts. */
 ZS.COLORS = {
-  good: '#2f7d4f',     // forest food, misses, a shot that hit a tree
-  bad: '#a3261f',      // human food, warnings
-  seen: '#c0392b',     // someone spotted the bear
-  shot: '#d62f27',     // gunfire and hits
-  story: '#5a3418',    // satirical asides
+  good: '#2f7d4f',
+  bad: '#a3261f',
+  seen: '#c0392b',
+  shot: '#d62f27',
+  story: '#5a3418',
 };
 
-/**
- * Food by type. natural: forest food, picked up on touch. Human food (natural absent) has to be raided on purpose.
- * syn: how much the bear gets used to people; panic: media panic when it is eaten.
- */
 ZS.FOOD = {
   herb:      { emoji: '🌿', fat: 2,  syn: 0,  panic: 0,  natural: true, label: 'byliny' },
   ants:      { emoji: '🐜', fat: 3,  syn: 0,  panic: 0,  natural: true, label: 'mravenisko' },

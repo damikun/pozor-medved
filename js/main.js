@@ -1,5 +1,3 @@
-// Boots the game in the page: canvas scaling, the frame loop, starting, pausing and ending a run, and a small
-// dev API for the console and the browser checks (ZS.dev.game, ZS.dev.restart, ZS.dev.step).
 (function () {
   const { CFG, NEWS } = ZS;
   const { rules, loop } = ZS.sim;
@@ -10,14 +8,12 @@
   const PORTRAIT_MIN_W = 480;
   let g = null, vw = 0, vh = 0, viewW = 0, offY = 0, last = 0, hudT = 0;
 
-  // The world is VIEW_H units high; it scales to the window and never gets narrower than MIN_VIEW_W.
   function resize() {
     vw = window.innerWidth; vh = window.innerHeight;
     viewW = 0; offY = 0;
     if (vw && vh) {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.round(vw * dpr); canvas.height = Math.round(vh * dpr);
-      // A phone held upright gets a narrower view and the ground sits higher, leaving room for the buttons.
       const minW = vh > vw ? PORTRAIT_MIN_W : CFG.MIN_VIEW_W;
       const scale = Math.min(vh / CFG.VIEW_H, vw / minW);
       viewW = vw / scale;
@@ -51,7 +47,6 @@
     screens.showEnd(run, start);
   };
 
-  // The simulation runs on each frame's own time step (at most 50 ms); the HUD refreshes ten times a second.
   function frame(ts) {
     const dt = Math.min(0.05, (ts - last) / 1000 || 0);
     last = ts;
@@ -69,7 +64,6 @@
   document.addEventListener('visibilitychange', () => { if (document.hidden && g && g.running && !g.paused) togglePause(); });
   input.listen({ onPause: togglePause });
   resize();
-  // The start screen sits over a run that has not started yet, so the valley shows behind it.
   g = rules.create(input.state, { viewW });
   screens.showStart(start);
   requestAnimationFrame(frame);
@@ -77,7 +71,6 @@
   ZS.dev = ZS.dev || {};
   ZS.dev.game = () => g;
   ZS.dev.restart = start;
-  /** Runs the simulation for the given seconds without waiting for animation frames (handy in a background tab). */
   ZS.dev.step = (seconds) => {
     loop.advance(g, seconds);
     if (g.running) hud.update(g);

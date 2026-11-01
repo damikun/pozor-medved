@@ -1,9 +1,6 @@
-// Every piece of text the player sees, in one place (Slovak). Characters and headlines are invented satire;
-// the facts on the end screen are real and sourced.
 (function () {
   const ZS = window.ZS;
 
-  // Satirical headlines that fill the news ticker between real events.
   ZS.HEADLINES = [
     'Ceny masla opäť stúpli. Minister Strašiak: Za všetkým hľadajte medveďa.',
     'Diera na ceste pri Dolnom Strachu. Odborníci nevylučujú medveďa.',
@@ -22,7 +19,6 @@
     'Prieskum: 9 z 10 politikov sa bojí medveďa. Desiaty prieskum nečítal.',
   ];
 
-  // Behind a tree the bear stands upright, exactly as the minister warned. Each tree gets its own pose.
   ZS.POSES = ['stiff', 'peek', 'sweat', 'hug'];
   ZS.QUIPS = {
     stiff: ['Brucho dnu!', 'Nedýchať…', 'Ja som strom. Ja som strom.', 'Presne ako hovoril minister Strašiak.'],
@@ -32,7 +28,6 @@
     climb: ['Minister vravel za stromom. Ja som na strome.', 'Odtiaľto vidím až na Kriváň.', 'Hore ma nikto nehľadá.', 'Konárik, drž ma.'],
   };
 
-  // News ticker lines for things that actually happen in the game.
   ZS.NEWS = {
     springStart: 'Začína jar. Medvede vychádzajú z brlohov, politici z tlačoviek.',
     summer: 'Leto: v lese dozreli čučoriedky.',
@@ -66,7 +61,6 @@
     constitution: 'Ústavný zákon o medveďovi: medveď sa nesmie odvolať.',
   };
 
-  // Short labels drawn in the world: floating texts, signs and dens.
   ZS.LABELS = {
     bang: 'PRÁSK!',
     treeHit: 'Trafil strom!',
@@ -87,7 +81,6 @@
     billboard: ['Medveď je za', 'každým stromom!'],
   };
 
-  // Screens and HUD.
   ZS.UI = {
     title: 'Za stromom',
     subtitle: 'Satirická hra o medveďovi z Liptova',
@@ -138,7 +131,6 @@
     pop: { text: 'Genetická štúdia z roku 2023 odhadla na Slovensku asi 1 056 medveďov (1 012 – 1 275).', src: 'TASR / Startitup', url: 'https://www.startitup.sk/stat-ukazal-pravdu-o-medvedoch-nie-su-vobec-premnozene-ukazala-velka-studia/' },
   };
 
-  // Endings by kind; `facts` are keys of ZS.FACTS shown on the end screen.
   ZS.ENDINGS = {
     win: { title: 'Prežil si zimu', text: 'Zaľahol si do brlohu s plným bruchom. Ministerstvo hlási, že medveďa pri Dolnom Strachu „úspešne vyriešilo“.', facts: ['food', 'opinion', 'pop'] },
     starve: { title: 'Zima prišla skôr ako tuk', text: 'Do brlohu si išiel hladný. Aspoň si nikomu nezavadzal.', facts: ['food', 'cull', 'media'] },

@@ -1,5 +1,3 @@
-// The backdrop, drawn in screen space before the world: sky, parallax Tatras and ridge, a hazy back row
-// of trees, and the ground strip under the main layer.
 (function () {
   const { CFG } = ZS;
   const GY = CFG.GROUND;
@@ -12,7 +10,6 @@
     grad.addColorStop(0, SKY[s][0]); grad.addColorStop(1, SKY[s][1]);
     ctx.fillStyle = grad; ctx.fillRect(0, -offY, viewW, GY + offY);
 
-    // The Tatras, with snow on the peaks.
     const mx = g.cam * 0.15, pts = L.mountains;
     ctx.fillStyle = '#8399ae';
     ctx.beginPath(); ctx.moveTo(0, GY);
@@ -29,7 +26,6 @@
       ctx.closePath(); ctx.fill();
     }
 
-    // A nearer forested ridge.
     const rx = g.cam * 0.35;
     ctx.fillStyle = '#5c8a5f';
     ctx.beginPath(); ctx.moveTo(0, GY);
@@ -42,7 +38,6 @@
     }
   }
 
-  // The back row moves a little slower than the main layer and sits in a light haze.
   function backForest(ctx, g, viewW, offY) {
     const px = g.cam * 0.85, season = g.seasonIdx;
     const leaf = ['#4f8a45', '#3d7238', '#a8692c'][season];
@@ -70,7 +65,6 @@
     ctx.fillRect(0, -offY, viewW, GY + offY);
   }
 
-  // Drawn in world space: soil, grass, the path and tufts of grass.
   function ground(ctx, cam, viewW) {
     ctx.fillStyle = '#6b4f35'; ctx.fillRect(cam - 10, GY, viewW + 20, 2000);
     ctx.fillStyle = '#5f9a3e'; ctx.fillRect(cam - 10, GY, viewW + 20, 14);

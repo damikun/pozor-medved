@@ -1,4 +1,3 @@
-// The start, pause and end screens shown over the game.
 (function () {
   const { CFG, UI } = ZS;
   const $ = (id) => document.getElementById(id);
@@ -22,7 +21,6 @@
     $('btnResume').onclick = onResume;
   }
 
-  /** The end screen: the ending, the run's numbers and three real facts with their sources. */
   function showEnd(g, onAgain) {
     const kind = g.ending, e = ZS.ENDINGS[kind];
     let text = e.text, facts = e.facts.slice();

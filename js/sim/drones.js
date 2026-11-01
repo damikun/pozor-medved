@@ -1,4 +1,3 @@
-// The army's drones: they patrol around the bear and light the ground; only cover hides the bear from them.
 (function () {
   const { LABELS, NEWS } = ZS;
   const { clamp } = ZS.util;

@@ -4,7 +4,8 @@
   "private": true,
   "description": "Satirická 2D hra v prehliadači o medveďovi z Liptova, ktorý sa skrýva za stromom.",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "test:update": "UPDATE_FIXTURES=1 node --test"
   },
   "engines": {
     "node": ">=20"

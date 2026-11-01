@@ -1,10 +1,8 @@
-// Small canvas helpers shared by the renderers.
 (function () {
   const ZS = window.ZS;
   const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
   const emojiCache = new Map();
 
-  /** Draws an emoji centred at (x, y); each emoji and size is rendered once and then reused. */
   function emoji(ctx, ch, x, y, size) {
     const key = ch + size;
     let c = emojiCache.get(key);
@@ -20,7 +18,6 @@
     ctx.drawImage(c, x - c.width / 2, y - c.height / 2);
   }
 
-  /** Centred bold text with a white outline, readable over any background. */
   function label(ctx, text, x, y, size, color, weight) {
     ctx.font = (weight || 700) + ' ' + size + 'px system-ui, sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -30,7 +27,6 @@
     ctx.fillText(text, x, y);
   }
 
-  /** Filled rounded rectangle. */
   function rrect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);

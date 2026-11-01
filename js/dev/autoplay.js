@@ -1,11 +1,7 @@
-// An autopilot that plays like a careful human: for play-testing, the regression tests and as a demo with ?bot
-// in the URL. ZS.dev.bot.reaction is how often it looks around, in seconds; mode 'runner' never hides or
-// stops to eat.
 (function () {
   const { CFG } = ZS;
   const bot = { reaction: 0.25, mode: null };
 
-  // 0 = calm, 1 = a crosshair or drone is coming, 2 = someone is aiming right now.
   function threat(g) {
     const b = g.bear;
     let worst = 0;
@@ -21,7 +17,6 @@
     return worst;
   }
 
-  // How much fat the bear should have by now to reach the goal before winter.
   function pace(g) {
     return 20 + (CFG.FAT_GOAL - 20) * Math.min(1, g.bear.x / g.level.winterDen) - 5;
   }
@@ -31,7 +26,6 @@
     g.input.jumpKey = key;
   }
 
-  // The nearest thick trunk; the one ahead wins unless it is more than 40 units further than the one behind.
   function nearestTrunk(L, b) {
     const ahead = L.trees.find((t) => t.hide && t.x > b.x + 10);
     let behind = null;
@@ -40,7 +34,6 @@
     return ahead.x - b.x <= b.x - behind.x + 40 ? ahead : behind;
   }
 
-  // Hops from stone to stone across the river instead of wading the whole way, and jumps over logs.
   function hopObstacles(g, dir) {
     const b = g.bear, L = g.level, r = L.river;
     if (r && dir > 0 && b.x > r.from - 60 && b.x < r.to) {
@@ -54,17 +47,15 @@
     }
   }
 
-  /** Sets this step's keys in g.input, as a player would hold them. */
   function autopilot(g, dt) {
     const b = g.bear, L = g.level, keys = g.input.keys;
     const runner = bot.mode === 'runner';
     keys.clear();
-    const ai = g.ai || (g.ai = { t: 0, danger: 0 });
-    ai.t -= dt || 0;
-    if (ai.t <= 0) { ai.t = bot.reaction; ai.danger = threat(g); }
-    const danger = runner ? 0 : ai.danger;
+    const pilot = g.pilot || (g.pilot = { t: 0, danger: 0 });
+    pilot.t -= dt || 0;
+    if (pilot.t <= 0) { pilot.t = bot.reaction; pilot.danger = threat(g); }
+    const danger = runner ? 0 : pilot.danger;
 
-    // Up a tree: keep climbing to the honey or into cover while in danger, otherwise come down.
     if (b.climbing) {
       const honey = L.items.find((it) => !it.eaten && it.type === 'wildhoney' && Math.abs(it.x - b.climbing.x) < 20);
       keys.add(honey || danger ? 'ArrowUp' : 'ArrowDown');
@@ -74,25 +65,22 @@
       const honey = L.items.find((it) => !it.eaten && it.type === 'wildhoney' && Math.abs(it.x - b.x) < 26);
       if (honey) { jump(g, 'ArrowUp'); keys.add('ArrowUp'); return; }
     }
-    // Fishing: stand still in the stream for a few seconds where a trout keeps jumping.
     if (b.inWater && !danger && !runner) {
       const fish = L.items.find((it) => it.type === 'fish' && !it.eaten && Math.abs((it.x0 || it.x) - b.x) < 30);
-      ai.fishT = (ai.fishT || 0) + (dt || 0);
-      if (fish && ai.fishT < 4) return;
+      pilot.fishT = (pilot.fishT || 0) + (dt || 0);
+      if (fish && pilot.fishT < 4) return;
     } else {
-      ai.fishT = 0;
+      pilot.fishT = 0;
     }
     if (b.hiding && danger) { keys.add('ArrowDown'); return; }
     const reach = (t) => t.hide && Math.abs(t.x - b.x) < t.w / 2 + 34;
     if (danger && b.onGround && L.trees.some(reach)) { keys.add('ArrowDown'); return; }
 
-    // Forest food is picked up on the way; stop to raid human food only when behind on fat.
     if (!danger && !runner && b.onGround && g.fat < pace(g)) {
       const food = L.items.find((it) => !it.eaten && !it.locked && !ZS.FOOD[it.type].natural && Math.abs(it.x - b.x) < 24);
       if (food) return;
     }
 
-    // In danger with no trunk at hand: sprint to the nearest one. Otherwise walk on.
     let dir = 1;
     if (danger) {
       const target = nearestTrunk(L, b);

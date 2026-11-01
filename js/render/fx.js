@@ -1,25 +1,11 @@
-// Cheap ambient effects: butterflies and pollen in spring and summer, falling leaves in autumn, birds that burst out of the
-// canopy at a shot, and dust puffs. All state lives in g.fx and stays near the camera (g.cam .. g.cam + viewW).
-// Under about 60 live particles in total: ambient <= 26 (+ a few shaken leaves), birds <= 9, dust <= 16.
-//
-//   ZS.fx.init(g)                     set up g.fx (also done lazily by every other call)
-//   ZS.fx.update(g, dt, viewW?)       needs g.cam and g.seasonIdx (0 spring, 1 summer, 2 autumn); pass viewW if you have it
-//   ZS.fx.drawBack(ctx, g, viewW)     world coordinates, after the trees and before the characters
-//   ZS.fx.drawFront(ctx, g, viewW)    world coordinates, on top
-//   ZS.fx.onShot(g, x)                birds burst out of the canopy near world x, a few leaves shake loose
-//   ZS.fx.dust(g, x, y, n, dir?)      n dust puffs at the feet; dir (+1/-1) throws them backwards, for sprinting
-//   ZS.fx.count(g)                    live particles (for debugging)
-//   g.fx.shafts = false               turns the soft light beams off
 (function () {
   const GY = ZS.CFG.GROUND;
   const TAU = Math.PI * 2;
   const rnd = (a, b) => a + Math.random() * (b - a);
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   const MAX = { ambient: 26, shaken: 5, birds: 9, dust: 16, total: 58 };
-  const BACK = 0.94, FRONT = 1.18;   // parallax of the back and front layer (1 = moves with the ground)
+  const BACK = 0.94, FRONT = 1.18;
 
-  // How many of each ambient kind live in each season (0 spring, 1 summer, 2 autumn).
-  // bf butterflies, pol pollen (spring) / dandelion seeds (summer), gn gnats, lf falling leaves.
   const TARGET = [
     { bf: 4, pol: 14, gn: 0, lf: 0 },
     { bf: 4, pol: 8, gn: 4, lf: 0 },
@@ -31,7 +17,6 @@
   const LEAF_GREEN = ['#6fae52', '#4f8a45', '#8cc152'];
 
   function ensure(g) { return g.fx || init(g); }
-  // The view width is only known once update() or a draw call receives it: spread the particles over it the first time.
   function setView(f, g, vw) {
     if (!vw || vw === f.viewW) return;
     const first = !f.vwKnown;
@@ -50,8 +35,6 @@
     return f;
   }
 
-  // Puts an ambient particle on screen: 'init' anywhere (already faded in), 'in' anywhere (fades in), 'edge' on the side
-  // where things drift in.
   function place(f, p, g, how) {
     const cam = g.cam || 0, vw = f.viewW;
     const sx = how === 'edge' ? (f.flow > 0 ? -rnd(20, 120) : vw + rnd(20, 120)) : rnd(-30, vw + 30);
@@ -76,7 +59,7 @@
       p.s = rnd(3.2, 5); p.col = pick(LEAF_AUTUMN); p.y = how === 'init' ? GY - rnd(30, 380) : GY - rnd(230, 400); p.vy = rnd(24, 44); p.vr = rnd(-2.2, 2.2); p.rot = rnd(0, TAU);
     }
     place(f, p, g, how);
-    if (k === 'gn') {   // a swarm shares one centre
+    if (k === 'gn') {
       if (!f.swarm || f.swarm.n >= 4) f.swarm = { x: p.px, y: GY - rnd(40, 160), n: 0 };
       f.swarm.n++; p.cx = f.swarm.x; p.cy = f.swarm.y; p.px = p.cx; p.y = p.cy; p.s = rnd(8, 15);
     }
@@ -84,7 +67,6 @@
     return p;
   }
 
-  // A leaf shaken loose at world x (not counted against the season's target).
   function addLeaf(f, g, x, y, color) {
     if (total(f) >= MAX.total) return;
     const p = addAmbient(f, g, 'lf', 'in');
@@ -105,7 +87,6 @@
     f.wind = 14 + 12 * Math.sin(f.t * 0.23) + 6 * Math.sin(f.t * 0.61 + 1.3);
     f.flow = f.wind * 0.5 - f.camV;
 
-    // Keep the number of ambient particles at the season's target: fade extras out, add missing ones slowly.
     const tg = TARGET[g.seasonIdx | 0] || TARGET[0], live = { bf: 0, pol: 0, gn: 0, lf: 0 };
     for (const p of f.parts) if (!p.sh && !p.fade) live[p.k]++;
     f.spawnCd -= dt;
@@ -141,7 +122,6 @@
         p.y += p.vy * dt; p.rot += p.vr * dt;
         if (p.y >= GY - rnd(0, 5)) { p.y = GY - rnd(0, 5); p.land = 0.001; }
       }
-      // Left the view: come back in on the side where things drift in.
       const sx = p.px - p.f * cam;
       if (p.k !== 'gn' && (sx < -160 || sx > vw + 160)) {
         if (p.sh) { f.parts.splice(i, 1); continue; }
@@ -172,7 +152,6 @@
     }
   }
 
-  // A few birds burst out of the canopy near x and fly away; a handful of leaves shake loose.
   function onShot(g, x) {
     const f = ensure(g);
     const n = Math.min(MAX.birds - f.birds.length, 4 + Math.floor(Math.random() * 3));
@@ -189,7 +168,6 @@
     for (let i = 0; shaken + i < MAX.shaken && i < 4; i++) addLeaf(f, g, x + rnd(-90, 90), GY - rnd(190, 330), pick(green ? LEAF_GREEN : LEAF_AUTUMN));
   }
 
-  // Small dust puffs, e.g. dust(g, bear.x, GY, 6) on a landing or dust(g, bear.x, GY, 1, bear.dir) while sprinting.
   function dust(g, x, y, n, dir) {
     const f = ensure(g);
     for (let i = 0; i < (n || 1); i++) {
@@ -201,7 +179,6 @@
     }
   }
 
-  // --- Drawing ---------------------------------------------------------------------------------
   function butterfly(ctx, p, x, y) {
     const d = p.dir, s = p.s, w = 0.22 + 0.78 * Math.abs(Math.sin(p.fl));
     ctx.fillStyle = p.col;
@@ -215,14 +192,14 @@
 
   function pollen(ctx, p, x, y, summer) {
     const tw = 0.65 + 0.35 * Math.sin(p.ph * 3), r = p.s;
-    if (summer) {   // dandelion seed: a dot with a few fine rays
+    if (summer) {
       ctx.fillStyle = 'rgba(255,255,255,' + (0.85 * tw).toFixed(2) + ')';
       ctx.beginPath(); ctx.arc(x, y, r * 0.7, 0, TAU); ctx.fill();
       ctx.strokeStyle = 'rgba(255,255,255,' + (0.55 * tw).toFixed(2) + ')'; ctx.lineWidth = 0.6;
       ctx.beginPath();
       for (let i = 0; i < 5; i++) { const a = -2.2 + i * 0.55 + p.ph * 0.1; ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * r * 3.4, y + Math.sin(a) * r * 3.4); }
       ctx.stroke();
-    } else {        // pollen: a pale dot in a soft halo
+    } else {
       ctx.fillStyle = 'rgba(244,236,140,' + (0.2 * tw).toFixed(2) + ')';
       ctx.beginPath(); ctx.arc(x, y, r * 2.4, 0, TAU); ctx.fill();
       ctx.fillStyle = 'rgba(246,240,150,' + (0.9 * tw).toFixed(2) + ')';
@@ -256,8 +233,6 @@
     ctx.globalAlpha = 1;
   }
 
-  // Soft slanted beams of light through the canopy, drawn over the trees and behind the characters. They start far above the
-  // top of the view (the camera can show sky above y = 0) and end on the ground line.
   function shafts(ctx, g, viewW) {
     const f = g.fx, cam = g.cam || 0, s = g.seasonIdx | 0, par = 0.8, gap = 330, top = -240;
     ctx.fillStyle = s === 2 ? 'rgb(255,208,140)' : 'rgb(255,247,200)';
@@ -272,7 +247,6 @@
     ctx.globalAlpha = 1;
   }
 
-  // A jackdaw-like bird in profile; the wing sweeps from above the back to below the belly.
   function bird(ctx, b) {
     if (b.wait > 0) return;
     const fly = Math.sin(b.ph), d = b.vx >= 0 ? 1 : -1;

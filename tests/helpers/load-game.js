@@ -1,7 +1,3 @@
-// Loads the game's scripts into a fresh sandbox, in the order index.html lists them, so the tests run the same
-// code as the page. Without a renderer it takes the configuration, the level, the simulation, the effects (the
-// simulation steps them), the keyboard state and the autopilot; withRenderer adds the drawing code, which then
-// draws into the mock canvas from mock-canvas.js.
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
@@ -17,10 +13,6 @@ function pageScripts() {
   return [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map((m) => m[1]);
 }
 
-/**
- * Returns the sandbox's ZS namespace. seed makes Math.random inside the sandbox repeatable; with withRenderer,
- * problems collects the bad canvas calls.
- */
 function loadGame({ seed, withRenderer = false, problems = [] } = {}) {
   const sandbox = { console };
   sandbox.window = sandbox;

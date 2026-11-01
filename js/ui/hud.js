@@ -1,4 +1,3 @@
-// The HUD over the canvas: meters, season and lives, political badges, the news ticker and touch buttons.
 (function () {
   const { CFG, UI } = ZS;
   const $ = (id) => document.getElementById(id);
@@ -6,7 +5,6 @@
 
   function bar(id, value) { $(id).querySelector('i').style.width = value + '%'; }
 
-  /** Shows the HUD and ticker for a new run; touch buttons only on touch screens. */
   function showPlaying() {
     $('hud').hidden = false;
     $('ticker').hidden = false;
@@ -38,7 +36,6 @@
     return '<span class="badge' + (variant ? ' ' + variant : '') + '">' + text + '</span>';
   }
 
-  /** Cross-fades the ticker to the next line; hot lines are highlighted. */
   function showNews(item) {
     const el = $('tickerText');
     el.classList.add('fade');

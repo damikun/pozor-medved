@@ -1,8 +1,6 @@
-// Small shared helpers.
 (function () {
   const ZS = window.ZS;
 
-  /** A seeded pseudo-random generator: the same seed always builds the same level. */
   function mulberry32(seed) {
     return function () {
       seed |= 0; seed = (seed + 0x6d2b79f5) | 0;

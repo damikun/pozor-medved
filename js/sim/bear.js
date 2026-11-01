@@ -1,12 +1,10 @@
-// The bear: walking, sprinting, creeping, jumping, hiding behind trunks, climbing trees, wading and eating.
-// Pure simulation: it reads the held keys from g.input and changes g.bear; drawing lives in js/render.
 (function () {
   const { CFG, COLORS, LABELS } = ZS;
   const GY = CFG.GROUND;
   const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
-  const HALF = 38;                         // half the bear's length, for log collisions
-  const CLIMB_UP = 110, CLIMB_DOWN = 170;  // climbing speeds
+  const HALF = 38;
+  const CLIMB_UP = 110, CLIMB_DOWN = 170;
 
   function create() {
     return {
@@ -16,8 +14,6 @@
       climbing: null, climbV: 0, climbT: 0, inCanopy: false, covered: false,
     };
   }
-
-  // --- Hiding ----------------------------------------------------------------------
 
   function startHiding(g, b, t) {
     b.pose = ZS.POSES[Math.floor(t.shade * ZS.POSES.length) % ZS.POSES.length];
@@ -29,7 +25,6 @@
     }
   }
 
-  // Cosmetic only: the bear sweats when a crosshair comes close and peeks toward the nearest hunter.
   function whileHiding(g, b, dt) {
     b.hideT += dt;
     let near = null;
@@ -44,9 +39,6 @@
     }
   }
 
-  // --- Climbing: slow and exposed on the trunk, invisible once the leaves cover it ---
-
-  // y of the hind feet where the crown starts to cover the bear, and the highest it can go.
   function coverY(t) {
     if (t.kind === 'smrek') return GY - t.h * 0.3 - 25;
     if (t.kind === 'jablon') return GY - 70;
@@ -69,14 +61,12 @@
       b.x = t.x + b.dir * (t.w / 2 + 24); b.vy = -150; b.onGround = false;
       return;
     }
-    // ↓ wins over ↑, so holding both never leaves the bear stuck halfway.
     b.climbV = down ? 1 : up ? -1 : 0;
     if (b.climbV < 0) b.y = Math.max(topY(t), b.y - CLIMB_UP * dt);
     if (b.climbV > 0) b.y += CLIMB_DOWN * dt;
     if (b.y >= GY) {
       b.y = GY; b.vy = 0; b.onGround = true;
       b.climbing = null; b.inCanopy = false; b.covered = false; b.climbV = 0;
-      // ↓ is still held from climbing down; it must be released before it means "hide" again.
       b.hideLatch = true;
       return;
     }
@@ -91,9 +81,6 @@
     }
   }
 
-  // --- Movement ---------------------------------------------------------------------
-
-  // Logs block the way unless the bear jumps on or over them.
   function blockByLogs(L, b, nx) {
     for (const lg of L.logs) {
       if (b.y <= GY - lg.h + 2) continue;
@@ -104,7 +91,6 @@
     return nx;
   }
 
-  // Sprinting costs breath: about three seconds of it, then the bear has to walk until it recovers.
   function updateStamina(b, keys, dt, left, right, hide) {
     if (b.tired && b.stamina > 0.35) b.tired = false;
     b.running = (keys.has('ShiftLeft') || keys.has('ShiftRight')) && !b.tired && (left || right) && !hide;
@@ -112,14 +98,12 @@
     if (b.stamina === 0) b.tired = true;
   }
 
-  // Held keys apply: ↓ hides behind the nearest thick trunk, or creeps when there is none.
   function updateHiding(g, b, dt, hide) {
     const L = g.level;
     if (!hide || g.input.downReleased) b.hideLatch = false;
     g.input.downReleased = false;
     if (hide && b.onGround && !b.hideLatch) {
       if (!b.hiding) {
-        // The nearest thick trunk wins, even when a birch stands closer.
         const near = L.trees.filter((tr) => Math.abs(tr.x - b.x) < tr.w / 2 + 40);
         const t = near.filter((tr) => tr.hide).sort((p, q) => Math.abs(p.x - b.x) - Math.abs(q.x - b.x))[0];
         if (t) { b.hiding = t; startHiding(g, b, t); }
@@ -130,7 +114,6 @@
     }
     b.crouch = hide && !b.hiding && b.onGround && !b.hideLatch;
     b.covered = !!b.hiding;
-    // A short cross-fade between "in front of the tree" and "behind it", so hiding never pops.
     if (b.hiding) b.hideTree = b.hiding;
     b.hideBlend = clamp((b.hideBlend || 0) + (b.hiding ? dt : -dt) / 0.18, 0, 1);
     if (!b.hiding && b.hideBlend === 0) b.hideTree = null;
@@ -140,7 +123,6 @@
     const L = g.level;
     const dx = (right ? 1 : 0) - (left ? 1 : 0);
     if (dx) b.dir = dx;
-    // ↓ with ← or → creeps low; the bear slips behind the first thick trunk it reaches.
     b.moving = dx !== 0;
     if (b.inWater) b.running = false;
     if (b.moving) {
@@ -149,8 +131,6 @@
       b.x = clamp(blockByLogs(L, b, nx), 40, CFG.LEVEL_W - 40);
       b.walkT += dt * (b.running ? 1.5 : b.crouch ? 0.6 : 1);
     }
-    // Holding ↑ at a thick trunk climbs it, walking or not; the hold counts, not just the press, so ↑ held
-    // while still hidden climbs as soon as ↓ is let go. ↓ always wins, and a log right ahead means jump.
     const up = keys.has('ArrowUp') || keys.has('KeyW');
     const logAhead = L.logs.some((lg) => {
       const f = b.dir > 0 ? lg.x - lg.w / 2 - b.x : b.x - (lg.x + lg.w / 2);
@@ -161,17 +141,14 @@
     if (trunk) {
       b.climbing = trunk; b.climbT = 0; b.climbV = -1; b.inCanopy = false; b.onGround = false; b.vy = 0; b.y = GY - 6;
       b.hideBlend = 0; b.hideTree = null;
-      ZS.fx.onShot(g, trunk.x);   // birds leave the crown when a bear starts up the trunk
+      ZS.fx.onShot(g, trunk.x);
     } else if ((jump || b.jumpBuffer > 0) && (b.onGround || b.coyote > 0)) {
-      // Water drags at the legs, so a jump out of the river is lower.
       b.vy = -CFG.JUMP * (b.inWater ? 0.8 : 1); b.onGround = false; b.coyote = 0; b.jumpBuffer = 0;
     } else if (jump) {
-      // Pressed a moment too early, still in the air: jump as soon as the feet touch down.
       b.jumpBuffer = 0.14;
     }
   }
 
-  // Gravity, landing on logs, stones and the ground, plus the river and the dust and splashes it makes.
   function updatePhysics(g, b, dt) {
     const L = g.level;
     b.vy += CFG.GRAVITY * dt;
@@ -190,7 +167,6 @@
     } else {
       b.onGround = false;
     }
-    // A few frames of grace after walking off a log or a stone, and a short memory of an early jump press.
     b.coyote = b.onGround ? 0.1 : wasOnGround && b.vy >= 0 ? 0.1 : Math.max(0, (b.coyote || 0) - dt);
     b.jumpBuffer = Math.max(0, (b.jumpBuffer || 0) - dt);
     const r = L.river;
@@ -205,14 +181,9 @@
     }
   }
 
-  // --- Eating -----------------------------------------------------------------------
-
-  // Forest food is picked up on touch: walking, mid-jump, or on the way up a tree. Apples up in a crown
-  // count as human food (somebody's orchard) but are taken the same way, by climbing to them.
   function pickUp(g, b) {
     for (const it of g.level.items) {
       if (it.eaten || it.hidden || (!ZS.FOOD[it.type].natural && it.y === undefined)) continue;
-      // Trout are caught the way bears fish: standing still in the stream, or with a leap.
       if (it.type === 'fish' && b.moving && b.onGround) continue;
       if (it.y === undefined) {
         if (Math.abs(it.x - b.x) < 34) rules().eat(g, it);
@@ -222,7 +193,6 @@
     }
   }
 
-  // Human food is a choice: the bear has to stop at a bin or a hive for half a second to raid it.
   function raidHumanFood(g, b, dt) {
     const it = b.onGround && !b.moving && !b.hiding
       ? g.level.items.find((i) => !i.eaten && !i.locked && !ZS.FOOD[i.type].natural && Math.abs(i.x - b.x) < 30) : null;
@@ -234,8 +204,6 @@
       b.eatT = 0;
     }
   }
-
-  // --- One simulation step ---------------------------------------------------------------
 
   function update(g, dt) {
     const b = g.bear, keys = g.input.keys;
@@ -260,7 +228,6 @@
     }
     updatePhysics(g, b, dt);
 
-    // A sprint is loud: hunters within range swing their crosshairs toward the noise.
     b.noiseT -= dt;
     if (b.running && b.moving && b.noiseT <= 0) {
       b.noiseT = 0.6;

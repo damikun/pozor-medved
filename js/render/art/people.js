@@ -1,26 +1,3 @@
-// Human figures: hunters, the state bear team, poachers, mushroom pickers and tourists, plus the hunter in the stand window.
-// Side view, canvas paths only. A figure is built from a small skeleton (two-bone IK for legs and arms) in local
-// coordinates: feet on y = 0, up is negative, +x is forward. The walk phase follows the ground, so feet do not slide.
-//
-//   ZS.drawHuman(ctx, h, time)
-//     h = { x, dir, kind, state, aimAt, id?, y?, shadow? }
-//       x      feet x (world); the feet stand on ZS.CFG.GROUND unless h.y is given
-//       dir    +1 / -1, the way the figure faces
-//       kind   'walker' | 'ztmh' | 'poacher' | 'picker' | 'tourist'
-//       state  'idle' | 'walk' | 'run' | 'aim' (walker, ztmh, poacher) | 'film' (tourist); anything unknown is 'idle'
-//       aimAt  [x, y] world point for 'aim' and 'film'. The figure turns to face it.
-//       scared true: a frightened face (and flailing arms where the hands are free) while running; pickers and tourists always are
-//       The legs follow the real movement of x, so a hunter who keeps walking while he aims does not skate.
-//       id     any stable number or string: keeps the walk phase and the eased transitions between frames. Without an id
-//              the same h object is used as the key, so reuse one h per person. A fresh object each frame still works
-//              (phase is then derived from x), only the transitions are not eased.
-//     time    game time in seconds; must grow while the game runs
-//   ZS.drawPostHunter(ctx, s, time)   s = a 'posed' shooter { x, cross, lock }; the shooter object itself is the key.
-//   ZS.muzzle(o)                      o = the h object, a stand shooter s, or a shooter whose descriptor is stored as o.h.
-//                                     Returns [x, y] of the rifle muzzle as last drawn (null if none): start the shot line there
-//   h.kick / s.kick  0..1             just fired: the rifle jumps and a muzzle flash shows; let it decay over ~0.2 s. Keep the
-//                                     state 'aim' while it is above 0.
-//   ZS.POST_WINDOW = { half, top, bot }   optional: the stand's window if post() is redrawn (default 46 wide, GROUND-195..-177)
 (function () {
   const GY = ZS.CFG.GROUND;
   const PI = Math.PI, TAU = PI * 2;
@@ -29,7 +6,6 @@
   const lerp = (a, b, t) => a + (b - a) * t;
   const frac = (v) => v - Math.floor(v);
 
-  // Proportions in world units: about 72 tall before a hat.
   const D = { thigh: 15.2, shin: 15.2, ank: 3.2, hip: 33, tor: 21, neck: 11.5, hr: 7, ua: 11.6, fa: 11 };
   const LMAX = D.thigh + D.shin - 0.3;
 
@@ -57,7 +33,6 @@
   };
   const CAN_AIM = { walker: 1, ztmh: 1, poacher: 1 };
 
-  // Darker (k < 1) or lighter (k > 1) version of a #rrggbb colour, memoised.
   const shadeCache = {};
   function dk(hex, k) {
     const key = hex + k;
@@ -70,7 +45,6 @@
     return v;
   }
 
-  // --- Drawing primitives --------------------------------------------------------
   function circle(ctx, x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
   function ell(ctx, x, y, rx, ry, rot) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot || 0, 0, TAU); ctx.fill(); }
   function rr(ctx, x, y, w, h, r) {
@@ -78,7 +52,6 @@
     ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
     ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); ctx.fill();
   }
-  // A tapered limb segment with round ends.
   function limb(ctx, ax, ay, bx, by, wa, wb, col) {
     const dx = bx - ax, dy = by - ay, d = hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d;
     ctx.fillStyle = col;
@@ -88,7 +61,6 @@
     ctx.closePath(); ctx.fill();
     circle(ctx, ax, ay, wa / 2); circle(ctx, bx, by, wb / 2);
   }
-  // A shoe or boot foot, rotated about the ankle (positive = toes down).
   function shoe(ctx, leg, col, sole, len) {
     ctx.save();
     ctx.translate(leg.ax, leg.ay); ctx.rotate(leg.rot);
@@ -101,8 +73,6 @@
     ctx.restore();
   }
 
-  // --- Two-bone IK ---------------------------------------------------------------------
-  // bend = +1 puts the middle joint on the +x side of the line (knees), -1 on the other (elbows).
   const IK = { mx: 0, my: 0, ex: 0, ey: 0 };
   function ik(x0, y0, tx, ty, l1, l2, bend) {
     let dx = tx - x0, dy = ty - y0, d = hypot(dx, dy);
@@ -113,9 +83,6 @@
     IK.mx = x0 + cos(t) * l1; IK.my = y0 + sin(t) * l1; IK.ex = x0 + dx; IK.ey = y0 + dy;
   }
 
-  // --- Animation state per figure -----------------------------------------------------
-  // Keyed by h.id when given (a Map, swept now and then), otherwise by the object itself. Without any persistence the
-  // phase is simply derived from x, which still gives non-sliding feet but no eased transitions.
   const byId = new Map(), byObj = new WeakMap();
   let sweepAt = 0;
 
@@ -144,12 +111,9 @@
     return st;
   }
 
-  // Moves the animation state on to `time`: the phase advances with the distance walked, never with the clock. The legs
-  // follow the actual movement whatever the state says (a hunter who keeps walking while he aims does not skate);
-  // `hint` is only used on the first frame, before any movement has been seen.
   function advance(st, h, L, hint, wantRun, wantAim, face, time) {
     const dt = time - st.t;
-    const strideNow = () => lerp(L.walkS, L.runS, st.runK) * L.scale;   // world units per full stride
+    const strideNow = () => lerp(L.walkS, L.runS, st.runK) * L.scale;
     if (!(dt >= 0 && dt < 0.3) || abs(h.x - st.x) > 90) {
       st.runK = wantRun ? 1 : 0; st.amt = hint ? 1 : 0; st.aimK = wantAim ? 1 : 0; st.v = hint ? 40 : 0;
       st.phase = face * h.x / strideNow();
@@ -164,7 +128,6 @@
     st.x = h.x; st.t = time;
   }
 
-  // --- Pose solver -----------------------------------------------------------------------
   const mkLeg = () => ({ ax: 0, ay: 0, kx: 0, ky: 0, rot: 0 });
   const mkArm = () => ({ ex: 0, ey: 0, wx: 0, wy: 0 });
   const R = {
@@ -175,10 +138,8 @@
   };
   const ft = [{ x: 0, y: 0, rot: 0 }, { x: 0, y: 0, rot: 0 }];
   const TP = { x: 0, y: 0 };
-  // A point given in the torso frame (origin at the pelvis, tilted by the lean) in figure coordinates.
   function tp(tx, ty) { TP.x = R.px + tx * R.cl - ty * R.sl; TP.y = R.py + tx * R.sl + ty * R.cl; }
 
-  // Where the foot of one leg is at gait phase p: planted and moving back while it carries the body, then swung forward.
   function footTrack(o, p, duty, half, lift) {
     if (p < duty) {
       const u = p / duty;
@@ -195,8 +156,6 @@
 
   function setLeg(lg, rot) { lg.kx = IK.mx; lg.ky = IK.my; lg.ax = IK.ex; lg.ay = IK.ey; lg.rot = rot; }
 
-  // Arm from the shoulder: swing angle u (from straight down, forward positive) and forearm flex f, blended towards a
-  // grip point (tx, ty) by g.
   function arm(a, u, f, g, tx, ty) {
     const e1x = R.sx + D.ua * sin(u), e1y = R.sy + D.ua * cos(u), t = u + f;
     const w1x = e1x + D.fa * sin(t), w1y = e1y + D.fa * cos(t);
@@ -210,12 +169,11 @@
     const film = state === 'film', breath = sin(tm * 1.9 + sd), shift = sin(tm * 0.45 + sd);
     const p0 = frac(st.phase), cN = cos(TAU * p0);
 
-    // Legs: gait blended with a relaxed idle stance and the wider aiming stance.
     const S = lerp(L.walkS, L.runS, runK), duty = lerp(0.6, 0.38, runK), half = S * duty * 0.5, lift = lerp(4.5, 10.5, runK);
     footTrack(ft[0], p0, duty, half, lift); footTrack(ft[1], frac(p0 + 0.5), duty, half, lift);
     let nx = lerp(3 + shift * 0.8, ft[0].x, amt), ny = lerp(0, ft[0].y, amt), nr = lerp(0, ft[0].rot, amt);
     let fx = lerp(-3 + shift * 0.8, ft[1].x, amt), fy = lerp(0, ft[1].y, amt), fr = lerp(0, ft[1].rot, amt);
-    const stand = aimK * (1 - amt);   // the planted aiming / filming stance, only while standing still
+    const stand = aimK * (1 - amt);
     if (stand > 0) {
       nx = lerp(nx, film ? -3.5 : -6.5, stand); fx = lerp(fx, film ? 4.5 : 9.5, stand);
       ny = lerp(ny, 0, stand); fy = lerp(fy, 0, stand); nr = lerp(nr, 0, stand); fr = lerp(fr, 0, stand);
@@ -230,7 +188,6 @@
     ik(R.px, R.py, nx, -(D.ank + ny), D.thigh, D.shin, 1); setLeg(R.legN, nr);
     ik(R.px, R.py, fx, -(D.ank + fy), D.thigh, D.shin, 1); setLeg(R.legF, fr);
 
-    // Torso and head.
     let lean = L.stoop + amt * (0.03 + 0.26 * runK);
     lean = lerp(lean, film ? 0.0 : 0.1, aimK);
     R.lean = lean; R.cl = cos(lean); R.sl = sin(lean);
@@ -243,7 +200,6 @@
     R.yaw = 1;
     R.scared = K.panic && runK > 0.4 && amt > 0.4;
 
-    // Arms: swing against the legs, or flail when scared.
     const sw = lerp(0.42, 0.85, runK) * amt;
     let uN = 0.05 - sw * cN, uF = 0.03 + sw * cN;
     let fN = lerp(0.18, 1.35, runK * amt) + 0.45 * Math.max(0, -cN) * amt * (1 - runK) + 0.25 * -cN * amt * runK;
@@ -260,7 +216,6 @@
     }
     let gN = 0, gF = 0, gnx = 0, gny = 0, gfx = 0, gfy = 0;
 
-    // Rifle: carried (slung, in the crook, at the ready) or shouldered towards the target.
     const rf = R.rf;
     rf.mode = '';
     if (CAN_AIM[K.kind]) {
@@ -272,14 +227,14 @@
       const aa = clamp(atan2(K.ty - ay, Math.max(8, K.tx - ax)), -0.95, 0.85) + sin(tm * 1.3 + sd) * 0.004 + sin(tm * 2.9 + sd) * 0.002;
       rf.mode = L.gun; rf.ox = lerp(cx, ax, aimK); rf.oy = lerp(cy, ay, aimK); rf.ang = lerp(ca, aa, aimK);
       rf.behind = L.carry === 'sling' && aimK < 0.35;
-      rf.kick = K.kick * aimK;                                   // recoil: the rifle jumps back and the muzzle flips up
+      rf.kick = K.kick * aimK;
       rf.ox -= 2.6 * rf.kick; rf.ang -= 0.15 * rf.kick;
       gN = Math.max(gN, aimK); gF = Math.max(gF, aimK);
       if (L.carry === 'sling') { gN = aimK; gF = aimK; }
       const ux = cos(rf.ang), uy = sin(rf.ang);
       gnx = rf.ox + ux * 13 - uy * 2.4; gny = rf.oy + uy * 13 + ux * 2.4;
       gfx = rf.ox + ux * 25 - uy * 3.2; gfy = rf.oy + uy * 25 + ux * 3.2;
-      if (aimK > 0) {   // cheek on the stock
+      if (aimK > 0) {
         R.hx = lerp(R.hx, R.sx + 3.4 - 0.9 * rf.kick, aimK); R.hy = lerp(R.hy, R.sy - 8.6, aimK); R.hang = lerp(R.hang, aa * 0.5, aimK);
       }
     } else if (film) {
@@ -297,7 +252,6 @@
       st.mz[1] = GY + L.scale * (rf.oy + sin(rf.ang) * 42.5);
     }
 
-    // Things hanging in or held by the near hand.
     const a = R.armN;
     if (L.carry === 'basket') {
       const sway = sin(TAU * p0 - 0.8) * 0.16 * amt + (K.panic ? sin(TAU * p0 * 2) * 0.12 * runK * amt : 0);
@@ -310,7 +264,6 @@
     }
   }
 
-  // --- Body parts ------------------------------------------------------------------------
   function drawLeg(ctx, K, lg, far) {
     const L = K.L, kind = K.kind, f = far ? 0.76 : 1;
     let thigh = L.pants, shin = L.pants, boot = L.boots, bootF = 0.45, sock = null;
@@ -338,7 +291,7 @@
     const hand = kind === 'ztmh' ? '#16181a' : L.skin;
     limb(ctx, R.sx, R.sy, a.ex, a.ey, 5.8, 4.8, dk(sleeve, f));
     limb(ctx, a.ex, a.ey, a.wx, a.wy, 4.8, 3.8, dk(kind === 'tourist' ? L.skin : sleeve, f));
-    if (kind === 'tourist') {   // short T-shirt sleeve
+    if (kind === 'tourist') {
       limb(ctx, R.sx, R.sy, R.sx + (a.ex - R.sx) * 0.55, R.sy + (a.ey - R.sy) * 0.55, 6.4, 6, dk(L.coat, f));
     }
     if (kind === 'ztmh' && !far) limb(ctx, a.ex + (a.wx - a.ex) * 0.2, a.ey + (a.wy - a.ey) * 0.2, a.ex + (a.wx - a.ex) * 0.3, a.ey + (a.wy - a.ey) * 0.3, 4.9, 4.7, L.stripe);
@@ -364,7 +317,7 @@
     ctx.save();
     ctx.translate(R.px, R.py); ctx.rotate(R.lean);
     ctx.fillStyle = L.coat;
-    if (kind === 'poacher') {                       // hunched back and a ragged hem
+    if (kind === 'poacher') {
       ell(ctx, -5.2, -16, 4.4, 5.2);
       for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.moveTo(-5.6 + i * 3.6, 2.4); ctx.lineTo(-3.8 + i * 3.6, 6.4 - (i % 2) * 1.6); ctx.lineTo(-2 + i * 3.6, 2.4); ctx.fill(); }
     } else if (kind === 'picker') ell(ctx, -5.6, -15.5, 4.2, 5.4);
@@ -403,7 +356,7 @@
       ctx.fillStyle = dk(L.coat, 0.7);
       for (let i = 0; i < 3; i++) circle(ctx, 3.6, -20 + i * 3, 0.7);
     } else if (kind === 'tourist') {
-      ctx.fillStyle = '#f3f6f9';   // a little white Tatra on the shirt
+      ctx.fillStyle = '#f3f6f9';
       ctx.beginPath(); ctx.moveTo(1, -12); ctx.lineTo(3.4, -17.5); ctx.lineTo(5.4, -13.6); ctx.lineTo(6.6, -15); ctx.lineTo(7.6, -12); ctx.closePath(); ctx.fill();
       ctx.strokeStyle = '#3b3f4a'; ctx.lineWidth = 2.2; ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(-2.2, -23); ctx.quadraticCurveTo(5.6, -20, 5.4, -10); ctx.lineTo(-3, -2); ctx.stroke();
@@ -442,17 +395,13 @@
     ctx.restore();
   }
 
-  // --- Head ---------------------------------------------------------------------------------
-  // Drawn in head coordinates: origin at the centre of the head, +x forward. yaw in -1..1 slides the face sideways (used
-  // for the hunter in the stand, who turns his head without turning the body).
   function drawHead(ctx, K, tm) {
     const L = K.L, kind = K.kind, yaw = R.yaw, scared = R.scared;
     const skin = L.skin, skinD = dk(skin, 0.86);
     ctx.save();
     ctx.translate(R.hx, R.hy); ctx.rotate(R.hang);
-    ctx.fillStyle = skinD; ctx.fillRect(-3.4, 3, 6.4, 9.5);      // neck
-    if (kind === 'poacher') { ctx.fillStyle = '#343a2c'; rr(ctx, -4.4, 6.4, 9.4, 5, 2); }   // neck gaiter
-    // hair at the back
+    ctx.fillStyle = skinD; ctx.fillRect(-3.4, 3, 6.4, 9.5);
+    if (kind === 'poacher') { ctx.fillStyle = '#343a2c'; rr(ctx, -4.4, 6.4, 9.4, 5, 2); }
     if (kind !== 'picker') {
       ctx.fillStyle = L.hair; ell(ctx, -4.4 * yaw, 1.8, 3.3, 4.7);
       if (kind === 'poacher') {
@@ -460,14 +409,13 @@
       }
     }
     ctx.fillStyle = skin; circle(ctx, 0, 0, D.hr);
-    ctx.fillStyle = skinD; circle(ctx, -1.6 * yaw, 1, 1.8);                    // ear
-    ctx.fillStyle = skin; circle(ctx, 7.2 * yaw, 1.1, 1.9);                    // nose
-    if (kind === 'poacher') {                                                  // stubble and a sour mouth
+    ctx.fillStyle = skinD; circle(ctx, -1.6 * yaw, 1, 1.8);
+    ctx.fillStyle = skin; circle(ctx, 7.2 * yaw, 1.1, 1.9);
+    if (kind === 'poacher') {
       ctx.fillStyle = 'rgba(52,38,26,0.5)';
       ctx.beginPath(); ctx.arc(0, 0, D.hr, 0.15, 1.9); ctx.lineTo(1, 2); ctx.closePath(); ctx.fill();
     }
     if (kind === 'picker' || kind === 'tourist') { ctx.fillStyle = 'rgba(224,110,110,0.32)'; circle(ctx, 3 * yaw, 3, 1.7); }
-    // eye
     const ex = 3.5 * yaw, blink = frac(tm / 3.7 + K.seed) < 0.025;
     if (scared) {
       ctx.fillStyle = '#fff'; circle(ctx, ex, -0.8, 2); ctx.fillStyle = '#2a1d12'; circle(ctx, ex + 0.6, -0.7, 1);
@@ -487,7 +435,7 @@
     ctx.fillStyle = '#7a3b32';
     if (scared) { ell(ctx, 4.8 * yaw, 4.3, 1.3, 1.9); }
     else { ctx.fillRect(3.4 * yaw, 4, 2.4 * yaw, 0.8); }
-    if (kind === 'walker') { ctx.fillStyle = '#5a3a24'; ell(ctx, 5 * yaw, 2.9, 3.1, 1.2); }   // moustache
+    if (kind === 'walker') { ctx.fillStyle = '#5a3a24'; ell(ctx, 5 * yaw, 2.9, 3.1, 1.2); }
     hat(ctx, K, tm);
     ctx.restore();
   }
@@ -496,12 +444,12 @@
     const L = K.L, kind = K.kind, yaw = R.yaw;
     if (kind === 'walker') {
       ctx.save(); ctx.rotate(-0.07);
-      ctx.fillStyle = dk(L.hat, 0.85); ell(ctx, 0.6, -4.6, 10.6, 2.3);                      // brim
+      ctx.fillStyle = dk(L.hat, 0.85); ell(ctx, 0.6, -4.6, 10.6, 2.3);
       ctx.fillStyle = L.hat;
       ctx.beginPath(); ctx.moveTo(-6.4, -4.7); ctx.lineTo(-5.2, -11.6); ctx.quadraticCurveTo(0, -12.6, 5.6, -11.4); ctx.lineTo(6.8, -4.7); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#7a5c3a'; ctx.fillRect(-6.5, -6.6, 13.3, 2);                          // band
+      ctx.fillStyle = '#7a5c3a'; ctx.fillRect(-6.5, -6.6, 13.3, 2);
       ctx.fillStyle = dk(L.hat, 1.25); ctx.fillRect(-4.8, -11, 2.6, 0.9);
-      const fs = K.small ? 0.6 : 1;                                                          // feather (shorter in the stand)
+      const fs = K.small ? 0.6 : 1;
       ctx.translate(-3.6, -6.4); ctx.scale(fs, fs); ctx.translate(3.6, 6.4);
       ctx.strokeStyle = '#e8d9b0'; ctx.lineWidth = 1.1; ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(-3.6, -6.4); ctx.quadraticCurveTo(-8.6, -10, -11.4, -17); ctx.stroke();
@@ -539,7 +487,6 @@
     }
   }
 
-  // --- Things the figures carry --------------------------------------------------------------
   function drawRifle(ctx, rf, tm) {
     const kind = rf.mode, tac = kind === 'tac', old = kind === 'old';
     ctx.save();
@@ -565,7 +512,7 @@
         ctx.fillStyle = 'rgba(190,225,255,0.8)'; ctx.fillRect(26.6, -5.4, 0.9, 2);
       } else { ctx.fillStyle = '#b9b49a'; ctx.fillRect(26, -0.9, 2.2, 2.4); }
     }
-    if (rf.kick > 0.35) {   // muzzle flash
+    if (rf.kick > 0.35) {
       const k = (rf.kick - 0.35) / 0.65, r = 4 + 8 * k;
       ctx.fillStyle = 'rgba(255,190,60,' + (0.6 + 0.4 * k).toFixed(2) + ')';
       ctx.beginPath();
@@ -612,7 +559,6 @@
     circle(ctx, p.x, p.y + 0.4, 2.4);
   }
 
-  // --- Putting a figure together ---------------------------------------------------------------
   const K = {
     kind: 'walker', L: LOOK.walker, state: 'idle', face: 1, seed: 0, tx: 200, ty: -48,
     panic: false, glasses: false, squint: false, small: false, kick: 0,
@@ -634,7 +580,6 @@
     if (kind === 'tourist') drawPhone(ctx, K, tm, K.state === 'film' && st.aimK > 0.5);
   }
 
-  // h = { x, dir, kind, state, aimAt, id? } ; x is where the feet are, on the ground line.
   ZS.drawHuman = function (ctx, h, time) {
     if (!(time >= 0)) time = 0;
     const kind = LOOK[h.kind] ? h.kind : 'walker', L = LOOK[kind];
@@ -665,9 +610,6 @@
     ctx.restore();
   };
 
-  // --- The hunter in the window of the raised stand --------------------------------------------
-  // Geometry of post() in js/render/props.js: the dark window is 46 wide, from GY - 195 to GY - 177 around s.x. Override with
-  // ZS.POST_WINDOW = { half, top, bot } if the stand is redrawn.
   const WIN = { half: 23, top: GY - 195, bot: GY - 177 };
   const POST_SCALE = 0.82;
   const posts = new WeakMap();
@@ -713,7 +655,6 @@
     arm(R.armF, 0, 0, 1, ox + ux * 25 - uy * 3.2, oy + uy * 25 + ux * 3.2);
 
     K.small = true;
-    // Inside the window: head and shoulders, a little darker as he sits inside the hut.
     ctx.save();
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     winClip(ctx, w, cx);
@@ -727,7 +668,6 @@
     ctx.fillStyle = 'rgba(20,12,6,0.3)'; ctx.fillRect(cx - w.half, w.top, w.half * 2, 3);
     ctx.restore();
     K.small = false;
-    // The sill, then his arms and the rifle resting over it.
     ctx.save();
     ctx.fillStyle = '#5a3d22'; ctx.fillRect(cx - w.half - 2, w.bot - 0.5, w.half * 2 + 4, 3.2);
     ctx.fillStyle = '#7a5534'; ctx.fillRect(cx - w.half - 2, w.bot - 0.5, w.half * 2 + 4, 1);
@@ -739,10 +679,8 @@
     ctx.restore();
   };
 
-  // World position [x, y] of the rifle muzzle in the pose drawn last for h (or for a stand shooter s); null before the first
-  // draw or for figures without a rifle. Use it to start the shot line and the crosshair line at the barrel.
   ZS.muzzle = function (o) {
-    const k = o.h && typeof o.h === 'object' ? o.h : o;   // a shooter whose descriptor is stored as o.h works too
+    const k = o.h && typeof o.h === 'object' ? o.h : o;
     const st = posts.get(o) || byObj.get(k) || (k.id !== undefined && k.id !== null ? byId.get(k.id) : null);
     return st && st.mz && (st.mz[0] || st.mz[1]) ? st.mz : null;
   };

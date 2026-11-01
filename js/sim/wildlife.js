@@ -1,11 +1,9 @@
-// Animals other than the bear: trout in the Váh, the shepherd dog at the salaš and the sheep in its pen.
 (function () {
   const { CFG, LABELS, NEWS } = ZS;
   const GY = CFG.GROUND;
   const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
 
-  // Trout wait under water, then leap between the stones; a bear standing in the stream or leaping catches them.
   function updateFish(g, dt) {
     for (const it of g.level.items) {
       if (it.type !== 'fish' || it.eaten) continue;
@@ -26,7 +24,6 @@
     return { x: (o.from + o.to) / 2, from: o.from, to: o.to, dir: 1, state: 'walk', alert: 0, barkCd: 0, id: 'dog' };
   }
 
-  // A guard dog patrols the pasture; when it sees the bear it closes in, holds its ground and barks. It never attacks.
   function updateDogs(g, dt) {
     const b = g.bear;
     for (const d of g.dogs) {
@@ -57,7 +54,6 @@
     return { x: o.x, from: o.from, to: o.to, dir: i % 2 ? -1 : 1, state: 'graze', t: Math.random() * 4, id: 'sheep' + i };
   }
 
-  // Sheep graze inside the pen and bunch away from a bear on the other side of the fence.
   function updateSheep(g, dt) {
     const b = g.bear;
     for (const s of g.sheep) {

@@ -1,5 +1,3 @@
-// Hunters, the intervention team and poachers. Each one sweeps a crosshair along the ground and,
-// when allowed, locks onto a bear it can see and fires once the aim time has passed.
 (function () {
   const { CFG, COLORS, LABELS, NEWS } = ZS;
   const GY = CFG.GROUND;
@@ -13,7 +11,6 @@
     poacher: { aim: 0.8,  sweep: 130, range: 400, speed: 70,  label: 'pytliak' },
   };
 
-  /** kind: 'posed' (raised hide), 'walker', 'ztmh' (intervention team) or 'poacher'; o overrides the defaults. */
   function create(g, kind, o) {
     const k = KIND[kind];
     const s = Object.assign({
@@ -32,7 +29,6 @@
     return a < b ? [a, b] : [b, a];
   }
 
-  /** Points every crosshair within 1000 units at x, for example after a dog barked or a drone saw the bear. */
   function alert(g, x) {
     for (const s of g.shooters) if (Math.abs(s.x - x) < 1000) s.alertX = x;
   }
@@ -65,7 +61,6 @@
     }
   }
 
-  // Sweep the crosshair, or swing it to a reported position; at each end it lingers a moment.
   function sweep(s, dt) {
     const [lo, hi] = sweepLimits(s);
     if (s.alertX !== null) {
@@ -75,7 +70,6 @@
     } else if (s.sweepPause > 0) {
       s.sweepPause -= dt;
     } else {
-      // The pause at each end of the sweep is the window to slip past.
       s.cross += s.crossDir * s.sweep * dt;
       if (s.cross > hi || s.cross < lo) {
         s.cross = clamp(s.cross, lo, hi); s.crossDir *= -1;
@@ -84,7 +78,6 @@
     }
   }
 
-  /** Politics makes everyone aim faster: the emergency by 8 %, the cull of 350 by 15 %. */
   function aimFactor(g) {
     return g.flags.cull ? 0.85 : g.flags.emergency ? 0.92 : 1;
   }
@@ -93,7 +86,6 @@
     const b = g.bear;
     const quick = aimFactor(g);
     const courtPause = g.time < g.courtUntil;
-    // Only one hunter aims at a time, so two crosshairs never close on the bear together.
     let aiming = g.shooters.find((s) => s.lock > 0) || null;
     for (const s of g.shooters) {
       s.reload -= dt;
@@ -104,7 +96,6 @@
       if (s.dead) continue;
 
       const d = Math.abs(b.x - s.x);
-      // A hunter who walks into a bear behind a tree gets the fright of his life and runs.
       if (b.hiding && d < 32 && s.kind !== 'posed' && s.scaredT <= 0) {
         s.scaredT = 4; s.dir = Math.sign(s.x - b.x) || 1; s.lock = 0; s.pause = 0;
         rules().float(g, s.x, GY - 110, LABELS.hunterScared, COLORS.bad);
@@ -115,7 +106,6 @@
       const free = !aiming || aiming === s;
       s.blocked = !allowed;
 
-      // Nobody can aim straight down from a raised hide, so right under it is a blind spot.
       const blind = s.kind === 'posed' && d < 70;
       const close = s.kind !== 'posed' && d < 90;
       if (allowed && free && !blind && !b.covered && facing && d < s.range && b.inv <= 0 && (Math.abs(s.cross - b.x) < 40 || close)) {
@@ -127,7 +117,6 @@
         if (s.lock >= s.aimTime * quick && s.reload <= 0) { rules().fire(g, s); s.lock = 0; s.reload = 3; aiming = null; }
         continue;
       }
-      // The bear ducked behind a trunk at the last moment: the shot hits the tree.
       if (allowed && b.covered && s.lock > s.aimTime * quick * 0.6 && s.reload <= 0 && Math.abs(s.cross - b.x) < 60) {
         rules().fire(g, s, 'tree'); s.reload = 3;
       }

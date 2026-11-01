@@ -1,10 +1,8 @@
-// One fixed simulation step, in the order everything has to happen, and a helper to run many of them.
 (function () {
   const { CFG, NEWS } = ZS;
   const GY = CFG.GROUND;
   const sim = ZS.sim;
 
-  /** The camera keeps the bear a little left of centre and never shows past the ends of the level. */
   function cameraX(g) {
     return Math.max(0, Math.min(CFG.LEVEL_W - g.viewW, g.bear.x - g.viewW * 0.38));
   }
@@ -40,7 +38,6 @@
     if (g.bubble && (g.bubble.t -= dt) <= 0) g.bubble = null;
   }
 
-  /** Advances the run by dt seconds. */
   function step(g, dt) {
     if (g.bot && ZS.dev && ZS.dev.autopilot) ZS.dev.autopilot(g, dt);
     g.time += dt;
@@ -65,7 +62,6 @@
     sim.rules.tickerStep(g, dt);
   }
 
-  /** Runs fixed 1/60 s steps for the given number of seconds, stopping when the run ends (tests and the dev API). */
   function advance(g, seconds) {
     for (let t = 0; t < seconds && g.running && !g.over; t += 1 / 60) step(g, 1 / 60);
     return g;

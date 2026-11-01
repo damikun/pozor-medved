@@ -1,5 +1,3 @@
-// Composes one frame: backdrop, ground, river, landmarks, trees (with the bear in its tree's slot when it hides
-// or climbs), props, people and animals, the bear, its cues, crosshairs, effects and floating texts.
 (function () {
   const { CFG, LABELS } = ZS;
   const GY = CFG.GROUND;
@@ -16,13 +14,10 @@
       S.pen(ctx, L.salas.pen[0], L.salas.pen[1], g.time);
     }
     if (vis(L.hotel.x, L.hotel.w)) S.hotel(ctx, L.hotel.x, g.time);
-    // The lift cable reaches far to the left of its pylon; the drawing culls itself.
     if (span(L.hotel.lift - 800, L.hotel.lift + 400, 0)) S.skiLift(ctx, L.hotel.lift, g.time);
     if (vis(L.hotel.chapel, 120)) S.chapel(ctx, L.hotel.chapel, g.time);
   }
 
-  // A bear behind or on a tree is drawn in that tree's own slot, so the trees keep their order and nothing
-  // jumps in front of anything when it hides. After a hit the bear fades in and out instead of blinking.
   function treesWithBear(ctx, g, vis, withBear) {
     const b = g.bear, season = g.seasonIdx;
     for (const t of g.level.trees) {
@@ -32,7 +27,6 @@
         withBear(ZS.drawBearClimbing);
         P.crown(ctx, t, season);
       } else if (t === b.hideTree && b.hideBlend > 0) {
-        // While fading back out after ↓ is released, a stable stand-in keeps the hiding pose.
         const who = b.hiding ? b : (b.fadeBear = Object.assign(b.fadeBear || {}, b, { hiding: t }));
         withBear(ZS.drawBearBehindTree, who, b.hideBlend);
         P.tree(ctx, t, season);
@@ -43,7 +37,6 @@
     }
   }
 
-  // People and animals keep one descriptor each (p.h, s.h), so their animation eases between frames.
   function figures(ctx, g, vis) {
     const b = g.bear;
     for (const p of g.people) {
@@ -68,7 +61,6 @@
     }
   }
 
-  // Cues around the bear: water at its paws, the warning when a crosshair is close, breath and eating.
   function bearCues(ctx, g) {
     const b = g.bear, L = g.level;
     if (b.inWater) {
@@ -115,7 +107,6 @@
     if (g.bubble) P.bubble(ctx, b.x, b.climbing ? b.y - 128 : GY - 180, g.bubble.text, g.bubble.t);
   }
 
-  /** Draws the whole frame. viewW is the visible width in world units; offY the extra sky on tall screens. */
   ZS.draw = function (g, ctx, viewW, offY) {
     const L = g.level, b = g.bear, cam = g.cam;
     const vis = (x, m) => x > cam - m && x < cam + viewW + m;

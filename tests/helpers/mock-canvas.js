@@ -1,7 +1,3 @@
-// A stand-in for a <canvas> and its 2D context, for drawing in Node. It keeps the transform (the renderers read
-// it back to skip what is off screen) and the save/restore stack, and collects calls that would draw garbage:
-// a NaN or Infinity argument, a negative radius or an alpha outside 0..1. A method or property that a real
-// context does not have throws, so a typo in the drawing code fails the test.
 'use strict';
 
 const PATH_METHODS = ['moveTo', 'lineTo', 'quadraticCurveTo', 'bezierCurveTo', 'arcTo', 'arc', 'ellipse', 'rect', 'roundRect', 'closePath'];
@@ -9,7 +5,6 @@ const DRAW_METHODS = ['beginPath', 'fill', 'stroke', 'clip', 'fillRect', 'stroke
 const PROPS = ['fillStyle', 'strokeStyle', 'lineWidth', 'lineCap', 'lineJoin', 'miterLimit', 'font', 'textAlign', 'textBaseline', 'direction',
   'globalAlpha', 'globalCompositeOperation', 'shadowBlur', 'shadowColor', 'shadowOffsetX', 'shadowOffsetY', 'lineDashOffset',
   'imageSmoothingEnabled', 'letterSpacing', 'filter'];
-// Argument positions that are radii; a browser throws on a negative one.
 const RADII = { arc: [2], arcTo: [4], ellipse: [2, 3] };
 
 const internals = new WeakMap();
@@ -23,7 +18,6 @@ function createContext(canvas, problems) {
   let m = [1, 0, 0, 1, 0, 0];
   const stack = [];
   const props = { fillStyle: '#000000', strokeStyle: '#000000', lineWidth: 1, globalAlpha: 1, font: '10px sans-serif' };
-  // Multiplies the current transform by [a b c d e f], as the canvas does.
   const apply = (a, b, c, d, e, f) => {
     m = [m[0] * a + m[2] * b, m[1] * a + m[3] * b, m[0] * c + m[2] * d, m[1] * c + m[3] * d, m[0] * e + m[2] * f + m[4], m[1] * e + m[3] * f + m[5]];
   };
@@ -72,7 +66,6 @@ function createContext(canvas, problems) {
   return ctx;
 }
 
-/** A mock <canvas> of the given size; getContext('2d') always returns its one mock context. */
 function createCanvas(width, height, problems) {
   const canvas = { width, height };
   const ctx = createContext(canvas, problems);
@@ -80,12 +73,10 @@ function createCanvas(width, height, problems) {
   return canvas;
 }
 
-/** How many save() calls are still waiting for their restore(). */
 function stackDepth(ctx) {
   return internals.get(ctx).stack.length;
 }
 
-/** A Path2D class whose methods check their arguments like the context does. */
 function makePath2D(problems) {
   return class Path2D {
     constructor() {

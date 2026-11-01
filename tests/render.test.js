@@ -1,12 +1,9 @@
-// Draws whole autopilot runs into a mock canvas, in a landscape and a portrait window: nothing throws, no NaN or
-// Infinity reaches the canvas, no radius is negative, no alpha leaves 0..1 and every save() has its restore().
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadGame } = require('./helpers/load-game');
 const { createCanvas, stackDepth } = require('./helpers/mock-canvas');
 
-// The same scaling as js/main.js: the world is 540 units high and at least 760 units wide (480 when upright).
 function viewport(width, height, dpr) {
   const scale = Math.min(height / 540, width / (height > width ? 480 : 760));
   return { width: width * dpr, height: height * dpr, scale: dpr * scale, viewW: width / scale, offY: (height / scale - 540) * 0.45 };

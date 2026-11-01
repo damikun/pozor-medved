@@ -1,6 +1,3 @@
-// The bear's controls, frame by frame, driven through the same input module as the keyboard: holding ↓ hides
-// without a single dropped frame, ↑ climbs or jumps depending on what is in reach, and coming down a tree with ↓
-// held never turns into a hide.
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -8,8 +5,6 @@ const { loadGame } = require('./helpers/load-game');
 
 const DT = 1 / 60;
 
-// A fresh run where only the bear moves. press() is a new key press, hold() a key that is already down
-// (auto-repeat, no new jump), play(n) runs n frames of the bear.
 function setup() {
   const ZS = loadGame({ seed: 1 });
   const { input } = ZS.ui;
@@ -31,7 +26,6 @@ function setup() {
 
 const thickBeech = (L) => L.trees.find((t) => t.hide && t.kind === 'buk' && t.x > 700);
 
-// A spot with no tree within 120 units and no log within 200.
 function openGround(L) {
   for (let x = 300; x < 8000; x += 5) {
     if (!L.trees.some((t) => Math.abs(t.x - x) < 120) && !L.logs.some((l) => Math.abs(l.x - x) < 200)) return x;

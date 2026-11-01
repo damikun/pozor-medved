@@ -1,14 +1,8 @@
-// One side-view run through a Liptov valley: spring den, forest, village, feeding site, birch grove,
-// a sheep farm (salaš), the river Váh, a mountain hotel, the national park and the winter den.
 (function () {
   const { CFG } = ZS;
   const GY = CFG.GROUND;
   const { mulberry32 } = ZS.util;
 
-  /**
-   * Builds the level from a seed: trees, food, logs, stones, signs, landmarks and the spawn list.
-   * Everything random comes from the seeded generator, so a seed always gives the same valley.
-   */
   ZS.makeLevel = function (seed) {
     const rng = mulberry32(seed || 11);
     const W = CFG.LEVEL_W;
@@ -33,7 +27,6 @@
       { x: 5650, w: 100, h: 32 }, { x: 6350, w: 96, h: 30 }, { x: 7500, w: 120, h: 36 },
       { x: 10700, w: 110, h: 34 }, { x: 11400, w: 96, h: 30 },
     ];
-    // Stepping stones across the Váh; their tops are low platforms.
     L.stones = [{ x: 8300, w: 64 }, { x: 8425, w: 58 }, { x: 8550, w: 66 }];
     L.signs = [
       { x: 420, text: 'Drž ↓ pri hrubom strome' },
@@ -59,7 +52,6 @@
       return { kind, x, w: 16 + rng() * 5, h: 220 + rng() * 40, r: 56, hide: false, shade: s };
     }
 
-    // Apple trees give the only cover in the village; apples lie under them and hang in the crowns.
     [2560, 2855, 3135, 3405].forEach((x) => {
       L.trees.push(makeTree('jablon', x));
       add('apple', x + 26);
@@ -78,7 +70,6 @@
       || L.logs.some((l) => Math.abs(l.x - x) < l.w / 2 + 80)
       || Math.abs(x - L.feeding) < 90
       || Math.abs(x - 2130) < 150
-      // Keep signs clear of trunks so a sign never covers a hiding bear.
       || L.signs.some((s) => !s.billboard && Math.abs(s.x - x) < 95)
       || x < 230 || x > W - 480;
     const birchGrove = (x) => x > 5820 && x < 6080;
@@ -93,22 +84,18 @@
         else { const r = rng(); kind = r < 0.5 ? 'buk' : r < 0.92 ? 'smrek' : 'breza'; }
         L.trees.push(makeTree(kind, x));
       }
-      // Cover every couple of seconds of walking; the bare mountainside near the end is sparser.
       x += birchGrove(x) ? 85 + rng() * 40 : x >= L.park.to ? 170 + rng() * 110 : 115 + rng() * 85;
     }
-    // One old beech in the middle of the birch grove, and two lone beeches on the sheep meadow.
     L.trees = L.trees.filter((t) => Math.abs(t.x - 5950) > 70);
     L.trees.push(makeTree('buk', 5950), makeTree('buk', 7040), makeTree('buk', 7660));
     L.trees.sort((a, b) => a.x - b.x);
 
-    // A darker back row that only makes the forest look dense; it gives no cover.
     L.backTrees = [];
     for (let bx = 60; bx < W; bx += 55 + rng() * 70) {
       if ((bx > L.village.from && bx < L.village.to) || (bx > H.x - H.w / 2 && bx < H.x + H.w / 2)) continue;
       L.backTrees.push({ x: bx, kind: rng() < 0.55 ? 'smrek' : 'buk', h: 170 + rng() * 120, r: 55 + rng() * 25, w: 20 + rng() * 10 });
     }
 
-    // Forest food on the ground is not enough on its own: the rest is wild honey, trout or human food.
     const noFood = (fx) => (fx > L.village.from - 60 && fx < L.village.to + 60)
       || (fx > L.river.from - 40 && fx < L.river.to + 40)
       || (fx > H.x - H.w / 2 - 40 && fx < H.x + H.w / 2 + 160)
@@ -119,10 +106,8 @@
       const r = rng();
       add(r < 0.3 ? 'berry' : r < 0.48 ? 'herb' : r < 0.62 ? 'ants' : r < 0.8 ? 'mushroom' : 'nut', fx);
     }
-    // Wild bees in old beeches: honey up in the crown, the reason to climb.
     L.trees.filter((t) => t.kind === 'buk' && t.h > 235 && t.x > 600).filter((t, i) => i % 2 === 0).slice(0, 7)
       .forEach((t) => add('wildhoney', t.x + 6, { y: GY - t.h + 14 }));
-    // Trout jump out of the Váh between the stones.
     [8245, 8365, 8490, 8610].forEach((fx) => add('fish', fx, { y: GY + 30, hidden: true, jumpT: 1 + rng() * 3, jump: -1 }));
     L.items.sort((a, b) => a.x - b.x);
 
@@ -143,7 +128,6 @@
     ];
     for (let i = 0; i < 5; i++) L.spawns.push({ kind: 'sheep', from: 7340, to: 7860, x: 7380 + i * 105 });
 
-    // Background silhouettes, drawn with parallax.
     for (let mx = -200; mx < W * 0.15 + 3200; mx += 70 + rng() * 90) {
       L.mountains.push([mx, GY - 150 - rng() * 170]);
     }
@@ -153,7 +137,6 @@
     return L;
   };
 
-  // Height of a polyline silhouette at x, used for the parallax ridges.
   ZS.silhouetteY = function (pts, x) {
     for (let i = 1; i < pts.length; i++) {
       if (pts[i][0] >= x) {
