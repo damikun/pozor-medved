@@ -1,51 +1,41 @@
 # Za stromom
 
-Satirická 2D hra v prehliadači o medveďovi z Liptova. Politici z medveďov robia vinníkov všetkého, poľovníci
-strieľajú aj tam, kde sú chránené, televízia STRACH 24 hlási jednu mimoriadnu správu za druhou a jediná istota
-je hrubý strom.
+A satirical 2D browser game about a brown bear from Liptov, Slovakia. Politicians blame bears for everything,
+hunters shoot even where bears are protected, the STRACH 24 news channel reports one breaking story after another,
+and the only safe place is behind a thick tree.
 
-**[▶ Hrať online](https://damikun.github.io/pozor-medved/)** · [English](https://damikun.github.io/pozor-medved/?lang=en)
+**[▶ Play online](https://damikun.github.io/pozor-medved/?lang=en)** · [Slovensky](https://damikun.github.io/pozor-medved/)
 · [Deutsch](https://damikun.github.io/pozor-medved/?lang=de) · [Español](https://damikun.github.io/pozor-medved/?lang=es)
 
-<a href="https://damikun.github.io/pozor-medved/"><img src="docs/screenshot.png" alt="Leto: medveď pod zameriavačom poľovníka z posedu, vedľa billboard „Medveď je za každým stromom!“"></a>
+<a href="https://damikun.github.io/pozor-medved/?lang=en"><img src="docs/screenshot.png" alt="Summer: the bear in a hunter's crosshair next to a billboard saying “There's a bear behind every tree!”"></a>
 
-<a href="https://damikun.github.io/pozor-medved/"><img src="docs/screenshot-zima.png" alt="Zima: medveď na vianočných trhoch v Hornom Strachu s lyžiarom a Mikulášom"></a>
+<a href="https://damikun.github.io/pozor-medved/?lang=en"><img src="docs/screenshot-zima.png" alt="Winter: the bear at the Christmas market in Horný Strach with a skier and St Nicholas"></a>
 
-Hra beží priamo v prehliadači, nič netreba inštalovať. Bez internetu stačí otvoriť `index.html`.
+The game runs right in the browser, nothing to install. Offline, just open `index.html`.
 
-## Levely
+## Levels
 
-- **Leto v doline**: od jarného brlohu cez Dolný Strach, salaš, hotel a národný park do zimného brlohu.
-- **Zima na svahu**: teplý advent a snežné delá ťa zobudili. Cez lyžiarske stredisko a vianočné trhy
-  v Hornom Strachu musíš dôjsť do tichého brlohu.
+- **Summer in the Valley**: from the spring den through the village of Dolný Strach, a sheepfold, a hotel and the
+  national park to the winter den.
+- **Winter on the Slopes**: a warm Advent and the snow cannons woke you up. Cross the ski resort and the Christmas
+  market of Horný Strach to reach a quiet den.
 
-**Cieľ:** dôjsť do brlohu s dosť tukom (leto 85 %, zima 65 %) a aspoň raz niekoho objať, selfie s turistom
-sa ráta tiež. Bez objatia ťa brloh nepustí.
+**Goal:** reach the den with enough fat (85% in summer, 65% in winter) and hug someone at least once; a selfie
+with a tourist counts too. Without a hug the den won't let you in.
 
-## Ovládanie
+## Controls
 
-| Kláves | Čo robí |
+| Key | What it does |
 | --- | --- |
-| ← → | chôdza |
-| Shift | šprint (na mobile dvakrát ťukni na šípku a drž) |
-| ↓ | schovať sa za hrubý strom |
-| ↑ | ťuknutím skok, podržaním pri hrubom strome lezenie |
-| medzerník | skok; dopadom na hlavu zvalíš poľovníka |
-| C | pri človeku objatie, pri turistovi selfie, pod posedom ním zatrasieš a poľovník vypadne |
-| X | kusnúť človeka (urobí z teba problémového medveďa) |
-| P | pauza |
+| ← → | walk |
+| Shift | sprint (on a phone, double-tap an arrow and hold) |
+| ↓ | hide behind a thick tree |
+| ↑ | tap to jump, hold at a thick tree to climb |
+| Space | jump; landing on a hunter's head knocks him down |
+| C | hug a person, take a selfie with a tourist, or shake a hunting stand until the hunter falls out |
+| X | bite a person (turns you into a problem bear) |
+| P | pause |
 
-Na mobile sú dotykové tlačidlá a pri ľuďoch sa ukážu aj 🤗 a 🦷.
+On phones there are touch buttons, and 🤗 and 🦷 appear next to people.
 
-## Jazyky
-
-Hra je po slovensky, anglicky, nemecky a španielsky. Jazyk prepneš cez ⚙️ v rohu úvodnej obrazovky a hra si ho
-zapamätá. Odkaz s `?lang=en`, `?lang=de` alebo `?lang=es` otvorí hru rovno v danom jazyku. Predvolený jazyk
-stránky určuje `<meta name="default-language" content="sk">` v `index.html`.
-
-## Vývoj
-
-Bez závislostí a bez buildu. Testy spustíš cez `npm test`, záznamy behov autopilota sa obnovia cez
-`npm run test:update`.
-
-Postavy, obce aj titulky sú vymyslené. Miesta okolo Pribyliny sú skutočné.
+Characters, headlines and the villages are made up. The places around Pribylina are real.
