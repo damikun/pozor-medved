@@ -1026,10 +1026,18 @@
       ctx.strokeStyle = 'rgba(240,252,255,' + al.toFixed(3) + ')'; ctx.lineWidth = 1.4;
       ctx.beginPath(); ctx.moveTo(x + hw - 2, WATER + 2 + k * 5); ctx.quadraticCurveTo(x + hw + 16, WATER + 3 + k * 5 + sin(time * 2 + k) * 1.5, x + hw + 34, WATER + 5 + k * 6); ctx.stroke();
     }
+    const deep = ctx.createLinearGradient(0, WATER, 0, WATER + 34);
+    deep.addColorStop(0, 'rgba(24,62,78,0.42)'); deep.addColorStop(1, 'rgba(24,62,78,0)');
+    ctx.fillStyle = deep;
+    ctx.beginPath();
+    ctx.moveTo(x - hw - 1, WATER);
+    ctx.bezierCurveTo(x - hw - 4, WATER + 14, x - hw * 0.7, WATER + 30, x, WATER + 32);
+    ctx.bezierCurveTo(x + hw * 0.7, WATER + 30, x + hw + 4, WATER + 14, x + hw + 1, WATER);
+    ctx.closePath(); ctx.fill();
     ctx.beginPath();
     ctx.moveTo(x - hw + 4, top); ctx.lineTo(x + hw - 4, top); ctx.quadraticCurveTo(x + hw + 1, top + 0.4, x + hw, top + 4.5);
-    ctx.bezierCurveTo(x + hw + 0.5, GY, x + hw - 0.5, GY + 16, x + hw + 3, GY + 46); ctx.lineTo(x - hw - 3, GY + 46);
-    ctx.bezierCurveTo(x - hw + 0.5, GY + 16, x - hw - 0.5, GY, x - hw, top + 4.5); ctx.quadraticCurveTo(x - hw - 1, top + 0.4, x - hw + 4, top);
+    ctx.bezierCurveTo(x + hw + 1.5, top + 8, x + hw + 1.5, WATER - 2, x + hw + 1, WATER + 1); ctx.lineTo(x - hw - 1, WATER + 1);
+    ctx.bezierCurveTo(x - hw - 1.5, WATER - 2, x - hw - 1.5, top + 8, x - hw, top + 4.5); ctx.quadraticCurveTo(x - hw - 1, top + 0.4, x - hw + 4, top);
     ctx.closePath();
     ctx.fillStyle = '#8f9893'; ctx.fill();
     ctx.save(); ctx.clip();
@@ -1037,11 +1045,9 @@
     ctx.fillStyle = 'rgba(0,0,0,0.13)'; ctx.fillRect(x + hw * 0.3, top, hw, 60);
     ctx.fillStyle = 'rgba(110,140,80,0.6)'; ell(ctx, x - hw * 0.45, top + 4.6, hw * 0.22, 1.5); ell(ctx, x + hw * 0.5, top + 3.4, hw * 0.16, 1.1);
     ctx.fillStyle = 'rgba(60,70,70,0.3)'; for (let i = 0; i < 5; i++) circle(ctx, x - hw * 0.6 + hash2(sd, i) * w * 0.8, top + 5 + hash2(i, sd) * 12, 0.7 + hash(i + sd) * 0.6);
-    const tint = ctx.createLinearGradient(0, WATER, 0, WATER + 280);
-    tint.addColorStop(0, 'rgba(141,208,224,0.38)'); tint.addColorStop(0.05, 'rgba(110,190,214,0.75)'); tint.addColorStop(0.1, 'rgba(92,175,203,1)');
-    tint.addColorStop(0.28, '#3b8db1'); tint.addColorStop(1, '#1a4562');
-    ctx.fillStyle = tint; ctx.fillRect(x - hw - 6, WATER + 0.5, w + 12, 300);
-    ctx.fillStyle = 'rgba(30,50,60,0.3)'; ctx.fillRect(x - hw - 2, WATER - 1.2, w + 4, 2.4);
+    const wet = ctx.createLinearGradient(0, WATER - 6, 0, WATER + 1);
+    wet.addColorStop(0, 'rgba(40,60,66,0)'); wet.addColorStop(1, 'rgba(40,60,66,0.45)');
+    ctx.fillStyle = wet; ctx.fillRect(x - hw - 2, WATER - 6, w + 4, 7);
     ctx.restore();
     ctx.fillStyle = 'rgba(255,255,255,0.5)'; ell(ctx, x - hw * 0.32, top + 1.1, hw * 0.3, 0.9); ell(ctx, x + hw * 0.3, top + 1.2, hw * 0.12, 0.7);
     ctx.fillStyle = 'rgba(255,255,255,' + (0.35 + 0.2 * sin(time * 2.4 + sd * 6)).toFixed(3) + ')'; circle(ctx, x - hw * 0.62, top + 2, 0.9);

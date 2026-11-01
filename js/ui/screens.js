@@ -10,6 +10,7 @@
     tips().stop();
     const card = $('screenCard');
     card.className = 'card' + (kind ? ' ' + kind : '');
+    card.removeAttribute('aria-busy');
     $('screen').classList.toggle('with-corner', kind === 'start');
     card.innerHTML = html;
     $('screen').hidden = false;
