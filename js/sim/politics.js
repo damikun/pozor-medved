@@ -38,7 +38,7 @@
     bins(g) { g.flags.binsLocked = true; g.level.items.forEach((it) => { if (it.type === 'bin') it.locked = true; }); say(g, NEWS.bins); },
     stalls(g) {
       g.flags.stallsLocked = true;
-      g.level.items.forEach((it) => { if (it.type === 'punch' || it.type === 'lokse' || it.type === 'sausage') it.locked = true; });
+      g.level.items.forEach((it) => { if (g.level.stalls.some((s) => s.kind === it.type && Math.abs(s.x - it.x) < 1)) it.locked = true; });
       say(g, NEWS.stalls);
     },
     census(g) { g.panic = Math.min(100, g.panic + 6); say(g, NEWS.census); },

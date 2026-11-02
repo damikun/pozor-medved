@@ -78,6 +78,8 @@
     sim.people.update(g, dt);
     sim.koliba.update(g, dt);
     sim.photographer.update(g, dt);
+    sim.vendors.update(g, dt);
+    sim.knock.update(g, dt);
     sim.drones.update(g, dt);
     sim.wildlife.updateDogs(g, dt);
     sim.wildlife.updateSheep(g, dt);

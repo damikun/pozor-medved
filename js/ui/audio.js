@@ -410,6 +410,17 @@
     koliba(x) { play('market.clatter', x, 1, { reach: 1.5 }); play('creak', x, 0.7, { reach: 1.5, delay: 0.1, rate: 1.2 }); },
     window(x) { play('bang.window', x, 1, { reach: 1.5 }); },
     door(x) { play('door.creak', x, 1, { reach: 1.5 }); },
+    knock(x, k) { for (let i = 0; i < 3; i++) play('impact.wood', x, 0.75 * (k || 1), { delay: i * 0.15, rate: rr(1.35, 1.5) }); },
+    creak(x) { play('door.creak', x, 0.7, { rate: 1.2 }); },
+    scream(x, v) {
+      if (v === 'f') play('voice.scream.f', x, 1, { reach: 1.4 });
+      else if (v === 'kid') play('voice.scream.f', x, 0.9, { reach: 1.4, rate: 1.3 });
+      else play('voice.yell.m', x, 1, { reach: 1.4 });
+    },
+    pour(x) { play('eat.plate', x, 0.5, { rate: 1.45 }); play('eat.lick', x, 0.35, { delay: 0.2, rate: 1.3 }); },
+    gulp(x) { play('eat.lick', x, 0.7, { rate: 0.8 }); play('bear.huff', x, 0.5, { delay: 0.3 }); },
+    hiccup(x) { play('bear.huff', x, 0.5, { rate: 1.7 }); },
+    throw(x) { play('whoosh', x, 0.7, { rate: 1.2 }); play('cloth', x, 0.6, { delay: 0.5 }); },
     lotRustle(x) { play('hide.leaves', x, 0.5, { rate: 1.15 }); },
     lotTopple(x) { play('crash.wood', x, 0.6, { reach: 1.5, rate: 1.3 }); play('hide.leaves', x, 0.9, { delay: 0.04 }); },
     lotSeller(x) { play('voice.yell.m', x, 1, { reach: 1.4 }); scurry(x, 1); },

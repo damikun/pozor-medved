@@ -16,7 +16,7 @@
       stamina: 1, tired: false, noiseT: 0, eating: false, eatT: 0,
       climbing: null, climbV: 0, climbT: 0, inCanopy: false, covered: false, upT: 0, offTree: false,
       act: null, waking: !!L && L.theme === 'winter', wakeT: 0, slide: 0, cold: 0, tag: false, inSpray: false, onIce: false,
-      trackD: 0, trackX: 240, stun: 0, zapT: 9, zapX: 0, kx: 0, crawl: false, bumpT: 0, push: 0,
+      trackD: 0, trackX: 240, stun: 0, zapT: 9, zapX: 0, kx: 0, crawl: false, bumpT: 0, push: 0, tipsy: 0, hicT: 0, hicAt: -9, knock: null,
     };
   }
 
@@ -223,7 +223,7 @@
     if (b.inWater) b.running = false;
     const ice = onIce(L, b);
     if (b.moving || (ice && Math.abs(b.vx) > 1)) {
-      const want = dx * (b.crouch ? CFG.CREEP : b.running ? CFG.RUN : CFG.WALK) * (b.inWater ? 0.6 : 1);
+      const want = dx * (b.crouch ? CFG.CREEP : b.running ? CFG.RUN : CFG.WALK) * (b.inWater ? 0.6 : 1) * (b.tipsy > 0 ? 1 + 0.12 * Math.sin(b.tipsy * 3.4) : 1);
       if (ice) b.vx += (want - b.vx) * Math.min(1, dt * (dx ? 2.4 : 0.9));
       else b.vx = want;
       b.x = moveX(g, b, b.x + b.vx * dt);
@@ -353,7 +353,8 @@
     const person = E.target(g), post = key === 'hug' && !person ? E.stand(g) : null;
     const kind = post ? 'shake' : key === 'hug' && person && (person.kind === 'tourist' || (person.kind === 'tycoon' && !person.promo)) ? 'selfie' : key;
     const target = person || post;
-    b.act = (!target && ZS.sim.photographer.act(g, b, key)) || { kind, t: 0, dur: DUR[kind], dir: b.dir, hit: !!target, target, done: false };
+    const door = !target && key === 'hug' ? ZS.sim.vendors.act(g, b) || ZS.sim.knock.act(g, b) : null;
+    b.act = door || (!target && ZS.sim.photographer.act(g, b, key)) || { kind, t: 0, dur: DUR[kind], dir: b.dir, hit: !!target, target, done: false };
     b.moving = false; b.running = false; b.crouch = false; b.eating = false; b.eatT = 0; b.vx = 0;
     if (b.act.target) E.begin(g, b.act);
   }
@@ -395,7 +396,7 @@
     wake(g, b, dt, left || right || hide || jump || bite || hug);
     if (b.climbing) { (b.climbing.ladder ? ZS.sim.ladder.climb : climb)(g, b, dt, up, hide, jump && inp.jumpKey === 'Space', (right ? 1 : 0) - (left ? 1 : 0)); return; }
 
-    if (b.act && (b.act.t += dt) >= b.act.dur) b.act = null;
+    if (b.act && (b.act.t += dt) >= b.act.dur) b.act = b.act.next || null;
     if (!b.act && !b.stun && (bite || hug) && b.onGround && !b.hiding && !underRoof(g.level, b)) startAct(g, b, bite ? 'bite' : 'hug');
     if (b.stun > 0) {
       stunned(g, b, dt);

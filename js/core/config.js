@@ -61,6 +61,7 @@ ZS.FOOD = {
   punch:       { emoji: '🍷', fat: 6,  syn: 14, panic: 8 },
   lokse:       { emoji: '🫓', fat: 9,  syn: 14, panic: 8 },
   sausage:     { emoji: '🌭', fat: 12, syn: 16, panic: 10 },
+  cheese:      { emoji: '🧀', fat: 9,  syn: 14, panic: 8 },
   carrot:      { emoji: '🥕', fat: 2,  syn: 5,  panic: 6 },
   candy:       { emoji: '🍬', fat: 5,  syn: 8,  panic: 4 },
   chatabin:    { emoji: '🗑️', fat: 13, syn: 16, panic: 10 },

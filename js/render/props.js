@@ -273,8 +273,8 @@
   }
 
   function house(ctx, h, g) {
-    const x0 = h.x - h.w / 2, top = GY - 112;
-    if (cold(g)) { winterHouse(ctx, h, x0, top, B.look(g), g.time); return; }
+    const x0 = h.x - h.w / 2, top = GY - 112, o = g && g.knock ? g.knock.list.find((q) => q.h === h) : null;
+    if (cold(g)) { winterHouse(ctx, h, x0, top, B.look(g), g.time, o, g); return; }
     ctx.fillStyle = '#efe3c8'; ctx.fillRect(x0, top, h.w, 112);
     ctx.fillStyle = '#8d3f2d'; ctx.fillRect(h.x + h.w * 0.22, top - 54, 14, 32);
     ctx.fillStyle = '#b5543c';
@@ -282,6 +282,63 @@
     ctx.fillStyle = '#fff'; ctx.fillRect(x0 + 18, top + 28, 36, 32); ctx.fillRect(x0 + h.w - 54, top + 28, 36, 32);
     ctx.fillStyle = '#a8d4ef'; ctx.fillRect(x0 + 21, top + 31, 30, 26); ctx.fillRect(x0 + h.w - 51, top + 31, 30, 26);
     ctx.fillStyle = '#7a4b2a'; ctx.fillRect(h.x - 15, GY - 54, 30, 54);
+    windows(ctx, h, x0, top, o, g, '#3d6b4f');
+  }
+
+  const PEEK = { look: '', x: 0, y: 0, face: 1, up: 0, stand: 0, act: 'peek', k: 0, kind: 'local', seed: 0, scale: 0.8, clip: null };
+  function peeker(ctx, o, x, y, g) {
+    const T = ZS.sim.knock.T, t = o.t, b = g.bear;
+    const up = sstep(T.open + 0.05, T.open + 0.3, t) * (1 - sstep(T.slam - 0.3, T.slam - 0.1, t)) * (o.who === 'kid' ? 1 - sstep(2.05, 2.25, t) : 1);
+    if (up <= 0.001) return;
+    const P = PEEK;
+    P.look = o.who; P.x = x + 18; P.y = y + 29; P.face = Math.sign(b.x - P.x) || 1; P.up = up; P.seed = o.h.x; P.k = 0;
+    P.clip = [x + 3, y + 3, 30, 26];
+    if (t < T.scare) P.act = 'peek';
+    else if (o.who === 'granny') P.act = 'pin';
+    else if (o.who === 'man' && t < T.act + 0.25) { P.act = 'throw'; P.k = (t - T.scare) / (T.act + 0.01 - T.scare) * 0.55; }
+    else P.act = 'alarm';
+    ZS.drawGuestBust(ctx, P, g.time);
+  }
+  function leaf(ctx, hx, dir, w, y, col) {
+    const p = Math.max(0, 18 - w) * 0.16;
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.moveTo(hx, y); ctx.lineTo(hx + dir * w, y - p); ctx.lineTo(hx + dir * w, y + 32 + p); ctx.lineTo(hx, y + 32); ctx.closePath(); ctx.fill();
+    if (w < 3) return;
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    for (let i = 1; i < 3; i++) ctx.fillRect(hx + dir * w * i / 3 - 0.5, y + 1, 1, 30);
+    ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(Math.min(hx, hx + dir * w), y + 15, w, 1.4);
+    ctx.fillStyle = '#2b2b2b'; ctx.fillRect(Math.min(hx, hx + dir * w * 0.6), y + 5, w * 0.6, 1.6); ctx.fillRect(Math.min(hx, hx + dir * w * 0.6), y + 25, w * 0.6, 1.6);
+    if (w > 12) {
+      const cx = hx + dir * w * 0.5, cy = y + 10;
+      ctx.fillStyle = 'rgba(30,18,10,0.75)';
+      ctx.beginPath(); ctx.moveTo(cx, cy + 3); ctx.bezierCurveTo(cx - 4, cy, cx - 2.6, cy - 3, cx, cy - 1.2); ctx.bezierCurveTo(cx + 2.6, cy - 3, cx + 4, cy, cx, cy + 3); ctx.fill();
+    }
+  }
+  function casement(ctx, x, y, a) {
+    const w = 15 * (1 - a * 0.8);
+    ctx.fillStyle = 'rgba(40,24,14,0.92)'; ctx.fillRect(x + 3, y + 3, 30, 26);
+    ctx.fillStyle = 'rgba(255,190,110,0.28)'; ctx.fillRect(x + 3, y + 3, 30, 26);
+    return w;
+  }
+  function windows(ctx, h, x0, top, o, g, col) {
+    const T = ZS.sim.knock.T;
+    for (const side of [-1, 1]) {
+      const x = side < 0 ? x0 + 18 : x0 + h.w - 54, y = top + 28, t = o ? o.t : 0;
+      const live = !!o && (o.mode === 'peek' || o.mode === 'knock') && o.side === side && t >= T.open && t < T.slam;
+      if (live) {
+        const a = sstep(T.open, T.open + 0.2, t) * (1 - sstep(T.slam - 0.12, T.slam, t)), w = casement(ctx, x, y, a);
+        peeker(ctx, o, x, y, g);
+        ctx.fillStyle = 'rgba(214,236,250,0.75)'; ctx.fillRect(x + 3, y + 3, w, 26); ctx.fillRect(x + 33 - w, y + 3, w, 26);
+        ctx.fillStyle = '#fff'; ctx.fillRect(x + 3 + w - 1.4, y + 3, 1.4, 26); ctx.fillRect(x + 33 - w, y + 3, 1.4, 26);
+      }
+      const shut = o ? (o.shut ? 1 : sstep(T.slam - 0.14, T.slam, t) * (o.mode === 'peek' ? 1 : 0)) : 0;
+      const w = 4 + 14 * shut;
+      leaf(ctx, x, shut > 0 ? 1 : -1, shut > 0 ? 18 * shut : 4, y, shut > 0 ? col : dk(col, 0.8));
+      leaf(ctx, x + 36, shut > 0 ? -1 : 1, shut > 0 ? 18 * shut : 4, y, shut > 0 ? col : dk(col, 0.8));
+      if (shut <= 0) continue;
+      ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x + 17.4, y, 1.2 * shut, 32);
+      if (w > 17) { ctx.fillStyle = '#c9a64a'; circle(ctx, x + 18, y + 16, 1.2); }
+    }
   }
 
   function smoke(ctx, x, y, time, sd, W) {
@@ -294,7 +351,7 @@
     }
   }
 
-  function winterHouse(ctx, h, x0, top, W, time) {
+  function winterHouse(ctx, h, x0, top, W, time, o, g) {
     const sd = h.x * 0.017, cx = h.x + h.w * 0.22;
     ctx.fillStyle = '#ece0c6'; ctx.fillRect(x0, top, h.w, 112);
     ctx.fillStyle = 'rgba(60,40,30,0.13)'; ctx.fillRect(x0, top, h.w, 9);
@@ -315,6 +372,7 @@
     icicles(ctx, x0 - 12, x0 + h.w + 12, top + 5, 13, sd * 31, W, time);
     win(ctx, x0 + 18, top + 28, time, sd, W);
     win(ctx, x0 + h.w - 54, top + 28, time, sd + 0.37, W);
+    if (g) windows(ctx, h, x0, top, o, g, '#6b4a2e');
     ctx.fillStyle = '#6e4325'; ctx.fillRect(h.x - 15, GY - 54, 30, 54);
     ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(h.x - 15, GY - 54, 30, 3);
     ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(h.x - 11, GY - 50, 9, 46);

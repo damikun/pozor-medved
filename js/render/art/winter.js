@@ -522,6 +522,18 @@
     ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(-2.8, -8, 1.2, 7);
     ctx.restore();
   }
+  function ostiepok(ctx, x, y, rx, ry, col) {
+    ctx.fillStyle = col; ell(ctx, x, y, rx, ry);
+    ctx.fillStyle = 'rgba(70,35,8,0.32)';
+    for (let r = -2; r <= 2; r++) for (let c = -1; c <= 1; c++) if (abs(c) + abs(r) < 3) circle(ctx, x + c * rx * 0.45 + (r % 2 ? rx * 0.22 : 0), y + r * ry * 0.32, 0.5);
+    ctx.fillStyle = 'rgba(255,220,150,0.35)'; ell(ctx, x - rx * 0.38, y - ry * 0.25, rx * 0.25, ry * 0.4);
+  }
+  const BRAID = [['#d9a85a', '#bd9049'], ['#e7d6a8', '#cdbd92']];
+  function braid(ctx, x0, y0, len, a, c) {
+    ctx.save(); ctx.translate(x0, y0); ctx.rotate(a);
+    for (let i = 0, n = 0; i < len; i += 2.2, n++) { ctx.fillStyle = BRAID[c][n % 2]; ell(ctx, i, 0.6 * sin(i * 1.4), 1.6, 1.15, 0.5); }
+    ctx.restore();
+  }
   function stallGoods(ctx, kind, ek, time, sd) {
     const tip = sstep(0, 1, ek);
     if (kind === 'punch') {
@@ -540,6 +552,25 @@
       mug(ctx, 8 + 4 * tip, -49, '#c0392b', 1.57 * tip); mug(ctx, 18, -49, '#f3ece0'); mug(ctx, 28, -49, '#c0392b', -0.3 * tip);
       if (ek <= 0) mug(ctx, 38, -49, '#f3ece0');
       ctx.fillStyle = '#f0a03a'; ell(ctx, 47, -50.4, 3, 1.4); ctx.fillStyle = '#ffd08a'; ell(ctx, 47, -50.8, 2, 0.8);
+    } else if (kind === 'cheese') {
+      const fade = 1 - sstep(0, 0.45, ek), ga = ctx.globalAlpha;
+      ctx.fillStyle = '#a77a4c'; rr(ctx, -44, -52.4, 36, 2.6, 1.2);
+      ctx.globalAlpha = ga * fade;
+      for (const [x, h] of [[-37, 11], [-23.5, 9]]) {
+        ctx.fillStyle = '#d9c7a2'; rr(ctx, x - 6, -52 - h, 12, h, 1.6);
+        ctx.fillStyle = 'rgba(120,90,50,0.35)'; for (let i = -4; i < 6; i += 3) ctx.fillRect(x + i - 0.4, -52 - h, 0.8, h);
+        ctx.fillStyle = '#8a6a40'; ctx.fillRect(x - 6, -52 - h * 0.72, 12, 1.1); ctx.fillRect(x - 6, -52 - h * 0.25, 12, 1.1);
+        ctx.fillStyle = '#fbf8f0'; blob(ctx, [x - 6, -51.6 - h, x - 3, -55 - h, x + 1, -56.4 - h, x + 5, -54 - h, x + 6, -51.6 - h]);
+        ctx.fillStyle = 'rgba(210,214,220,0.6)'; ell(ctx, x + 1.4, -53 - h, 2.4, 0.8);
+      }
+      ctx.fillStyle = '#c8ccd2'; poly(ctx, [-17, -53.6, -9, -53.6, -10, -52.6, -17, -52.6]); ctx.fillStyle = '#5a3a22'; rr(ctx, -22, -54, 5.4, 1.8, 0.8);
+      ctx.fillStyle = '#e9e6df'; ell(ctx, 22, -50, 16, 2.4);
+      for (let i = 0; i < 5; i++) braid(ctx, 9 + i * 1.4, -51.5 - i * 1.8, 24 - i * 2, -0.06 + i * 0.03, i % 2);
+      ctx.globalAlpha = ga;
+      ctx.save(); ctx.translate(44, -52.4); ctx.rotate(1.3 * tip);
+      ostiepok(ctx, 0, -5, 4.6, 6.2, '#b8742c');
+      ctx.restore();
+      if (fade < 1) { ctx.fillStyle = rgba('250,248,240', 1 - fade); ell(ctx, -30, -52.6, 10, 1.4); ell(ctx, 16, -51, 3, 0.8); }
     } else if (kind === 'lokse') {
       ctx.fillStyle = '#3a3d41'; ctx.fillRect(-34, -54, 2.4, 5); ctx.fillRect(-12, -54, 2.4, 5);
       ctx.fillStyle = '#1f2125'; ell(ctx, -22, -55, 16, 3.4);
@@ -615,6 +646,12 @@
       for (const d of [[-49, 11], [-43, 17], [-36, 7], [-29, 4]]) { const l = d[1] * drip; if (l > 0.5) { rr(ctx, d[0] - 1.1, -45.6, 2.2, l, 1.1); circle(ctx, d[0], -45 + l, 1.5); } }
       ctx.fillStyle = 'rgba(140,40,30,0.5)'; ell(ctx, -42, 0.8, 18 * tip, 2.4 * tip);
       const k = fall(38, -49, 64, -1.2, ek); mug(ctx, FALL.x, FALL.y, '#f3ece0', 2.6 * k);
+    } else if (kind === 'cheese') {
+      const k = fall(-37, -52, -64, -1.2, ek);
+      ctx.save(); ctx.translate(FALL.x, FALL.y); ctx.rotate(-1.6 * k);
+      ctx.fillStyle = '#d9c7a2'; rr(ctx, -6, -11, 12, 11, 1.6); ctx.fillStyle = '#8a6a40'; ctx.fillRect(-6, -8, 12, 1.1); ctx.fillRect(-6, -3, 12, 1.1);
+      ctx.restore();
+      ctx.fillStyle = 'rgba(251,248,240,0.95)'; ell(ctx, -58, 0.6, 12 * tip, 2.2 * tip); rr(ctx, -53, -45.6, 3, 7 * drip, 1.4);
     } else if (kind === 'lokse') {
       ctx.fillStyle = 'rgba(74,31,61,0.88)'; rr(ctx, 51.4, -45.6, 2.2, 8 * drip, 1.1);
       const k = fall(47, -49, 66, -4, ek);
@@ -646,24 +683,67 @@
     return g;
   }
 
-  function stall(ctx, s, time, gm) {
-    tint(gm);
-    const g = stallGeo(), sd = hash(s.x * 0.0123), eaten = !!s.eaten, dt = flip(s, time, eaten), ek = eaten ? sstep(0, 0.45, dt) : 0;
-    const kind = s.kind === 'lokse' || s.kind === 'sausage' ? s.kind : 'punch';
-    const label = (ZS.LABELS.stallSigns && ZS.LABELS.stallSigns[kind]) || '';
-    ctx.save(); ctx.translate(s.x, GY);
-    ctx.fillStyle = 'rgba(70,92,125,0.16)'; ell(ctx, 0, 1.2, 74, 4.4);
-    ctx.fillStyle = '#3a2416'; ctx.fillRect(-52, -114, 104, 70);
-    const lamp = 0.85 + 0.1 * sin(time * 2.3 + sd * 4);
-    const gl = ctx.createRadialGradient(0, -98, 2, 0, -90, 52);
-    gl.addColorStop(0, rgba('255,206,130', 0.42 * lamp)); gl.addColorStop(0.5, rgba('255,170,90', 0.14 * lamp)); gl.addColorStop(1, 'rgba(255,170,90,0)');
-    ctx.fillStyle = gl; ctx.fillRect(-52, -114, 104, 70);
-    ctx.fillStyle = '#5a3a24'; ctx.fillRect(-50, -84, 100, 3);
+  const VENDOR = { punch: 'seller', lokse: 'nana', sausage: 'cook', cheese: 'shepherd' };
+  const OPEN = [-52, -114, 104, 64];
+  const SEAT = { look: '', x: 0, y: -52, face: -1, up: 1, stand: 0, act: 'idle', k: 0, kind: 'local', seed: 0, scale: 1.04, clip: OPEN };
+  function vendorOf(gm, s) {
+    const k = gm && gm.vendors;
+    return k ? k.list.find((v) => v.s === s) || null : null;
+  }
+  function vendorPose(v, s, gm, time) {
+    const o = SEAT, b = gm && gm.bear;
+    o.look = VENDOR[s.kind] || 'seller'; o.x = s.kind === 'cheese' ? 2 : -6; o.seed = s.x; o.up = 1; o.act = 'idle'; o.k = 0;
+    o.face = b ? Math.sign(b.x - s.x - o.x) || -1 : -1;
+    if (!v) return s.shut ? null : o;
+    const t = v.t;
+    if (v.spot !== undefined && v.mode !== 'calm') {
+      o.x = lerp(o.x, v.spot, v.mode === 'wait' ? sstep(0, 0.3, t) : 1);
+      o.face = v.face;
+    }
+    if (v.mode === 'shut' || (s.shut && v.mode !== 'duck')) return null;
+    if (v.mode === 'pour') {
+      if (t < 0.6) { o.act = 'pour'; o.k = t / 0.6; } else if (t < 1) { o.act = 'offer'; o.k = (t - 0.6) / 0.4; } else o.act = 'wave';
+    } else if (v.mode === 'duck') {
+      o.act = 'alarm'; o.up = 1 - sstep(0.35, 0.75, t);
+    } else if (v.mode === 'hid') {
+      o.act = 'alarm'; o.up = 1 - sstep(0.1, 0.5, t);
+    } else if (v.mode === 'done') o.act = s.eaten ? 'alarm' : 'idle';
+    return o.up > 0.001 ? o : null;
+  }
+  function shutterK(v, s) {
+    if (v && v.mode === 'duck') return sstep(0.5, ZS.sim.vendors.DUCK.shut, v.t);
+    return s.shut ? 1 : 0;
+  }
+  function shutter(ctx, k) {
+    if (k <= 0) return;
+    const y1 = lerp(-114, -50, k);
+    ctx.fillStyle = '#7a5134'; ctx.fillRect(-52, -114, 104, y1 + 114);
+    ctx.fillStyle = 'rgba(40,20,8,0.35)'; for (let y = y1 - 5.4; y > -114; y -= 5.4) ctx.fillRect(-52, y, 104, 1.1);
+    ctx.fillStyle = 'rgba(255,225,180,0.12)'; for (let y = y1 - 4.2; y > -114; y -= 5.4) ctx.fillRect(-52, y, 104, 0.8);
+    ctx.fillStyle = '#4a3020'; rr(ctx, -53, y1 - 3.6, 106, 3.6, 1.2);
+    ctx.fillStyle = '#b8b2a6'; rr(ctx, -4, y1 - 2.8, 8, 2, 1);
+  }
+  function hanging(ctx, kind, time) {
     if (kind === 'punch') {
       const cols = ['#5a1f2a', '#2f4a2a', '#6b3a1a', '#3a2a5a', '#5a1f2a', '#6b3a1a'];
       for (let i = 0; i < 6; i++) { const x = -44 + i * 16 + (i > 2 ? 10 : 0); ctx.fillStyle = cols[i]; rr(ctx, x, -98, 6, 14, 1.4); ctx.fillRect(x + 2, -102, 2, 4); ctx.fillStyle = 'rgba(255,230,180,0.35)'; ctx.fillRect(x + 1, -96, 1.2, 9); }
     } else if (kind === 'lokse') {
       for (let i = 0; i < 7; i++) { const x = -44 + i * 13 + (i > 3 ? 8 : 0); ctx.fillStyle = i % 2 ? '#4a1f3d' : '#d9b85a'; rr(ctx, x, -93, 8, 9, 1.6); ctx.fillStyle = '#f2ead6'; ctx.fillRect(x - 0.5, -95, 9, 2.4); }
+    } else if (kind === 'cheese') {
+      ctx.strokeStyle = '#6b4a2b'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(-50, -89); ctx.lineTo(-14, -89); ctx.moveTo(16, -89); ctx.lineTo(50, -89); ctx.stroke();
+      for (let i = 0; i < 6; i++) {
+        const x = i < 3 ? -44 + i * 12 : 22 + (i - 3) * 12, sw = 0.07 * sin(time * 1.2 + i * 1.7);
+        ctx.save(); ctx.translate(x, -89); ctx.rotate(sw);
+        line(ctx, 0, 0, 0, 3, 0.7, '#3a2a1a');
+        if (i % 3 === 1) {
+          for (let j = 0; j < 3; j++) braid(ctx, -1.6 + j * 1.6, 2, 11 + j * 2, 1.57 - 0.05 + j * 0.05, j % 2);
+        } else {
+          const big = i % 3 === 0, rx = big ? 3.6 : 3, ry = big ? 5.6 : 4.8;
+          ostiepok(ctx, 0, 3 + ry, rx, ry, big ? '#a8662a' : '#c08038');
+          ctx.fillStyle = '#3a2a1a'; ctx.fillRect(-1.2, 2.4, 2.4, 1.2);
+        }
+        ctx.restore();
+      }
     } else {
       ctx.strokeStyle = '#6b4a2b'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(-48, -106); ctx.lineTo(48, -106); ctx.stroke();
       for (let i = 0; i < 9; i++) {
@@ -671,15 +751,35 @@
         ctx.save(); ctx.translate(x, -106); ctx.rotate(sw); ctx.fillStyle = i % 3 ? '#8e3a24' : '#a24a2c'; rr(ctx, -2, 0, 4, 15 + (i % 2) * 4, 2); ctx.restore();
       }
     }
+  }
+  function stall(ctx, s, time, gm) {
+    const summer = !!s.salas;
+    if (!summer) tint(gm);
+    const g = stallGeo(), sd = hash(s.x * 0.0123), eaten = !!s.eaten, dt = flip(s, time, eaten), ek = eaten ? sstep(0, 0.45, dt) : 0;
+    const kind = s.kind === 'lokse' || s.kind === 'sausage' || s.kind === 'cheese' ? s.kind : 'punch';
+    const label = (ZS.LABELS.stallSigns && ZS.LABELS.stallSigns[kind]) || '';
+    const v = vendorOf(gm, s), seat = vendorPose(v, s, gm, time), sk = shutterK(v, s);
+    ctx.save(); ctx.translate(s.x, GY);
+    if (summer) ctx.scale(0.9, 0.9);
+    ctx.fillStyle = summer ? 'rgba(40,52,20,0.18)' : 'rgba(70,92,125,0.16)'; ell(ctx, 0, 1.2, 74, 4.4);
+    ctx.fillStyle = '#3a2416'; ctx.fillRect(-52, -114, 104, 70);
+    const lamp = 0.85 + 0.1 * sin(time * 2.3 + sd * 4);
+    const gl = ctx.createRadialGradient(0, -98, 2, 0, -90, 52);
+    gl.addColorStop(0, rgba('255,206,130', 0.42 * lamp)); gl.addColorStop(0.5, rgba('255,170,90', 0.14 * lamp)); gl.addColorStop(1, 'rgba(255,170,90,0)');
+    ctx.fillStyle = gl; ctx.fillRect(-52, -114, 104, 70);
+    ctx.fillStyle = '#5a3a24'; ctx.fillRect(-50, -84, 100, 3);
+    hanging(ctx, kind, time);
     ctx.fillStyle = '#ffe2a0'; circle(ctx, 0, -100, 2.6);
     line(ctx, 0, -114, 0, -102, 0.8, '#2a2a2a');
     ctx.fillStyle = rgba('255,230,160', 0.5 * lamp); circle(ctx, 0, -100, 5);
+    if (seat) ZS.drawGuestBust(ctx, seat, time);
     for (const sx of [-1, 1]) {
       ctx.fillStyle = '#7d5232'; ctx.fillRect(sx * 55 - 3.5, -116, 7, 116);
       ctx.fillStyle = 'rgba(255,225,180,0.16)'; ctx.fillRect(sx * 55 - 3.5, -116, 1.6, 116);
       ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(sx * 55 + 1.5, -116, 2, 116);
     }
     stallGoods(ctx, kind, ek, time, sd);
+    shutter(ctx, sk);
     ctx.save();
     ctx.fillStyle = '#93623a'; ctx.fillRect(-56, -46, 112, 46);
     ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(50,25,10,0.35)'; ctx.stroke(g.boards);
@@ -689,38 +789,40 @@
     ctx.translate(-61, -47); ctx.rotate(0.03 * sstep(0, 1, ek)); ctx.translate(61, 47);
     ctx.fillStyle = '#ad7845'; rr(ctx, -61, -50, 122, 5.5, 1.6);
     ctx.fillStyle = 'rgba(255,235,200,0.3)'; ctx.fillRect(-60, -50, 120, 1.2);
-    if (!eaten) { snowCap(ctx, -61, -46, -50, 2.4, 31 + sd); snowCap(ctx, 46, 61, -50, 2.2, 33 + sd); }
+    if (!eaten && !summer) { snowCap(ctx, -61, -46, -50, 2.4, 31 + sd); snowCap(ctx, 46, 61, -50, 2.2, 33 + sd); }
     ctx.restore();
     if (ek > 0) stallFront(ctx, kind, ek, sd);
-    for (const sx of [-1, 1]) { ctx.fillStyle = SNOW; blob(ctx, [sx * 55 - 11, 1, sx * 55 - 5, -4, sx * 55 + 4, -5, sx * 55 + 11, 1]); }
-    const gsw = sin(time * 1.1 + sd * 5) * 0.6;
-    ctx.lineCap = 'round';
-    const tk = sstep(0, 1, ek), ex = lerp(54, 26 + gsw * 2, tk), ey = lerp(-94, -64, tk), cx2 = lerp(27, 12, tk), cy2 = lerp(-84 - gsw, -70, tk);
-    for (let pass = 0; pass < 2; pass++) {
-      ctx.strokeStyle = pass ? '#3f7a3c' : '#24502a'; ctx.lineWidth = pass ? 3.2 : 5.2;
-      ctx.beginPath(); ctx.moveTo(-54, -94);
-      ctx.quadraticCurveTo(-27, -84 + gsw, 0, -94); ctx.quadraticCurveTo(cx2, cy2, ex, ey);
-      ctx.stroke();
-    }
-    ctx.fillStyle = '#2f6a34';
-    for (let i = 0; i <= 16; i++) {
-      const t = i / 16, q = t < 0.5 ? t * 2 : t * 2 - 1, u = 1 - q;
-      const x = t < 0.5 ? u * u * -54 + 2 * u * q * -27 : 2 * u * q * cx2 + q * q * ex;
-      const y = t < 0.5 ? u * u * -94 + 2 * u * q * (-84 + gsw) + q * q * -94 : u * u * -94 + 2 * u * q * cy2 + q * q * ey;
-      ell(ctx, x, y, 2.6, 1.2, (hash(i + sd) - 0.5) * 2);
-    }
-    for (const bx of eaten ? [-54, 0] : [-54, 0, 54]) {
-      ctx.fillStyle = '#c42b2b'; poly(ctx, [bx, -95, bx - 4.5, -98, bx - 4.5, -92]); poly(ctx, [bx, -95, bx + 4.5, -98, bx + 4.5, -92]);
-      ctx.fillStyle = '#e04040'; circle(ctx, bx, -95, 1.6);
-      ctx.fillStyle = '#c42b2b'; poly(ctx, [bx - 0.8, -94, bx - 3, -88, bx - 1, -88.6]); poly(ctx, [bx + 0.8, -94, bx + 3, -88, bx + 1, -88.6]);
-    }
-    for (const [bx, by, col] of [[-27, -87, '#e8b22a'], [27, -87, '#c42b2b'], [-40, -90, '#c42b2b'], [40, -90, '#e8b22a']]) {
-      const sw = sin(time * 1.6 + bx) * 0.5;
-      line(ctx, bx, by, bx + sw, by + 3, 0.6, '#555');
-      ctx.fillStyle = col; circle(ctx, bx + sw, by + 5, 2.4); ctx.fillStyle = 'rgba(255,255,255,0.55)'; circle(ctx, bx + sw - 0.8, by + 4.2, 0.8);
+    if (!summer) for (const sx of [-1, 1]) { ctx.fillStyle = SNOW; blob(ctx, [sx * 55 - 11, 1, sx * 55 - 5, -4, sx * 55 + 4, -5, sx * 55 + 11, 1]); }
+    if (!summer) {
+      const gsw = sin(time * 1.1 + sd * 5) * 0.6;
+      ctx.lineCap = 'round';
+      const tk = sstep(0, 1, ek), ex = lerp(54, 26 + gsw * 2, tk), ey = lerp(-94, -64, tk), cx2 = lerp(27, 12, tk), cy2 = lerp(-84 - gsw, -70, tk);
+      for (let pass = 0; pass < 2; pass++) {
+        ctx.strokeStyle = pass ? '#3f7a3c' : '#24502a'; ctx.lineWidth = pass ? 3.2 : 5.2;
+        ctx.beginPath(); ctx.moveTo(-54, -94);
+        ctx.quadraticCurveTo(-27, -84 + gsw, 0, -94); ctx.quadraticCurveTo(cx2, cy2, ex, ey);
+        ctx.stroke();
+      }
+      ctx.fillStyle = '#2f6a34';
+      for (let i = 0; i <= 16; i++) {
+        const t = i / 16, q = t < 0.5 ? t * 2 : t * 2 - 1, u = 1 - q;
+        const x = t < 0.5 ? u * u * -54 + 2 * u * q * -27 : 2 * u * q * cx2 + q * q * ex;
+        const y = t < 0.5 ? u * u * -94 + 2 * u * q * (-84 + gsw) + q * q * -94 : u * u * -94 + 2 * u * q * cy2 + q * q * ey;
+        ell(ctx, x, y, 2.6, 1.2, (hash(i + sd) - 0.5) * 2);
+      }
+      for (const bx of eaten ? [-54, 0] : [-54, 0, 54]) {
+        ctx.fillStyle = '#c42b2b'; poly(ctx, [bx, -95, bx - 4.5, -98, bx - 4.5, -92]); poly(ctx, [bx, -95, bx + 4.5, -98, bx + 4.5, -92]);
+        ctx.fillStyle = '#e04040'; circle(ctx, bx, -95, 1.6);
+        ctx.fillStyle = '#c42b2b'; poly(ctx, [bx - 0.8, -94, bx - 3, -88, bx - 1, -88.6]); poly(ctx, [bx + 0.8, -94, bx + 3, -88, bx + 1, -88.6]);
+      }
+      for (const [bx, by, col] of [[-27, -87, '#e8b22a'], [27, -87, '#c42b2b'], [-40, -90, '#c42b2b'], [40, -90, '#e8b22a']]) {
+        const sw = sin(time * 1.6 + bx) * 0.5;
+        line(ctx, bx, by, bx + sw, by + 3, 0.6, '#555');
+        ctx.fillStyle = col; circle(ctx, bx + sw, by + 5, 2.4); ctx.fillStyle = 'rgba(255,255,255,0.55)'; circle(ctx, bx + sw - 0.8, by + 4.2, 0.8);
+      }
     }
     ctx.fillStyle = '#5d3b22'; rr(ctx, -46, -114, 92, 19, 2.4);
-    ctx.fillStyle = '#7a2a22'; rr(ctx, -43.5, -111.5, 87, 14, 1.6);
+    ctx.fillStyle = summer ? '#2f5a34' : '#7a2a22'; rr(ctx, -43.5, -111.5, 87, 14, 1.6);
     ctx.strokeStyle = '#e8c27a'; ctx.lineWidth = 0.8; ctx.strokeRect(-41.5, -109.5, 83, 10);
     if (label) {
       const fs = fitText(ctx, label, 10.5, 900, 64);
@@ -737,6 +839,16 @@
     ctx.fillStyle = 'rgba(0,0,0,0.1)'; poly(ctx, [0, -152, 68, -114, 0, -114]);
     ctx.restore();
     ctx.fillStyle = '#3e2818'; ctx.fillRect(-70, -116, 140, 3.4);
+    if (summer) {
+      for (const sx of [-1, 1]) {
+        ctx.fillStyle = '#4a2f1d'; poly(ctx, [0, -156, sx * 74, -113, sx * 74, -108, 0, -150]);
+        ctx.fillStyle = 'rgba(255,225,180,0.14)'; poly(ctx, [0, -156, sx * 74, -113, sx * 74, -111.6, 0, -154.4]);
+      }
+      ctx.fillStyle = '#3a2416'; poly(ctx, [-3, -150, 0, -162, 3, -150]);
+      ctx.strokeStyle = '#3a2416'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-8, -164); ctx.lineTo(8, -150); ctx.moveTo(8, -164); ctx.lineTo(-8, -150); ctx.stroke();
+      ctx.restore();
+      return;
+    }
     const cap = [-75, -112, -70, -117, -36, -138, 0, -158.5, 36, -138, 70, -117, 75, -112, 64, -114, 30, -132, 0, -147, -30, -132, -64, -114];
     ctx.save(); ctx.translate(0.8, 2.6); ctx.fillStyle = SNOW_DK; blob(ctx, cap); ctx.restore();
     ctx.fillStyle = SNOW; blob(ctx, cap);

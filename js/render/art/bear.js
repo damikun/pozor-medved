@@ -344,6 +344,21 @@
     fish: [0.27, 0, 0.31, 1, 2.47, 1, 2.51, 0],
     step: [[0.38, 0.52, 2.44, 2.6], [0.46, 0.6, 2.52, 2.7]],
   };
+  const KNOCK = {
+    up: [0.02, 0, 0.16, 1, 0.52, 1, 0.72, 0],
+    arm: [0.02, 0, 0.1, 1, 0.18, 2, 0.5, 2, 0.6, 1, 0.72, 0],
+    tap: [0.14, 0, 0.18, 1, 0.5, 1, 0.54, 0],
+    step: [[0.02, 0.14, 0.56, 0.7], [0.06, 0.18, 0.6, 0.72]],
+  };
+  const TASTE = {
+    up: [0.02, 0, 0.3, 1, 2.25, 1, 2.6, 0],
+    bx: [0.04, 0, 0.3, 1, 2.25, 1, 2.55, 0],
+    arm: [0.05, 0, 0.18, 1, 0.3, 2, 2.2, 2, 2.35, 1, 2.6, 0],
+    sip: [0.45, 0, 0.66, 1, 0.9, 1, 1.05, 0],
+    bite: [1.3, 0, 1.5, 1, 1.9, 1, 2.05, 0],
+    glad: [1.95, 0, 2.1, 1, 2.4, 1, 2.55, 0],
+    step: [[0.05, 0.2, 2.25, 2.4], [0.12, 0.28, 2.3, 2.5]],
+  };
   const MV = { up: 0, sx: 1, sy: 1, hug: 0, ht: 0, hit: 0, reach: 0, lf: 0, sq: 0, nf: 0, wake: 0, wt: 0, slide: 0, tuck: 0, touch: 0, cy: 0, any: false,
     grab: 0, ph: 0, st: null, dang: 0, o: [0, 0, 0], hn: [0, 0, 0], hf: [0, 0, 0] };
   const put = (v, x, y, a) => { v[0] = x; v[1] = y; v[2] = a; };
@@ -413,6 +428,37 @@
       P.smile = Math.max(P.smile, gr); P.grin = Math.max(P.grin, gr);
       P.shut = Math.max(P.shut, once(t, 1.14, 0.17) * w, 0.5 * gl); P.arc = lerp(P.arc, 1, gl);
       P.look = [1, lerp(0.15, 0.5, smooth((t - 1.3) / 0.25)) * u];
+    }
+    if (act === 'knock') {
+      const t = s.at, w = s.ax, u = key(t, KNOCK.up) * w, tp = key(t, KNOCK.tap) * w, rap = Math.abs(Math.sin(Math.PI * (t - 0.18) / 0.15)) * tp;
+      M.grab = w; M.ht = t; M.up = 0.55 * u; M.ph = key(t, KNOCK.arm) * w; M.st = KNOCK.step; M.reach = 5; M.dang = 1;
+      put(M.o, 12, 4, 0.4);
+      put(M.hn, 37 - 4 * rap, -86 + 1.5 * rap, -0.9);
+      P.pitch = lerp(P.pitch, -0.62, u);
+      P.by = lerp(P.by, -1, u);
+      P.headA = lerp(P.headA, 0.5 - 0.25 * tp, u);
+      P.headX = lerp(P.headX, 4, u); P.headY = lerp(P.headY, -1, u);
+      P.ears = lerp(P.ears, 0.3, u);
+      P.look = [1, -0.4 * u];
+    }
+    if (act === 'taste') {
+      const t = s.at, w = s.ax, k = (n) => key(t, TASTE[n]) * w, u = k('up'), sp = k('sip'), bt = k('bite'), gl = k('glad');
+      const hold = t < 1.15 ? 'shot' : t < 2.05 ? 'cheese' : '';
+      M.grab = w; M.ht = t; M.up = u; M.ph = k('arm'); M.st = TASTE.step; M.reach = 8; M.dang = 1;
+      put(M.o, 10, 8, 0.5);
+      const mo = Math.max(sp, bt);
+      put(M.hn, lerp(30, 27, mo) + 0.5 * Math.sin(time * 5), lerp(-60, -73, mo), lerp(0.5, -0.4, mo));
+      P.pitch = lerp(P.pitch, -0.9, u);
+      P.by = lerp(P.by, -1, u);
+      P.bx += k('bx') * M.reach;
+      P.headA = lerp(P.headA, 0.92 - 0.38 * sp + 0.06 * bt * Math.sin(time * 18), u);
+      P.headX = lerp(P.headX, 5, u); P.headY = lerp(P.headY, -2.5, u);
+      P.ears = lerp(P.ears, 0.1, u);
+      P.shut = Math.max(P.shut, sp, 0.6 * gl); P.arc = lerp(P.arc, 1, Math.max(sp, gl));
+      P.jaw = Math.max(P.jaw, 0.35 * bt * (0.5 + 0.5 * Math.sin(time * 18)));
+      P.smile = Math.max(P.smile, gl, 0.5 * sp); P.grin = Math.max(P.grin, gl);
+      P.held = M.ph > 1.2 ? hold : '';
+      P.fill = 1 - smooth((t - 0.7) / 0.25);
     }
     if (act === 'pose') {
       const t = s.at, w = s.ax, k = (n) => key(t, POSE[n]) * w, u = k('up'), dp = k('dip'), pr = k('proud'), wv = Math.sin(time * 8);
@@ -532,7 +578,7 @@
     Object.assign(K, { by: K.by + 11, pitch: K.pitch + 0.05, hump: K.hump * 1.3, headA: K.headA + 0.14, headX: 4, headY: K.headY + 2, ears: 0.35, swing: 0 });
     const R = { by: -1.6 * Math.cos(TAU * (ph - 0.9)) - 0.3, pitch: -0.06 * gp, hump: 1.5 * gf, roll: 0, croup: -0.8 * gf, hroll: 0,
       flex: 1.25 * gf, headA: 0.04 + 0.06 * gp, headX: 3, headY: 2, ears: 1, swing: 0 };
-    const P = { keep, yaw: [s.yp, s.ys, s.yh], bx: 0, jaw: 0, shut: 0, arc: 0, smile: 0, wide: 0, shake: 0, brow: 0, grin: 0, tag: s.tg, shx: 0, shw: 1 };
+    const P = { held: '', fill: 1, keep, yaw: [s.yp, s.ys, s.yh], bx: 0, jaw: 0, shut: 0, arc: 0, smile: 0, wide: 0, shake: 0, brow: 0, grin: 0, tag: s.tg, shx: 0, shw: 1 };
     for (const k in I) P[k] = lerp(lerp(I[k], LOW[k], cw), lerp(lerp(W[k], R[k], rw), K[k], cw), mw);
     const kw = s.kw * cw;
     if (kw > 0.001) {
@@ -915,8 +961,19 @@
     const facing = Math.sin(P.yaw[2]) > 0.5;
     if (!facing) drawHead();
     for (const l of legs) if (l.near >= 0.5 && l !== arm) drawLeg(ctx, l, K, sp);
+    if (P.held) held(ctx, P, legs, sp);
     if (facing) drawHead();
     if (P.fish > 0.01 && P.mouth && ZS.scenery) fishIn(ctx, P);
+  }
+
+  function held(ctx, P, legs, sp) {
+    const l = legs.find((q) => q.g.fore && q.near >= 0.5);
+    if (!l) return;
+    const e = sp.map(l.g.ex, l.g.ey, l.xa, l.z);
+    ctx.save(); ctx.translate(e[0] + 1, e[1] - 2.4); ctx.scale(1.8, 1.8);
+    if (P.held === 'shot') ZS.drawShot(ctx, 0, 0, P.fill);
+    else if (P.held === 'cheese') ZS.drawCheeseBit(ctx, 0, 0);
+    ctx.restore();
   }
 
   function side(ctx, b, s, time, o) {
@@ -1010,10 +1067,13 @@
   ZS.drawBear = function (ctx, b, time) {
     const s = track(b, time);
     if (!b.hiding && !b.climbing) enter(s, 'side', time, b.x);
+    const tw = b.tipsy > 0 ? smooth(Math.min(b.tipsy, ZS.sim.vendors.TIPSY - b.tipsy) / 0.6) : 0, sw = tw * (0.045 * Math.sin(time * 2.4) + 0.015 * Math.sin(time * 5.3));
+    if (sw) { ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(sw); ctx.translate(-b.x, -b.y); }
     puffs(ctx, s, time, 1);
     sideBear(ctx, b, s, time, 1);
     puffs(ctx, s, time, 0);
     strawsOff(ctx, s, time);
+    if (sw) ctx.restore();
   };
 
   ZS.drawBearHugFront = function (ctx, b, time) {

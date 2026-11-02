@@ -20,7 +20,7 @@
     });
     L.cannons = [{ x: 410, dir: 1 }, { x: 6520, dir: 1 }];
     L.feeders = [{ x: L.feeding }];
-    L.stalls = [{ x: 4840, kind: 'punch' }, { x: 5050, kind: 'lokse' }, { x: 5260, kind: 'sausage' }];
+    L.stalls = [{ x: 4830, kind: 'punch' }, { x: 4990, kind: 'lokse' }, { x: 5150, kind: 'sausage' }, { x: 5310, kind: 'cheese' }];
     L.checkpoints = [{ key: 'market', x: L.village.to + 40 }];
     L.snowmen = [{ x: 5800, nose: true }, { x: 7260, nose: true }];
     L.holes = [{ x: 3800 }];

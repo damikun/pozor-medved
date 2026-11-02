@@ -4,7 +4,7 @@
   const { label, circle, ellipse } = ZS.gfx;
   const P = ZS.render.props;
   const B = ZS.render.backdrop;
-  const OWN_ART = { feeder: 1, punch: 1, lokse: 1, sausage: 1, carrot: 1, cob: 1, catch: 1 };
+  const OWN_ART = { feeder: 1, punch: 1, lokse: 1, sausage: 1, cheese: 1, carrot: 1, cob: 1, catch: 1 };
 
   function eatenAt(L, type, x) {
     return L.items.some((it) => it.type === type && it.x === x && it.eaten);
@@ -51,8 +51,10 @@
     }
     for (const s of L.stalls) {
       if (!vis(s.x, 140)) continue;
-      s.eaten = eatenAt(L, s.kind, s.x);
-      A.stall(ctx, s, g.time);
+      const it = L.items.find((i) => i.type === s.kind && i.x === s.x);
+      s.eaten = !!it && it.eaten && !it.gift;
+      s.shut = !!it && it.locked;
+      A.stall(ctx, s, g.time, g);
     }
     if (L.chata && vis(L.chata.x, 240)) A.chata(ctx, L.chata.x, g.time);
     for (const s of L.snowmen) if (vis(s.x, 90)) A.snowman(ctx, s, g.time);
@@ -155,10 +157,24 @@
     const free = !b.reach && !b.climbing && !g.touch ? ZS.sim.ladder.at(g) : null;
     if (free) label(ctx, LABELS.ladderUp, free.x, GY - 92 - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
     if (b.reach && !g.touch && !b.warn) {
-      const o = b.reach, post = o.post, ph = o.kind === 'photographer', pose = ph;
+      const o = b.reach, post = o.post, ph = o.kind === 'photographer', pose = ph, R = g.level.river, wet = ph && b.inWater && R;
       ctx.globalAlpha = 0.92;
       label(ctx, post ? (ZS.sim.ladder.at(g) === post ? LABELS.interactLadder : LABELS.interactStand) : pose ? LABELS.interactPose : o.kind === 'tourist' ? LABELS.interactSelfie : o.kind === 'tycoon' && !o.promo ? LABELS.tycoon.interact : LABELS.interact,
-        post ? post.x : pose ? Math.max(g.cam + 120, Math.min(g.cam + g.viewW - 120, o.x)) : o.x, (post ? GY - 92 : ph ? GY - 66 : GY - 108) - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
+        post ? post.x : wet ? Math.max(R.from + 90, Math.min(R.to - 90, b.x)) : pose ? Math.max(g.cam + 120, Math.min(g.cam + g.viewW - 120, o.x)) : o.x, (post ? GY - 92 : wet ? GY - 172 : ph ? GY - 66 : GY - 108) - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
+      ctx.globalAlpha = 1;
+    }
+    if (b.knock && !b.reach && !g.touch && !b.warn && (b.knock.kind === 'stall' || !(g.knock && g.knock.last))) {
+      const k = b.knock, stall = k.kind === 'stall';
+      ctx.globalAlpha = 0.92;
+      label(ctx, stall ? LABELS.interactStall : LABELS.interactKnock, k.x, (stall ? GY - 170 : GY - 126) - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
+      ctx.globalAlpha = 1;
+    }
+    const hic = g.time - (b.hicAt || -9);
+    if (b.tipsy > 0 && hic >= 0 && hic < 0.9 && !b.hiding && !b.climbing) {
+      const hx = b.x + b.dir * 34, hy = GY - 96 - hic * 26;
+      ctx.globalAlpha = Math.min(1, (0.9 - hic) * 3);
+      ctx.fillStyle = 'rgba(214,236,250,0.85)'; circle(ctx, hx - b.dir * 6, hy + 14, 2.2 + hic * 2); circle(ctx, hx + b.dir * 4, hy + 20, 1.6 + hic);
+      label(ctx, LABELS.vendor.hic, hx, hy, 12, '#7a3b8a');
       ctx.globalAlpha = 1;
     }
   }

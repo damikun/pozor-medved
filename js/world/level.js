@@ -159,6 +159,8 @@
       || Math.abs(fx - L.feeding) < 120 || fx > A.from - 40, 20,
     (r) => (r < 0.3 ? 'berry' : r < 0.48 ? 'herb' : r < 0.62 ? 'ants' : r < 0.8 ? 'mushroom' : 'nut'));
     honey(L, 7);
+    L.stalls = [{ x: 7230, kind: 'cheese', salas: true }];
+    L.stalls.forEach((s) => add(L, s.kind, s.x));
     [8245, 8365, 8490, 8610].map(at).forEach((fx) => add(L, 'fish', fx, { y: GY + 30, hidden: true, jumpT: 1 + rng() * 3, jump: -1 }));
     L.items.sort((a, b) => a.x - b.x);
 

@@ -9,7 +9,7 @@ and the only safe place is behind a thick tree.
 
 <a href="https://damikun.github.io/pozor-medved/?lang=en"><img src="docs/summer.png" alt="Summer: the bear in a hunter's crosshair next to a billboard saying “There's a bear behind every tree!”"></a>
 
-<a href="https://damikun.github.io/pozor-medved/?lang=en"><img src="docs/winter.png" alt="Winter: the bear at the Christmas market in Horný Strach with a skier and St Nicholas"></a>
+<a href="https://damikun.github.io/pozor-medved/?lang=en"><img src="docs/winter.png" alt="Winter: the bear at the Christmas market in Liptovský Mikuláš with a skier and St Nicholas"></a>
 
 The game runs right in the browser, nothing to install. Offline, just open `index.html`.
 
@@ -18,7 +18,7 @@ The game runs right in the browser, nothing to install. Offline, just open `inde
 - **Summer in the Valley**: from the spring den through the village of Dolný Strach, a sheepfold, a hotel and the
   national park to the winter den.
 - **Winter on the Slopes**: a warm Advent and the snow cannons woke you up. Cross the ski resort and the Christmas
-  market of Horný Strach to reach a quiet den.
+  market of Liptovský Mikuláš to reach a quiet den.
 
 **Goal:** reach the den with enough fat (85% in summer, 65% in winter) and hug someone at least once; a selfie
 with a tourist counts too. Without a hug the den won't let you in.

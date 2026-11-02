@@ -64,13 +64,13 @@
     'Vianočný príhovor ministra: Pokoj ľuďom dobrej vôle. Medveďom nie.',
     'Hokejisti prehrali. Tréner: Na ľade boli medvede.',
     'Ratrakista videl stopy. Ministerstvo hovorí o invázii.',
-    'Starosta Horného Strachu: Zima bez snehu, ale s medveďom.',
+    'Primátor Liptovského Mikuláša: Zima bez snehu, ale s medveďom.',
     'Vláda zvažuje zdaniť sneh. Medveď ho šliape zadarmo.',
     'Vo Važeckej jaskyni našli kosti jaskynného medveďa. Minister Strašiak žiada odstrel. Spätne.',
     'Súd zrušil odstrel ôsmich medveďov. Minister Strašiak: Ôsmy nech sa prihlási.',
     'Úrad prijal 597 hlásení o medveďovi. Poslanec Flinta: Čiže 597 medveďov, rátal som dvakrát.',
-    'Horný Strach vyrába umelý sneh, ministerstvo umelý strach. Na oboje idú dotácie.',
-    'Advent v Hornom Strachu: zapálili prvú sviečku, druhú sviečku a tretí krízový štáb.',
+    'Liptovský Mikuláš vyrába umelý sneh, ministerstvo umelý strach. Na oboje idú dotácie.',
+    'Advent v Liptovskom Mikuláši: zapálili prvú sviečku, druhú sviečku a tretí krízový štáb.',
     'Silvestrovský ohňostroj zobudil medveďa. Polícia vyšetruje medveďa pre rušenie nočného pokoja.',
     'Snežné delá bežia aj v noci. Medvede chcú hlukovú štúdiu. Úrad: Medveď nie je účastníkom konania.',
     'Na námestí stojí 12-metrový stromček. Minister Strašiak dal preveriť, či za ním nie je medveď.',
@@ -103,13 +103,13 @@
     },
     winter: {
       name: 'Zima na svahu',
-      pick: (goal) => 'Teplý advent a snežné delá ťa zobudili. Prejdi strediskom Horný Strach do tichého brlohu s aspoň ' + goal + '\u00a0% tuku a aspoň jedným objatím.',
+      pick: (goal) => 'Teplý advent a snežné delá ťa zobudili. Prejdi Liptovským Mikulášom do tichého brlohu s aspoň ' + goal + '\u00a0% tuku a aspoň jedným objatím.',
       seasons: { advent: 'Advent', snow: 'Sneženie', frost: 'Mráz' },
       until: 'do jari',
       trip: 'Cesta do tichého brlohu',
       startDen: 'Zimný brloh',
       goalDen: 'Tichý brloh',
-      village: 'Horný Strach',
+      village: 'Liptovský Mikuláš',
     },
   };
 
@@ -145,6 +145,8 @@
     kosodrevina: ['Som len hustá kosodrevina.', 'Pichá to ako tlačovka.', 'Za stromom nie, pod stromom áno.'],
     porter: ['Ty nesieš chatu, ja tuk. Sme kolegovia.', 'Pomôžem? Zjem polovicu nákladu.', 'Na chrbte 80 kíl a ani sa neobzrie.'],
     tycoon: ['Skipas beriem, lyže nie.', 'Prvá jazda zadarmo? Beriem aj druhú.', 'Ľavý profil, lanovka vzadu.'],
+    tipsy: ['Hik! Na zdravie aj ministrovi.', 'Borovička? Každú borievku v lese poznám osobne.', 'Hik! Ešte že nešoférujem.', 'Jedna na cestu. Hik!'],
+    knock: ['Dobrý deň, nesiem letáky.', 'Sčítanie medveďov, otvorte!', 'Ťuk-ťuk. Kto je tam? Medveď.', 'Máte cukor? Vrátim.'],
   };
 
   ZS.NEWS = {
@@ -206,7 +208,7 @@
     tracks: [
       'Poľovník našiel v snehu stopy. Komora: Dôkaz, že medveďov je tisíce.',
       'Stopy v snehu! Zásahový tím ich sledoval tri hodiny. Viedli k zásahovému tímu.',
-      'Medvedie stopy v snehu. Starosta Horného Strachu za ne chce vyberať parkovné.',
+      'Medvedie stopy v snehu. Primátor Liptovského Mikuláša za ne chce vyberať parkovné.',
     ],
     binEaten: [
       'Medveď vybral smetné koše. Minister: Dôkaz, že medveďov je priveľa.',
@@ -240,7 +242,7 @@
       'Medveď zjedol lokše s makom. Ministerstvo preveruje, či mak nie je vnadisko.',
     ],
     sausageEaten: [
-      'Zo stánku zmizli klobásy. Starosta Horného Strachu: Jasný prípad medveďa.',
+      'Zo stánku zmizli klobásy. Primátor Liptovského Mikuláša: Jasný prípad medveďa.',
       'Medveď zjedol klobásu za 9 eur. Trhovníci: Aspoň niekto v regióne si ju môže dovoliť.',
       'Medveď vyjedol klobásy. Minister Strašiak: Mäso sa má predávať z medveďa, nie medveďovi.',
     ],
@@ -560,6 +562,26 @@
       'Rybár na Račkovom potoku utiekol pred medveďom. Udicu nechal, úlovok tiež.',
       'Rybár na ľade: Prvý raz som videl medveďa. A prvý raz som videl seba utekať.',
     ],
+    vendorPour: [
+      'Predavač pri stánku nalial medveďovi borovičku a odkrojil syr. Minister Strašiak: Kŕmenie medveďa alkoholom je terorizmus.',
+      'Medveď pri stánku vypil štamperlík a zajedol syrom. Predavač: Platil úsmevom, to je viac ako turisti.',
+      'Predavač pohostil medveďa. Úrad preveruje, či mal medveď vek na borovičku.',
+    ],
+    vendorDuck: [
+      'Predavačka sa pred medveďom skryla pod pult a stiahla roletu. Ministerstvo hlási úspešnú evakuáciu stánku.',
+      'Medveď zaklopal na pult. Predavač zatvoril stánok a volá krízový štáb. Medveď chcel len ochutnať.',
+    ],
+    knock: [
+      'Medveď zaklopal na dom. Obyvatelia zabuchli okenice, minister Strašiak hovorí o pokuse o vlámanie.',
+      'Medveď chodí od domu k domu a klope. Polícia nevylučuje podomový predaj.',
+      'Ťuk-ťuk na okno, za oknom medveď. Obec zvažuje zákaz klopania po 18.00.',
+      'Medveď zaklopal, nikto neotvoril. Minister Strašiak: Dôkaz, že medvede už chodia aj na návštevy.',
+    ],
+    cheeseEaten: [
+      'Medveď zjedol oštiepok. Minister Strašiak: Útok na chránené označenie pôvodu!',
+      'Zo stánku zmizla bryndza aj korbáčiky. Bača podozrieva medveďa, medveď bačove ceny.',
+    ],
+    mikulasMap: 'Liptovský Mikuláš opäť vedie celoštátnu mapu hlásení o medveďoch. Primátor: Konečne sme v niečom prví.',
     catchEaten: [
       'Medveď zjedol rybárovi úlovok. Rybársky zväz žiada odstrel, ryby protestujú.',
       'Medveď vybral rybárovi vedro pstruhov. Minister Strašiak: Krádež národného bohatstva!',
@@ -568,7 +590,7 @@
       seen: 'Pán Tatier zbadal pri dolnej stanici medveďa: Výborne, konečne hosť, ktorý nepríde autom. Ponúka mu sezónny skipas.',
       leaflet: 'Pán Tatier rozdáva letáky k pilotnému programu medvedej antikoncepcie. Medveď jeden zjedol. Ochranári: Zatiaľ jediný preukázaný účinok.',
       promo: [
-        'Pán Tatier natočil s medveďom promo pre Horný Strach. Medveď lyžovať nevie, ale do kamery sa usmieva lepšie ako minister.',
+        'Pán Tatier natočil s medveďom promo pre Liptovský Mikuláš. Medveď lyžovať nevie, ale do kamery sa usmieva lepšie ako minister.',
         'Promo z dolnej stanice: pán Tatier a medveď so sezónnym skipasom. Stredisko hlási rekordný záujem, minister Strašiak rekordný strach.',
       ],
     },
@@ -593,6 +615,7 @@
     lot: '🎄', lotSeller: '🎄', lotTopple: '🎄', lotMiss: '🎄',
     alpine: '🏔️', marmot: '🐿️', chamois: '🐐', porter: '🎒', hut: '🛖', kosodrevina: '🌲', limbaEaten: '🌰', altitude: '📏',
     fisher: '🎣', catchEaten: '🐟', tycoon: '⛷️',
+    vendorPour: '🥃', vendorDuck: '🧀', knock: '🚪', cheeseEaten: '🧀', mikulasMap: '🗺️',
   };
 
   ZS.LABELS = {
@@ -626,6 +649,7 @@
       punch: 'punč z trhov',
       lokse: 'lokše s makom',
       sausage: 'klobása zo stánku',
+      cheese: 'ovčí syr',
       carrot: 'mrkva zo snehuliaka',
       candy: 'cukríky z Mikulášovho vreca',
       chatabin: 'kontajner pri chate',
@@ -649,6 +673,8 @@
     interactStand: 'C zatriasť posedom',
     interactLadder: 'C zatriasť · drž ↑ vylez',
     interactPose: 'C zapózuj fotografovi',
+    interactStall: 'C ochutnaj',
+    interactKnock: 'C zaklop',
     stomp: 'Bum!',
     hugBanned: '❤️ Nelegálne objatie!',
     selfie: '📸 Selfie!',
@@ -721,7 +747,9 @@
     },
     billboard: ['Medveď je za', 'každým stromom!'],
     billboardWinter: ['Zimný spánok', 'je povinný!'],
-    stallSigns: { punch: 'PUNČ', lokse: 'LOKŠE', sausage: 'KLOBÁSY' },
+    stallSigns: { punch: 'PUNČ', lokse: 'LOKŠE', sausage: 'KLOBÁSY', cheese: 'OVČÍ SYR' },
+    vendor: { pour: ['Na zdravie!', 'Jednu na cestu!', 'Ochutnaj, Macko!'], duck: ['Zatvorené!', 'Medveď! Roletu dolu!', 'Inventúra!'], hic: 'hik!' },
+    knock: { granny: ['Ja ti dám, chlpáč!', 'Kšá, lebo valčekom!', 'Ježišmária, medveď!'], man: ['Čo je?! Á, medveď!', 'Marta, papuču!', 'Nič nekupujem!'], kid: ['Mamííí!', 'Macko! Mami, macko!', 'Ááá!'] },
     apresSki: 'APRÈS-SKI',
     lift: {
       banner: 'Lanovka: hojdaj sedačkou ← →',
@@ -751,7 +779,7 @@
       feeder: 'krmelec',
       ice: 'Račkov potok – ľad',
       market: 'Vianočné trhy',
-      lift: 'Lanovka Horný Strach',
+      lift: 'Lanovka Liptovský Mikuláš',
       quiet: 'TANAP – Tichá dolina',
       cave: 'Važecká jaskyňa – tu medvede spali bez vyhlášky',
       winterGoal: 'Tichý brloh →',
@@ -803,7 +831,7 @@
     pauseTitle: 'Pauza',
     pauseText: 'Medveď čaká za stromom.',
     goulash: ' A keďže štát povolil predaj mäsa, skončil si ako guláš v tatranskej reštaurácii.',
-    winterTeaser: 'O pár týždňov ťa však zobudí teplý advent a snežné delá zo strediska Horný Strach…',
+    winterTeaser: 'O pár týždňov ťa však zobudí teplý advent a snežné delá z Liptovského Mikuláša…',
     stats: { natural: 'jedlo z lesa', human: 'jedlo od ľudí', seen: 'krát ťa videli', fat: (season) => 'tuku · ' + season.toLowerCase(), hugs: 'objatia', selfies: 'selfie', bites: 'uhryznutia', stomps: 'zvalení poľovníci' },
     behindTree: 'za stromom',
     hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
