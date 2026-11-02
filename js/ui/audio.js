@@ -5,13 +5,23 @@
   const MAX = 24, AMB_MAX = 8, LOW = 0.0001;
   const MIX = { master: 0.8, sfx: 0.75, amb: 0.7, beds: 0.8, verb: 0.32, send: 0.12, warm: 9000, warmWinter: 6200 };
   const LEVEL = {
-    walk: 0.78, creep: 0.55, run: 1, wind: 0.007, windWinter: 0.01, windFrost: 0.014,
-    forest: 0.0151, stream: 0.0472, spruce: 0.0166, crickets: 0.0079, bells: 0.0262, church: 0.0312, spray: 0.0615, drone: 0.0388, cable: 0.0166,
+    walk: 0.45, creep: 0.3, run: 0.6, wind: 0.007, windWinter: 0.01, windFrost: 0.014,
+    forest: 0.0151, stream: 0.0472, spruce: 0.0166, crickets: 0.0079, bells: 0.0262, church: 0.0312, spray: 0.0615, drone: 0.0388, cable: 0.0141,
     murmur: 0.0245, market: 0.03,
   };
   const TRIM = {
     'voice.scream.f': 0.0495, 'voice.yell.m': 0.0431, 'voice.gasp.f': 0.0204, 'voice.oof.f': 0.0403, 'voice.oof.m': 0.0389, 'voice.yelp.m': 0.0473,
-    'chat.adults': 0.0129, 'chat.hikers': 0.0217, 'chat.kids': 0.0106,
+    'chat.adults': 0.0129, 'chat.hikers': 0.0217, 'chat.kids': 0.0114,
+    'deer.call': 0.0221,
+    'deer.grunt': 0.0273,
+    'ski.swish': 0.0191,
+    'ricochet': 0.0842,
+    'claw': 0.0344,
+    'hay': 0.0342,
+    'lift.tower': 0.0305,
+    'voice.hm': 0.0231,
+    'chat.mumble': 0.0141,
+    'chat.walla': 0.0144,
     'voice.grunt.m': 0.0285, 'voice.sigh': 0.018, 'voice.laugh': 0.024, 'voice.hoho': 0.0272, 'bear.growl': 0.0452, 'bear.huff': 0.0153,
     'step.grass': 0.0268, 'step.snow': 0.0203, 'step.water': 0.0351, 'step.ice': 0.0282, 'step.crawl': 0.0186, 'hide.leaves': 0.0381,
     'flee.grass': 0.0491, 'flee.snow': 0.0489, 'eat.munch': 0.05, 'eat.crunch': 0.04, 'eat.wrapper': 0.0947, 'eat.lick': 0.0521, 'eat.bees': 0.0146,
@@ -23,6 +33,12 @@
     'mbira.gs5': 0.0723,
   };
   const VARIANT = {
+    'chat.kids': [-0.5, 0.7, -1.7, -1.2, 0.2, -1.8, 1.3, 2.0, 0.8],
+    'chat.walla': [0.2, -0.6, 1.1, 0.4, 0.4, -0.5, -1.6, 2.5, -0.9, -1.4, 0.4, 0.6, -0.1, -0.7],
+    'chat.mumble': [2.2, 2.4, 1.8, -0.4, 1.0, -0.7, -2.5, -1.9, -1.3, -0.5, -0.5, 0.3, -0.0, 0.7, -0.5],
+    'hay': [0.9, 1.1, -2.0],
+    'claw': [-3.2, -4.6, 3.6, 4.2],
+    'ricochet': [-2.5, -3.9, 1, -9.9],
     'chat.hikers': [1.8, 0.2, -1.4, -0.6],
     'step.grass': [2.6, -1.4, 0.2, -1.5], 'step.water': [2.8, -2.1, -0.6], 'step.ice': [-0.6, -0.8, 1.5], 'flee.grass': [-1.4, 1.4],
     'eat.munch': [5.5, -5.9, 0.4], 'eat.crunch': [5.1, -1.5, -3.5], 'eat.wrapper': [3.2, -3.2], 'eat.lick': [1.5, -1.4],
@@ -38,7 +54,10 @@
   const BINS = { bin: 1, container: 1, chatabin: 1 };
   const CRUNCH = { carrot: 1, apple: 1, frozenapple: 1, nut: 1, snownut: 1, corn: 1, feeder: 1 };
   const SHOOTERS = { posed: 1, walker: 1, ztmh: 1, poacher: 1 };
-  const TALK = { tourist: ['chat.adults', 'chat.hikers'], picker: ['chat.hikers', 'chat.adults'], guest: ['chat.adults'], waiter: ['chat.adults'], santa: ['chat.adults'] };
+  const TALK = {
+    tourist: ['chat.mumble', 'chat.walla', 'chat.adults', 'chat.hikers'], picker: ['chat.mumble', 'chat.hikers', 'chat.walla'],
+    guest: ['chat.mumble', 'chat.walla', 'chat.adults'], waiter: ['chat.mumble', 'chat.walla'], santa: ['chat.mumble'],
+  };
   const SONG = {
     spring: [['bird.blackbird', 3], ['bird.robin', 3], ['bird.crow', 1]],
     summer: [['bird.blackbird', 2], ['bird.robin', 2], ['bird.crow', 1]],
@@ -56,7 +75,7 @@
   const w = {
     g: null, ride: null, lastX: 0, stepD: 0, stepLen: 48, paw: 0, breath: 0, climbT: 0, baa: 9, baaCd: 0, flee: 0,
     rideW: 0, jolt: 0, seen: new Uint8Array(64), active: false, drone: null, droneD: 0,
-    bird: 3, dog: 8, place: 3, chatCd: 0, clank: 6, hen: 4, hiss: 3, cow: 12, clatter: 2, gust: 0.6, gustT: 0, rum: 0, shoutCd: 0, voiceCd: 0, theme: '',
+    bird: 3, dog: 8, place: 3, stag: 20, ski: 4, deer: 0, chatCd: 0, clank: 6, hen: 4, hiss: 3, cow: 12, clatter: 2, gust: 0.6, gustT: 0, rum: 0, shoutCd: 0, voiceCd: 0, theme: '',
   };
 
   function readMuted() {
@@ -316,9 +335,9 @@
       play(stepSurface(w.surface), x, 1.2 + 0.4 * k, { rate: 0.9, send: 0.05 });
       if ((vy || 0) > 600) play('bear.huff', x, 0.5);
     },
-    climb(x) { play('step.crawl', x, 0.5, { rate: 1.2 }); },
+    climb(x) { play('claw', x, 1); },
     leaves(x) { play('hide.leaves', x, 1); },
-    hay(x) { play('hide.leaves', x, 0.9, { rate: 0.8, lp: 2400 }); },
+    hay(x) { play('hay', x, 1); },
     eat(x, type) {
       const f = ZS.FOOD[type];
       if (type === 'fish') { play('step.water', x, 1); play('eat.munch', x, 1, { delay: 0.25 }); }
@@ -330,7 +349,7 @@
       else { play('hide.leaves', x, 0.5, { rate: 1.2 }); play('eat.munch', x, 1, { delay: 0.12 }); }
     },
     shot(x) { play('shot', x, 1, { reach: 3, send: 0.3 }); },
-    miss(x) { play('whoosh', x, 1, { reach: 1.5 }); play('impact.dirt', x, 1, { reach: 1.5, delay: 0.08 }); },
+    miss(x) { play('ricochet', x, 1, { reach: 1.5 }); play('impact.dirt', x, 0.6, { reach: 1.5 }); },
     tree(x) { play('impact.wood', x, 1, { reach: 1.5 }); },
     hayHit(x) { play('impact.dirt', x, 1, { reach: 1.5, lp: 2200 }); },
     hit(x) { play('impact.body', x, 1, { reach: 1.5, must: true }); play('bear.growl', x, 0.7, { delay: 0.05 }); },
@@ -380,7 +399,7 @@
   function liftResult(result, side) {
     const o = { pan: side * 0.4, must: result === 'hit' };
     if (result === 'hit') { play('impact.body', null, 1, o); play('bear.growl', null, 0.6, o); }
-    else if (result === 'spark') play('impact.wood', null, 0.8, o);
+    else if (result === 'spark') play('ricochet', null, 1, o);
     else play('whoosh', null, 1, o);
   }
 
@@ -487,7 +506,7 @@
         w.paw ^= 1;
         w.stepLen = (b.crawl ? 30 : gait === 'creep' ? 32 : gait === 'run' ? 58 : 46) * rr(0.9, 1.1) * (w.paw ? 1.06 : 0.94);
         const vol = (gait === 'run' ? LEVEL.run : gait === 'creep' ? LEVEL.creep : LEVEL.walk) * (w.paw ? 1 : 0.85);
-        play(stepSurface(w.surface), b.x, vol, { send: 0.05, rate: w.paw ? 0.94 : 1.04 });
+        play(stepSurface(w.surface), b.x, vol, { send: 0.05, lp: gait === 'run' ? 3400 : 2600, rate: w.paw ? 0.94 : 1.04 });
         if (gait === 'run' && w.paw && (w.breath = (w.breath + 1) % 3) === 0) play('bear.huff', b.x, 0.35);
       }
     }
@@ -528,7 +547,7 @@
     if (w.voiceCd > 0 || r.vcd > 0) return false;
     let name;
     if (kind === 'fright') name = r.santa ? 'voice.hoho' : r.female ? (rnd() < 0.35 ? 'voice.scream.f' : 'voice.gasp.f') : 'voice.yell.m';
-    else if (kind === 'notice') name = r.santa ? 'voice.hoho' : r.female ? 'voice.gasp.f' : 'voice.grunt.m';
+    else if (kind === 'notice') name = r.santa ? 'voice.hoho' : r.female ? (rnd() < 0.5 ? 'voice.gasp.f' : 'voice.hm') : rnd() < 0.5 ? 'voice.hm' : 'voice.grunt.m';
     else if (kind === 'pain') name = r.female ? 'voice.oof.f' : 'voice.yelp.m';
     else if (kind === 'hug') name = r.santa ? 'voice.hoho' : 'voice.sigh';
     else name = kind;
@@ -569,7 +588,7 @@
       if (!s.react && r.vcd <= 0) {
         const alerted = s.alertX !== null && s.alertX !== undefined && (r.alert === null || r.alert === undefined);
         if (s.lock > 0 && r.lock <= 0) { play('gun.cock', s.x, 0.8, { reach: 1.2 }); if (react(s, r, 'voice.grunt.m', 0.8)) r.vcd = 6; }
-        else if (alerted && react(s, r, 'voice.grunt.m', 0.8)) r.vcd = 6;
+        else if (alerted && react(s, r, rnd() < 0.5 ? 'voice.hm' : 'voice.grunt.m', 0.8)) r.vcd = 6;
       }
       r.scared = scared; r.react = s.react; r.alert = s.alertX; r.lock = s.lock || 0;
     }
@@ -605,13 +624,13 @@
   function zonesOf(g) {
     const L = g.level, z = [];
     const add = (from, to, kinds, rate, extra) => z.push(Object.assign({ x: (from + to) / 2, w: to - from, kinds, rate }, extra));
-    if (L.village) add(L.village.from, L.village.to, ['chat.adults', 'chat.adults', 'chat.kids'], 1, { dog: true });
-    if (L.skanzen) add(L.skanzen.from, L.skanzen.to, ['chat.adults', 'chat.kids'], 0.8);
-    if (L.hotel) add(L.hotel.x - L.hotel.w / 2, L.hotel.x + L.hotel.w / 2 + 200, ['chat.adults'], 0.8);
-    if (L.park) add(L.park.from, L.park.to, ['chat.hikers'], 0.35);
-    if (L.salas) add(L.salas.from, L.salas.koliba + 200, ['chat.adults'], 0.5, { koliba: true });
-    if (L.chata) add(L.chata.x - 150, L.chata.x + 350, ['chat.adults'], 0.9);
-    if (L.slope) add(L.slope.from, L.slope.to, ['chat.adults', 'chat.kids'], 0.5);
+    if (L.village) add(L.village.from, L.village.to, ['chat.walla', 'chat.mumble', 'chat.adults', 'chat.kids'], 1, { dog: true });
+    if (L.skanzen) add(L.skanzen.from, L.skanzen.to, ['chat.walla', 'chat.mumble', 'chat.kids'], 0.8);
+    if (L.hotel) add(L.hotel.x - L.hotel.w / 2, L.hotel.x + L.hotel.w / 2 + 200, ['chat.walla', 'chat.adults'], 0.8);
+    if (L.park) add(L.park.from, L.park.to, ['chat.hikers', 'chat.mumble'], 0.35);
+    if (L.salas) add(L.salas.from, L.salas.koliba + 200, ['chat.mumble', 'chat.adults'], 0.5, { koliba: true });
+    if (L.chata) add(L.chata.x - 150, L.chata.x + 350, ['chat.walla', 'chat.mumble'], 0.9);
+    if (L.slope) add(L.slope.from, L.slope.to, ['chat.walla', 'chat.kids'], 0.5, { ski: true });
     return z;
   }
 
@@ -643,6 +662,10 @@
         if (d < 700 && z.dog && (w.dog -= dt) <= 0) {
           w.dog = rr(10, 22);
           play('dog', null, 0.45 * (1 - d / 1400), { amb: true, pan: rr(-0.8, 0.8), send: 0.6, lp: 1600 });
+        }
+        if (z.ski && d < 600 && (w.ski -= dt) <= 0) {
+          w.ski = rr(4, 9);
+          play('ski.swish', z.x + rr(-z.w / 2, z.w / 2), 0.8 * (1 - d / 900), { amb: true, reach: 1.5, send: 0.3, rate: rr(0.9, 1.1) });
         }
         const calm = !z.koliba || !g.koliba || g.koliba.mode === 'calm';
         if (d < 500 && calm && w.chatCd <= 0 && (w.place -= dt) <= 0) {
@@ -699,7 +722,7 @@
     const on = !!r && (r.phase === 'ride' || r.phase === 'arrive');
     loopLevel('cable', on ? LEVEL.cable : 0, 0, 0.4);
     if (!on) return;
-    if (r.jolt > w.jolt + 0.2) play('pylon', null, 1, { send: 0.25 });
+    if (r.jolt > w.jolt + 0.2) { play('lift.tower', null, 1, { send: 0.2 }); play('pylon', null, 0.5, { send: 0.25 }); }
     w.jolt = r.jolt;
     if (Math.sign(r.w) !== Math.sign(w.rideW) && Math.abs(r.th) > 0.14) play('creak', null, 0.5 * clamp(Math.abs(r.th) / 0.6, 0.3, 1), { rate: 1.1 });
     w.rideW = r.w;
@@ -752,6 +775,26 @@
     if ((w.bird -= dt) <= 0) {
       w.bird = winter ? rr(16, 30) : rr(9, 18) * (season === 'autumn' ? 1.6 : 1);
       if (!g.ride || rnd() < 0.5) bird(season);
+    }
+    if (season === 'autumn' && !g.ride && (w.stag -= dt) <= 0) {
+      w.stag = rr(25, 50);
+      play('deer.call', null, rr(0.4, 0.8), { amb: true, pan: rr(-0.8, 0.8), send: 0.6, lp: 2200 });
+    }
+    deerSounds(g, b, dt);
+  }
+
+  function deerSounds(g, b, dt) {
+    if (!g.deer || !g.deer.length || g.ride) return;
+    let flee = 0, near = null;
+    for (const d of g.deer) {
+      if (d.state === 'flee') flee++;
+      if (!near || Math.abs(d.x - b.x) < Math.abs(near.x - b.x)) near = d;
+    }
+    if (flee > w.deer) play('deer.grunt', near.x, 1, { reach: 1.4 });
+    w.deer = flee;
+    if (!flee && Math.abs(near.x - b.x) < g.viewW && (w.stag -= dt) <= 0) {
+      w.stag = rr(20, 40);
+      play('deer.call', near.x, 0.7, { amb: true, reach: 1.6, send: 0.4 });
     }
   }
 
