@@ -10,11 +10,11 @@
   const copy = (v) => (Array.isArray(v) ? v.map(copy) : plain(v) ? Object.fromEntries(Object.keys(v).map((k) => [k, copy(v[k])])) : v);
   const same = (a, b) => a.type === b.type && Math.abs(a.x - b.x) < 0.5;
 
-  function save(g) {
-    const L = g.level, b = g.bear, s = { level: L.id, x: b.x, dir: b.dir, lives: Math.max(LIVES, g.lives) };
+  function save(g, key) {
+    const L = g.level, b = g.bear, s = { level: L.id, key: key || 'lift', x: b.x, dir: b.dir, lives: Math.max(LIVES, g.lives) };
     for (const k of SCALARS) s[k] = g[k];
     Object.assign(s, {
-      flags: copy(g.flags), once: Object.assign(copy(g.once), { lift: true }), stats: copy(g.stats), usedEvents: [...g.usedEvents], saidAt: copy(g.saidAt),
+      flags: copy(g.flags), once: copy(g.once), stats: copy(g.stats), usedEvents: [...g.usedEvents], saidAt: copy(g.saidAt),
       shooters: g.shooters.map(copy), drones: g.drones.map(copy),
       items: L.items.map((it) => ({ type: it.type, x: it.x, eaten: !!it.eaten, locked: !!it.locked })),
       posts: L.posts.map((p) => p.x), noses: (L.snowmen || []).map((m) => m.nose),
@@ -45,7 +45,7 @@
     const b = g.bear;
     for (const k of SCALARS) g[k] = s[k];
     Object.assign(g, {
-      lives: s.lives, flags: copy(s.flags), once: Object.assign(copy(s.once), { lift: true }), stats: copy(s.stats), usedEvents: new Set(s.usedEvents),
+      lives: s.lives, flags: copy(s.flags), once: copy(s.once), stats: copy(s.stats), usedEvents: new Set(s.usedEvents),
       saidAt: copy(s.saidAt), shooters: s.shooters.map(copy), drones: s.drones.map(copy), ride: null, lastKnown: null,
     });
     items(g.level, s);

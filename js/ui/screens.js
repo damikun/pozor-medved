@@ -104,7 +104,7 @@
     return (own && own[g.ending]) || ZS.ENDINGS[g.ending];
   }
 
-  function showEnd(g, { onAgain, onNext, onMenu, onRetry }) {
+  function showEnd(g, { onAgain, onNext, onMenu, onRetry, retryKey }) {
     const e = ending(g), kind = g.ending, T = ZS.LEVEL_TEXT[g.level.id];
     let text = e.text;
     if (g.flags.meat && kind !== 'win' && kind !== 'starve') text += UI.goulash;
@@ -127,7 +127,7 @@
       </div>
       <div class="row">
         ${next ? `<button id="btnNext">${UI.next}</button><button id="btnAgain" class="ghost">${UI.again}</button>`
-          : onRetry ? `<button id="btnRetry">${UI.retryLift}</button><button id="btnAgain" class="ghost">${UI.again}</button>` : `<button id="btnAgain">${UI.again}</button>`}
+          : onRetry ? `<button id="btnRetry">${(UI.retryAt && UI.retryAt[retryKey]) || UI.retryLift}</button><button id="btnAgain" class="ghost">${UI.again}</button>` : `<button id="btnAgain">${UI.again}</button>`}
         <button id="btnMenu" class="ghost">${UI.menu}</button>
       </div>`);
     $('btnAgain').onclick = onAgain;

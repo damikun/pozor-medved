@@ -534,6 +534,12 @@
       liftDrone: 'Eine Armeedrohne begleitet den Bären am Sessellift. Einen Skipass hat sie auch nicht.',
       checkpoint: 'Kontrollpunkt: Bergstation des Sessellifts. Das Skigebiet hat den Bären ins Gästebuch eingetragen.',
       liftResume: 'Der Bär ist wieder an der Bergstation des Sessellifts. Das Skigebiet will ihn nie gesehen haben.',
+      cp: {
+        skanzen: 'Kontrollpunkt: Freilichtmuseum Pribylina. Das Museum hat den Bären in die Dauerausstellung aufgenommen.',
+        koliba: 'Kontrollpunkt: die Koliba. Der Senner hat den Bären ins Almbuch eingetragen, gleich unter den Schafen.',
+        market: 'Kontrollpunkt: Weihnachtsmarkt. Die Stadt hat dem Bären eine Markterlaubnis für einen Tag ausgestellt.',
+      },
+      cpResume: 'Der Bär ist wieder am Kontrollpunkt. Das Ministerium meldet eine zweite Welle.',
       lot: 'Der Bär versteckt sich zwischen den Christbäumen. Das Ministerium lässt jeden Baum mit Preisschild kontrollieren.',
       lotSeller: [
         'Der Christbaumverkäufer ist vor dem Bären geflohen. Den Stand ließ er offen, die Kasse nicht.',
@@ -708,6 +714,7 @@
       ticket: 'KASSE',
         price: 'Gulasch 19 €',
       },
+      cp: { skanzen: 'Kontrollpunkt: Freilichtmuseum', koliba: 'Kontrollpunkt: Koliba', market: 'Kontrollpunkt: Markt', resumed: 'Wieder am Kontrollpunkt' },
       signs: {
         hide: 'Halte ↓ am dicken Baum',
         climb: 'Halte ↑ am Baum = klettern',
@@ -766,6 +773,7 @@
       keys: { ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓', Space: '␣', KeyC: 'C', KeyX: 'X', ShiftLeft: 'Shift' },
       again: 'Nochmal',
       retryLift: 'Ab dem Sessellift nochmal',
+      retryAt: { skanzen: 'Ab dem Museum nochmal', koliba: 'Ab der Koliba nochmal', market: 'Ab dem Markt nochmal' },
       next: 'Weiter in den Winter →',
       menu: 'Level wählen',
       resume: 'Weiter',

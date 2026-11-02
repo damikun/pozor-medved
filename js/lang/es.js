@@ -534,6 +534,12 @@
       liftDrone: 'Un dron del ejército escolta al oso en el telesilla. Tampoco tiene forfait.',
       checkpoint: 'Punto de control: estación superior del telesilla. La estación apuntó al oso en el libro de visitas.',
       liftResume: 'El oso vuelve a estar en la estación superior del telesilla. La estación asegura que es la primera vez que lo ve.',
+      cp: {
+        skanzen: 'Punto de control: el museo al aire libre de Pribylina. El museo ha incluido al oso en su exposición permanente.',
+        koliba: 'Punto de control: la koliba. El pastor apuntó al oso en el libro del redil, justo debajo de las ovejas.',
+        market: 'Punto de control: el mercado navideño. La ciudad le dio al oso un permiso de venta por un día.',
+      },
+      cpResume: 'El oso ha vuelto a un punto de control. El ministerio informa de una segunda ola.',
       lot: 'El oso se esconde entre los árboles de Navidad. El ministerio ordena revisar cada árbol con etiqueta de precio.',
       lotSeller: [
         'El vendedor de árboles de Navidad huyó del oso. Dejó el puesto abierto, la caja no.',
@@ -708,6 +714,7 @@
       ticket: 'TAQUILLA',
         price: 'Gulash 19 €',
       },
+      cp: { skanzen: 'Punto de control: museo', koliba: 'Punto de control: koliba', market: 'Punto de control: mercado', resumed: 'De nuevo en el punto de control' },
       signs: {
         hide: 'Mantén ↓ en un tronco grueso',
         climb: 'Mantén ↑ en el árbol = trepa',
@@ -766,6 +773,7 @@
       keys: { ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓', Space: '␣', KeyC: 'C', KeyX: 'X', ShiftLeft: 'Shift' },
       again: 'Otra vez',
       retryLift: 'Reintentar desde el telesilla',
+      retryAt: { skanzen: 'Reintentar desde el museo', koliba: 'Reintentar desde la koliba', market: 'Reintentar desde el mercado' },
       next: 'Continuar al invierno →',
       menu: 'Elegir nivel',
       resume: 'Continuar',

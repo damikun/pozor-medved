@@ -2,6 +2,7 @@
   const root = typeof window === 'undefined' ? {} : window;
   const AC = root.AudioContext || root.webkitAudioContext || null;
   const KEY = 'zaStromom.mute';
+  const HERE = root.document && root.document.currentScript ? root.document.currentScript.src : '';
   const MAX = 24, AMB_MAX = 8, LOW = 0.0001;
   const MIX = { master: 0.8, sfx: 0.75, amb: 0.7, beds: 0.8, verb: 0.32, send: 0.12, warm: 9000, warmWinter: 6200 };
   const LEVEL = {
@@ -237,7 +238,20 @@
     sleepT = setTimeout(() => { if (!want() && ctx.state === 'running') quietly(() => ctx.suspend()); }, 220);
   }
 
+  function fetchSounds() {
+    const d = root.document;
+    if (ZS.SOUNDS || fetchSounds.sent || !d || !d.createElement || !HERE) return;
+    fetchSounds.sent = true;
+    const s = d.createElement('script');
+    s.src = HERE.replace(/audio\.js(\?.*)?$/, 'sounds.js');
+    s.async = true;
+    s.onload = () => { if (ctx) loadSamples(); };
+    s.onerror = () => { fetchSounds.sent = false; };
+    d.head.appendChild(s);
+  }
+
   function unlock() {
+    fetchSounds();
     if (!AC || api.muted) return;
     if (!ctx) { build(); sync(); return; }
     if (want() && ctx.state === 'suspended') sync();
@@ -913,6 +927,7 @@
     for (const ev of ['pointerdown', 'keydown', 'touchstart']) root.addEventListener(ev, unlock, { capture: true, passive: true });
   }
   if (root.document && root.document.addEventListener) {
+    root.document.addEventListener('DOMContentLoaded', () => setTimeout(fetchSounds, 500));
     hidden = !!root.document.hidden;
     root.document.addEventListener('visibilitychange', () => { hidden = !!root.document.hidden; sync(); });
     root.document.addEventListener('click', (e) => {

@@ -26,6 +26,7 @@ function loadGame({ seed, withRenderer = false, withAudio = false, globals = {},
   }
   vm.createContext(sandbox);
   const scripts = pageScripts().filter((src) => HEADLESS.test(src) || (withRenderer && RENDERER.test(src)) || (withAudio && AUDIO.test(src)));
+  if (withAudio) scripts.splice(scripts.indexOf('js/ui/audio.js'), 0, 'js/ui/sounds.js');
   for (const src of scripts) vm.runInContext(fs.readFileSync(path.join(ROOT, src), 'utf8'), sandbox, { filename: src });
   if (seed !== undefined) vm.runInContext(`Math.random = ZS.util.mulberry32(${Number(seed)});`, sandbox);
   return sandbox.ZS;

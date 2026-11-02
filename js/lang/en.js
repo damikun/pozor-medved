@@ -534,6 +534,12 @@
       liftDrone: 'An army drone is escorting the bear up the chairlift. It has no ski pass either.',
       checkpoint: 'Checkpoint: the chairlift top station. The resort wrote the bear into its guest book.',
       liftResume: 'The bear is back at the chairlift top station. The resort claims it has never seen him before.',
+      cp: {
+        skanzen: 'Checkpoint: the Pribylina open-air museum. The museum has added the bear to its permanent exhibition.',
+        koliba: 'Checkpoint: the koliba. The shepherd wrote the bear into the sheepfold book, right under the sheep.',
+        market: 'Checkpoint: the Christmas market. The town issued the bear a one-day trading permit.',
+      },
+      cpResume: 'The bear is back at a checkpoint. The ministry reports a second wave.',
       lot: 'The bear is hiding among the Christmas trees. The ministry orders a check of every tree with a price tag.',
       lotSeller: [
         'The Christmas tree seller fled from the bear. He left the stall open, but not the cash box.',
@@ -708,6 +714,7 @@
       ticket: 'TICKETS',
         price: 'Goulash €19',
       },
+      cp: { skanzen: 'Checkpoint: open-air museum', koliba: 'Checkpoint: koliba', market: 'Checkpoint: market', resumed: 'Back at the checkpoint' },
       signs: {
         hide: 'Hold ↓ by a thick tree',
         climb: 'Hold ↑ by a tree = climb',
@@ -766,6 +773,7 @@
       keys: { ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓', Space: '␣', KeyC: 'C', KeyX: 'X', ShiftLeft: 'Shift' },
       again: 'Play again',
       retryLift: 'Retry from the chairlift',
+      retryAt: { skanzen: 'Retry from the museum', koliba: 'Retry from the koliba', market: 'Retry from the market' },
       next: 'On to winter →',
       menu: 'Choose level',
       resume: 'Resume',

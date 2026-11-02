@@ -536,6 +536,12 @@
     liftDrone: 'Armádny dron sprevádza medveďa na lanovke. Skipas nemá ani on.',
     checkpoint: 'Kontrolný bod: horná stanica lanovky. Stredisko si medveďa zapísalo do knihy návštev.',
     liftResume: 'Medveď je znova pri hornej stanici lanovky. Stredisko tvrdí, že ho vidí prvý raz.',
+    cp: {
+      skanzen: 'Kontrolný bod: Skanzen Pribylina. Múzeum si medveďa zaradilo do stálej expozície.',
+      koliba: 'Kontrolný bod: koliba. Bača zapísal medveďa do salašníckej knihy, hneď pod ovce.',
+      market: 'Kontrolný bod: vianočné trhy. Mesto vydalo medveďovi trhové povolenie na jeden deň.',
+    },
+    cpResume: 'Medveď sa vrátil na kontrolný bod. Ministerstvo hlási druhú vlnu.',
     lot: 'Medveď sa skrýva medzi vianočnými stromčekmi. Ministerstvo nariadilo kontrolu každého stromčeka s cenovkou.',
     lotSeller: [
       'Predajca stromčekov utiekol pred medveďom. Stánok nechal otvorený, pokladničku nie.',
@@ -583,7 +589,7 @@
     cornEaten: '🌽', corn: '🌽', cobEaten: '🌽', cornHit: '🌽', boar: '🐗', sandwichEaten: '🥪', appleEaten: '🍎', tv: '📺',
     koliba: '🍺', haluskyEaten: '🥟', photo: '📸', photoWait: '📷',
     lift: '🚠', liftMiss: '💨', liftHit: '💥', liftTop: '🏔️', liftClean: '🚠', liftDrone: '🚁',
-    checkpoint: '🚩', liftResume: '🚠',
+    checkpoint: '🚩', liftResume: '🚠', cp: '🚩', cpResume: '🔁',
     lot: '🎄', lotSeller: '🎄', lotTopple: '🎄', lotMiss: '🎄',
     alpine: '🏔️', marmot: '🐿️', chamois: '🐐', porter: '🎒', hut: '🛖', kosodrevina: '🌲', limbaEaten: '🌰', altitude: '📏',
     fisher: '🎣', catchEaten: '🐟', tycoon: '⛷️',
@@ -731,6 +737,7 @@
     ticket: 'POKLADŇA',
       price: 'Guláš 19 €',
     },
+    cp: { skanzen: 'Kontrolný bod: skanzen', koliba: 'Kontrolný bod: koliba', market: 'Kontrolný bod: trhy', resumed: 'Znova od kontrolného bodu' },
     signs: {
       hide: 'Drž ↓ pri hrubom strome',
       climb: 'Drž ↑ pri strome = lez hore',
@@ -789,6 +796,7 @@
     keys: { ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓', Space: '␣', KeyC: 'C', KeyX: 'X', ShiftLeft: 'Shift' },
     again: 'Znova',
     retryLift: 'Skúsiť znova od lanovky',
+    retryAt: { skanzen: 'Skúsiť znova od skanzenu', koliba: 'Skúsiť znova od koliby', market: 'Skúsiť znova od trhov' },
     next: 'Pokračovať do zimy →',
     menu: 'Vybrať level',
     resume: 'Pokračovať',

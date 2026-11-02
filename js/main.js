@@ -8,7 +8,7 @@
   const BOT = /[?&]bot\b/.test(location.search);
   const PORTRAIT_MIN_W = 480;
   const SAVE = 'zaStromom.done';
-  let g = null, vw = 0, vh = 0, viewW = 0, offY = 0, last = 0, hudT = 0, current = 'summer', mark = null;
+  let g = null, vw = 0, vh = 0, viewW = 0, offY = 0, last = 0, hudT = 0, current = 'summer', mark = null, reached = new Set();
 
   const touchy = () => window.matchMedia('(pointer: coarse)').matches;
 
@@ -43,6 +43,7 @@
   function start(level, from) {
     current = level || current;
     if (!from) mark = null;
+    reached = new Set(from ? [from.key] : []);
     input.state.keys.clear();
     g = from ? checkpoint.resume(from, input.state, { viewW, bot: BOT }) : rules.create(input.state, { viewW, bot: BOT, level: current });
     g.touch = touchy();
@@ -53,7 +54,8 @@
     hud.showPlaying(g);
     screens.hide();
     if (document.activeElement) document.activeElement.blur();
-    if (from) note(g, LABELS.lift.resumed, NEWS.liftResume);
+    if (from) for (const c of g.level.checkpoints || []) if (c.x <= from.x) reached.add(c.key);
+    if (from) note(g, from.key === 'lift' ? LABELS.lift.resumed : LABELS.cp.resumed, from.key === 'lift' ? NEWS.liftResume : NEWS.cpResume);
     else rules.say(g, current === 'winter' ? NEWS.winterStart : NEWS.springStart);
   }
 
@@ -92,9 +94,21 @@
   audio.onChange = screens.syncMute;
   rules.onLand = (run) => {
     if (run !== g) return;
-    mark = Object.assign(checkpoint.save(run), { tally: tally.counts(run) });
+    reached.add('lift');
+    mark = Object.assign(checkpoint.save(run, 'lift'), { tally: tally.counts(run) });
     note(run, LABELS.lift.checkpoint, NEWS.checkpoint);
   };
+
+  function pass(run) {
+    const b = run.bear;
+    if (run.ride || run.over || !b.onGround) return;
+    for (const c of run.level.checkpoints || []) {
+      if (reached.has(c.key) || b.x < c.x) continue;
+      reached.add(c.key);
+      mark = Object.assign(checkpoint.save(run, c.key), { tally: tally.counts(run) });
+      note(run, LABELS.cp[c.key], NEWS.cp[c.key]);
+    }
+  }
   rules.onEnd = (run) => {
     audio.end(run.ending);
     tally.check(run);
@@ -102,7 +116,7 @@
     hud.setTouch(false);
     if (run.ending === 'win') markDone(run.level.id);
     screens.showEnd(run, { onAgain: () => start(run.level.id), onNext: () => start('winter'), onMenu: menu,
-      onRetry: checkpoint.offer(mark, run) ? () => start(run.level.id, mark) : null });
+      onRetry: checkpoint.offer(mark, run) ? () => start(run.level.id, mark) : null, retryKey: mark && mark.key });
   };
 
   function frame(ts) {
@@ -112,6 +126,7 @@
     audio.frame(g, dt);
     if (g.running && !g.over && !g.paused) {
       loop.step(g, dt);
+      pass(g);
       hud.tick(dt);
       if (!g.over && (hudT -= dt) <= 0) { hudT = 0.1; tally.check(g); hud.update(g); }
     }

@@ -166,3 +166,40 @@ test('saving at landing leaves seeded bot runs unchanged', () => {
     assert.equal(saving.end, plain.end);
   }
 });
+
+test('each level lists its checkpoints before the chairlift, in order and away from the lift', () => {
+  for (const [level, keys] of [['summer', ['skanzen', 'koliba']], ['winter', ['market']]]) {
+    const { g, x } = setup(level);
+    const cps = g.level.checkpoints;
+    assert.equal(cps.map((c) => c.key).join(), keys.join(), level);
+    cps.forEach((c, i) => {
+      assert.ok(c.x > 600 && c.x < x - 300, level + ' ' + c.key + ' ' + c.x);
+      if (i) assert.ok(c.x > cps[i - 1].x);
+    });
+  }
+});
+
+for (const [level, key] of [['summer', 'skanzen'], ['summer', 'koliba'], ['winter', 'market']]) {
+  test(`a checkpoint at the ${key} resumes before the chairlift, with the ride still ahead (${level})`, () => {
+    const { ZS, g, x, input, checkpoint, until } = setup(level);
+    const cp = g.level.checkpoints.find((c) => c.key === key);
+    g.bear.x = cp.x + 4; g.bear.trackX = cp.x + 4;
+    Object.assign(g, { fat: 33, time: 90, lives: 1 });
+    g.stats.selfies = 1;
+    const snap = checkpoint.save(g, key);
+    assert.equal(snap.key, key);
+    g.over = true; g.ending = 'hunted';
+    assert.ok(checkpoint.offer(snap, g));
+    const r = checkpoint.resume(snap, input.state, {});
+    assert.equal(r.level.id, level);
+    assert.ok(Math.abs(r.bear.x - (cp.x + 4)) < 1);
+    assert.equal(r.fat, 33); assert.equal(r.time, 90); assert.equal(r.stats.selfies, 1);
+    assert.equal(r.lives, checkpoint.LIVES);
+    assert.ok(!r.once.lift, 'the chairlift ride is still ahead');
+    r.running = true; r.nextEvent = 1e9; r.shooters = []; r.people = []; r.dogs = []; r.deer = [];
+    r.bear.x = x - 160; r.bear.trackX = x - 160; r.bear.dir = 1; r.bear.inv = 1e9;
+    input.press('ArrowRight', true);
+    assert.ok(until(() => !!r.ride, 3, r), 'the resumed bear can still ride the chairlift');
+    input.release('ArrowRight');
+  });
+}

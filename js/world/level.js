@@ -122,6 +122,7 @@
 
     const H = L.hotel;
     L.lift = { x: H.lift, tower: H.lift + 625 };
+    L.checkpoints = [{ key: 'skanzen', x: L.skanzen.gate + 40 }, { key: 'koliba', x: L.salas.to + 60 }];
     const A = ZS.levelKit.alpine.zone(L);
     const blocked = (x) => (x > L.village.from - 40 && x < L.village.to + 40)
       || (x > L.salas.from && x < L.salas.to)
