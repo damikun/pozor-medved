@@ -35,5 +35,22 @@ with a tourist counts too. Without a hug the den won't let you in.
 | C | hug a person, take a selfie with a tourist, or shake a hunting stand until the hunter falls out |
 | X | bite a person (turns you into a problem bear) |
 | P | pause |
+| M | sound on or off (also the 🔊 button on the start screen and in the pause menu) |
 
 On phones there are touch buttons, and 🤗 and 🦷 appear next to people.
+
+## Sound credits
+
+The UI tick and a soft wind bed are synthesised in the browser; everything else is a trimmed and mixed recording:
+
+- [BigSoundBank.com](https://bigsoundbank.com) by Joseph Sardin (CC0): forest ambience (Forest #4), mountain stream, wind in the trees,
+  field cricket, goat herd bells, church bell, rifle shots, gun loading, axe on wood, shovel, punches, body falls, whoosh, electric shock,
+  welding sparks, creaking swing and barn door, falling wooden chair, wooden barn door, creaking door, camera shutters, cloth, metal barrier,
+  steam train hiss, watering, DJI drone, elevator, footsteps in grass, snow, frozen grass and leaves, running in tall grass, small splashes,
+  horse eating grass and carrot, apple and potato chips crunch, chips packet, licking, bumblebee, plate, cutlery and plates, metal trash can,
+  garbage bag, barking dogs, sheep, cows, hens, blackbird, robin, crows, music box notes, mbira notes, crowd walla, outdoor market,
+  surprise exclamation, cry of pain, sigh, Santa Claus "oh oh oh", background chatter (group of tourists in Lourdes, evening with friends,
+  small restaurant conversations, French-speaking hikers, children in the Jardin des Plantes, laughter of children).
+- [OpenGameArt.org](https://opengameart.org) contributors (CC0): Nocturnal_Vanguard (female scream, female hurt grunts, group giggling),
+  HaelDB (male grunt and yelling sounds), EmoPreben (pain sounds), AntumDeluge (bear growls).
+- U.S. Fish and Wildlife Service (public domain): American black bear growling, Kodiak bears.

@@ -109,6 +109,7 @@
     k.armed = false;
     k.quiet = 0;
     k.guests = schedule(k, list, away);
+    rules().onSound(g, 'koliba', k.x);
     k.seats.forEach((s, i) => { if (s.mode !== 'gone') { s.mode = 'alarm'; s.at = g.time + 0.05 + i * 0.08; } });
     rules().spotted(g, k.x + away * 30, GY - 150, pick(LABELS.koliba.shouts));
     const news = g.time - k.newsAt > 50 ? NEWS.koliba : null;
@@ -122,11 +123,12 @@
     const t = g.time, X = k.x;
     if (o.ph === 'alarm' && o.seat >= 0) k.seats[o.seat].mode = 'alarm';
     if (o.ph === 'dive' || o.ph === 'jump') {
+      if (!isOpen(k.win)) rules().onSound(g, 'window', X + GEO.win);
       open(k.win, t);
       if (o.seat >= 0) { k.seats[o.seat].mode = 'gone'; k.seats[o.seat].at = t; }
       if (rnd() < 0.5) rules().float(g, X + GEO.win, GY - 92, pick(LABELS.koliba.window), COLORS.story);
     }
-    if (o.ph === 'door') { open(k.door, t); k.doorUse = t; ZS.fx.dust(g, X + GEO.door + o.dir * 12, GY, 3, -o.dir); }
+    if (o.ph === 'door') { if (!isOpen(k.door)) rules().onSound(g, 'door', X + GEO.door); open(k.door, t); k.doorUse = t; ZS.fx.dust(g, X + GEO.door + o.dir * 12, GY, 3, -o.dir); }
     if (o.ph === 'lid') open(k.lid, t);
     if (o.ph === 'perch' || o.ph === 'cling') {
       o.face = o.ph === 'cling' && o.act !== 'film' ? 1 : Math.sign(g.bear.x - o.x) || 1;
@@ -135,7 +137,7 @@
         rules().float(g, o.x, o.y - 96, LABELS.koliba.film, COLORS.seen);
       } else if (o.act === 'wave' && rnd() < 0.6) rules().float(g, o.x, o.y - 96, pick(LABELS.koliba.roof), COLORS.story);
     }
-    if (o.ph === 'fall') ZS.fx.dust(g, o.x, GY, 4);
+    if (o.ph === 'fall') { ZS.fx.dust(g, o.x, GY, 4); rules().onSound(g, 'thud', o.x, 0.6); }
   }
 
   function release(g, k, o) {

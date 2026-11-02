@@ -110,6 +110,7 @@
     $('ticker').classList.toggle('hot', !!item.hot);
     $('tvText').replaceChildren(fill(document.createElement('p'), item.text));
     tv.hold = NEWS_HOLD;
+    if (item.hot && ZS.audio) ZS.audio.news();
   }
 
   function showNews(item) {

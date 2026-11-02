@@ -70,6 +70,7 @@
         if (dist > 160 && sees) { d.state = 'run'; trot(g, d, 170, dt); } else d.state = 'bark';
         if (sees && d.barkCd <= 0) {
           d.barkCd = 4;
+          rules().onSound(g, 'bark', d.x);
           rules().addPanic(g, 6, NEWS.dogBark);
           rules().spotted(g, d.x, GY - 80, LABELS.dogBark);
           ZS.sim.hunters.alert(g, b.x);

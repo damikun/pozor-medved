@@ -42,11 +42,12 @@
     });
   }
 
-  function listen({ onPause }) {
+  function listen({ onPause, onMute }) {
     window.addEventListener('keydown', (e) => {
       const code = codeOf(e);
       if (code === 'KeyP' || code === 'Escape') { if (!e.repeat) onPause(); return; }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (code === 'KeyM' && onMute) { if (!e.repeat) onMute(); return; }
       press(code, e.repeat);
       if (GAME_KEYS.includes(code)) e.preventDefault();
     });

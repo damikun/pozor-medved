@@ -41,13 +41,31 @@
     return `<label class="lang"><span aria-hidden="true">🌐</span><select id="langSel" aria-label="${UI.language}">${options}</select></label>`;
   }
 
+  function muteButton(cls) {
+    return `<button class="${cls}" data-mute aria-pressed="false"></button>`;
+  }
+
+  function syncMute() {
+    const off = !!(ZS.audio && ZS.audio.muted), S = UI.sound;
+    document.querySelectorAll('[data-mute]').forEach((btn) => {
+      const label = off ? S.unmute : S.mute;
+      btn.textContent = off ? '🔇' : '🔊';
+      btn.title = label + ' (M)';
+      btn.setAttribute('aria-label', label);
+      btn.setAttribute('aria-pressed', String(off));
+      btn.onclick = () => { if (ZS.audio) ZS.audio.toggle(); };
+    });
+  }
+
   function corner(onLang) {
     const box = $('corner'), codes = ZS.i18n.codes();
     const langs = codes.map((c) => `<button data-lang="${c}"${c === ZS.i18n.lang ? ' class="on"' : ''}>${ZS.LANG_NAMES[c]}</button>`).join('');
     box.innerHTML = `<a class="round" href="${ZS.REPO_URL}" target="_blank" rel="noopener" title="${UI.about}" aria-label="${UI.about}">${GITHUB}</a>`
+      + muteButton('round')
       + `<button class="round" id="btnSettings" title="${UI.language}" aria-label="${UI.language}" aria-expanded="false">⚙️</button>`
       + `<div class="menu" id="cornerMenu" hidden>${langs}<a href="${ZS.REPO_URL}" target="_blank" rel="noopener">${UI.about}</a></div>`;
     box.hidden = false;
+    syncMute();
     const gear = $('btnSettings'), menu = $('cornerMenu');
     gear.onclick = () => {
       menu.hidden = !menu.hidden;
@@ -75,7 +93,8 @@
 
   function showPause(onResume, onMenu) {
     show(`<h2>${UI.pauseTitle}</h2><p>${UI.pauseText}</p>
-      <div class="row"><button id="btnResume">${UI.resume}</button><button id="btnMenu" class="ghost">${UI.menu}</button></div>`, 'pause');
+      <div class="row"><button id="btnResume">${UI.resume}</button><button id="btnMenu" class="ghost">${UI.menu}</button>${muteButton('ghost mute')}</div>`, 'pause');
+    syncMute();
     $('btnResume').onclick = onResume;
     $('btnMenu').onclick = onMenu;
   }
@@ -116,5 +135,5 @@
   }
 
   ZS.ui = ZS.ui || {};
-  ZS.ui.screens = { showStart, showPause, showEnd, hide };
+  ZS.ui.screens = { showStart, showPause, showEnd, hide, syncMute };
 })();

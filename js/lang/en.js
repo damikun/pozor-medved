@@ -603,6 +603,7 @@
       touch: { left: 'Left', right: 'Right', hide: 'Hide', jump: 'Jump', hug: 'Hug', bite: 'Bite' },
       language: 'Language',
       about: 'About the game on GitHub',
+      sound: { mute: 'Mute sound', unmute: 'Turn sound on' },
       tv: { channel: 'STRACH', num: '24', live: 'LIVE', breaking: 'BREAKING', slogan: 'STRACH 24: We’re scared for you.' },
       goals: { fat: 'Fat', hug: 'Hug', ok: '✓', no: '✗' },
       pct: (n) => n + '%',

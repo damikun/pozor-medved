@@ -107,6 +107,7 @@
     interrupt(g, s);
     if (s.armed) drop(g, s, push * (70 + Math.random() * 60), -260 - Math.random() * 80);
     g.stats.stomps++;
+    rules().onSound(g, 'stomp', s.x);
     rules().float(g, s.x, GY - 112, LABELS.stomp, COLORS.story);
     ZS.fx.dust(g, s.x, GY - HEAD, 5);
     const news = s.kind === 'ztmh' ? NEWS.stompZtmh : NEWS.stomp[(g.stats.stomps - 1) % NEWS.stomp.length];
@@ -130,6 +131,7 @@
   function hugged(g, o) {
     const b = g.bear;
     g.stats.hugs++;
+    rules().onSound(g, 'hug', o.x);
     drop(g, o, -o.dir * 30, -80);
     rules().float(g, o.x, GY - 122, LABELS.shout.hug[o.kind], COLORS.story);
     if (g.flags.hugBan) {
@@ -155,6 +157,7 @@
     o.react = 'bitten'; o.reactT = 0; o.bitK = 0; o.lock = 0; o.alertX = null; o.pause = 0; o.dir = a.dir;
     drop(g, o, a.dir * 60, -170);
     g.stats.bites++;
+    rules().onSound(g, 'bite', o.x);
     g.lastHuman = g.time;
     g.syn = Math.min(100, Math.max(g.syn + 25, CFG.PROBLEM + 5));
     rules().float(g, o.x, GY - 122, LABELS.shout.bite[o.kind], COLORS.bad);
@@ -166,6 +169,7 @@
     const b = g.bear, o = a.target;
     if (!o || o.react !== 'selfie' || o.hugBy !== a) return;
     const n = g.stats.selfies++;
+    rules().onSound(g, 'selfie', o.x);
     g.syn = Math.min(100, g.syn + 12);
     g.lastHuman = g.time;
     g.viralUntil = g.time + 12;
@@ -184,6 +188,7 @@
     st.post.shakeBy = a;
     if (st.shooter && !st.shooter.react) st.shooter.dir = Math.sign(g.bear.x - st.post.x) || 1;
     for (const s of g.shooters) if (Math.abs(s.x - g.bear.x) < 1000 && s !== st.shooter) s.alertX = g.bear.x;
+    rules().onSound(g, 'shake', st.post.x);
     rules().addPanic(g, 4);
     rules().quip(g, ZS.QUIPS.shake, true);
   }
@@ -196,6 +201,7 @@
     s.fy = GY - CABIN; s.fx = st.post.x; s.x = st.post.x; s.lock = 0; s.alertX = null; s.wobble = 0; s.sway = 0;
     drop(g, s, side * (60 + Math.random() * 40), -120, GY - CABIN - 20);
     g.stats.stomps++;
+    rules().onSound(g, 'standFall', st.post.x);
     rules().float(g, st.post.x, GY - CABIN - 60, LABELS.standFall, COLORS.story);
     rules().float(g, st.post.x + side * 30, GY - CABIN - 30, LABELS.shout.fall, COLORS.story);
     rules().addPanic(g, 6, NEWS.standFall[g.falls++ % NEWS.standFall.length], true);
@@ -208,6 +214,7 @@
     if (a.kind === 'shake' && o) { shakeStart(g, a); return; }
     if (a.kind === 'bite' && o && free(o) && Math.abs(o.x - b.x) < CFG.REACH + 24) { bitten(g, a, o); return; }
     a.hit = false;
+    rules().onSound(g, a.kind === 'bite' ? 'biteAir' : 'hugAir', b.x);
     rules().quip(g, a.kind === 'hug' ? ZS.QUIPS.hugAir : ZS.QUIPS.biteAir);
   }
 
@@ -286,7 +293,7 @@
       s.dropK = k;
       s.fy = GY - CABIN * (1 - k * k);
       s.x = s.fx + s.side * 34 * Math.sin(k * Math.PI / 2);
-      if (k >= 1) { s.react = 'down'; s.reactT = 0; s.downPhase = 'fall'; s.downK = 0; s.fy = undefined; }
+      if (k >= 1) { s.react = 'down'; s.reactT = 0; s.downPhase = 'fall'; s.downK = 0; s.fy = undefined; rules().onSound(g, 'thud', s.x, 1); }
     } else if (s.react === 'down') {
       if (t < CFG.FALL) { s.downPhase = 'fall'; s.downK = t / CFG.FALL; }
       else if (t < CFG.FALL + CFG.LIE) { s.downPhase = 'lie'; s.downK = (t - CFG.FALL) / CFG.LIE; }

@@ -2,6 +2,7 @@
   const { CFG, NEWS } = ZS;
   const { rules, loop } = ZS.sim;
   const { input, hud, screens } = ZS.ui;
+  const audio = ZS.audio;
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const BOT = /[?&]bot\b/.test(location.search);
@@ -40,6 +41,7 @@
     g = rules.create(input.state, { viewW, bot: BOT, level: current });
     g.touch = touchy();
     g.running = true;
+    audio.pause(false);
     hud.showPlaying(g);
     screens.hide();
     if (document.activeElement) document.activeElement.blur();
@@ -59,6 +61,7 @@
 
   function menu() {
     if (g) g.running = false;
+    audio.pause(false);
     hud.hidePlaying();
     screens.showStart(done(), start, preview, touchy(), (code) => { setLang(code); menu(); });
   }
@@ -70,12 +73,16 @@
   function togglePause() {
     if (!g || !g.running || g.over) return;
     g.paused = !g.paused;
+    audio.pause(g.paused);
     if (g.paused) showPause();
     else screens.hide();
   }
 
   rules.onNews = hud.showNews;
+  rules.onSound = audio.event;
+  audio.onChange = screens.syncMute;
   rules.onEnd = (run) => {
+    audio.end(run.ending);
     hud.update(run);
     hud.setTouch(false);
     if (run.ending === 'win') markDone(run.level.id);
@@ -86,6 +93,7 @@
     const dt = Math.min(0.05, (ts - last) / 1000 || 0);
     last = ts;
     if (vw !== window.innerWidth || vh !== window.innerHeight) resize();
+    audio.frame(g, dt);
     if (g.running && !g.over && !g.paused) {
       loop.step(g, dt);
       hud.tick(dt);
@@ -98,7 +106,7 @@
 
   window.addEventListener('resize', resize);
   document.addEventListener('visibilitychange', () => { if (document.hidden && g && g.running && !g.paused) togglePause(); });
-  input.listen({ onPause: togglePause });
+  input.listen({ onPause: togglePause, onMute: audio.toggle });
   resize();
   g = rules.create(input.state, { viewW });
   menu();

@@ -622,6 +622,7 @@
     touch: { left: 'Doľava', right: 'Doprava', hide: 'Schovať sa', jump: 'Skok', hug: 'Objať', bite: 'Kusnúť' },
     language: 'Jazyk',
     about: 'O hre na GitHube',
+    sound: { mute: 'Vypnúť zvuk', unmute: 'Zapnúť zvuk' },
     tv: { channel: 'STRACH', num: '24', live: 'ŽIVE', breaking: 'MIMORIADNE', slogan: 'STRACH 24: Bojíme sa za vás.' },
     goals: { fat: 'Tuk', hug: 'Objatie', ok: '✓', no: '✗' },
     pct: (n) => n + '\u00a0%',

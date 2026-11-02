@@ -62,6 +62,7 @@
     b.stun = FENCE.stun; b.zapT = 0; b.zapX = fx; b.kx = side * FENCE.kick;
     b.vy = Math.min(b.vy, -FENCE.hop); b.onGround = false; b.coyote = 0; b.jumpBuffer = 0;
     b.hiding = null; b.crouch = false; b.covered = false; b.moving = false; b.running = false; b.eating = false; b.eatT = 0; b.vx = 0;
+    rules().onSound(g, 'zap', fx);
     rules().float(g, fx, GY - 104, LABELS.zap, COLORS.zap);
     rules().quip(g, ZS.QUIPS.zap, true);
     if (!(g.time - g.zapSaid < FENCE.said)) { g.zapSaid = g.time; rules().say(g, NEWS.zap); }
@@ -97,6 +98,7 @@
   function startHiding(g, b, t) {
     b.pose = t.hay ? 'hay' : ZS.POSES[Math.floor(t.shade * ZS.POSES.length) % ZS.POSES.length];
     b.hideT = 0;
+    rules().onSound(g, t.hay ? 'hay' : 'leaves', t.x);
     if (g.time - (g.hideSaid || -99) > 45 && g.shooters.some((s) => Math.abs(s.x - b.x) < 700)) {
       g.hideSaid = g.time;
       rules().say(g, t.hay ? NEWS.hay : NEWS.hide);
@@ -142,6 +144,7 @@
     if (jump) {
       b.climbing = null; b.inCanopy = false; b.covered = false; b.offTree = true;
       b.x = t.x + b.dir * (t.w / 2 + 24); b.vy = -150; b.onGround = false;
+      rules().onSound(g, 'jump', b.x);
       return;
     }
     b.climbV = down ? 1 : up ? -1 : 0;
@@ -244,10 +247,12 @@
       b.y = clamp(b.y, topY(trunk), GY - 6); b.jumpBuffer = 0; b.coyote = 0;
       b.hideBlend = 0; b.hideTree = null;
       ZS.fx.onShot(g, trunk.x);
+      rules().onSound(g, 'climb', trunk.x);
     } else if (underRoof(L, b)) {
       b.jumpBuffer = 0;
     } else if ((jump || b.jumpBuffer > 0) && (b.onGround || b.coyote > 0)) {
       b.vy = -CFG.JUMP * (b.inWater ? 0.8 : 1); b.onGround = false; b.coyote = 0; b.jumpBuffer = 0;
+      rules().onSound(g, 'jump', b.x);
     } else if (jump) {
       b.jumpBuffer = 0.14;
     }
@@ -266,7 +271,7 @@
     const wasOnGround = b.onGround;
     b.y += b.vy * dt;
     if (b.y >= floor) {
-      if (!b.onGround && b.vy > 250) ZS.fx.dust(g, b.x, floor, 6);
+      if (!b.onGround && b.vy > 250) { ZS.fx.dust(g, b.x, floor, 6); rules().onSound(g, 'land', b.x, b.vy); }
       b.y = floor; b.vy = 0; b.onGround = true; b.offTree = false;
     } else {
       b.onGround = false;

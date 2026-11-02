@@ -6,6 +6,7 @@
   const rules = {
     onNews: () => {},
     onEnd: () => {},
+    onSound: () => {},
   };
 
   rules.create = function (input, { viewW = CFG.MIN_VIEW_W, bot = false, level: id = 'summer' } = {}) {
@@ -77,6 +78,7 @@
     if (f.natural) g.stats.natural++; else { g.stats.human++; g.lastHuman = g.time; }
     if (f.syn) g.syn = Math.min(100, g.syn + f.syn);
     if (f.panic) g.panic = Math.min(100, g.panic + f.panic);
+    rules.onSound(g, 'eat', it.x, it.type);
     rules.float(g, it.x, GY - 80, LABELS.eaten(f.fat, LABELS[it.labelKey] || LABELS.food[it.type]), f.natural ? COLORS.good : COLORS.bad);
     if (it.type === 'carrot') {
       const sm = g.level.snowmen.find((s) => Math.abs(s.x - it.x) < 2);
@@ -94,6 +96,7 @@
     if (g.over) return;
     const b = g.bear;
     ZS.fx.onShot(g, shooter.x);
+    rules.onSound(g, 'shot', shooter.x);
     shooter.kick = 1;
     const mz = ZS.muzzle ? ZS.muzzle(shooter) : null;
     const fromX = mz ? mz[0] : shooter.x;
@@ -106,6 +109,7 @@
       for (let i = 0; i < 12; i++) {
         g.particles.push({ x: shooter.cross, y, vx: (Math.random() - 0.5) * 200, vy: -Math.random() * 220, t: 0.9, color: hay ? '#d8b55b' : '#8a6a48' });
       }
+      rules.onSound(g, hay ? 'hayHit' : 'tree', shooter.cross);
       rules.float(g, b.x, GY - (hay ? 108 : 125), hay ? LABELS.hayHit : LABELS.treeHit, COLORS.good);
       rules.say(g, hay ? NEWS.hayHit : NEWS.treeHit);
       return;
@@ -113,11 +117,13 @@
     const sprinting = b.running && b.moving;
     if (Math.random() < (sprinting ? 0.5 : 0.15)) {
       g.shots.push({ x1: fromX, y1: fromY, x2: b.x + (Math.random() < 0.5 ? -1 : 1) * 80, y2: GY - 100, t: 0.3 });
+      rules.onSound(g, 'miss', b.x);
       rules.float(g, b.x, GY - 125, sprinting ? LABELS.missSprint : LABELS.miss, COLORS.good);
       rules.say(g, NEWS.missed);
       return;
     }
     g.shots.push({ x1: fromX, y1: fromY, x2: b.x, y2: b.y - 34, t: 0.3 });
+    rules.onSound(g, 'hit', b.x);
     g.lives -= 1;
     if (g.lives <= 0) {
       end(g, shooter.kind === 'poacher' ? 'poacher' : shooter.kind === 'ztmh' ? 'problem' : g.flags.cull ? 'cull' : 'hunted');

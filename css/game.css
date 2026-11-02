@@ -88,6 +88,7 @@ canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
 .card button { font: 600 17px var(--font); background: var(--ok); color: #fff; border: 0; border-radius: 10px; padding: 12px 22px; cursor: pointer; }
 .card button:hover { filter: brightness(1.08); }
 .card button.ghost { background: #e7e0cc; color: var(--ink); }
+.card button.mute { min-width: 52px; padding: 12px 14px; line-height: 1.2; }
 .card .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .card.start { max-width: 860px; padding: 20px 24px 16px; }
 .card.pause { max-width: 400px; }

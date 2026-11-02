@@ -603,6 +603,7 @@
       touch: { left: 'Nach links', right: 'Nach rechts', hide: 'Verstecken', jump: 'Springen', hug: 'Umarmen', bite: 'Beißen' },
       language: 'Sprache',
       about: 'Über das Spiel auf GitHub',
+      sound: { mute: 'Ton aus', unmute: 'Ton an' },
       tv: { channel: 'STRACH', num: '24', live: 'LIVE', breaking: 'EILMELDUNG', slogan: 'STRACH 24: Wir haben Angst – für Sie.' },
       goals: { fat: 'Fett', hug: 'Umarmung', ok: '✓', no: '✗' },
       pct: (n) => n + '\u00a0%',
