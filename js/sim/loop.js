@@ -66,12 +66,17 @@
     sim.bear.update(g, dt);
     if (sim.lift.check(g)) { g.cam = cameraX(g); sim.rules.tickerStep(g, dt); return; }
     sim.encounters.update(g, dt);
+    sim.corn.update(g, dt);
+    sim.boar.update(g, dt);
+    sim.lot.update(g, dt);
+    sim.fisher.update(g);
     g.cam = cameraX(g);
     ZS.fx.update(g, dt, g.viewW);
     sim.hunters.update(g, dt);
     if (g.over) return;
     sim.people.update(g, dt);
     sim.koliba.update(g, dt);
+    sim.photographer.update(g, dt);
     sim.drones.update(g, dt);
     sim.wildlife.updateDogs(g, dt);
     sim.wildlife.updateSheep(g, dt);

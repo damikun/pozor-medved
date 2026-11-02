@@ -133,13 +133,13 @@
     g.stats.hugs++;
     rules().onSound(g, 'hug', o.x);
     drop(g, o, -o.dir * 30, -80);
-    rules().float(g, o.x, GY - 122, LABELS.shout.hug[o.kind], COLORS.story);
+    rules().float(g, o.x, GY - 122, LABELS.shout.hug[o.as || o.kind], COLORS.story);
     if (g.flags.hugBan) {
       rules().float(g, b.x, GY - 140, LABELS.hugBanned, COLORS.bad);
       rules().addPanic(g, 10, NEWS.hugBanned, true);
       return;
     }
-    rules().addPanic(g, -Math.max(3, 14 - 4 * (g.stats.hugs - 1)), g.stats.hugs > 3 ? NEWS.hugTired : NEWS.hug[o.kind], g.stats.hugs <= 3);
+    rules().addPanic(g, -Math.max(3, 14 - 4 * (g.stats.hugs - 1)), g.stats.hugs > 3 ? NEWS.hugTired : NEWS.hug[o.as || o.kind], g.stats.hugs <= 3);
     g.viralUntil = g.time + 12;
     if (g.stats.hugs === 2) g.hugBanAt = g.time + 8;
     hearts(g, b);
@@ -160,8 +160,8 @@
     rules().onSound(g, 'bite', o.x);
     g.lastHuman = g.time;
     g.syn = Math.min(100, Math.max(g.syn + 25, CFG.PROBLEM + 5));
-    rules().float(g, o.x, GY - 122, LABELS.shout.bite[o.kind], COLORS.bad);
-    rules().addPanic(g, 20, NEWS.bite[o.kind], true);
+    rules().float(g, o.x, GY - 122, LABELS.shout.bite[o.as || o.kind], COLORS.bad);
+    rules().addPanic(g, 20, NEWS.bite[o.as || o.kind], true);
     rules().quip(g, ZS.QUIPS.bitePerson, true);
   }
 
@@ -267,6 +267,10 @@
       s.rifle = null; s.armed = false; s.react = 'gone'; s.reactT = 0; s.dir = ZS.sim.pen.side(g.level, s.x);
       return;
     }
+    if (ZS.sim.corn.blocks(g.level, s.x, p.x - Math.sign(p.x - s.x) * 16)) {
+      s.rifle = null; s.armed = false; s.react = 'gone'; s.reactT = 0; s.dir = ZS.sim.corn.side(g.level, s.x);
+      return;
+    }
     const side = Math.abs(p.x - s.x) < 4 ? s.dir : Math.sign(p.x - s.x);
     const spot = p.x - side * 16, d = spot - s.x;
     if (Math.abs(d) < 22 && (Math.abs(d) < 2 || Math.sign(d) !== side)) {
@@ -284,6 +288,18 @@
     s.x = s.home; s.react = 'climb'; s.reactT = 0; s.climbK = 0; s.fy = GY;
   }
 
+  function taken(g, s) {
+    const r = g.bear.climbing;
+    return !!r && !!r.ladder && r.post.x === s.home;
+  }
+
+  function scared(g, s) {
+    const list = LABELS.shout.ladder, side = Math.sign(s.x - g.bear.x) || 1;
+    rules().float(g, s.x, (s.fy === undefined ? GY : s.fy) - 96, list[Math.floor(Math.random() * list.length)], COLORS.story);
+    rules().onSound(g, 'freeze', s.x);
+    s.react = 'gone'; s.reactT = 0; s.bolt = true; s.dir = side; s.fy = undefined; s.climbK = 0; s.lock = 0; s.alertX = null;
+  }
+
   function reactShooter(g, s, dt) {
     s.reactT += dt;
     s.lock = 0;
@@ -293,7 +309,8 @@
       s.dropK = k;
       s.fy = GY - CABIN * (1 - k * k);
       s.x = s.fx + s.side * 34 * Math.sin(k * Math.PI / 2);
-      if (k >= 1) { s.react = 'down'; s.reactT = 0; s.downPhase = 'fall'; s.downK = 0; s.fy = undefined; rules().onSound(g, 'thud', s.x, 1); }
+      if (k >= 1 && s.bolt) { s.react = 'gone'; s.reactT = 0; s.dir = s.side; s.fy = undefined; rules().onSound(g, 'thud', s.x, 0.7); }
+      else if (k >= 1) { s.react = 'down'; s.reactT = 0; s.downPhase = 'fall'; s.downK = 0; s.fy = undefined; rules().onSound(g, 'thud', s.x, 1); }
     } else if (s.react === 'down') {
       if (t < CFG.FALL) { s.downPhase = 'fall'; s.downK = t / CFG.FALL; }
       else if (t < CFG.FALL + CFG.LIE) { s.downPhase = 'lie'; s.downK = (t - CFG.FALL) / CFG.LIE; }
@@ -303,7 +320,7 @@
       s.bitK = Math.min(1, t / CFG.HOP);
       if (t >= CFG.HOP) { s.react = 'gone'; s.reactT = 0; s.clutch = true; }
     } else if (s.react === 'gone') {
-      s.x += s.dir * (s.clutch ? 150 : 80) * dt;
+      s.x += s.dir * (s.bolt ? 210 : s.clutch ? 150 : 80) * dt;
       if (Math.abs(s.x - g.bear.x) > 1700 || s.x < 0 || s.x > g.level.w) s.dead = true;
     } else if (s.react === 'flee') {
       s.x = clamp(s.x + s.dir * 190 * dt, 40, g.level.w - 40);
@@ -319,7 +336,9 @@
         s.sweepPause = 0.4; s.alertX = g.bear.x; s.reload = Math.max(s.reload, 1);
       }
     } else if (s.react === 'home') {
-      home(g, s, dt);
+      if (taken(g, s) && Math.abs(s.home - s.x) < 140) scared(g, s); else home(g, s, dt);
+    } else if (s.react === 'climb' && taken(g, s)) {
+      scared(g, s);
     } else if (s.react === 'climb') {
       s.climbK = Math.min(1, t / CFG.LADDER);
       s.fy = GY - CABIN * s.climbK;
@@ -366,5 +385,5 @@
     b.reach = !b.act && !b.hiding && !b.climbing && b.onGround ? target(g) || stand(g) : null;
   }
 
-  ZS.sim.encounters = { update, target, stand, begin, reactShooter, reactPerson, free, humans };
+  ZS.sim.encounters = { update, target, stand, begin, reactShooter, reactPerson, free, humans, drop };
 })();

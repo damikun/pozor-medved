@@ -65,48 +65,54 @@
     for (let rx = -200; rx < L.w * 0.35 + 3200; rx += 60 + rng() * 60) L.ridge.push([rx, GY - 60 - rng() * 60]);
   }
 
+  const WIDE = 440, GAP = 300;
+  const at = (x) => x + (x >= 4170 ? WIDE : 0) + (x >= 8900 ? GAP : 0);
+
   function summer(rng) {
     const L = base('summer', rng);
     const W = L.w, S = LABELS.signs;
     Object.assign(L, {
       village: { from: 2300, to: 3520 },
-      salas: { from: 6900, to: 8000, koliba: 7120, pen: [7300, 7900], fences: [7292, 7892], strunga: { x: 7550, w: 104 } },
-      river: { from: 8200, to: 8660 },
-      hotel: { x: 9300, w: 460, lift: 9930, chapel: 10180 },
-      park: { from: 10350, to: 11850 },
-      feeding: 4320,
-      haystacks: [6960, 8040, 11980],
+      salas: { from: at(6900), to: at(8000), koliba: at(7120), pen: [at(7300), at(7900)], fences: [at(7292), at(7892)], strunga: { x: at(7550), w: 104 } },
+      river: { from: at(8200), to: at(8660) },
+      photographer: { x: at(8762), dir: -1 },
+      hotel: { x: at(9300), w: 460, lift: at(9930), chapel: at(10180) },
+      park: { from: at(10350), to: at(11850) },
+      feeding: at(4320),
+      feedSlots: [at(6060), at(10910), at(11510)],
+      corn: { from: 3730, to: at(4170), boar: 4180 },
+      haystacks: [at(6960), at(8040), at(11980)],
       skanzen: {
-        from: 4780, to: 6010, gate: 5100, tower: 5398, well: 5470, notice: 5202, hen: 5214, fence: [4792, 5826], rail: [5838, 6008], loco: 5884,
-        houses: [{ x: 4846, gw: 84, sw: 92, hip: true, guard: true, smoke: true }, { x: 5772, gw: 86, sw: 90, flip: true, braid: true }],
+        from: at(4780), to: at(6010), gate: at(5100), tower: at(5398), well: at(5470), notice: at(5202), hen: at(5214), fence: [at(4792), at(5826)], rail: [at(5838), at(6008)], loco: at(5884),
+        houses: [{ x: at(4846), gw: 84, sw: 92, hip: true, guard: true, smoke: true }, { x: at(5772), gw: 86, sw: 90, flip: true, braid: true }],
       },
     });
     L.houses = [{ x: 2420, w: 160 }, { x: 2700, w: 180 }, { x: 2990, w: 150 }, { x: 3260, w: 170 }];
-    L.posts = [{ x: 1900 }, { x: 4560 }];
+    L.posts = [{ x: 1900 }, { x: at(4560) }];
     L.logs = [
-      { x: 1200, w: 96, h: 30 }, { x: 3920, w: 110, h: 34 }, { x: 4880, w: 90, h: 30 },
-      { x: 5650, w: 100, h: 32 }, { x: 6350, w: 96, h: 30 },
-      { x: 10700, w: 110, h: 34 }, { x: 11400, w: 96, h: 30 },
+      { x: 1200, w: 96, h: 30 }, { x: 3640, w: 110, h: 34 }, { x: at(4880), w: 90, h: 30 },
+      { x: at(5650), w: 100, h: 32 }, { x: at(6350), w: 96, h: 30 },
+      { x: at(10700), w: 110, h: 34 }, { x: at(11400), w: 96, h: 30 },
     ];
-    L.stones = [{ x: 8300, w: 64 }, { x: 8425, w: 58 }, { x: 8550, w: 66 }];
+    L.stones = [{ x: at(8300), w: 64 }, { x: at(8425), w: 58 }, { x: at(8550), w: 66 }];
     L.signs = [
       sign(420, () => S.hide),
       sign(800, () => S.climb),
       sign(2305, () => ZS.LEVEL_TEXT.summer.village),
       sign(2130, () => '', { billboard: true }),
       sign(3580, () => S.stomp),
-      sign(5100, () => S.skanzen),
+      sign(at(5100), () => S.skanzen),
       sign(L.feeding - 70, () => S.feeding),
-      sign(8110, () => S.ford),
-      sign(10300, () => S.park),
+      sign(at(8110), () => S.ford),
+      sign(at(10300), () => S.park),
       sign(W - 470, () => S.goal),
     ];
 
     [2510, 2800, 3075, 3350].forEach((x) => add(L, 'bin', x));
     [3430, 3500].forEach((x) => add(L, 'hive', x));
     [L.feeding - 40, L.feeding, L.feeding + 40].forEach((x) => add(L, 'corn', x));
+    [3800, 3905, 4040, 4310, 4440, 4550].forEach((x) => add(L, 'cob', x));
     add(L, 'container', L.hotel.x + L.hotel.w / 2 + 70);
-
     [2560, 2855, 3135, 3405].forEach((x) => {
       L.trees.push(makeTree(rng, 'jablon', x));
       add(L, 'apple', x + 26);
@@ -124,10 +130,11 @@
       || L.posts.some((p) => Math.abs(p.x - x) < 80)
       || L.logs.some((l) => Math.abs(l.x - x) < l.w / 2 + 80)
       || Math.abs(x - L.feeding) < 90
+      || L.feedSlots.some((f) => x > f - 70 && x < f + 250)
       || Math.abs(x - 2130) < 150
       || L.signs.some((s) => !s.billboard && Math.abs(s.x - x) < 95)
       || x < 230 || x > W - 480;
-    const birchGrove = (x) => x > 5820 && x < 6080;
+    const birchGrove = (x) => x > at(5820) && x < at(6080);
     forest(L, blocked, (x) => {
       if (birchGrove(x)) return 'breza';
       if (x >= L.park.to) return 'smrek';
@@ -135,8 +142,8 @@
       const r = rng();
       return r < 0.5 ? 'buk' : r < 0.92 ? 'smrek' : 'breza';
     }, (x) => (birchGrove(x) ? 85 + rng() * 40 : x >= L.park.to ? 170 + rng() * 110 : 115 + rng() * 85));
-    L.trees = L.trees.filter((t) => Math.abs(t.x - 5950) > 70);
-    L.trees.push(makeTree(rng, 'buk', 5950), makeTree(rng, 'buk', 7040), makeTree(rng, 'buk', 7760));
+    L.trees = L.trees.filter((t) => Math.abs(t.x - at(5950)) > 70 && (t.x < L.corn.from - 50 || t.x > L.corn.to + 40));
+    L.trees.push(makeTree(rng, 'buk', at(5950)), makeTree(rng, 'buk', at(7040)), makeTree(rng, 'buk', at(7760)));
     for (const t of L.trees) if (Math.abs(t.x - L.skanzen.tower) < 70) t.x = L.skanzen.tower + 142;
     L.trees.sort((a, b) => a.x - b.x);
 
@@ -148,25 +155,26 @@
       || Math.abs(fx - L.feeding) < 120, 20,
     (r) => (r < 0.3 ? 'berry' : r < 0.48 ? 'herb' : r < 0.62 ? 'ants' : r < 0.8 ? 'mushroom' : 'nut'));
     honey(L, 7);
-    [8245, 8365, 8490, 8610].forEach((fx) => add(L, 'fish', fx, { y: GY + 30, hidden: true, jumpT: 1 + rng() * 3, jump: -1 }));
+    [8245, 8365, 8490, 8610].map(at).forEach((fx) => add(L, 'fish', fx, { y: GY + 30, hidden: true, jumpT: 1 + rng() * 3, jump: -1 }));
     L.items.sort((a, b) => a.x - b.x);
 
     L.spawns = [
       { kind: 'posed', x: 1900, range: 480 },
-      { kind: 'posed', x: 4560, range: 500 },
-      { kind: 'walker', from: 3650, to: 4950 },
-      { kind: 'walker', from: 5250, to: 6650 },
-      { kind: 'walker', from: 9750, to: 10300 },
+      { kind: 'posed', x: at(4560), range: 500 },
+      { kind: 'walker', from: 3260, to: 3700 },
+      { kind: 'walker', from: at(4250), to: at(4950) },
+      { kind: 'walker', from: at(5250), to: at(6650) },
+      { kind: 'walker', from: at(9750), to: at(10300) },
       { kind: 'picker', from: 1250, to: 2150 },
-      { kind: 'picker', from: 5300, to: 6600 },
-      { kind: 'picker', from: 10450, to: 11300 },
+      { kind: 'picker', from: at(5300), to: at(6600) },
+      { kind: 'picker', from: at(10450), to: at(11300) },
       { kind: 'tourist', from: 2600, to: 3300 },
       { kind: 'tourist', from: 2380, to: 3150 },
-      { kind: 'tourist', from: 9050, to: 9850 },
-      { kind: 'tourist', from: 9250, to: 10150 },
-      { kind: 'dog', from: 7150, to: 7950 },
+      { kind: 'tourist', from: at(9050), to: at(9850) },
+      { kind: 'tourist', from: at(9250), to: at(10150) },
+      { kind: 'dog', from: at(7150), to: at(7950) },
     ];
-    for (let i = 0; i < 5; i++) L.spawns.push({ kind: 'sheep', from: 7340, to: 7860, x: 7380 + i * 105 });
+    for (let i = 0; i < 5; i++) L.spawns.push({ kind: 'sheep', from: at(7340), to: at(7860), x: at(7380) + i * 105 });
 
     L.lift = { x: H.lift, tower: H.lift + 625 };
     hills(L);

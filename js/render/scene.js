@@ -4,7 +4,7 @@
   const { label, circle, ellipse } = ZS.gfx;
   const P = ZS.render.props;
   const B = ZS.render.backdrop;
-  const OWN_ART = { feeder: 1, punch: 1, lokse: 1, sausage: 1, carrot: 1 };
+  const OWN_ART = { feeder: 1, punch: 1, lokse: 1, sausage: 1, carrot: 1, cob: 1, catch: 1 };
 
   function eatenAt(L, type, x) {
     return L.items.some((it) => it.type === type && it.x === x && it.eaten);
@@ -31,6 +31,8 @@
     const L = g.level, S = ZS.scenery, A = ZS.winterArt;
     for (const hx of L.haystacks) if (vis(hx, 80)) haystack(ctx, g, hx, withBear);
     if (L.skanzen && span(L.skanzen.from, L.skanzen.to, 260)) S.skanzen(ctx, L.skanzen, g);
+    if (L.corn && span(L.corn.from, L.corn.to, 140)) S.cornBack(ctx, L.corn, g);
+    if (g.boar && vis(g.boar.x, 60)) ZS.boarArt.draw(ctx, g.boar, g);
     if (L.salas && span(L.salas.from, L.salas.to, 300)) {
       S.koliba(ctx, L.salas.koliba, g.time, g.koliba);
       S.pen(ctx, L.salas.pen[0], L.salas.pen[1], g.time);
@@ -54,6 +56,8 @@
     }
     if (L.chata && vis(L.chata.x, 240)) A.chata(ctx, L.chata.x, g.time);
     for (const s of L.snowmen) if (vis(s.x, 90)) A.snowman(ctx, s, g.time);
+    if (L.lot && span(L.lot.from, L.lot.to, 200)) A.lot(ctx, L.lot, g);
+    if (L.fisher && vis(L.fisher.x, 160)) A.fisher(ctx, L.fisher, g);
   }
 
   function treesWithBear(ctx, g, vis, withBear) {
@@ -91,7 +95,7 @@
     else if (r === 'bitten') { h.state = 'bitten'; h.bitK = o.bitK; }
     else if (r === 'pickup') { h.state = 'pickup'; h.pickK = o.pickK; }
     else if (r === 'flee') { h.state = 'run'; h.scared = true; }
-    else if (r === 'gone') { h.state = o.clutch ? 'run' : 'walk'; h.scared = o.clutch; }
+    else if (r === 'gone') { h.state = o.clutch || o.bolt ? 'run' : 'walk'; h.scared = !!(o.clutch || o.bolt); }
     else if (r === 'fetch') h.state = o.rifle && o.rifle.rest ? 'walk' : 'idle';
     else if (shooter) {
       h.scared = o.scaredT > 0;
@@ -107,6 +111,8 @@
   }
 
   function figures(ctx, g, vis, held) {
+    const ph = g.photographer;
+    if (ph && ph !== held && vis(ph.x, 120)) ZS.drawPhotographer(ctx, ph, g.time);
     for (const p of g.people) if (p !== held && vis(p.x, 40)) ZS.drawHuman(ctx, view(g, p, false), g.time);
     for (const d of g.dogs) if (vis(d.x, 60)) ZS.scenery.dog(ctx, d, g.time);
     for (const d of g.deer) if (vis(d.x, 70)) ZS.winterArt.deer(ctx, d, g.time);
@@ -128,11 +134,14 @@
       const red = g.shooters.some((s) => s.lock > 0);
       label(ctx, '!', b.x, GY - 100 - Math.abs(Math.sin(g.time * 8)) * 6, 30, red ? '#e03131' : '#e8a400');
       const tree = L.trees.some((t) => t.hide && Math.abs(t.x - b.x) < t.w / 2 + 40), hay = !tree && L.haystacks.some((x) => Math.abs(x - b.x) < 72);
-      if (tree || hay) label(ctx, tree ? LABELS.hideHint : LABELS.hayHint, b.x, GY - 134, 14, '#1d1d1d');
+      const lot = !tree && !hay && ZS.sim.lot.inside(L, b.x);
+      if (tree || hay || lot) label(ctx, tree ? LABELS.hideHint : hay ? LABELS.hayHint : LABELS.lot.hint, b.x, GY - 134, 14, '#1d1d1d');
     } else if (b.onGround && !b.hiding && !b.act) {
       const hint = b.bumpT > 0 && !b.crouch ? LABELS.crawlHint : b.zapT > 0.8 && b.zapT < 3.5 ? LABELS.fenceHint : null;
       if (hint) label(ctx, hint, b.x, GY - 108 - Math.abs(Math.sin(g.time * 3)) * 3, 14, '#1d1d1d');
     }
+    const seat = b.climbing && b.climbing.ladder && b.climbing.phase === 'seat' ? b.climbing : null;
+    if (seat && seat.t > 0.7) label(ctx, LABELS.ladderDown, seat.x, GY - 250 - Math.abs(Math.sin(g.time * 3)) * 3, 14, '#1d1d1d');
     if (b.stamina < 0.99 && !b.hiding && !b.climbing) {
       ctx.fillStyle = 'rgba(20,26,16,0.55)'; ctx.fillRect(b.x - 26, GY - 82, 52, 6);
       ctx.fillStyle = b.tired ? '#e03131' : '#7cc4ef'; ctx.fillRect(b.x - 26, GY - 82, 52 * b.stamina, 6);
@@ -141,11 +150,13 @@
       ctx.strokeStyle = '#2f7d4f'; ctx.lineWidth = 4;
       ctx.beginPath(); ctx.arc(b.x + b.dir * 34, GY - 70, 11, -Math.PI / 2, -Math.PI / 2 + (b.eatT / 0.5) * Math.PI * 2); ctx.stroke();
     }
+    const free = !b.reach && !b.climbing && !g.touch ? ZS.sim.ladder.at(g) : null;
+    if (free) label(ctx, LABELS.ladderUp, free.x, GY - 92 - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
     if (b.reach && !g.touch && !b.warn) {
-      const o = b.reach, post = o.post;
+      const o = b.reach, post = o.post, ph = o.kind === 'photographer', pose = ph;
       ctx.globalAlpha = 0.92;
-      label(ctx, post ? LABELS.interactStand : o.kind === 'tourist' ? LABELS.interactSelfie : LABELS.interact,
-        post ? post.x : o.x, (post ? GY - 92 : GY - 108) - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
+      label(ctx, post ? (ZS.sim.ladder.at(g) === post ? LABELS.interactLadder : LABELS.interactStand) : pose ? LABELS.interactPose : o.kind === 'tourist' ? LABELS.interactSelfie : LABELS.interact,
+        post ? post.x : pose ? b.x : o.x, (post ? GY - 92 : pose ? GY - 118 : ph ? GY - 66 : GY - 108) - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
       ctx.globalAlpha = 1;
     }
   }
@@ -243,15 +254,19 @@
     treesWithBear(ctx, g, vis, withBear);
     for (const s of L.signs) if (vis(s.x, 160)) P.sign(ctx, s, g);
     for (const p of L.posts) if (vis(p.x, 80)) P.post(ctx, p, g);
+    if (b.climbing && b.climbing.ladder) withBear(ZS.drawBearOnLadder);
     for (const lg of L.logs) if (vis(lg.x, 80)) P.log(ctx, lg, g);
     for (const it of L.items) if (!it.eaten && !OWN_ART[it.type] && vis(it.x, 60)) P.item(ctx, it, g.time, g);
     for (const p of g.props) if (vis(p.x, 60)) ZS.drawDropped(ctx, p, g.time);
     ZS.fx.drawBack(ctx, g, viewW);
     figures(ctx, g, vis, held);
     if (!b.climbing && (b.hideBlend || 0) < 1) withBear(ZS.drawBear, b, 1 - (b.hideBlend || 0));
-    if (held) ZS.drawHuman(ctx, view(g, held, g.shooters.includes(held)), g.time);
+    if (held && held === g.photographer) ZS.drawPhotographer(ctx, held, g.time);
+    else if (held) ZS.drawHuman(ctx, view(g, held, g.shooters.includes(held)), g.time);
     if (!b.climbing) withBear(ZS.drawBearHugFront);
     penFront(ctx, g, span);
+    if (L.corn && span(L.corn.from, L.corn.to, 140)) ZS.scenery.cornFront(ctx, L.corn, g);
+    if (L.lot && span(L.lot.from, L.lot.to, 160)) ZS.winterArt.lotFront(ctx, L.lot, g);
     if (b.zapT < 1.4) ZS.scenery.zap(ctx, b, g.time);
     for (const c of L.cannons) if (vis(c.x, 320)) ZS.winterArt.spray(ctx, c, g.time);
     bearCues(ctx, g);

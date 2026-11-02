@@ -122,7 +122,7 @@
     const a = b.act;
     if (!a) return;
     if (a !== s.ao) { s.ao = a; s.hk = a.hit ? 1 : 0; }
-    s.ak = a.kind; s.at = a.t || 0; s.ah = !!a.hit; s.ax = 1;
+    s.ak = a.kind; s.at = a.t || 0; s.ah = !!a.hit; s.al = !!a.land; s.ax = 1;
     const d = (a.dir || b.dir) < 0 ? -1 : 1;
     s.alx = Number.isFinite(a.legX) ? (a.legX - b.x) * d : 30;
     s.asw = Number.isFinite(a.sway) ? a.sway * d : null;
@@ -333,6 +333,17 @@
     glad: [1.3, 0, 1.42, 1, 1.72, 1, 1.86, 0],
     step: [[0.05, 0.2, 1.62, 1.78], [0.12, 0.28, 1.7, 1.86]],
   };
+  const POSE = {
+    dip: [0.02, 0, 0.15, 1, 0.28, 1, 0.42, 0],
+    jaw: [0.06, 0, 0.16, 0.85, 0.25, 0.85, 0.31, 0],
+    up: [0.34, 0, 0.74, 1, 2.42, 1, 2.84, 0],
+    bx: [0.34, 0, 0.74, 1, 2.42, 1, 2.8, 0],
+    arm: [0.42, 0, 0.58, 1, 0.84, 2, 2.28, 2, 2.46, 1, 2.8, 0],
+    turn: [0.66, 0, 0.94, 1, 2.3, 1, 2.56, 0],
+    proud: [0.8, 0, 1, 1, 2.3, 1, 2.5, 0],
+    fish: [0.27, 0, 0.31, 1, 2.47, 1, 2.51, 0],
+    step: [[0.38, 0.52, 2.44, 2.6], [0.46, 0.6, 2.52, 2.7]],
+  };
   const MV = { up: 0, sx: 1, sy: 1, hug: 0, ht: 0, hit: 0, reach: 0, lf: 0, sq: 0, nf: 0, wake: 0, wt: 0, slide: 0, tuck: 0, touch: 0, cy: 0, any: false,
     grab: 0, ph: 0, st: null, dang: 0, o: [0, 0, 0], hn: [0, 0, 0], hf: [0, 0, 0] };
   const put = (v, x, y, a) => { v[0] = x; v[1] = y; v[2] = a; };
@@ -402,6 +413,23 @@
       P.smile = Math.max(P.smile, gr); P.grin = Math.max(P.grin, gr);
       P.shut = Math.max(P.shut, once(t, 1.14, 0.17) * w, 0.5 * gl); P.arc = lerp(P.arc, 1, gl);
       P.look = [1, lerp(0.15, 0.5, smooth((t - 1.3) / 0.25)) * u];
+    }
+    if (act === 'pose') {
+      const t = s.at, w = s.ax, k = (n) => key(t, POSE[n]) * w, u = k('up'), dp = k('dip'), pr = k('proud'), wv = Math.sin(time * 8);
+      M.grab = w; M.ht = t; M.up = u; M.ph = k('arm'); M.st = POSE.step; M.reach = 6; M.dang = 1;
+      put(M.o, 10, 6, 0.6);
+      put(M.hn, 34 + 3 * wv, -104 + 2 * Math.sin(time * 8 + 1), -1.2 + 0.3 * wv);
+      P.pitch = lerp(P.pitch, -1.12, u);
+      P.by = lerp(P.by, -1, u);
+      P.bx += k('bx') * M.reach;
+      P.headA = lerp(P.headA + 0.7 * dp, 1.04 - 0.14 * pr, u);
+      P.headX += 3 * dp; P.headY += 9 * dp;
+      P.jaw = Math.max(P.jaw, k('jaw'));
+      P.ears = lerp(P.ears, 0.1, u);
+      P.turn = Math.max(P.turn || 0, k('turn'));
+      P.smile = Math.max(P.smile, pr); P.arc = lerp(P.arc, 1, 0.5 * pr);
+      P.shut = Math.max(P.shut, once(t, 1.6, 0.22) * w);
+      P.fish = s.al ? 0 : k('fish'); P.fishT = time;
     }
     if (s.wk > 0.001) {
       const t = s.wt, w = s.wk, k = (n) => key(t, WAKE[n]) * w, sw = k('st'), yw = k('yw'), sk = k('sk'), dz = k('dz');
@@ -730,10 +758,20 @@
       drop(ctx, p[0], p[1], o.cry[1]);
     }
     for (const e of ears) if (e.near >= 0.5) drawEar(e);
+    o.mouth = pt(19.5, 4.4, 0);
     return n;
   }
 
   const HINGE = [10, 2.8];
+  const FISH = { id: 'bear-pose-fish', x: 0, y: 0, dir: 1, angle: 0, wiggle: 0 };
+
+  function fishIn(ctx, P) {
+    const m = P.mouth, d = m[2], t = P.fishT || 0, ga = ctx.globalAlpha;
+    FISH.x = m[0] - d * 2; FISH.y = m[1] + 1.2; FISH.dir = d; FISH.angle = 0.14 + 0.16 * Math.sin(t * 9);
+    ctx.globalAlpha = ga * P.fish;
+    ZS.scenery.fish(ctx, FISH, t);
+    ctx.globalAlpha = ga;
+  }
   const MOUTH = [[12, 3, 0], [26, 2.5, 0], [25.2, 2.3, 1], [12, 2.6, 1]];
   const JAW = [[12, 2.2], [24.8, 2.1], [26, 2.8, 0.6], [24.6, 3.15, 1.6], [22, 3.3, 1.8], [18, 4.2, 0.8], [12, 4.2]];
 
@@ -867,15 +905,18 @@
       ctx.save();
       ctx.translate(hx, hy);
       ctx.scale(0.96, 0.96);
-      const n = head(ctx, { yaw, tilt, ears: P.ears, flick: P.flick, wide: P.wide, look: P.look, cry: P.cry,
-        jaw: P.jaw, shut: P.shut, arc: P.arc, smile: P.smile, brow: P.brow, grin: P.grin, tag: P.tag, sway: P.sway }, K);
+      const ho = { yaw, tilt, ears: P.ears, flick: P.flick, wide: P.wide, look: P.look, cry: P.cry,
+        jaw: P.jaw, shut: P.shut, arc: P.arc, smile: P.smile, brow: P.brow, grin: P.grin, tag: P.tag, sway: P.sway };
+      const n = head(ctx, ho, K);
       ctx.restore();
+      if (P.fish > 0.01) P.mouth = [hx + 0.96 * ho.mouth[0], hy + 0.96 * ho.mouth[1], Math.cos(yaw) < 0 ? -1 : 1];
       P.nose = [hx + 0.96 * n[0], hy + 0.96 * n[1]];
     };
     const facing = Math.sin(P.yaw[2]) > 0.5;
     if (!facing) drawHead();
     for (const l of legs) if (l.near >= 0.5 && l !== arm) drawLeg(ctx, l, K, sp);
     if (facing) drawHead();
+    if (P.fish > 0.01 && P.mouth && ZS.scenery) fishIn(ctx, P);
   }
 
   function side(ctx, b, s, time, o) {
@@ -1037,6 +1078,133 @@
     });
   };
 
+  const RUNG = 25, LSTEP = 50, LDUTY = 0.7, LOFF = [0, 0.5, 0.56, 0.06], LNOM = [28, -24], DECK = 150, WINDOW = { half: 23, top: GY - 195, bot: GY - 177 };
+
+  function rungFoot(H, i, far) {
+    const fore = i < 2, L = LEG[fore ? 0 : 1], nom = 36 + LNOM[fore ? 0 : 1];
+    const v = H / LSTEP + LOFF[i], n = Math.floor(v), f = v - n;
+    const at = (m) => clamp(RUNG * Math.round((nom + LSTEP * (m - LOFF[i]) + LSTEP / 2) / RUNG), 0, DECK);
+    let w = at(n), lift = 0;
+    if (f > LDUTY) { const u = (f - LDUTY) / (1 - LDUTY); w = lerp(at(n), at(n + 1), smooth(u)); lift = Math.sin(Math.PI * u); }
+    const X = w - H - 36, a = fore ? 0.3 + 1.1 * lift : 0.12 + 0.4 * lift;
+    return fromToe(L, X, (far ? 3 : 0) - 7 * lift, a).concat(a);
+  }
+
+  function ladderPose(b, s, time, e, th, H, cling) {
+    const m = smooth(s.cspd / 30), f = s.fear * e, gp = Math.sin(TAU * (H / LSTEP)) * m;
+    const P = { pivot: [-4, -35.5], sx: 1, sy: 1, hump: 0, roll: 0, croup: 0, hroll: 0, swing: 0, turn: 0,
+      flick: 0, keep: 0, headX: 0, headY: 0, yaw: [0, 0, 0], tag: s.tg, sway: 0.1 * Math.sin(time * 2.3) };
+    P.by = 8 * e;
+    P.pitch = 0.015 * Math.sin(time * 1.3) * (1 - m);
+    P.flex = 0.3 * gp * e;
+    P.breath = Math.sin(time * 2.4) * 0.8;
+    P.headA = lerp(0.1, 0.42 - 0.06 * gp - 0.2 * cling, e);
+    P.ears = Math.max(0.3 * m * e, f);
+    P.wide = Math.max(f, 0.5 * cling);
+    const w = s.ga * (1 - e);
+    if (w > 0) airBody(P, s.gf, w);
+    const phi = th + P.pitch + P.headA;
+    P.look = [lerp(1, Math.sin(phi), 0.4 * e), lerp(0, Math.cos(phi), 0.4 * e)];
+    P.cry = tear(time, f);
+    P.T = bodyTf(P);
+    const tg = [];
+    for (let i = 0; i < 4; i++) {
+      const fore = i < 2, far = i % 2 === 1, L = LEG[fore ? 0 : 1];
+      let stand = fromToe(L, L.toe + STAND[i], 0, 0).concat(0);
+      if (s.ga) { const A = airFoot(i, rootOf(P, i), s.gf); stand = stand.map((v, j) => lerp(v, A[j], s.ga)); }
+      const R = rungFoot(H, i, far);
+      tg.push([lerp(stand[0], R[0], e), lerp(stand[1], R[1], e), lerp(stand[2], R[2], e)]);
+    }
+    settle(P, tg, 1 - w);
+    return P;
+  }
+
+  function binoculars(ctx, yaw, k, K) {
+    const cy = Math.cos(yaw), sy = Math.sin(yaw);
+    const pt = (x, y, z) => [x * cy - z * sy, y, x * sy + z * cy];
+    const barrels = [-3.6, 3.6].map((z) => ({ a: pt(6.5, -5.6, z), b: pt(6.5 + 9 * k, -5.6, z) })).sort((p, q) => p.b[2] - q.b[2]);
+    for (const r of barrels) {
+      ctx.fillStyle = '#2b2f2a'; seg(ctx, r.a[0], r.a[1], 3, r.b[0], r.b[1], 3.3);
+      ctx.fillStyle = '#4a5047'; ell(ctx, r.b[0], r.b[1], 0.6 + 3.1 * Math.abs(sy), 3.3);
+      ctx.fillStyle = 'rgba(150,200,230,0.85)'; ell(ctx, r.b[0] + 0.3 * cy, r.b[1] - 0.2, 0.3 + 2 * Math.abs(sy), 2.1);
+    }
+    const m0 = pt(9, -5.6, -3.6), m1 = pt(9, -5.6, 3.6);
+    ctx.strokeStyle = '#1b1e1a'; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(m0[0], m0[1]); ctx.lineTo(m1[0], m1[1]); ctx.stroke();
+  }
+
+  function sandwich(ctx, x, y, left) {
+    if (left <= 0.02) return;
+    const w = 9 * left;
+    ctx.fillStyle = '#d9a35c'; rrect(ctx, x - 1, y - 4.6, w, 3.2, 1.4);
+    ctx.fillStyle = '#e8907e'; ctx.fillRect(x - 0.6, y - 1.6, w - 0.6, 1.5);
+    ctx.fillStyle = '#f3ead2'; ctx.fillRect(x - 0.6, y - 1.1, w - 0.6, 0.5);
+    ctx.fillStyle = '#7fb85a'; ctx.fillRect(x, y - 0.2, w - 1.2, 0.9);
+    ctx.fillStyle = '#d9a35c'; rrect(ctx, x - 1, y + 0.6, w, 3.2, 1.4);
+  }
+
+  function seated(ctx, b, s, time, r) {
+    const p = r.post, t = r.t, cx = p.x, W = WINDOW, f = b.dir < 0 ? -1 : 1, K = C;
+    const a = Math.asin(clamp((p.sway || 0) / 186, -0.5, 0.5));
+    const rise = smooth(t / 0.45), chew = smooth((t - 0.5) / 0.3) * (1 - smooth((t - 2.3) / 0.3)), bite = smooth((t - 0.8) / 1.4);
+    const look = smooth((t - 2.7) / 0.5), scan = Math.sin((t - 2.7) * 0.9);
+    const yaw = lerp(lerp(0.9, 1.2, chew), Math.PI / 2 - f * (Math.PI / 2 - 0.3) * Math.sign(scan) * Math.min(1, Math.abs(scan) * 2.2), look);
+    const bob = Math.sin(time * 1.9) * 0.3 + (1 - rise) * 18, jaw = chew * (0.1 + 0.3 * Math.abs(Math.sin(time * 9)));
+    const sc = 0.8, cyw = Math.cos(yaw), hx = cx + 2 * cyw * f, hy = W.bot - 12 + bob;
+    const at = (x, y) => [hx + f * sc * x * cyw, hy + sc * y];
+    const held = chew > 0.01 ? at(19, 7) : null, eye = at(11, -2);
+    ctx.save();
+    if (a) { ctx.translate(cx, GY); ctx.rotate(a); ctx.translate(-cx, -GY); }
+    ctx.save();
+    ctx.beginPath(); ctx.rect(cx - W.half, W.top - 7, W.half * 2, W.bot - W.top + 7.5); ctx.clip();
+    ctx.fillStyle = K.fur; ell(ctx, cx - 1.5 * f, W.bot + 3 + bob, 18, 10);
+    ctx.fillStyle = C.shade; ell(ctx, cx - 1.5 * f, W.bot + 5 + bob, 16, 5);
+    ctx.save();
+    ctx.translate(hx, hy); ctx.scale(sc * f, sc);
+    head(ctx, { yaw, tilt: -0.08 * chew + 0.03 * Math.sin(time * 1.3), ears: 0.5 * (1 - rise) + 0.1, wide: 0.7 * (1 - rise) + 0.3 * look * (1 - Math.abs(scan)),
+      look: [1, 0.1], jaw, smile: 0.6 * chew, shut: 0.5 * chew, tag: s.tg, sway: 0.1 * Math.sin(time * 2.3) }, K);
+    ctx.restore();
+    ctx.fillStyle = 'rgba(20,12,6,0.3)'; ctx.fillRect(cx - W.half, W.top, W.half * 2, 3);
+    ctx.restore();
+    ctx.fillStyle = '#5a3d22'; ctx.fillRect(cx - W.half - 2, W.bot - 0.5, W.half * 2 + 4, 3.2);
+    ctx.fillStyle = '#7a5534'; ctx.fillRect(cx - W.half - 2, W.bot - 0.5, W.half * 2 + 4, 1);
+    const up = Math.max(chew, look) * rise;
+    for (const sd of [-1, 1]) {
+      const rest = [cx + sd * 10, W.bot - 1.2], hold = held ? [held[0] + sd * 4.5, held[1] + 1.5] : [eye[0] + sd * 3.5, eye[1] + 4];
+      const px = lerp(rest[0], hold[0], up), py = lerp(rest[1], hold[1], up) + (1 - rise) * 10;
+      ctx.fillStyle = K.leg; seg(ctx, cx + sd * 9, W.bot + 1.5, 3.6, px, py + 1, 2.9);
+      ctx.fillStyle = K.fur; ell(ctx, px, py, 3.7, 2.8);
+      claws(ctx, [[px - 2, py + 1.3, px - 2.1, py + 2.9], [px, py + 1.7, px, py + 3.2], [px + 2, py + 1.3, px + 2.1, py + 2.9]], K.claw, 0.75);
+    }
+    if (held && !(bite >= 1)) { ctx.save(); ctx.translate(held[0], held[1] - 1); ctx.scale(f * 0.9, 0.9); sandwich(ctx, -4, 0, 1 - 0.8 * bite); ctx.restore(); }
+    if (look > 0.01) { ctx.save(); ctx.translate(hx, hy); ctx.scale(sc * f, sc); binoculars(ctx, yaw, look, K); ctx.restore(); }
+    ctx.restore();
+  }
+
+  ZS.drawBearOnLadder = function (ctx, b, time) {
+    const r = b.climbing;
+    if (!r || !r.ladder) return;
+    const s = track(b, time);
+    enter(s, 'climb');
+    if (r.phase === 'seat') { seated(ctx, b, s, time, r); return; }
+    const p = r.post, e = b.climbT == null ? 1 : smooth(b.climbT / 0.3), f = Math.abs(s.face) < 0.02 ? b.dir || 1 : s.face;
+    const k = r.phase === 'in' || r.phase === 'out' ? smooth(r.k / 0.6) : 0, H = GY - b.y;
+    const th = (-Math.PI / 2) * e + 0.02 * Math.sin(time * 1.3) * (1 - smooth(s.cspd / 30)) * e;
+    const P = ladderPose(b, s, time, e, th, Math.min(H, 60), k);
+    const hx = lerp(lerp(b.x - 36 * f, p.x - 3 * f, e), p.x + 34 * f, k) + s.fear * e * 0.6 * Math.sin(time * 47);
+    const deck = GY - DECK + 4;
+    faded(ctx, p.x - 170, deck - 10, p.x + 170, GY + 40, (c) => {
+      c.save();
+      c.beginPath(); c.rect(p.x - 400, deck, 800, GY + 60 - deck); c.clip();
+      c.translate(hx, b.y);
+      c.scale(Math.sign(f) * (0.2 + 0.8 * Math.abs(f)), 1);
+      c.rotate(th);
+      c.translate(36, 0);
+      drawSide(c, P, C);
+      c.restore();
+    });
+  };
+
   function edgeX(t, sd, y) {
     const half = t.w / 2, top = t.h ? (t.kind === 'smrek' ? GY - t.h * 0.42 : GY - t.h) : GY - 250;
     const x = y > GY - 16 ? half + (7 * (y - GY + 16)) / 16 : half - (2 * (GY - 16 - y)) / Math.max(1, GY - 16 - top);
@@ -1054,7 +1222,7 @@
     const sway = pose === 'sweat' ? Math.sin(ht * 2.1) * 2 + Math.sin(ht * 3.4 + 1) * 0.6 : 0;
     const sd = s.side < 0 ? -1 : 1, peek = pose === 'peek' ? peekAmt(ht, f) * smooth(Math.abs(s.side)) : 0;
     const shake = f * (Math.sin(time * 47) * 0.45 + Math.sin(time * 29 + 1) * 0.3);
-    return { t: b.hiding, h: b.hiding.w / 2, ht, f, pose, sd, side: s.side, peek, br: Math.sin(ht * (pose === 'stiff' ? 1.3 : 2)),
+    return { t: b.hiding, h: b.hiding.hide ? b.hiding.w / 2 : 27, ht, f, pose, sd, side: s.side, peek, br: Math.sin(ht * (pose === 'stiff' ? 1.3 : 2)),
       dx: shake + sway + sd * peek * 1.4, tilt: pose === 'sweat' ? Math.sin(ht * 2.1) * 1.2 : 0, tag: s.tg };
   }
 

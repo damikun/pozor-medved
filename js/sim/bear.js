@@ -96,15 +96,15 @@
   }
 
   function startHiding(g, b, t) {
-    b.pose = t.hay ? 'hay' : ZS.POSES[Math.floor(t.shade * ZS.POSES.length) % ZS.POSES.length];
+    b.pose = t.hay ? 'hay' : !t.hide ? 'sweat' : ZS.POSES[Math.floor(t.shade * ZS.POSES.length) % ZS.POSES.length];
     b.hideT = 0;
     rules().onSound(g, t.hay ? 'hay' : 'leaves', t.x);
-    if (g.time - (g.hideSaid || -99) > 45 && g.shooters.some((s) => Math.abs(s.x - b.x) < 700)) {
+    if (t.hide && g.time - (g.hideSaid || -99) > 45 && g.shooters.some((s) => Math.abs(s.x - b.x) < 700)) {
       g.hideSaid = g.time;
       rules().say(g, t.hay ? NEWS.hay : NEWS.hide);
     }
     if (b.quipCd <= 0) {
-      const list = ZS.QUIPS[b.pose];
+      const list = ZS.QUIPS[t.hide ? b.pose : 'birch'];
       g.bubble = { text: list[Math.floor(Math.random() * list.length)], t: 2.4 };
       b.quipCd = 5;
     }
@@ -195,14 +195,15 @@
         const near = L.trees.filter((tr) => Math.abs(tr.x - b.x) < tr.w / 2 + 40);
         const hay = hayOf(L).filter((h) => Math.abs(h.x - b.x) < h.w / 2 + 40);
         const t = near.filter((tr) => tr.hide).concat(hay).sort((p, q) => Math.abs(p.x - b.x) - Math.abs(q.x - b.x))[0];
-        if (t) { b.hiding = t; startHiding(g, b, t); }
-        else if (near.length && b.birchCd <= 0) { b.birchCd = 2; rules().float(g, b.x, GY - 95, LABELS.birch, COLORS.bad); }
+        const birch = t ? null : near.sort((p, q) => Math.abs(p.x - b.x) - Math.abs(q.x - b.x))[0];
+        if (t || birch) { b.hiding = t || birch; startHiding(g, b, b.hiding); }
+        if (birch && b.birchCd <= 0) { b.birchCd = 2; rules().float(g, b.x, GY - 95, LABELS.birch, COLORS.bad); }
       }
     } else {
       b.hiding = null;
     }
     b.crouch = hide && !b.hiding && b.onGround && !b.hideLatch;
-    b.covered = !!b.hiding;
+    b.covered = !!b.hiding && !!b.hiding.hide;
     if (b.hiding) b.hideTree = b.hiding;
     fadeHide(b, dt);
   }
@@ -243,13 +244,16 @@
     });
     const trunk = b.upT >= HOLD && !b.offTree && !left && !right && !b.slide && !hide && !logAhead
       && L.trees.find((tr) => tr.hide && Math.abs(tr.x - b.x) < tr.w / 2 + 30);
-    if (trunk) {
+    const post = !trunk && !left && !right && !hide ? ZS.sim.ladder.at(g) : null;
+    if (post && b.upT >= HOLD) {
+      ZS.sim.ladder.grab(g, post);
+    } else if (trunk) {
       b.climbing = trunk; b.climbT = 0; b.climbV = -1; b.inCanopy = false; b.onGround = false; b.vy = 0; b.vx = 0;
       b.y = clamp(b.y, topY(trunk), GY - 6); b.jumpBuffer = 0; b.coyote = 0;
       b.hideBlend = 0; b.hideTree = null;
       ZS.fx.onShot(g, trunk.x);
       rules().onSound(g, 'climb', trunk.x);
-    } else if (underRoof(L, b)) {
+    } else if (underRoof(L, b) || (post && jump && g.input.jumpKey !== 'Space')) {
       b.jumpBuffer = 0;
     } else if ((jump || b.jumpBuffer > 0) && (b.onGround || b.coyote > 0)) {
       b.vy = -CFG.JUMP * (b.inWater ? 0.8 : 1); b.onGround = false; b.coyote = 0; b.jumpBuffer = 0;
@@ -349,9 +353,9 @@
     const person = E.target(g), post = key === 'hug' && !person ? E.stand(g) : null;
     const kind = post ? 'shake' : key === 'hug' && person && person.kind === 'tourist' ? 'selfie' : key;
     const target = person || post;
-    b.act = { kind, t: 0, dur: DUR[kind], dir: b.dir, hit: !!target, target, done: false };
+    b.act = (!target && ZS.sim.photographer.act(g, b, key)) || { kind, t: 0, dur: DUR[kind], dir: b.dir, hit: !!target, target, done: false };
     b.moving = false; b.running = false; b.crouch = false; b.eating = false; b.eatT = 0; b.vx = 0;
-    if (target) E.begin(g, b.act);
+    if (b.act.target) E.begin(g, b.act);
   }
 
   function pushOff(g, b, dt) {
@@ -389,7 +393,7 @@
     b.tag = g.problem;
     b.cold = g.level.theme === 'winter' ? COLD[g.seasonKey] || 0 : 0;
     wake(g, b, dt, left || right || hide || jump || bite || hug);
-    if (b.climbing) { climb(g, b, dt, up, hide, jump && inp.jumpKey === 'Space', (right ? 1 : 0) - (left ? 1 : 0)); return; }
+    if (b.climbing) { (b.climbing.ladder ? ZS.sim.ladder.climb : climb)(g, b, dt, up, hide, jump && inp.jumpKey === 'Space', (right ? 1 : 0) - (left ? 1 : 0)); return; }
 
     if (b.act && (b.act.t += dt) >= b.act.dur) b.act = null;
     if (!b.act && !b.stun && (bite || hug) && b.onGround && !b.hiding && !underRoof(g.level, b)) startAct(g, b, bite ? 'bite' : 'hug');

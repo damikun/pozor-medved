@@ -46,15 +46,14 @@
     decree(g) { g.flags.decree = true; g.panic = Math.min(100, g.panic + 5); say(g, NEWS.decree, true); },
     drive(g) { spawnAhead(g, 'walker'); spawnAhead(g, 'walker'); say(g, NEWS.drive, true); },
     feeding(g) {
-      const L = g.level, pen = sim.pen.band(L, 140);
-      let x = Math.min(L.w - 500, g.bear.x + g.viewW + 300);
-      if (pen && x + 210 > pen[0] && x - 20 < pen[1]) x = pen[1] + 20;
-      if (L.river && x + 210 > L.river.from - 40 && x - 20 < L.river.to + 40) x = L.river.to + 60;
-      x = Math.min(L.w - 500, x);
-      for (let i = 0; i < 2; i++) g.level.items.push({ type: 'corn', x: x + i * 40, eaten: false, locked: false });
-      g.level.items.sort((a, b) => a.x - b.x);
-      g.level.posts.push({ x: x + 170 });
-      g.shooters.push(sim.hunters.create(g, 'posed', { x: x + 170, range: 460 }));
+      const L = g.level, edge = g.cam + g.viewW + 40;
+      const x = (L.feedSlots || []).find((f) => f - 20 > edge && !L.posts.some((p) => p.x === f + 170));
+      if (x !== undefined) {
+        for (let i = 0; i < 2; i++) L.items.push({ type: 'corn', x: x + i * 40, eaten: false, locked: false });
+        L.items.sort((a, b) => a.x - b.x);
+        L.posts.push({ x: x + 170 });
+        g.shooters.push(sim.hunters.create(g, 'posed', { x: x + 170, range: 460 }));
+      }
       say(g, NEWS.feeding, true);
     },
   };

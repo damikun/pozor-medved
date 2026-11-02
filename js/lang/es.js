@@ -83,6 +83,10 @@
       'San Nicolás viene este año con escolta. El diablo lleva el permiso; el ángel, un silbato.',
       'Hiela tanto que crujen los árboles. El ministerio tranquiliza: No son disparos. La mayoría.',
       'Un puesto del mercado vende Ponche del Oso. El ministerio exige rebautizarlo como Ponche del Cazador.',
+      'Suben los árboles de Navidad. Los vendedores dicen que el oso se come los abetos.',
+      'El ministerio recomienda árboles de Navidad artificiales. Detrás de uno de plástico no se esconde ningún oso.',
+      'La policía revisó el origen de los árboles de Navidad. Detrás de uno encontró un oso; detrás del resto, el parque nacional.',
+      'Un pescador en el hielo dice haber visto un oso tan grande como una pisanieves. El ministro Strašiak le cree.',
     ],
 
     LEVEL_TEXT: {
@@ -112,6 +116,7 @@
       stiff: ['¡Mete barriga!', 'Ni respirar…', 'Soy un árbol. Soy un árbol.', 'Tal como dijo el ministro Strašiak.'],
       peek: ['Solo un vistazo…', '¿Sigue ahí?', '¡Cucú!', 'El ministro tenía razón: estoy tras un árbol.'],
       sweat: ['Sobre todo, no estornudar.', 'Estoy sudando la gota gorda.', 'Menos mal que no es un abedul.', 'Detrás de cada árbol, dijo el ministro.'],
+      birch: ['El ministro dijo detrás de cada árbol. Del grosor no dijo nada.', 'Si yo no lo veo, él tampoco me ve.', 'Meto barriga y soy un abedul.', 'Solo soy un tronco algo más marrón.'],
       hug: ['Abrazo un árbol. Soy ecologista.', 'Este árbol me protege más que la ley.', 'El árbol es mi mejor amigo.', 'De pie tras el árbol, como en el cartel.'],
       climb: ['El ministro dijo «tras el árbol». Yo, encima.', 'Desde aquí se ve hasta el Kriváň.', 'Aquí arriba nadie me busca.', 'Ramita, no me falles.'],
       hugPerson: ['¡Abrazos gratis!', 'Esto se va a hacer viral.', 'No temas, solo quiero mimos.', 'Eres más blandito que un haya.'],
@@ -120,15 +125,19 @@
       biteAir: ['Mordisco al aire.', 'Solo pruebo los dientes.'],
       stomp: ['¡Hop!', 'Perdona, me resbalé.', 'Aterrizaje suave.', 'Le dejé el sombrero.'],
       selfie: ['¡Whisky!', 'Mi perfil bueno es el izquierdo.', 'Etiquétame: @medved'],
+      pose: ['Perfil izquierdo, trucha a la derecha.', 'Esta va a portada.', 'La trucha es solo atrezo.'],
       shake: ['¡Terremoto!', '¿Tienes permiso de obra?', 'Se vende puesto de caza.'],
+      ladder: ['Ahora cazo yo. El bocadillo.', 'Qué vistas desde el puesto. Porque es un puesto.', '¡Prismáticos! Veo al ministro escondido tras un árbol.'],
       denRefuse: ['¿Sin abrazo ni a mi propia cama?', '¿Certificado de abrazo? ¡Soy un oso!', 'Primero abrazo a alguien y luego duermo.'],
       wake: ['¿Quién montó esta discoteca?', '¡Pero si es diciembre!', 'Que me dejen dormir…'],
       spray: ['Nieve artificial, oso artificial.', 'Solo soy un ventisquero.', 'Shh, soy un montón de nieve.'],
       ice: ['¿Quién autorizó esta pista de hielo?', '¡Uiii!', '¡No tengo frenos!'],
+      lot: ['Solo soy otro árbol de Navidad.', '¿Abeto? No, oso. Pero también pincho.', 'Cómprame, sin factura.'],
       zap: ['¡Ay! ¿Quién ha dado la luz?', 'La cerca funciona. El Estado, no.', 'Al menos, permanente gratis.', 'Esto se salta, no se olfatea.'],
       hay: ['Solo soy un montón de heno.', '¿Aguja en un pajar? Prueba con un oso.', 'Me hace cosquillas en la nariz…', 'El ministro cuenta pajares. A mí no.'],
       lift: ['Forfait tengo, munición no.', 'Vista de postal. Por la mirilla.', 'Me balanceo, luego existo.', '¡Más rápido, telesilla!'],
       liftTop: ['Arriba, gulash a 19 €. Bajo andando.', '¿Estación superior? Gracias, ya vi bastante.', 'La próxima, en telecabina.'],
+      corn: ['¿Un laberinto de maíz? Mi especialidad.', 'Aquí no me encuentra ni un dron.', 'El jabalí se da el festín y la factura me la llevo yo.', 'El bosque es de Medio Ambiente, el maíz de Agricultura. Yo no soy de nadie.'],
     },
 
     NEWS: {
@@ -155,6 +164,7 @@
       ],
       calm: 'La brigada antiosos se retira. El oso vuelve al bosque.',
       treeHit: 'Un cazador le dio a un árbol. El ministerio informa: blanco alcanzado.',
+      birchHit: 'Un oso se escondió detrás de un abedul y un cazador le dio. El ministro: Dije detrás de cada árbol, no detrás de cada palo.',
       missed: 'El cazador falló. Ministerio: El oso huyó a una velocidad ilegal.',
       hunterShot: 'Un cazador disparó al oso. Alcanzó sobre todo a los arbustos.',
       poacherShot: 'Disparos en el bosque. La policía no sabe nada.',
@@ -255,6 +265,10 @@
         'Un oso dejó reluciente un plato de halušky. El mesón le ofrece trabajo de friegaplatos.',
       ],
       hug: {
+        photographer: [
+          'Un oso abrazó a un fotógrafo de naturaleza. Él siguió disparando: El retrato más nítido de mi carrera, lástima que a dos centímetros.',
+          'Un fotógrafo camuflado recibió un abrazo de oso. El camuflaje funcionó: el oso no lo encontró hasta el tercer intento.',
+        ],
         tourist: [
           'Video: Un oso abraza a un turista. Dos millones de visitas, el pánico baja.',
           'Un oso abrazó a un turista. El turista le dio a Liptov cinco estrellas; al oso, seis.',
@@ -291,6 +305,14 @@
           'Un oso abrazó a un cliente del mesón. Él lo achaca a la tercera cerveza, el vídeo no.',
           'Un cliente del mesón recibió un abrazo de oso. El pastor se lo cobró como espectáculo folclórico.',
         ],
+        fisher: [
+          'Un oso abrazó a un pescador en el hielo. Por fin tiene una historia de pesca que es verdad.',
+          'Un oso abrazó a un pescador. Dice que el oso era así de grande. Esta vez le creen.',
+        ],
+        seller: [
+          'El oso abrazó al vendedor de árboles de Navidad. Él le regaló un abeto; el ministerio, una multa.',
+          'El vendedor de árboles tras el abrazo del oso: Nunca había hecho un descuento así.',
+        ],
         waiter: [
           'Un oso abrazó a un camarero. Propina no dejó, pero al menos sonrió.',
           'Un oso abrazó al camarero del mesón. Ñoquis por el suelo, reseñas de cinco estrellas.',
@@ -309,6 +331,10 @@
         'La policía detiene un abrazo ilegal. El oso huyó; el abrazo está en el calabozo.',
       ],
       bite: {
+        photographer: [
+          'Un oso mordió a un fotógrafo de naturaleza. No soltó el disparador ni un segundo: Al menos tengo los dientes.',
+          'Un oso mordió a un fotógrafo junto al Belá. El ministerio requisó las fotos como prueba; el fotógrafo tiene copia en la nube.',
+        ],
         tourist: [
           'Un oso mordió a un turista. El Gobierno convoca un gabinete de crisis; la oposición, también.',
           'Titular: ¡Terror plantígrado! Texto: Un oso mordió la mochila de un turista. La mochila está fuera de peligro.',
@@ -342,6 +368,14 @@
         guest: [
           'Un oso mordió a un cliente del mesón. Ministro Strašiak: Prueba de que los osos vienen por los ñoquis.',
           'Un oso mordió a un cliente del mesón. Él pide descuento, el mesón una batida, el oso el postre.',
+        ],
+        fisher: [
+          'Un oso mordió a un pescador. Dice que medía tres metros. El vídeo muestra dos.',
+          'Un oso mordió a un pescador en el hielo. El ministerio: ¡Un ataque a la pesca tradicional!',
+        ],
+        seller: [
+          'El oso mordió al vendedor de árboles de Navidad. El ministro Strašiak: ¡Los osos atacan la Navidad!',
+          'El oso mordió al vendedor de árboles. Los abetos ya llevan recargo por riesgo.',
         ],
         waiter: [
           'Un oso mordió a un camarero. El mesón anuncia un corte del servicio; los clientes no notan nada.',
@@ -403,11 +437,39 @@
         'Oso en un pajar. Los ministerios discuten si es un pajar agrícola o medioambiental.',
       ],
       hayHit: 'Un cazador dispara a un pajar. El ministerio informa de un golpe certero contra el forraje.',
+      corn: [
+        'Un oso entra en un maizal. El Ministerio de Agricultura ya calcula daños que aún no existen.',
+        'Oso en el maizal. Medio Ambiente dice que el campo es de Agricultura. Agricultura dice que el oso es de Medio Ambiente.',
+        'Oso perdido en el maíz. El diputado Flinta exige segar todo Liptov.',
+      ],
+      cobEaten: [
+        'Un oso se come una mazorca directamente del campo. Cazadores: ¡Robo! La teníamos encargada para el cebadero.',
+        'Una empresa agrícola denuncia daños en el maíz: dos mazorcas. Reclama indemnización por toda la hectárea.',
+      ],
+      cornHit: 'Un cazador dispara al maíz. Acierta a dos mazorcas y a una subvención agrícola.',
+      boar: [
+        'Los jabalíes se comen media hectárea de maíz. Ministerio: Fue el oso, el jabalí solo es testigo.',
+        'Un jabalí sale disparado del maíz. Ministro Strašiak: El oso lo infiltró como agente.',
+        'Una empresa agrícola reclama daños por el maíz hozado por jabalíes. Señaló al oso como culpable, porque por jabalíes no hay subvención.',
+      ],
       selfie: [
         'Un selfie con el oso suma tres millones de likes, más que todo el Gobierno. Llegan más turistas a Liptov.',
         'El oso sonrió en el selfie. Ministerio: Enseñó los dientes; es conducta agresiva.',
         'El ministerio colecciona selfies con el oso como prueba de superpoblación. En cada foto hay un oso, ¿no?',
         'Los selfies con el oso ya no interesan a nadie. El oso se plantea ser influencer.',
+      ],
+      standClimb: [
+        'Un oso sube a un puesto de caza y el cazador salta. Cámara de Caza: Una opa hostil.',
+        'Un cazador le cede el puesto al oso, bocadillo incluido. El ministro Strašiak: Una retirada estratégica.',
+        'Un oso ocupa un puesto de caza y vigila al ministerio con prismáticos. El ministerio denuncia espionaje.',
+        'Hay un oso sentado en un puesto de caza. El diputado Flinta exige escaleras que solo bajen.',
+      ],
+      photoWait: 'Un fotógrafo de naturaleza esperó tres semanas a un oso junto al Belá. Mientras tanto, el ayuntamiento le cobró una tasa por ocupar la vía pública.',
+      photo: [
+        'La foto del año es un oso con una trucha en el Belá. El ministro Strašiak pide abatir al jurado.',
+        'Un fotógrafo camuflado esperaba junto al Belá. El oso le posó con una trucha. Ya hay foto del año, y el ministerio la archiva como prueba de superpoblación.',
+        'El diputado Flinta contó 16 osos en la foto del Belá. El fotógrafo: Era una ráfaga, es un solo oso.',
+        'Otra foto del oso con trucha. La trucha pide honorarios, el oso los derechos de autor.',
       ],
       standFall: [
         'Un cazador se cayó del puesto de caza. La Cámara de Caza pide puestos con cinturón de seguridad.',
@@ -440,6 +502,28 @@
         'Los cazadores vaciaron sus rifles en el telesilla. El oso ni levantó la barra de seguridad.',
       ],
       liftDrone: 'Un dron del ejército escolta al oso en el telesilla. Tampoco tiene forfait.',
+      lot: 'El oso se esconde entre los árboles de Navidad. El ministerio ordena revisar cada árbol con etiqueta de precio.',
+      lotSeller: [
+        'El vendedor de árboles de Navidad huyó del oso. Dejó el puesto abierto, la caja no.',
+        'Vendedor de árboles de Navidad: El oso tardó en elegir más que mi suegra.',
+        'Un oso en el puesto de árboles de Navidad. El vendedor corrió, los precios se quedaron.',
+      ],
+      lotTopple: [
+        'El oso tumbó los árboles de Navidad. El vendedor pide una indemnización al ministerio; el ministerio, al oso.',
+        'Un oso atravesó corriendo el puesto de árboles de Navidad. El ministro Strašiak: ¡Un ataque a la Navidad!',
+      ],
+      lotMiss: [
+        'Un cazador abatió un árbol de Navidad. El vendedor: Al menos he vendido uno.',
+        'Un cazador disparó al oso y le dio a un abeto de 49 €. La cámara de caza: Fue en defensa propia.',
+      ],
+      fisher: [
+        'Un pescador en el hielo del arroyo Račkov huyó de un oso. Dejó la caña y la pesca.',
+        'Pescador en el hielo: Primera vez que veo un oso. Y primera vez que me veo correr.',
+      ],
+      catchEaten: [
+        'Un oso se comió la pesca de un pescador. La federación de pesca pide abatirlo; los peces protestan.',
+        'Un oso vació el cubo de truchas de un pescador. El ministro Strašiak: ¡Robo del patrimonio nacional!',
+      ],
     },
 
     LABELS: {
@@ -466,6 +550,7 @@
         hive: 'colmena',
         apple: 'manzanas del huerto',
         corn: 'maíz del cebadero',
+        cob: 'maíz del campo',
         sandwich: 'sándwich de turista',
         feeder: 'remolacha del comedero',
         punch: 'ponche del mercado',
@@ -475,6 +560,7 @@
         candy: 'caramelos de San Nicolás',
         chatabin: 'contenedor del refugio',
         halusky: 'halušky con queso de oveja',
+        catch: 'la pesca del pescador',
       },
       art: { salas: 'MAJADA', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['RESIDUOS', 'URBANOS'], fence: ['¡PELIGRO!', 'CERCA', 'ELÉCTRICA'] },
       skanzen: { name: ['MUSEO DE LA', 'ALDEA DE LIPTOV'], notice: ['¡El oso no está', 'en exposición!'] },
@@ -490,10 +576,22 @@
       interact: 'C abrazar · X morder',
       interactSelfie: 'C selfie · X morder',
       interactStand: 'C sacudir el puesto',
+      interactLadder: 'C sacudir · mantén ↑ trepar',
+      interactPose: 'C posar para el fotógrafo',
       stomp: '¡Bum!',
       hugBanned: '❤️ ¡Abrazo ilegal!',
       selfie: '📸 ¡Selfie!',
+      photo: {
+        pose: ['¡Sí! ¡Sí! ¡Sí!', '¡Foto del año!', '¡Quieto! ¡Más! ¡Más!', '¡National Geographic, allá voy!'],
+        shot: '📸 ¡Foto del año!',
+        hello: '🤫 Psst… ¡pulsa C y posa!',
+        close: '¡Demasiado cerca, no enfoca!',
+      },
       standFall: '¡Cataplum!',
+      standTaken: '¡Puesto ocupado!',
+      hunterSnack: 'bocadillo del puesto',
+      ladderDown: '↓ bajar',
+      ladderUp: 'mantén ↑ sube al puesto',
       denRefuse: '🤗 ¡Primero abraza a alguien!',
       denStamp: ['CERRADO', 'prohibido pasar sin abrazo'],
       spray: 'En la nieve artificial no te ven',
@@ -501,13 +599,18 @@
       zap: 'BZZZ!',
       hayHit: '¡Le dio al heno!',
       hayHint: '↓ al heno',
+      corn: 'En el maíz cuesta más verte · ↓ agáchate',
+      cornHit: '¡Le dio al maíz!',
+      missCorn: '¡Fallo! El maíz te cubre.',
+      boar: '¡Uiiic!',
       crawlHint: '↓ arrástrate',
       fenceHint: '↑ sáltala',
       shout: {
-        hug: { walker: '¡Suéltame, tengo licencia de armas!', ztmh: '¡Esto no está en el protocolo!', poacher: '¡Yo solo pasaba por aquí!', picker: '¡Jesús, María y José!', tourist: '¡Mamá, graba!', santa: '¡Jo, jo… jooo!', guest: '¡Solo vine por los ñoquis!', waiter: '¿Tiene reserva?' },
-        bite: { walker: '¡Ay, mi honor!', ztmh: '¡Ay! ¡Me dieron!', poacher: '¡Ay! ¡Ni una palabra a nadie!', picker: '¡Socorro!', tourist: '¡Auuu!', santa: '¡Ay, mi báculo!', guest: '¡Ay, que aún no he pagado!', waiter: '¡Ay! ¡Eso no está en la carta!' },
+        hug: { walker: '¡Suéltame, tengo licencia de armas!', ztmh: '¡Esto no está en el protocolo!', poacher: '¡Yo solo pasaba por aquí!', picker: '¡Jesús, María y José!', tourist: '¡Mamá, graba!', santa: '¡Jo, jo… jooo!', guest: '¡Solo vine por los ñoquis!', waiter: '¿Tiene reserva?', photographer: '¡Una foto más!', seller: '¡Llévate el que quieras, pero suéltame!', fisher: '¡Era ASÍ de grande!' },
+        bite: { walker: '¡Ay, mi honor!', ztmh: '¡Ay! ¡Me dieron!', poacher: '¡Ay! ¡Ni una palabra a nadie!', picker: '¡Socorro!', tourist: '¡Auuu!', santa: '¡Ay, mi báculo!', guest: '¡Ay, que aún no he pagado!', waiter: '¡Ay! ¡Eso no está en la carta!', photographer: '¡Ay! ¡Pero qué nítida!', seller: '¡Ay! ¡Sin factura!', fisher: '¡Ay! ¿Soy yo el cebo?' },
         selfie: '¡Sonríe!',
         fall: '¡Aaay!',
+        ladder: ['¡Mamááá!', '¡Solo miraba pajaritos!', '¡Todo suyo!'],
       },
       koliba: {
         shouts: ['¡Oso!', '¡Un oso en el mesón!', '¡Corred!', '¡Sálvese quien pueda!'],
@@ -518,6 +621,16 @@
       },
       basket: 'setas de la cesta',
       icefish: 'trucha bajo el hielo',
+      fisher: { shout: ['¡Un oso! ¡Va a por mis truchas!', '¡Quédate la caña!', '¡Yo solo estaba pescando!'] },
+      lot: {
+        sign: ['ÁRBOLES DE', 'NAVIDAD'],
+        price: ['Pícea 25 €', 'Abeto 49 €', 'Del TANAP 15 €'],
+        shout: ['¡Un oso! ¡Cerrado!', '¡La factura te la haces tú!', '¡Llévate un abeto, pero no me comas!'],
+        miss: '¡Le dio a un arbolito!',
+        topple: '¡Uy!',
+        hint: '↓ agáchate entre los árboles',
+        cover: 'Entre los arbolitos no te ven',
+      },
       billboard: ['¡Hay un oso detrás', 'de cada árbol!'],
       billboardWinter: ['¡La hibernación', 'es obligatoria!'],
       stallSigns: { punch: 'PONCHE', lokse: 'LOKŠE', sausage: 'SALCHICHAS' },
@@ -551,6 +664,7 @@
         quiet: 'TANAP – Tichá dolina',
         cave: 'Cueva de Važec – aquí los osos dormían sin decreto',
         winterGoal: 'Osera silenciosa →',
+        lot: 'Arbolitos – ↓ agáchate',
         by: '— ministro Strašiak',
       },
     },

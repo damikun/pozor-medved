@@ -83,6 +83,10 @@
       'Nikolaus kommt dieses Jahr mit Leibwache. Der Krampus trägt die Genehmigung, der Engel die Trillerpfeife.',
       'Es friert, dass die Bäume knacken. Ministerium beruhigt: Das sind keine Schüsse. Meistens.',
       'Ein Marktstand verkauft Bärenpunsch. Das Ministerium verlangt die Umbenennung in Jägerpunsch.',
+      'Christbäume sind teurer geworden. Die Händler sagen, der Bär frisst die Tannen.',
+      'Das Ministerium empfiehlt künstliche Christbäume. Hinter Plastik kann sich kein Bär verstecken.',
+      'Die Polizei prüfte die Herkunft der Christbäume. Hinter einem fand sie einen Bären, hinter den übrigen den Nationalpark.',
+      'Ein Eisangler will einen Bären so groß wie eine Pistenraupe gesehen haben. Minister Strašiak glaubt ihm.',
     ],
 
     LEVEL_TEXT: {
@@ -112,6 +116,7 @@
       stiff: ['Bauch rein!', 'Nicht atmen…', 'Ich bin ein Baum. Ich bin ein Baum.', 'Genau wie Minister Strašiak gesagt hat.'],
       peek: ['Nur kurz gucken…', 'Ist er noch da?', 'Kuckuck!', 'Der Minister hat recht: Ich bin hinterm Baum.'],
       sweat: ['Bloß nicht niesen.', 'Mir läuft der Schweiß bis in den Pelz.', 'Gut, dass das keine Birke ist.', 'Hinter jedem Baum, sagte der Minister.'],
+      birch: ['Der Minister sagte hinter jedem Baum. Von der Dicke sagte er nichts.', 'Wenn ich ihn nicht sehe, sieht er mich auch nicht.', 'Bauch einziehen, und ich bin eine Birke.', 'Ich bin nur ein etwas braunerer Stamm.'],
       hug: ['Ich umarme einen Baum. Ich bin Naturschützer.', 'Der Baum schützt mich besser als das Gesetz.', 'Der Baum ist mein Kumpel.', 'Aufrecht hinterm Baum, wie auf dem Plakat.'],
       climb: ['Hinterm Baum? Auf dem Baum, Herr Minister!', 'Von hier sehe ich bis zum Kriváň.', 'Hier oben sucht mich keiner.', 'Ästchen, halt mich fest.'],
       hugPerson: ['Umarmung gratis!', 'Das wird viral.', 'Keine Angst, ich kuschle nur.', 'Du bist weicher als eine Buche.'],
@@ -120,15 +125,19 @@
       biteAir: ['Schnapp ins Leere.', 'Ich teste nur die Zähne.'],
       stomp: ['Hopp!', 'Tschuldigung, bin ausgerutscht.', 'Weiche Landung.', 'Den Hut hab ich ihm gelassen.'],
       selfie: ['Cheese!', 'Links ist meine Schokoladenseite.', 'Markier mich: @medved'],
+      pose: ['Linkes Profil, Forelle rechts.', 'Das kommt aufs Titelblatt.', 'Die Forelle ist nur Requisite.'],
       shake: ['Erdbeben!', 'Hast du eine Baugenehmigung?', 'Hochsitz zu verkaufen.'],
+      ladder: ['Jetzt jage ich. Die Brotzeit.', 'Schöne Aussicht vom Hochsitz. Ist ja auch einer.', 'Ein Fernglas! Ich sehe den Minister hinter einem Baum.'],
       denRefuse: ['Ohne Umarmung nicht mal ins eigene Bett?', 'Umarmungsbescheinigung? Ich bin ein Bär!', 'Erst jemanden umarmen, dann schlafen.'],
       wake: ['Wer macht hier Disco?', 'Es ist doch Dezember!', 'Lasst mich schlafen…'],
       spray: ['Kunstschnee, Kunstbär.', 'Ich bin nur eine Schneewehe.', 'Pst, ich bin ein Schneehaufen.'],
       ice: ['Wer hat hier eine Eisbahn genehmigt?', 'Huiii!', 'Ich hab keine Bremsen!'],
+      lot: ['Ich bin nur noch ein Christbaum.', 'Tanne? Nein, Bär. Aber ich pikse auch.', 'Kauft mich, ganz ohne Quittung.'],
       zap: ['Au! Wer hat hier den Strom an?', 'Der Zaun funktioniert. Anders als der Staat.', 'Immerhin eine Gratis-Dauerwelle.', 'Drüberspringen, nicht dran schnuppern!'],
       hay: ['Ich bin nur ein Heuhaufen.', 'Nadel im Heuhaufen? Versuch’s mit Bär.', 'Das kitzelt in der Nase…', 'Der Minister zählt Heuhaufen. Mich nicht.'],
       lift: ['Skipass hab ich, Munition nicht.', 'Postkartenblick. Durchs Zielfernrohr.', 'Ich schaukle, also bin ich.', 'Liftwart, schneller!'],
       liftTop: ['Oben Gulasch für 19 €. Ich geh zu Fuß.', 'Bergstation? Danke, das reicht.', 'Nächstes Mal nehm ich die Gondel.'],
+      corn: ['Ein Maislabyrinth? Mein Fachgebiet.', 'Hier findet mich nicht mal eine Drohne.', 'Das Wildschwein schlemmt, die Rechnung kriege ich.', 'Der Wald gehört dem Umweltministerium, der Mais dem Agrarministerium. Ich niemandem.'],
     },
 
     NEWS: {
@@ -155,6 +164,7 @@
       ],
       calm: 'Das Einsatzteam zieht ab. Der Bär ist zurück im Wald.',
       treeHit: 'Jäger trifft einen Baum. Ministerium meldet einen Volltreffer.',
+      birchHit: 'Ein Bär versteckte sich hinter einer Birke und wurde getroffen. Minister: Ich sagte hinter jedem Baum, nicht hinter jedem Stecken.',
       missed: 'Jäger schießt daneben. Ministerium: Der Bär floh mit überhöhter Geschwindigkeit.',
       hunterShot: 'Ein Jäger schoss auf den Bären. Getroffen hat er vor allem Büsche.',
       poacherShot: 'Im Wald fielen Schüsse. Die Polizei weiß von nichts.',
@@ -255,6 +265,10 @@
         'Ein Bär leckte einen Teller Halušky blank. Die Hütte bietet ihm einen Job als Tellerwäscher an.',
       ],
       hug: {
+        photographer: [
+          'Bär umarmt Naturfotografen. Der fotografiert weiter: Das schärfste Porträt meiner Karriere, leider aus zwei Zentimetern.',
+          'Fotograf in Tarnkleidung bekommt eine Bärenumarmung. Die Tarnung habe funktioniert, der Bär fand ihn erst beim dritten Versuch.',
+        ],
         tourist: [
           'Video: Bär umarmt Touristen. Zwei Millionen Aufrufe, die Panik sinkt.',
           'Bär umarmt Touristen. Der Tourist gibt Liptov fünf Sterne, dem Bären sechs.',
@@ -291,6 +305,14 @@
           'Ein Bär umarmte einen Hüttengast. Der schiebt es aufs dritte Bier, das Video nicht.',
           'Ein Hüttengast wurde vom Bären umarmt. Der Senner berechnete es als Folkloreprogramm.',
         ],
+        fisher: [
+          'Ein Bär umarmte einen Eisangler. Zum ersten Mal hat er eine Anglergeschichte, die stimmt.',
+          'Ein Bär umarmte einen Angler. Er sagt, der Bär war soo groß. Diesmal glaubt man ihm.',
+        ],
+        seller: [
+          'Der Bär umarmte den Christbaumverkäufer. Der schenkte ihm eine Tanne, das Ministerium einen Strafzettel.',
+          'Christbaumhändler nach der Bärenumarmung: So einen Rabatt habe ich noch nie gegeben.',
+        ],
         waiter: [
           'Ein Bär umarmte einen Kellner. Kein Trinkgeld, aber immerhin ein Lächeln.',
           'Ein Bär umarmte den Hüttenkellner. Nocken am Boden, Bewertungen bei fünf Sternen.',
@@ -309,6 +331,10 @@
         'Polizei nimmt illegale Umarmung fest. Der Bär ist geflohen, die Umarmung sitzt in der Zelle.',
       ],
       bite: {
+        photographer: [
+          'Bär beißt Naturfotografen. Der lässt den Auslöser nicht los: Wenigstens habe ich die Zähne drauf.',
+          'Bär beißt Fotografen an der Belá. Das Ministerium beschlagnahmt die Fotos als Beweis, der Fotograf hat ein Backup in der Cloud.',
+        ],
         tourist: [
           'Bär beißt Touristen. Die Regierung beruft einen Krisenstab ein, die Opposition auch.',
           'Schlagzeile: Bärenterror! Text: Bär biss in den Rucksack eines Touristen. Rucksack außer Lebensgefahr.',
@@ -342,6 +368,14 @@
         guest: [
           'Ein Bär biss einen Hüttengast. Minister Strašiak: Beweis, dass Bären wegen der Nocken kommen.',
           'Ein Bär biss einen Hüttengast. Er will Rabatt, die Hütte einen Abschuss, der Bär Nachtisch.',
+        ],
+        fisher: [
+          'Ein Bär biss einen Angler. Er sagt, der Bär war drei Meter lang. Das Video zeigt zwei.',
+          'Ein Bär biss einen Eisangler. Ministerium: Ein Angriff auf die traditionelle Fischerei!',
+        ],
+        seller: [
+          'Der Bär biss den Christbaumverkäufer. Minister Strašiak: Bären greifen Weihnachten an!',
+          'Der Bär biss den Christbaumhändler. Tannen gibt es jetzt mit Risikozuschlag.',
         ],
         waiter: [
           'Ein Bär biss einen Kellner. Die Hütte meldet Serviceausfall, die Gäste merken keinen Unterschied.',
@@ -403,11 +437,39 @@
         'Bär im Heuhaufen. Die Ministerien streiten, ob es ein Agrar- oder ein Umwelt-Heuhaufen ist.',
       ],
       hayHit: 'Jäger schießt auf einen Heuhaufen. Ministerium meldet erfolgreichen Schlag gegen Viehfutter.',
+      corn: [
+        'Bär betritt ein Maisfeld. Das Agrarministerium beziffert schon Schäden, die noch gar nicht entstanden sind.',
+        'Bär im Mais. Das Umweltministerium sagt, das Feld gehöre der Landwirtschaft. Die Landwirtschaft sagt, der Bär gehöre der Umwelt.',
+        'Bär im Mais verschwunden. Abgeordneter Flinta fordert, ganz Liptov zu mähen.',
+      ],
+      cobEaten: [
+        'Bär frisst einen Maiskolben direkt vom Feld. Jäger: Diebstahl! Den hatten wir für den Köderplatz bestellt.',
+        'Agrarbetrieb meldet Maisschaden: zwei Kolben. Gefordert wird Entschädigung für den ganzen Hektar.',
+      ],
+      cornHit: 'Jäger schießt in den Mais. Getroffen: zwei Kolben und eine Ernteförderung.',
+      boar: [
+        'Wildschweine fressen einen halben Hektar Mais. Ministerium: Das war der Bär, das Wildschwein ist nur Zeuge.',
+        'Ein Wildschwein rast aus dem Mais. Minister Strašiak: Der Bär hat es als Agenten eingeschleust.',
+        'Agrarbetrieb fordert Entschädigung für von Wildschweinen zerwühlten Mais. Als Täter nennt er den Bären, für Wildschweine gibt es keine Förderung.',
+      ],
       selfie: [
         'Selfie mit Bär: drei Millionen Likes, mehr als die ganze Regierung. Weitere Touristen fahren nach Liptov.',
         'Bär lächelt fürs Selfie. Ministerium: Er zeigte die Zähne, das ist Angriffsverhalten.',
         'Ministerium sammelt Bären-Selfies als Beweis für die Bärenplage. Auf jedem Foto ist ja ein Bär.',
         'Selfies mit Bär interessieren keinen mehr. Der Bär erwägt eine Karriere als Influencer.',
+      ],
+      standClimb: [
+        'Bär klettert auf einen Hochsitz, der Jäger springt raus. Jägerkammer: Feindliche Übernahme.',
+        'Jäger überlässt dem Bären den Hochsitz samt Brotzeit. Minister Strašiak: Ein strategischer Rückzug.',
+        'Bär besetzt einen Hochsitz und beobachtet das Ministerium mit dem Fernglas. Ministerium meldet Überwachung.',
+        'Auf dem Hochsitz sitzt ein Bär. Abgeordneter Flinta fordert Leitern, die nur nach unten führen.',
+      ],
+      photoWait: 'Ein Naturfotograf wartete drei Wochen an der Belá auf einen Bären. Das Amt verlangte inzwischen eine Gebühr für die Nutzung öffentlichen Grundes.',
+      photo: [
+        'Das Foto des Jahres zeigt einen Bären mit Forelle in der Belá. Minister Strašiak fordert den Abschuss der Jury.',
+        'Ein Fotograf lag in Tarnkleidung an der Belá. Der Bär posierte mit Forelle. Das Foto des Jahres ist da, das Ministerium führt es als Beweis der Überpopulation.',
+        'Abgeordneter Flinta zählt auf dem Foto von der Belá 16 Bären. Fotograf: Das war eine Serie, es ist ein Bär.',
+        'Wieder ein Foto vom Bären mit Forelle. Die Forelle will Honorar, der Bär die Bildrechte.',
       ],
       standFall: [
         'Jäger fällt vom Hochsitz. Jägerkammer fordert Hochsitze mit Sicherheitsgurt.',
@@ -440,6 +502,28 @@
         'Die Jäger haben am Lift alles verschossen. Der Bär hat nicht mal den Bügel geöffnet.',
       ],
       liftDrone: 'Eine Armeedrohne begleitet den Bären am Sessellift. Einen Skipass hat sie auch nicht.',
+      lot: 'Der Bär versteckt sich zwischen den Christbäumen. Das Ministerium lässt jeden Baum mit Preisschild kontrollieren.',
+      lotSeller: [
+        'Der Christbaumverkäufer ist vor dem Bären geflohen. Den Stand ließ er offen, die Kasse nicht.',
+        'Christbaumhändler: Der Bär hat länger ausgesucht als meine Schwiegermutter.',
+        'Ein Bär am Christbaumstand. Der Verkäufer rannte, die Preise blieben.',
+      ],
+      lotTopple: [
+        'Der Bär hat die Christbäume umgeworfen. Der Händler will Schadenersatz vom Ministerium, das Ministerium vom Bären.',
+        'Ein Bär rannte durch den Christbaumstand. Minister Strašiak: Ein Angriff auf Weihnachten!',
+      ],
+      lotMiss: [
+        'Ein Jäger hat einen Christbaum erlegt. Der Händler: Wenigstens einer verkauft.',
+        'Ein Jäger schoss auf den Bären und traf eine Tanne für 49 €. Die Jägerkammer: Es war Notwehr.',
+      ],
+      fisher: [
+        'Ein Eisangler am Račkov-Bach floh vor einem Bären. Angel und Fang ließ er zurück.',
+        'Eisangler: Zum ersten Mal einen Bären gesehen. Und zum ersten Mal mich selbst rennen.',
+      ],
+      catchEaten: [
+        'Ein Bär fraß den Fang eines Anglers. Der Anglerverband fordert den Abschuss, die Fische protestieren.',
+        'Ein Bär leerte den Forelleneimer eines Anglers. Minister Strašiak: Diebstahl von Volksvermögen!',
+      ],
     },
 
     LABELS: {
@@ -466,6 +550,7 @@
         hive: 'Bienenstock',
         apple: 'Äpfel aus dem Obstgarten',
         corn: 'Mais vom Köderplatz',
+        cob: 'Mais vom Feld',
         sandwich: 'Brotzeit von Touristen',
         feeder: 'Rüben aus der Futterkrippe',
         punch: 'Punsch vom Markt',
@@ -475,6 +560,7 @@
         candy: 'Bonbons aus dem Nikolaussack',
         chatabin: 'Container an der Hütte',
         halusky: 'Brimsennocken',
+        catch: 'der Fang des Anglers',
       },
       art: { salas: 'SCHAFALM', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['REST-', 'MÜLL'], fence: ['ACHTUNG!', 'ELEKTRO-', 'ZAUN'] },
       skanzen: { name: ['DORFMUSEUM', 'LIPTOV'], notice: ['Der Bär ist', 'kein Exponat!'] },
@@ -490,10 +576,22 @@
       interact: 'C umarmen · X beißen',
       interactSelfie: 'C Selfie · X beißen',
       interactStand: 'C am Hochsitz rütteln',
+      interactLadder: 'C rütteln · ↑ halten: klettern',
+      interactPose: 'C für den Fotografen posieren',
       stomp: 'Bumm!',
       hugBanned: '❤️ Illegale Umarmung!',
       selfie: '📸 Selfie!',
+      photo: {
+        pose: ['Ja! Ja! Ja!', 'Foto des Jahres!', 'Halten! Weiter! Weiter!', 'National Geographic, ich komme!'],
+        shot: '📸 Foto des Jahres!',
+        hello: '🤫 Psst… drück C und posier!',
+        close: 'Zu nah, ich krieg nicht scharf!',
+      },
       standFall: 'Plumps!',
+      standTaken: 'Hochsitz besetzt!',
+      hunterSnack: 'Brotzeit vom Hochsitz',
+      ladderDown: '↓ runterklettern',
+      ladderUp: '↑ halten: auf den Hochsitz',
       denRefuse: '🤗 Erst jemanden umarmen!',
       denStamp: ['GESCHLOSSEN', 'Zutritt nur mit Umarmung'],
       spray: 'Im Kunstschnee sieht dich keiner',
@@ -501,13 +599,18 @@
       zap: 'BZZZ!',
       hayHit: 'Heu getroffen!',
       hayHint: '↓ ins Heu',
+      corn: 'Im Mais sieht man dich schlechter · ↓ ducken',
+      cornHit: 'Mais getroffen!',
+      missCorn: 'Daneben! Der Mais deckt dich.',
+      boar: 'Quiiiek!',
       crawlHint: '↓ kriechen',
       fenceHint: '↑ drüberspringen',
       shout: {
-        hug: { walker: 'Lass mich, ich hab einen Waffenschein!', ztmh: 'Das steht nicht im Protokoll!', poacher: 'Ich weiß von nix!', picker: 'Jessas Maria!', tourist: 'Mama, film das!', santa: 'Ho-ho… hooo!', guest: 'Ich wollte nur Nocken essen!', waiter: 'Haben Sie reserviert?!' },
-        bite: { walker: 'Au, meine Ehre!', ztmh: 'Au! Treffer!', poacher: 'Au! Kein Wort zu niemandem!', picker: 'Hilfe!', tourist: 'Auuu!', santa: 'Au, mein Bischofsstab!', guest: 'Au, ich hab noch nicht bezahlt!', waiter: 'Au! Das steht nicht auf der Karte!' },
+        hug: { walker: 'Lass mich, ich hab einen Waffenschein!', ztmh: 'Das steht nicht im Protokoll!', poacher: 'Ich weiß von nix!', picker: 'Jessas Maria!', tourist: 'Mama, film das!', santa: 'Ho-ho… hooo!', guest: 'Ich wollte nur Nocken essen!', waiter: 'Haben Sie reserviert?!', photographer: 'Noch ein Bild!', seller: 'Nimm irgendeinen, nur lass mich los!', fisher: 'Der war SOO groß!' },
+        bite: { walker: 'Au, meine Ehre!', ztmh: 'Au! Treffer!', poacher: 'Au! Kein Wort zu niemandem!', picker: 'Hilfe!', tourist: 'Auuu!', santa: 'Au, mein Bischofsstab!', guest: 'Au, ich hab noch nicht bezahlt!', waiter: 'Au! Das steht nicht auf der Karte!', photographer: 'Au! Aber gestochen scharf!', seller: 'Au! Ohne Quittung!', fisher: 'Au! Bin ich der Köder?!' },
         selfie: 'Lächeln!',
         fall: 'Uaaah!',
+        ladder: ['Mamaaa!', 'Ich wollte nur Vögel beobachten!', 'Er gehört Ihnen!'],
       },
       koliba: {
         shouts: ['Bär!', 'Bär an der Hütte!', 'Lauft!', 'Rette sich, wer kann!'],
@@ -518,6 +621,16 @@
       },
       basket: 'Pilze aus dem Korb',
       icefish: 'Forelle unterm Eis',
+      fisher: { shout: ['Ein Bär! Der will meine Forellen!', 'Behalt die Angel!', 'Ich hab doch nur geangelt!'] },
+      lot: {
+        sign: ['WEIHNACHTS-', 'BÄUME'],
+        price: ['Fichte 25 €', 'Tanne 49 €', 'Aus dem TANAP 15 €'],
+        shout: ['Ein Bär! Geschlossen!', 'Quittung schreib dir selbst!', 'Nimm eine Tanne, aber friss mich nicht!'],
+        miss: 'Christbaum getroffen!',
+        topple: 'Hoppla!',
+        hint: '↓ duck dich zwischen die Bäume',
+        cover: 'Zwischen den Bäumen sieht dich keiner',
+      },
       billboard: ['Hinter jedem Baum', 'steckt ein Bär!'],
       billboardWinter: ['Winterschlaf', 'ist Pflicht!'],
       stallSigns: { punch: 'PUNSCH', lokse: 'LOKŠE', sausage: 'WÜRSTE' },
@@ -551,6 +664,7 @@
         quiet: 'TANAP – Tichá dolina',
         cave: 'Važec-Höhle – Winterschlaf ohne Verordnung',
         winterGoal: 'Stille Höhle →',
+        lot: 'Christbäume – ↓ duck dich',
         by: '— Minister Strašiak',
       },
     },

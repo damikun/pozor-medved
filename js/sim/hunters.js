@@ -23,6 +23,7 @@
     const P = pen(), L = g && g.level;
     if (kind === 'ztmh' && P.inside(L, s.x, P.KEEP.hunter)) s.x = P.band(L, P.KEEP.hunter)[0] - 60;
     else if (kind !== 'posed') P.range(L, s, P.KEEP.hunter, 200);
+    if (kind !== 'posed') ZS.sim.corn.range(L, s, undefined, 200);
     if (kind === 'posed') { s.home = s.x; s.sway = 0; s.wobble = 0; }
     s.cross = s.x + s.dir * 200;
     return s;
@@ -81,10 +82,12 @@
   }
 
   function fence(g, s, x0) {
-    const P = pen(), L = g.level, x = P.hold(L, x0, s.x, P.KEEP.hunter);
+    const P = pen(), C = ZS.sim.corn, L = g.level;
+    let x = P.hold(L, x0, s.x, P.KEEP.hunter), away = P.side(L, x);
+    if (x === s.x) { x = C.hold(L, x0, s.x); away = C.side(L, x); }
     if (x === s.x) return;
     s.x = x;
-    const away = P.side(L, x);
+    if (s.kind === 'ztmh' && s.out) s.out = away;
     if (s.react === 'gone') s.dir = away;
     else if (s.react === 'flee') s.reactT = Math.max(s.reactT, 3.2);
     else if (s.react) return;
@@ -161,12 +164,12 @@
       const free = !aiming || aiming === s;
       s.blocked = !allowed;
 
-      const blind = s.kind === 'posed' && d < 70;
+      const blind = s.kind === 'posed' && d < 70 && !ZS.sim.ladder.exposed(g, s);
       const close = s.kind !== 'posed' && d < 90;
       if (allowed && free && !blind && !b.covered && facing && d < s.range && b.inv <= 0 && (Math.abs(s.cross - b.x) < 40 || close)) {
         aiming = s;
         s.cross += (b.x - s.cross) * Math.min(1, dt * 8);
-        s.lock += dt;
+        s.lock += dt * ZS.sim.corn.aim(g) * (b.thicket ? ZS.sim.lot.AIM : 1);
         s.lost = 0;
         g.lastKnown = b.x;
         if (s.lock >= s.aimTime * quick && s.reload <= 0) { rules().fire(g, s); s.lock = 0; s.reload = 3; aiming = null; }

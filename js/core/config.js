@@ -15,7 +15,7 @@ ZS.CFG = {
 
 ZS.LEVELS = {
   summer: {
-    w: 12600, year: 360, fatGoal: 85, startFat: 20, metabolism: 0.1,
+    w: 13340, year: 360, fatGoal: 85, startFat: 20, metabolism: 0.1,
     seasons: [{ key: 'spring', end: 110 }, { key: 'summer', end: 240 }, { key: 'autumn', end: 360 }],
   },
   winter: {
@@ -53,6 +53,7 @@ ZS.FOOD = {
   hive:        { emoji: '🍯', fat: 8,  syn: 12, panic: 8 },
   apple:       { emoji: '🍎', fat: 5,  syn: 5,  panic: 2 },
   corn:        { emoji: '🌽', fat: 12, syn: 10, panic: 0 },
+  cob:         { emoji: '🌽', fat: 3,  syn: 3,  panic: 0 },
   sandwich:    { emoji: '🥪', fat: 6,  syn: 10, panic: 4 },
   feeder:      { emoji: '🌾', fat: 11, syn: 12, panic: 2 },
   punch:       { emoji: '🍷', fat: 6,  syn: 14, panic: 8 },
@@ -62,4 +63,5 @@ ZS.FOOD = {
   candy:       { emoji: '🍬', fat: 5,  syn: 8,  panic: 4 },
   chatabin:    { emoji: '🗑️', fat: 13, syn: 16, panic: 10 },
   halusky:     { emoji: '🥟', fat: 6,  syn: 10, panic: 4 },
+  catch:       { emoji: '🐟', fat: 7,  syn: 10, panic: 4 },
 };

@@ -12,7 +12,7 @@
       kind, x: (o.from + o.to) / 2, dir: 1, speed: SPEED[kind] || 30, state: 'walk', pause: 0, filmCd: 0, dropCd: 8,
       react: null, reactT: 0, empty: false, clutch: false, hurdle: null,
     }, o);
-    if (o.from !== o.to) pen().range(g && g.level, p, pen().KEEP.person, 200);
+    if (o.from !== o.to) { pen().range(g && g.level, p, pen().KEEP.person, 200); ZS.sim.corn.range(g && g.level, p, undefined, 200); }
     return p;
   }
 
@@ -22,14 +22,16 @@
     const v = p.leaving ? p.speed * 1.4 : (p.clutch ? 170 : 210) * (P.inside(L, p.x, 0) ? P.HURDLE.inside : 1);
     const nx = p.x + p.dir * v * dt;
     if (p.leaving) {
-      const hx = P.hold(L, p.x, nx, P.KEEP.person);
+      const hx = ZS.sim.corn.hold(L, p.x, P.hold(L, p.x, nx, P.KEEP.person));
       if (hx !== nx) p.dir *= -1;
       p.x = hx;
       return;
     }
     const fx = P.ahead(L, p.x, p.dir);
     if (fx !== null && Math.abs(fx - nx) <= P.HURDLE.reach) { P.hurdleAt(p, fx, p.dir); P.hurdleStep(p, dt); return; }
-    p.x = nx;
+    const cx = ZS.sim.corn.hold(L, p.x, nx);
+    if (cx !== nx) p.dir *= -1;
+    p.x = cx;
   }
 
   function crumbs(L, p) {
@@ -43,7 +45,9 @@
     for (const p of g.people) {
       p.filmCd -= dt; p.dropCd -= dt;
       if (p.react) {
+        const x0 = p.x;
         ZS.sim.encounters.reactPerson(g, p, dt);
+        p.x = ZS.sim.corn.hold(L, x0, p.x);
         continue;
       }
       if (p.state === 'flee' || p.leaving || p.hurdle) {
@@ -53,7 +57,7 @@
       }
       if (p.pause > 0) p.pause -= dt;
       else {
-        const nx = p.x + p.dir * p.speed * dt, hx = pen().hold(L, p.x, nx, pen().KEEP.person);
+        const nx = p.x + p.dir * p.speed * dt, hx = ZS.sim.corn.hold(L, p.x, pen().hold(L, p.x, nx, pen().KEEP.person));
         p.x = hx;
         if (hx !== nx || p.x < p.from || p.x > p.to) { p.dir *= -1; p.x = clamp(p.x, p.from, p.to); p.pause = 2; }
       }

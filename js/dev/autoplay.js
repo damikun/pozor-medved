@@ -105,7 +105,7 @@
     pilot.t -= dt || 0;
     if (pilot.t <= 0) { pilot.t = bot.reaction; pilot.danger = threat(g); }
     if (pilot.danger) pilot.alarm = g.time;
-    pilot.wait = b.hiding ? pilot.wait + (dt || 0) : Math.max(0, pilot.wait - (dt || 0) * 0.25);
+    pilot.wait = b.hiding || (b.crouch && b.covered) ? pilot.wait + (dt || 0) : Math.max(0, pilot.wait - (dt || 0) * 0.25);
     if (pilot.wait > 7 && pilot.danger < 2) { pilot.bold = 3.5; pilot.wait = 0; }
     pilot.bold = Math.max(0, pilot.bold - (dt || 0));
     const danger = runner || (pilot.bold > 0 && pilot.danger < 2) ? 0 : pilot.danger;
@@ -133,10 +133,11 @@
     } else {
       pilot.fishT = 0;
     }
-    if (b.hiding && danger) { keys.add('ArrowDown'); return; }
+    if (b.hiding && b.hiding.hide && danger) { keys.add('ArrowDown'); return; }
     if (danger && b.inSpray) return;
+    if (danger && b.inCorn && b.onGround) { keys.add('ArrowDown'); return; }
     const reach = (t) => Math.abs(t.x - b.x) < t.w / 2 + 34;
-    if (danger && b.onGround && cover(L).some(reach)) { keys.add('ArrowDown'); return; }
+    if (danger && b.onGround && (cover(L).some(reach) || ZS.sim.lot.inside(L, b.x))) { keys.add('ArrowDown'); return; }
 
     if (!danger && !runner && b.onGround && g.fat < pace(g)) {
       const food = L.items.find((it) => !it.eaten && !it.locked && !ZS.FOOD[it.type].natural && Math.abs(it.x - b.x) < 24);

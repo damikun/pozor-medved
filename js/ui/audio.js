@@ -30,7 +30,7 @@
     'creak': 0.0355, 'crash.wood': 0.0568, 'bang.window': 0.0416, 'door.creak': 0.0139, 'camera': 0.0288, 'cloth': 0.0414, 'pylon': 0.0548,
     'loco.hiss': 0.0217, 'dog': 0.0476, 'sheep': 0.0208, 'cow': 0.0151, 'hen': 0.0298, 'bird.blackbird': 0.0173, 'bird.robin': 0.0142,
     'bird.crow': 0.0203, 'note.gs4': 0.0346, 'note.cs5': 0.0375, 'note.f5': 0.035, 'note.gs5': 0.0406, 'mbira.c5': 0.069, 'mbira.f5': 0.0555,
-    'mbira.gs5': 0.0723,
+    'mbira.gs5': 0.0723, 'boar.grunt': 0.03, 'boar.squeal': 0.037, 'corn.rustle': 0.0355,
   };
   const VARIANT = {
     'chat.kids': [-0.5, 0.7, -1.7, -1.2, 0.2, -1.8, 1.3, 2.0, 0.8],
@@ -52,7 +52,7 @@
   const sstep = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
   const LICK = { wildhoney: 1, hive: 1, punch: 1 };
   const BINS = { bin: 1, container: 1, chatabin: 1 };
-  const CRUNCH = { carrot: 1, apple: 1, frozenapple: 1, nut: 1, snownut: 1, corn: 1, feeder: 1 };
+  const CRUNCH = { carrot: 1, apple: 1, frozenapple: 1, nut: 1, snownut: 1, corn: 1, cob: 1, feeder: 1 };
   const SHOOTERS = { posed: 1, walker: 1, ztmh: 1, poacher: 1 };
   const TALK = {
     tourist: ['chat.mumble', 'chat.walla', 'chat.adults', 'chat.hikers'], picker: ['chat.mumble', 'chat.hikers', 'chat.walla'],
@@ -343,9 +343,18 @@
     climb(x) { play('claw', x, 1); },
     leaves(x) { play('hide.leaves', x, 1); },
     hay(x) { play('hay', x, 1); },
+    corn(x, k) {
+      const v = 0.35 + 0.45 * (k || 0.6);
+      if (rnd() < 0.6) play('corn.rustle', x, v, { rate: rr(0.92, 1.12) });
+      else play('hide.leaves', x, v, { rate: rr(1.05, 1.25), lp: 4200 });
+    },
+    boar(x, k) {
+      if (k === 'squeal') { play('boar.squeal', x, 1, { reach: 1.6, send: 0.2 }); scurry(x, 0.8); }
+      else play('boar.grunt', x, rr(0.75, 1), { reach: 1.3, rate: rr(0.92, 1.06) });
+    },
     eat(x, type) {
       const f = ZS.FOOD[type];
-      if (type === 'fish') { play('step.water', x, 1); play('eat.munch', x, 1, { delay: 0.25 }); }
+      if (type === 'fish' || type === 'catch') { play('step.water', x, 1); play('eat.munch', x, 1, { delay: 0.25 }); }
       else if (LICK[type]) { play('eat.lick', x, 1); if (type === 'hive') play('eat.bees', x, 1); }
       else if (BINS[type]) { play('bin.lid', x, 1); play('bin.rummage', x, 1, { delay: 0.15 }); }
       else if (CRUNCH[type]) play('eat.crunch', x, 1);
@@ -364,6 +373,7 @@
       play('note.f5', x, 0.8, { delay: 0.28 });
     },
     selfie(x) { play('camera', x, 1); },
+    shutter(x, k) { play('camera', x, 0.55 * (k || 1), { rate: rr(1.15, 1.3), send: 0.05 }); },
     bite(x) { play('impact.body', x, 0.3); play('bear.growl', x, 0.6); },
     biteAir(x) { play('whoosh', x, 0.5, { rate: 0.8 }); },
     hugAir(x) { play('cloth', x, 0.8); },
@@ -373,6 +383,9 @@
       for (let i = 0; i < 3; i++) play('creak', x, 1, { delay: i * 0.45 });
     },
     standFall(x) { play('crash.wood', x, 1, { reach: 1.5 }); },
+    rung(x) { play('creak', x, 0.45, { rate: rr(0.85, 1.2) }); play('claw', x, 0.55, { rate: rr(0.9, 1.1) }); },
+    hatch(x) { play('creak', x, 0.8, { rate: 0.75 }); play('bear.huff', x, 0.7, { delay: 0.1 }); play('impact.wood', x, 0.4, { delay: 0.25 }); },
+    freeze(x) { play('voice.yelp.m', x, 1, { reach: 1.4 }); },
     thud(x, k) { play('fall.body', x, k || 1, { reach: 1.5 }); },
     zap(x) { play('zap', x, 1); play('zap.spark', x, 1); },
     bark(x) { play('dog', x, 1, { reach: 1.5 }); play('dog', x, 0.9, { reach: 1.5, delay: rr(0.16, 0.24) }); },
@@ -380,6 +393,10 @@
     koliba(x) { play('market.clatter', x, 1, { reach: 1.5 }); play('creak', x, 0.7, { reach: 1.5, delay: 0.1, rate: 1.2 }); },
     window(x) { play('bang.window', x, 1, { reach: 1.5 }); },
     door(x) { play('door.creak', x, 1, { reach: 1.5 }); },
+    lotRustle(x) { play('hide.leaves', x, 0.5, { rate: 1.15 }); },
+    lotTopple(x) { play('crash.wood', x, 0.6, { reach: 1.5, rate: 1.3 }); play('hide.leaves', x, 0.9, { delay: 0.04 }); },
+    lotSeller(x) { play('voice.yell.m', x, 1, { reach: 1.4 }); scurry(x, 1); },
+    fisher(x) { play('voice.yell.m', x, 1, { reach: 1.4, rate: 1.08 }); play('bin.lid', x, 0.5, { delay: 0.12, rate: 1.3 }); scurry(x, 1); },
   };
 
   function scurry(x, vol) {
@@ -515,7 +532,7 @@
         if (gait === 'run' && w.paw && (w.breath = (w.breath + 1) % 3) === 0) play('bear.huff', b.x, 0.35);
       }
     }
-    if (b.climbing && b.climbV) {
+    if (b.climbing && b.climbV && !b.climbing.ladder) {
       w.climbT += dt;
       if (w.climbT >= (b.climbV < 0 ? 0.32 : 0.22)) { w.climbT = 0; SFX.climb(b.x); }
     } else w.climbT = 0.1;
@@ -526,7 +543,7 @@
     w.rum = rr(0.45, 0.65);
     let it = null;
     for (const i of g.level.items) if (!i.eaten && Math.abs(i.x - b.x) < 30 && !ZS.FOOD[i.type].natural) { it = i; break; }
-    play(it && BINS[it.type] ? 'bin.rummage' : 'eat.wrapper', b.x, 0.5);
+    play(it && BINS[it.type] ? 'bin.rummage' : it && it.type === 'cob' ? 'corn.rustle' : 'eat.wrapper', b.x, 0.5);
   }
 
   function rec(o) {
@@ -603,6 +620,15 @@
       r.vcd -= dt;
       if (o.ph !== r.ph && (o.ph === 'door' || o.ph === 'dive' || o.ph === 'jump')) { cue(o, r, 0.8); react(o, r, 'fright', 0.9, rr(0.02, 0.15)); }
       r.ph = o.ph;
+    }
+    const ph = g.photographer;
+    if (ph) {
+      const r = rec(ph), act = g.bear.act, posing = !!act && act.target === ph && act.kind === 'pose' && act.t > 0.6;
+      r.vcd -= dt;
+      if (ph.react !== r.react && ph.react === 'bitten') { r.vcd = 0; react(ph, r, 'voice.yelp.m', 1); }
+      else if (ph.react !== r.react && ph.react === 'hugged') { r.vcd = 0; react(ph, r, 'voice.laugh', 0.9, 0.4); }
+      else if (posing && !r.state) { r.vcd = 0; react(ph, r, 'voice.laugh', 0.8, 0.1); }
+      r.react = ph.react; r.state = posing;
     }
   }
 

@@ -106,3 +106,46 @@ test('with a person in reach under the stand, C goes to the person', () => {
   assert.equal(p.react, 'hugged');
   assert.ok(!(post.shake > 0));
 });
+
+test('a new feeding station only ever gets its stand on a fixed forest slot ahead of the bear, never anywhere else', () => {
+  let placed = 0, skipped = 0;
+  for (let seed = 1; seed <= 30; seed++) {
+    const ZS = loadGame({ seed });
+    const g = ZS.sim.rules.create(ZS.ui.input.state, { level: 'summer' });
+    const L = g.level, fixed = new Set(L.posts.map((p) => p.x)), slots = new Set(L.feedSlots.map((f) => f + 170));
+    g.running = true; g.bear.waking = false; g.people = []; g.dogs = []; g.sheep = [];
+    for (let k = 0; k < 6; k++) {
+      g.bear.x = 300 + Math.random() * (L.w - 900);
+      g.usedEvents = new Set(['wrongbear', 'court', 'meat', 'poacher', 'bins', 'census', 'constitution']);
+      g.nextEvent = 0;
+      const n = L.posts.length;
+      ZS.sim.loop.step(g, DT);
+      if (L.posts.length > n) {
+        placed++;
+        const x = L.posts[L.posts.length - 1].x;
+        assert.ok(x - 170 > g.cam + g.viewW, 'stand at ' + x + ' is on screen');
+      } else skipped++;
+    }
+    for (const p of L.posts) assert.ok(fixed.has(p.x) || slots.has(p.x), 'seed ' + seed + ': stand at ' + p.x);
+    for (const s of g.shooters.filter((h) => h.kind === 'posed')) assert.ok(fixed.has(s.home) || slots.has(s.home), 'hunter on a stand at ' + s.home);
+    assert.equal(new Set(L.posts.map((p) => p.x)).size, L.posts.length, 'two stands on one slot');
+  }
+  assert.ok(placed > 20 && skipped > 20, placed + ' placed, ' + skipped + ' with only the news');
+});
+
+test('the feeding slots sit in the open forest, clear of every landmark, with room for the bait and the stand', () => {
+  const ZS = loadGame({ seed: 1 });
+  const L = ZS.makeLevel('summer', 11), H = L.hotel;
+  const busy = [
+    [L.village.from, L.village.to], [L.corn.from, L.corn.to], [L.skanzen.from, L.skanzen.to], [L.salas.from, L.salas.to],
+    [L.river.from, L.river.to], [L.photographer.x - 80, L.photographer.x + 80], [H.x - H.w / 2, H.x + H.w / 2],
+    [H.lift - 120, H.lift + 120], [L.lift.tower - 120, L.lift.tower + 120], [H.chapel - 100, H.chapel + 100],
+    [L.feeding - 60, L.feeding + 60], [L.goalDen - 200, L.w], [0, L.startDen + 400],
+  ].concat(L.posts.map((p) => [p.x - 100, p.x + 100]), L.logs.map((l) => [l.x - l.w / 2, l.x + l.w / 2]), L.haystacks.map((x) => [x - 60, x + 60]));
+  assert.ok(L.feedSlots.length >= 2 && L.feedSlots.length <= 3);
+  for (const f of L.feedSlots) {
+    for (const [a, b] of busy) assert.ok(f + 230 < a || f - 40 > b, f + ' clashes with ' + a + '–' + b);
+    assert.ok(!L.trees.some((t) => t.x > f - 40 && t.x < f + 230), 'tree on slot ' + f);
+  }
+  assert.equal(ZS.makeLevel('winter', 11).feedSlots, undefined);
+});

@@ -83,6 +83,10 @@
       'St Nicholas has bodyguards this year. The devil carries the permit, the angel a whistle.',
       'It’s so cold the trees are cracking. Ministry reassures: Those aren’t gunshots. Mostly.',
       'A market stall sells Bear Punch. The ministry wants it renamed Hunter’s Punch.',
+      'Christmas tree prices are up. Sellers claim the bear is eating the firs.',
+      'The ministry recommends artificial Christmas trees. No bear can hide behind a plastic one.',
+      'Police checked where the Christmas trees came from. Behind one they found a bear, behind the rest the national park.',
+      'An ice angler claims he saw a bear as big as a snowcat. Minister Strašiak believes him.',
     ],
 
     LEVEL_TEXT: {
@@ -112,6 +116,7 @@
       stiff: ['Tummy in!', 'Don’t breathe…', 'I am a tree. I am a tree.', 'Just like Minister Strašiak said.'],
       peek: ['Just a peek…', 'Is he still there?', 'Peekaboo!', 'The minister was right: I’m behind a tree.'],
       sweat: ['Just don’t sneeze.', 'I’m sweating right through my fur.', 'Good thing it’s not a birch.', '“Behind every tree,” the minister said.'],
+      birch: ['The minister said behind every tree. He said nothing about thickness.', 'If I can’t see him, he can’t see me.', 'Suck in the belly and I’m a birch.', 'I’m just a slightly browner trunk.'],
       hug: ['Hugging a tree. A true tree hugger.', 'This tree protects me better than the law.', 'This tree is my buddy.', 'Standing behind a tree, like on the billboard.'],
       climb: ['The minister said behind a tree. I’m up one.', 'I can see all the way to Kriváň.', 'Nobody looks for me up here.', 'Hold me, little branch.'],
       hugPerson: ['Free hugs!', 'This is going viral.', 'Relax, I’m just cuddling.', 'You’re softer than a beech.'],
@@ -120,15 +125,19 @@
       biteAir: ['Snapped at thin air.', 'Just testing my teeth.'],
       stomp: ['Boing!', 'Sorry, I slipped.', 'Soft landing.', 'I let him keep his hat.'],
       selfie: ['Cheese!', 'My left side is my good side.', 'Tag me: @medved'],
+      pose: ['Left profile, trout on the right.', 'This one’s going on the cover.', 'The trout is just a prop.'],
       shake: ['Earthquake!', 'Got a building permit for this?', 'Hunting stand for sale.'],
+      ladder: ['My turn to hunt. For lunch.', 'Great view from the stand. It is a stand.', 'Binoculars! I can see the minister hiding behind a tree.'],
       denRefuse: ['Not even my own bed without a hug?', 'Hug certificate? I invented the bear hug!', 'Hug first, hibernate later.'],
       wake: ['Who’s throwing a disco out here?', 'It’s December!', 'Let me sleep…'],
       spray: ['Fake snow, fake bear.', 'I’m just a snowdrift.', 'Shh, I’m a pile of snow.'],
       ice: ['Who approved this ice rink?', 'Wheee!', 'I’ve got no brakes!'],
+      lot: ['I’m just another Christmas tree.', 'Fir? No, bear. But I’m prickly too.', 'Buy me, no receipt needed.'],
       zap: ['Ow! Who turned the power on?', 'The fence works. Unlike the state.', 'Well, at least I got a free perm.', 'You jump this, you don’t sniff it.'],
       hay: ['I’m just a haystack.', 'Needle in a haystack? Try a bear.', 'It tickles my nose…', 'The minister counts haystacks. Not me.'],
       lift: ['Got a ski pass. No ammo.', 'Postcard view. Through a rifle scope.', 'I swing, therefore I am.', 'Faster, lift guy!'],
       liftTop: ['Goulash for €19 up here. I’ll walk down.', 'Top station? Thanks, I’ve seen enough.', 'Next time I’m taking the gondola.'],
+      corn: ['A corn maze? My specialty.', 'Not even a drone will find me here.', 'The boar feasts, I get the bill.', 'The forest belongs to the environment ministry, the corn to agriculture. I belong to nobody.'],
     },
 
     NEWS: {
@@ -155,6 +164,7 @@
       ],
       calm: 'The response team has pulled back. The bear has returned to the forest.',
       treeHit: 'A hunter shot a tree. The ministry reports a successful hit.',
+      birchHit: 'A bear hid behind a birch and a hunter hit it. Minister: I said behind every tree, not behind every stick.',
       missed: 'A hunter missed. Ministry: The bear was speeding.',
       hunterShot: 'A hunter fired at the bear. He mostly hit the bushes.',
       poacherShot: 'Shots were fired in the forest. Police know nothing.',
@@ -255,6 +265,10 @@
         'A bear licked a plate of halušky clean. The inn has offered him a job washing up.',
       ],
       hug: {
+        photographer: [
+          'A bear hugged a wildlife photographer. He kept shooting: The sharpest portrait of my career, shame it was from two centimetres.',
+          'A photographer in camouflage got a bear hug. The camouflage worked, apparently: the bear only found him on the third try.',
+        ],
         tourist: [
           'Video: The bear hugs a tourist. Two million views, and the panic is easing.',
           'The bear hugged a tourist. The tourist gave Liptov five stars, the bear six.',
@@ -291,6 +305,14 @@
           'A bear hugged an inn guest. He blames the third beer, the video doesn’t.',
           'An inn guest got a bear hug. The shepherd billed him for a folklore show.',
         ],
+        fisher: [
+          'A bear hugged an ice angler. For once he has a fishing story that is true.',
+          'A bear hugged an angler. He says the bear was this big. This time people believe him.',
+        ],
+        seller: [
+          'The bear hugged the Christmas tree seller. He gave the bear a free fir, the ministry gave it a fine.',
+          'Christmas tree seller after a bear hug: I’ve never given anyone a discount like that.',
+        ],
         waiter: [
           'A bear hugged a waiter. No tip, but at least he smiled.',
           'A bear hugged the inn’s waiter. Dumplings on the floor, reviews at five stars.',
@@ -309,6 +331,10 @@
         'Police detained an illegal hug. The bear got away; the hug is in a cell.',
       ],
       bite: {
+        photographer: [
+          'A bear bit a wildlife photographer. He never let go of the shutter: At least I got the teeth.',
+          'A bear bit a photographer by the Belá. The ministry seized the photos as evidence; the photographer has a cloud backup.',
+        ],
         tourist: [
           'The bear bit a tourist. The government convenes a crisis team, and so does the opposition.',
           'Headline: Bear terror! Story: The bear bit a tourist’s backpack. The backpack is out of danger.',
@@ -342,6 +368,14 @@
         guest: [
           'A bear bit an inn guest. Minister Strašiak: Proof that bears come for the dumplings.',
           'A bear bit an inn guest. He wants a discount, the inn wants a cull, the bear wants dessert.',
+        ],
+        fisher: [
+          'A bear bit an angler. He says it was three metres long. The video shows two.',
+          'A bear bit an ice angler. Ministry: An attack on traditional fishing!',
+        ],
+        seller: [
+          'The bear bit the Christmas tree seller. Minister Strašiak: Bears are attacking Christmas!',
+          'The bear bit the Christmas tree seller. Firs now come with a risk surcharge.',
         ],
         waiter: [
           'A bear bit a waiter. The inn reports a service outage, guests notice no difference.',
@@ -403,11 +437,39 @@
         'Bear in a haystack. Ministries argue whether it’s an agricultural or an environmental haystack.',
       ],
       hayHit: 'Hunter shoots a haystack. Ministry reports a successful strike against livestock feed.',
+      corn: [
+        'Bear walks into a cornfield. The agriculture ministry is already counting damage that hasn’t happened yet.',
+        'Bear in the corn. The environment ministry says the field belongs to agriculture. Agriculture says the bear belongs to the environment.',
+        'Bear lost in the corn. MP Flinta demands that all of Liptov be mowed.',
+      ],
+      cobEaten: [
+        'Bear eats an ear of corn straight off the field. Hunters: Theft! We had that one ordered for the bait site.',
+        'Agri-company reports corn damage: two ears. It is claiming compensation for the whole hectare.',
+      ],
+      cornHit: 'Hunter fires into the corn. Hits two ears and a crop subsidy.',
+      boar: [
+        'Wild boars eat half a hectare of corn. Ministry: The bear did it, the boar is just a witness.',
+        'A boar bolts out of the corn. Minister Strašiak: The bear planted it there as a spy.',
+        'Agri-company claims compensation for corn rooted up by boars. It named the bear as the culprit, since boars come with no subsidy.',
+      ],
       selfie: [
         'A bear selfie has three million likes, more than the whole government. More tourists head for Liptov.',
         'The bear smiled for a selfie. Ministry: He bared his teeth, which is aggressive behaviour.',
         'The ministry is collecting bear selfies as proof of overpopulation. After all, every photo has a bear in it.',
         'Nobody cares about bear selfies anymore. The bear is considering a career as an influencer.',
+      ],
+      standClimb: [
+        'A bear climbed up a hunting stand and the hunter jumped out. The Hunting Chamber calls it a hostile takeover.',
+        'A hunter handed his stand to a bear, packed lunch included. Minister Strašiak: A strategic retreat.',
+        'A bear has taken a hunting stand and watches the ministry through binoculars. The ministry reports surveillance.',
+        'A bear is sitting in a hunting stand. MP Flinta demands ladders that only go down.',
+      ],
+      photoWait: 'A wildlife photographer waited three weeks for a bear by the Belá. Meanwhile the council charged him a fee for occupying public land.',
+      photo: [
+        'Photo of the Year goes to a bear with a trout in the Belá. Minister Strašiak demands a cull of the jury.',
+        'A photographer lay in camouflage by the Belá. The bear posed for him with a trout. Photo of the Year is here, and the ministry has filed it as proof of overpopulation.',
+        'MP Flinta counted 16 bears in the photo from the Belá. Photographer: It was a burst, it’s one bear.',
+        'Another photo of a bear with a trout. The trout wants a fee, the bear wants the copyright.',
       ],
       standFall: [
         'A hunter fell out of his stand. The Hunting Chamber demands stands with seat belts.',
@@ -440,6 +502,28 @@
         'Hunters emptied their rifles at the chairlift. The bear never even raised the safety bar.',
       ],
       liftDrone: 'An army drone is escorting the bear up the chairlift. It has no ski pass either.',
+      lot: 'The bear is hiding among the Christmas trees. The ministry orders a check of every tree with a price tag.',
+      lotSeller: [
+        'The Christmas tree seller fled from the bear. He left the stall open, but not the cash box.',
+        'Christmas tree seller: The bear took longer to choose than my mother-in-law.',
+        'A bear at the Christmas tree lot. The seller ran, the prices stayed.',
+      ],
+      lotTopple: [
+        'The bear knocked over the Christmas trees. The seller wants compensation from the ministry, the ministry from the bear.',
+        'A bear ran through the Christmas tree lot. Minister Strašiak: An attack on Christmas!',
+      ],
+      lotMiss: [
+        'A hunter shot a Christmas tree. Seller: Well, at least one sold.',
+        'A hunter fired at the bear and hit a €49 fir. The hunters’ chamber: It was self-defence.',
+      ],
+      fisher: [
+        'An ice angler on the Račkov stream fled from a bear. He left the rod and the catch.',
+        'Ice angler: First time I saw a bear. First time I saw myself run, too.',
+      ],
+      catchEaten: [
+        'A bear ate an angler’s catch. The anglers’ union demands a cull, the fish protest.',
+        'A bear emptied an angler’s bucket of trout. Minister Strašiak: Theft of national wealth!',
+      ],
     },
 
     LABELS: {
@@ -466,6 +550,7 @@
         hive: 'beehive',
         apple: 'orchard apples',
         corn: 'bait-site corn',
+        cob: 'corn from the field',
         sandwich: 'tourists’ packed lunch',
         feeder: 'beet from a feeder',
         punch: 'mulled punch',
@@ -475,6 +560,7 @@
         candy: 'St Nicholas’s sweets',
         chatabin: 'chalet dumpster',
         halusky: 'sheep-cheese dumplings',
+        catch: 'the angler’s catch',
       },
       art: { salas: 'SHEEPFOLD', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['GENERAL', 'WASTE'], fence: ['DANGER!', 'ELECTRIC', 'FENCE'] },
       skanzen: { name: ['MUSEUM OF THE', 'LIPTOV VILLAGE'], notice: ['The bear is not', 'an exhibit!'] },
@@ -490,10 +576,22 @@
       interact: 'C hug · X bite',
       interactSelfie: 'C selfie · X bite',
       interactStand: 'C shake the stand',
+      interactLadder: 'C shake · hold ↑ climb',
+      interactPose: 'C pose for the photographer',
       stomp: 'Bonk!',
       hugBanned: '❤️ Illegal hug!',
       selfie: '📸 Selfie!',
+      photo: {
+        pose: ['Yes! Yes! Yes!', 'Photo of the year!', 'Hold it! More! More!', 'National Geographic, here I come!'],
+        shot: '📸 Photo of the year!',
+        hello: '🤫 Psst… press C and pose!',
+        close: 'Too close, can’t focus!',
+      },
       standFall: 'Crash!',
+      standTaken: 'Stand taken!',
+      hunterSnack: 'lunch from the stand',
+      ladderDown: '↓ climb down',
+      ladderUp: 'hold ↑ climb the stand',
       denRefuse: '🤗 Hug someone first!',
       denStamp: ['CLOSED', 'no entry without a hug'],
       spray: 'Fake snow hides you',
@@ -501,13 +599,18 @@
       zap: 'BZZZ!',
       hayHit: 'Hit the hay!',
       hayHint: '↓ into the hay',
+      corn: 'Harder to spot in the corn · ↓ crouch',
+      cornHit: 'Hit the corn!',
+      missCorn: 'Missed! The corn covers you.',
+      boar: 'Squeeeal!',
       crawlHint: '↓ crawl',
       fenceHint: '↑ jump it',
       shout: {
-        hug: { walker: 'Let go, I have a gun licence!', ztmh: 'This isn’t in the protocol!', poacher: 'I’m just picking mushrooms!', picker: 'Jesus, Mary and Joseph!', tourist: 'Mum, film this!', santa: 'Ho ho… HOOO!', guest: 'I only came for the dumplings!', waiter: 'Do you have a booking?!' },
-        bite: { walker: 'Ow, my honour!', ztmh: 'Ow! I’m hit!', poacher: 'Ow! Not a word to anyone!', picker: 'Help!', tourist: 'Owww!', santa: 'Ow, my staff!', guest: 'Ow, I haven’t paid yet!', waiter: 'Ow! That’s not on the menu!' },
+        hug: { walker: 'Let go, I have a gun licence!', ztmh: 'This isn’t in the protocol!', poacher: 'I’m just picking mushrooms!', picker: 'Jesus, Mary and Joseph!', tourist: 'Mum, film this!', santa: 'Ho ho… HOOO!', guest: 'I only came for the dumplings!', waiter: 'Do you have a booking?!', photographer: 'One more frame!', seller: 'Take any tree, just let me go!', fisher: 'It was THIS big!' },
+        bite: { walker: 'Ow, my honour!', ztmh: 'Ow! I’m hit!', poacher: 'Ow! Not a word to anyone!', picker: 'Help!', tourist: 'Owww!', santa: 'Ow, my staff!', guest: 'Ow, I haven’t paid yet!', waiter: 'Ow! That’s not on the menu!', photographer: 'Ow! But it’s tack sharp!', seller: 'Ow! No receipt!', fisher: 'Ow! Am I the bait?!' },
         selfie: 'Smile!',
         fall: 'Whoaaa!',
+        ladder: ['Mummy!', 'I was only birdwatching!', 'It’s all yours!'],
       },
       koliba: {
         shouts: ['Bear!', 'Bear at the inn!', 'Run!', 'Every man for himself!'],
@@ -518,6 +621,16 @@
       },
       basket: 'mushrooms from a basket',
       icefish: 'trout from under the ice',
+      fisher: { shout: ['A bear! He’s after my trout!', 'Keep the rod!', 'I was only fishing!'] },
+      lot: {
+        sign: ['CHRISTMAS', 'TREES'],
+        price: ['Spruce €25', 'Fir €49', 'From TANAP €15'],
+        shout: ['A bear! We’re closed!', 'Write your own receipt!', 'Take a fir, just don’t eat me!'],
+        miss: 'Hit a Christmas tree!',
+        topple: 'Oops!',
+        hint: '↓ crouch among the trees',
+        cover: 'Nobody sees you among the trees',
+      },
       billboard: ['There’s a bear', 'behind every tree!'],
       billboardWinter: ['Hibernation', 'is mandatory!'],
       stallSigns: { punch: 'PUNCH', lokse: 'LOKŠE', sausage: 'SAUSAGES' },
@@ -551,6 +664,7 @@
         quiet: 'TANAP – Tichá dolina',
         cave: 'Važec Cave – bears slept here without a decree',
         winterGoal: 'Quiet den →',
+        lot: 'Christmas trees – ↓ crouch',
         by: '— Minister Strašiak',
       },
     },

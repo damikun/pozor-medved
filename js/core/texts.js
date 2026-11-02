@@ -84,6 +84,10 @@
     'Mikuláš tento rok chodí s ochrankou. Čert nesie povolenie, anjel píšťalku.',
     'Mrzne, až stromy praskajú. Ministerstvo upokojuje: Nie sú to výstrely. Väčšinou.',
     'Stánok na trhoch predáva Medvedí punč. Ministerstvo žiada premenovať ho na Poľovnícky.',
+    'Ceny vianočných stromčekov stúpli. Predajcovia tvrdia, že medveď žerie jedle.',
+    'Ministerstvo odporúča umelé stromčeky. Za umelým sa medveď neskryje.',
+    'Polícia preverila pôvod vianočných stromčekov. Pri jednom našla medveďa, pri ostatných TANAP.',
+    'Rybár z ľadu tvrdí, že videl medveďa veľkého ako ratrak. Minister Strašiak mu verí.',
   ];
 
   ZS.LEVEL_TEXT = {
@@ -114,6 +118,7 @@
     stiff: ['Brucho dnu!', 'Nedýchať…', 'Ja som strom. Ja som strom.', 'Presne ako hovoril minister Strašiak.'],
     peek: ['Len kuknem…', 'Je tam ešte?', 'Kuk!', 'Minister mal pravdu: som za stromom.'],
     sweat: ['Hlavne nekýchnuť.', 'Pot mi tečie až do kožucha.', 'Ešte že to nie je breza.', 'Za každým stromom, vravel minister.'],
+    birch: ['Minister vravel za každým stromom. O hrúbke nič.', 'Keď nevidím ja jeho, nevidí ani on mňa.', 'Zatiahnem brucho a som breza.', 'Som len trochu hnedší kmeň.'],
     hug: ['Objímam strom. Som ochranár.', 'Tento strom ma chráni lepšie ako zákon.', 'Strom je môj kamoš.', 'Postojačky za stromom, ako na bilborde.'],
     climb: ['Minister vravel za stromom. Ja som na strome.', 'Odtiaľto vidím až na Kriváň.', 'Hore ma nikto nehľadá.', 'Konárik, drž ma.'],
     hugPerson: ['Objatie zadarmo!', 'Toto bude virálne.', 'Neboj sa, len sa túlim.', 'Si mäkší ako buk.'],
@@ -122,15 +127,19 @@
     biteAir: ['Cvak naprázdno.', 'Len skúšam zuby.'],
     stomp: ['Hop!', 'Prepáč, pošmykol som sa.', 'Mäkké pristátie.', 'Klobúk som mu nechal.'],
     selfie: ['Cheese!', 'Ľavý profil mám lepší.', 'Označ ma: @medved'],
+    pose: ['Ľavý profil, pstruh vpravo.', 'Toto ide na obálku.', 'Pstruh je len rekvizita.'],
     shake: ['Zemetrasenie!', 'Stavebné povolenie máš?', 'Posed na predaj.'],
+    ladder: ['Teraz poľujem ja. Na desiatu.', 'Výhľad ako z posedu. Lebo je to posed.', 'Ďalekohľad! Vidím ministra, ako sa skrýva za stromom.'],
     denRefuse: ['Bez objatia ani do vlastnej postele?', 'Potvrdenie o objatí? Veď som medveď!', 'Najprv niekoho objímem, potom spím.'],
     wake: ['Kto tu púšťa diskotéku?', 'Veď je december!', 'Dajte mi spať…'],
     spray: ['Umelý sneh, umelý medveď.', 'Ja som len závej.', 'Pšt, som kopa snehu.'],
     ice: ['Kto tu povolil klzisko?', 'Wííí!', 'Brzdy nemám!'],
+    lot: ['Som len ďalší stromček.', 'Jedľa? Nie, medveď. Ale tiež pichám.', 'Kúpte si ma, aj bez bločku.'],
     zap: ['Áu! Kto tu pustil prúd?', 'Ohradník funguje. Na rozdiel od štátu.', 'Aspoň mám zadarmo trvalú.', 'Toto treba preskočiť, nie oňuchať.'],
     hay: ['Som len kopa sena.', 'Ihla v kope sena? Skús medveďa.', 'Šteklí ma to v nose…', 'Minister ráta kopy sena. Mňa nie.'],
     lift: ['Skipas mám, strelivo nie.', 'Výhľad ako z pohľadnice. Cez mušku.', 'Hojdám sa, teda žijem.', 'Lanovkár, pridaj!'],
     liftTop: ['Hore guláš za 19 €. Idem dole pešo.', 'Horná stanica? Ďakujem, stačilo.', 'Nabudúce radšej kabínkou.'],
+    corn: ['Kukuričné bludisko? Môj odbor.', 'Tu ma nenájde ani dron.', 'Diviak hoduje, škodu napíšu mne.', 'Les patrí envirorezortu, kukurica agrorezortu. Ja nikomu.'],
   };
 
   ZS.NEWS = {
@@ -157,6 +166,7 @@
     ],
     calm: 'Zásahový tím sa stiahol. Medveď sa vrátil do lesa.',
     treeHit: 'Poľovník trafil strom. Ministerstvo hlási úspešný zásah.',
+    birchHit: 'Medveď sa skryl za brezu a poľovník ho trafil. Minister: Povedal som za každým stromom, nie za každou palicou.',
     missed: 'Poľovník minul. Ministerstvo: Medveď utekal nezákonne rýchlo.',
     hunterShot: 'Poľovník strieľal na medveďa. Zasiahol hlavne kríky.',
     poacherShot: 'V lese sa strieľalo. Polícia nič nevie.',
@@ -257,6 +267,10 @@
       'Medveď vylízal tanier halušiek. Koliba mu ponúka miesto umývača riadu.',
     ],
     hug: {
+      photographer: [
+        'Medveď objal fotografa prírody. Ten fotil ďalej: Najostrejší portrét mojej kariéry, škoda, že z dvoch centimetrov.',
+        'Fotograf v maskáčoch dostal medvedie objatie. Maskovanie vraj fungovalo, medveď ho našiel až na tretí pokus.',
+      ],
       tourist: [
         'Video: Medveď objíma turistu. Dva milióny pozretí, panika klesá.',
         'Medveď objal turistu. Turista dal Liptovu päť hviezdičiek, medveďovi šesť.',
@@ -293,6 +307,14 @@
         'Medveď objal hosťa z koliby. Hosť to zvaľuje na tretie pivo, video nie.',
         'Hosť koliby dostal medvedie objatie. Bača mu ho naúčtoval ako folklórny program.',
       ],
+      fisher: [
+        'Medveď objal rybára na ľade. Rybár má prvý raz v živote historku, ktorá je pravdivá.',
+        'Medveď objal rybára. Ten tvrdí, že medveď bol veľký takto. Tentoraz mu veria.',
+      ],
+      seller: [
+        'Medveď objal predajcu stromčekov. Predajca mu daroval jedľu, ministerstvo pokutu.',
+        'Predajca stromčekov po objatí medveďa: Takú zľavu som ešte nikomu nedal.',
+      ],
       waiter: [
         'Medveď objal čašníka. Prepitné nedal, ale aspoň sa usmial.',
         'Medveď objal čašníka z koliby. Halušky na zemi, hodnotenie podniku päť hviezdičiek.',
@@ -311,6 +333,10 @@
       'Polícia zadržala nelegálne objatie. Medveď ušiel, objatie sedí v cele.',
     ],
     bite: {
+      photographer: [
+        'Medveď kusol fotografa prírody. Fotograf nepustil spúšť ani na sekundu: Aspoň mám zábery zubov.',
+        'Medveď kusol fotografa pri Belej. Ministerstvo zabavilo fotky ako dôkaz, fotograf má zálohu v cloude.',
+      ],
       tourist: [
         'Medveď uhryzol turistu. Vláda zvoláva krízový štáb, opozícia tiež.',
         'Titulok: Medvedí teror! Text: Medveď kusol turistovi do ruksaku. Ruksak je mimo ohrozenia.',
@@ -344,6 +370,14 @@
       guest: [
         'Medveď kusol hosťa z koliby. Minister Strašiak: Dôkaz, že medvede chodia na halušky.',
         'Medveď kusol hosťa koliby. Hosť chce zľavu, koliba odstrel, medveď dezert.',
+      ],
+      fisher: [
+        'Medveď kusol rybára. Rybár tvrdí, že medveď mal tri metre. Video ukazuje dva.',
+        'Medveď kusol rybára na ľade. Ministerstvo: Útok na tradičný rybolov!',
+      ],
+      seller: [
+        'Medveď kusol predajcu stromčekov. Minister Strašiak: Medvede útočia na Vianoce!',
+        'Medveď kusol predajcu stromčekov. Jedle odteraz s rizikovým príplatkom.',
       ],
       waiter: [
         'Medveď kusol čašníka. Koliba hlási výpadok obsluhy, hostia nevidia rozdiel.',
@@ -405,11 +439,39 @@
       'Medveď je v kope sena. Rezorty sa hádajú, či je to poľnohospodárska, alebo environmentálna kopa.',
     ],
     hayHit: 'Poľovník strelil do kopy sena. Ministerstvo hlási úspešný zásah proti krmivu.',
+    corn: [
+      'Medveď vošiel do kukurice. Agrorezort už vyčísľuje škody, ktoré ešte nevznikli.',
+      'Medveď v kukurici. Envirorezort tvrdí, že pole patrí agrorezortu. Agrorezort tvrdí, že medveď patrí envirorezortu.',
+      'Medveď sa stratil v kukurici. Poslanec Flinta žiada pokosiť celý Liptov.',
+    ],
+    cobEaten: [
+      'Medveď zjedol klas kukurice priamo z poľa. Poľovníci: Krádež! Ten sme mali objednaný na vnadisko.',
+      'Agropodnik hlási škodu na kukurici: dva klasy. Žiada odškodné za celý hektár.',
+    ],
+    cornHit: 'Poľovník vystrelil do kukurice. Zasiahol dva klasy a dotáciu na úrodu.',
+    boar: [
+      'Diviaky spásli pol hektára kukurice. Ministerstvo: Škodu spôsobil medveď, diviak je len svedok.',
+      'Z kukurice vybehol diviak. Minister Strašiak: Medveď ho tam nasadil ako agenta.',
+      'Agropodnik žiada odškodné za kukuricu rozrytú diviakmi. Ako páchateľa uviedol medveďa, na diviaka dotácia nie je.',
+    ],
     selfie: [
       'Selfie s medveďom má tri milióny lajkov, viac ako celá vláda. Na Liptov mieria ďalší turisti.',
       'Medveď sa na selfie usmial. Ministerstvo: Ukázal zuby, ide o útočné správanie.',
       'Ministerstvo zbiera selfie s medveďom ako dôkaz premnoženia. Na každej fotke je predsa medveď.',
       'Selfie s medveďom už nikoho nezaujíma. Medveď zvažuje kariéru influencera.',
+    ],
+    standClimb: [
+      'Medveď vyliezol na posed, poľovník z neho zoskočil. Komora hovorí o nepriateľskom prevzatí.',
+      'Poľovník prenechal medveďovi posed aj s desiatou. Minister Strašiak: Strategický ústup.',
+      'Medveď obsadil posed a pozerá ďalekohľadom na ministerstvo. Ministerstvo hlási sledovanie.',
+      'Na posede sedí medveď. Poslanec Flinta žiada rebríky, ktoré vedú len dolu.',
+    ],
+    photoWait: 'Naturfotograf čakal pri Belej na medveďa tri týždne. Úrad mu medzitým vyrubil poplatok za záber verejného priestranstva.',
+    photo: [
+      'Fotku roka vyhral medveď s pstruhom v Belej. Minister Strašiak žiada odstrel poroty.',
+      'Fotograf ležal pri Belej v maskáčoch. Medveď mu zapózoval s pstruhom. Fotka roka je na svete, ministerstvo ju vedie ako dôkaz premnoženia.',
+      'Poslanec Flinta zrátal na fotke z Belej 16 medveďov. Fotograf: To bola sekvencia, medveď je jeden.',
+      'Ďalšia fotka medveďa s pstruhom. Pstruh žiada honorár, medveď autorské práva.',
     ],
     standFall: [
       'Poľovník vypadol z posedu. Komora žiada posedy s bezpečnostnými pásmi.',
@@ -442,23 +504,47 @@
       'Poľovníci vystrieľali na lanovke všetko. Medveď si ani neodopol bezpečnostnú tyč.',
     ],
     liftDrone: 'Armádny dron sprevádza medveďa na lanovke. Skipas nemá ani on.',
+    lot: 'Medveď sa skrýva medzi vianočnými stromčekmi. Ministerstvo nariadilo kontrolu každého stromčeka s cenovkou.',
+    lotSeller: [
+      'Predajca stromčekov utiekol pred medveďom. Stánok nechal otvorený, pokladničku nie.',
+      'Predajca vianočných stromčekov: Medveď si vyberal dlhšie ako moja svokra.',
+      'Medveď na predaji stromčekov. Predajca utiekol, ceny zostali.',
+    ],
+    lotTopple: [
+      'Medveď zvalil vianočné stromčeky. Predajca žiada odškodné od ministerstva, ministerstvo od medveďa.',
+      'Medveď prebehol predajom stromčekov. Minister Strašiak: Útok na Vianoce!',
+    ],
+    lotMiss: [
+      'Poľovník trafil vianočný stromček. Predajca: Aspoň jeden predaný.',
+      'Poľovník strieľal na medveďa, trafil jedľu za 49 €. Komora: Išlo o sebaobranu.',
+    ],
+    fisher: [
+      'Rybár na Račkovom potoku utiekol pred medveďom. Udicu nechal, úlovok tiež.',
+      'Rybár na ľade: Prvý raz som videl medveďa. A prvý raz som videl seba utekať.',
+    ],
+    catchEaten: [
+      'Medveď zjedol rybárovi úlovok. Rybársky zväz žiada odstrel, ryby protestujú.',
+      'Medveď vybral rybárovi vedro pstruhov. Minister Strašiak: Krádež národného bohatstva!',
+    ],
   };
 
   ZS.NEWS_ICON = {
     headline: '📰',
     springStart: '🌱', summer: '☀️', mushrooms: '🍄', readyForWinter: '💤', winterStart: '🌡️', snow: '🌨️', frost: '🥶', readyForSleep: '💤', readyNoHug: '🤗',
     press: '🎤', pressWinter: '🎤', emergency: '🚨', drones: '🚁', cull: '🎯', problem: '⚠️', calm: '🕊️',
-    treeHit: '🌳', missed: '💨', hunterShot: '💥', poacherShot: '💥', hunterScared: '😱',
+    treeHit: '🌳', birchHit: '🪵', missed: '💨', hunterShot: '💥', poacherShot: '💥', hunterScared: '😱',
     pickerSeen: '🧺', santaSeen: '🎅', touristSeen: '📱', droneSeen: '🚁', dogBark: '🐕', tracks: '🐾',
     binEaten: '🗑️', hiveEaten: '🍯', containerEaten: '🗑️', feederEaten: '🌾', punchEaten: '🍷', lokseEaten: '🥞',
     sausageEaten: '🌭', carrotEaten: '🥕', candyEaten: '🍬', chatabinEaten: '🗑️',
     wrongbear: '🐻', court: '⚖️', meat: '🍖', feeding: '🌽', poacher: '🔦', bins: '🔒', stalls: '🔒', census: '🧮',
     constitution: '📜', decree: '📜', drive: '📯',
     hug: '🤗', hugTired: '🥱', hugBan: '🚫', hugBanned: '🚫', bite: '🦷', stomp: '🥾', stompZtmh: '🥾',
-    denRefuse: '🛑', selfie: '📸', standFall: '🪜', hide: '🌳', climb: '🌲', spray: '🌫️', ice: '⛸️', zap: '⚡', hay: '🌾', hayHit: '🌾',
-    cornEaten: '🌽', sandwichEaten: '🥪', appleEaten: '🍎', tv: '📺',
-    koliba: '🍺', haluskyEaten: '🥟',
+    denRefuse: '🛑', selfie: '📸', standFall: '🪜', standClimb: '🔭', hide: '🌳', climb: '🌲', spray: '🌫️', ice: '⛸️', zap: '⚡', hay: '🌾', hayHit: '🌾',
+    cornEaten: '🌽', corn: '🌽', cobEaten: '🌽', cornHit: '🌽', boar: '🐗', sandwichEaten: '🥪', appleEaten: '🍎', tv: '📺',
+    koliba: '🍺', haluskyEaten: '🥟', photo: '📸', photoWait: '📷',
     lift: '🚠', liftMiss: '💨', liftHit: '💥', liftTop: '🏔️', liftClean: '🚠', liftDrone: '🚁',
+    lot: '🎄', lotSeller: '🎄', lotTopple: '🎄', lotMiss: '🎄',
+    fisher: '🎣', catchEaten: '🐟',
   };
 
   ZS.LABELS = {
@@ -485,6 +571,7 @@
       hive: 'úľ',
       apple: 'jablká zo sadu',
       corn: 'kukurica z vnadiska',
+      cob: 'klas z poľa',
       sandwich: 'desiata od turistov',
       feeder: 'repa z krmelca',
       punch: 'punč z trhov',
@@ -494,6 +581,7 @@
       candy: 'cukríky z Mikulášovho vreca',
       chatabin: 'kontajner pri chate',
       halusky: 'bryndzové halušky',
+      catch: 'rybárov úlovok',
     },
     art: { salas: 'SALAŠ', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['KOMUNÁLNY', 'ODPAD'], fence: ['POZOR!', 'ELEKTRICKÝ', 'OHRADNÍK'] },
     skanzen: { name: ['MÚZEUM', 'LIPTOVSKEJ DEDINY'], notice: ['Medveď nie je', 'exponát!'] },
@@ -509,10 +597,22 @@
     interact: 'C objať · X kusnúť',
     interactSelfie: 'C selfie · X kusnúť',
     interactStand: 'C zatriasť posedom',
+    interactLadder: 'C zatriasť · drž ↑ vylez',
+    interactPose: 'C zapózuj fotografovi',
     stomp: 'Bum!',
     hugBanned: '❤️ Nelegálne objatie!',
     selfie: '📸 Selfie!',
+    photo: {
+      pose: ['Áno! Áno! Áno!', 'Fotka roka!', 'Drž! Ešte! Ešte!', 'National Geographic, už idem!'],
+      shot: '📸 Fotka roka!',
+      hello: '🤫 Psst… stlač C a zapózuj!',
+      close: 'Moc blízko, nezaostrím!',
+    },
     standFall: 'Bác!',
+    standTaken: 'Posed obsadený!',
+    hunterSnack: 'desiata z posedu',
+    ladderDown: '↓ zlez dolu',
+    ladderUp: 'drž ↑ vylez na posed',
     denRefuse: '🤗 Najprv niekoho objím!',
     denStamp: ['ZATVORENÉ', 'bez objatia nevstupovať'],
     spray: 'V umelom snehu ťa nevidia',
@@ -520,13 +620,18 @@
     zap: 'BZZZ!',
     hayHit: 'Trafil seno!',
     hayHint: '↓ do sena',
+    corn: 'V kukurici ťa horšie vidia · ↓ prikrč sa',
+    cornHit: 'Trafil kukuricu!',
+    missCorn: 'Vedľa! Kukurica ťa kryje.',
+    boar: 'Kvííík!',
     crawlHint: '↓ plaz sa',
     fenceHint: '↑ preskoč',
     shout: {
-      hug: { walker: 'Pusti ma, mám zbrojný pas!', ztmh: 'Toto nie je v protokole!', poacher: 'Ja nič, ja muzikant!', picker: 'Ježišmária!', tourist: 'Mami, natáčaj!', santa: 'Hó-hó… hóóó!', guest: 'Ja som len na halušky!', waiter: 'Máte rezerváciu?!' },
-      bite: { walker: 'Au, moja česť!', ztmh: 'Au! Zásah!', poacher: 'Au! Nikomu ani slovo!', picker: 'Pomóc!', tourist: 'Auuu!', santa: 'Au, moja berla!', guest: 'Au, ešte som nezaplatil!', waiter: 'Au! To nie je na menu!' },
+      hug: { walker: 'Pusti ma, mám zbrojný pas!', ztmh: 'Toto nie je v protokole!', poacher: 'Ja nič, ja muzikant!', picker: 'Ježišmária!', tourist: 'Mami, natáčaj!', santa: 'Hó-hó… hóóó!', guest: 'Ja som len na halušky!', waiter: 'Máte rezerváciu?!', photographer: 'Ešte jeden záber!', seller: 'Vyber si hocijakú, len ma pusť!', fisher: 'Bol takýto veľký!' },
+      bite: { walker: 'Au, moja česť!', ztmh: 'Au! Zásah!', poacher: 'Au! Nikomu ani slovo!', picker: 'Pomóc!', tourist: 'Auuu!', santa: 'Au, moja berla!', guest: 'Au, ešte som nezaplatil!', waiter: 'Au! To nie je na menu!', photographer: 'Au! Ale je ostrá!', seller: 'Au! Bez bločku!', fisher: 'Au! Ja som návnada?!' },
       selfie: 'Úsmev!',
       fall: 'Jéééj!',
+      ladder: ['Mamííí!', 'Ja som tu len na vtáčikoch!', 'Posed je váš!'],
     },
     koliba: {
       shouts: ['Medveď!', 'Medveď pri kolibe!', 'Utekajte!', 'Zachráň sa, kto môžeš!'],
@@ -537,6 +642,16 @@
     },
     basket: 'huby z košíka',
     icefish: 'pstruh spod ľadu',
+    fisher: { shout: ['Medveď! Ide mi po pstruhy!', 'Udicu si nechaj!', 'Ja som tu len chytal!'] },
+    lot: {
+      sign: ['VIANOČNÉ', 'STROMČEKY'],
+      price: ['Smrek 25 €', 'Jedľa 49 €', 'Z TANAP-u 15 €'],
+      shout: ['Medveď! Zatvorené!', 'Bloček si vypíš sám!', 'Ber si jedľu, len ma nežer!'],
+      miss: 'Trafil stromček!',
+      topple: 'Hups!',
+      hint: '↓ skrč sa medzi stromčeky',
+      cover: 'Medzi stromčekmi ťa nevidno',
+    },
     billboard: ['Medveď je za', 'každým stromom!'],
     billboardWinter: ['Zimný spánok', 'je povinný!'],
     stallSigns: { punch: 'PUNČ', lokse: 'LOKŠE', sausage: 'KLOBÁSY' },
@@ -570,6 +685,7 @@
       quiet: 'TANAP – Tichá dolina',
       cave: 'Važecká jaskyňa – tu medvede spali bez vyhlášky',
       winterGoal: 'Tichý brloh →',
+      lot: 'Stromčeky – ↓ skrč sa',
       by: '— minister Strašiak',
     },
   };

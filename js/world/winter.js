@@ -9,10 +9,12 @@
     Object.assign(L, {
       village: { from: 4280, to: 5900 },
       ice: { from: 3620, to: 3980 },
+      fisher: { x: 3852, catch: 3770, gone: false },
       park: { from: 9100, to: W - 300 },
       chata: { x: 6150 },
       lift: { x: 6960, tower: 7510 },
       slope: { from: 6000, to: 7700 },
+      lot: { from: 7950, to: 8470, front: [7990, 8042, 8094, 8146, 8198, 8250], rack: [7976, 8264], stands: [8020, 8122, 8224], barrel: 8298, seller: 8326, booth: 8394 },
       feeding: 2300,
     });
     L.cannons = [{ x: 410, dir: 1 }, { x: 6520, dir: 1 }];
@@ -31,6 +33,7 @@
       K.sign(4380, () => '', { billboard: true }),
       K.sign(4540, () => ZS.LEVEL_TEXT.winter.village),
       K.sign(7100, () => S.lift),
+      K.sign(7880, () => S.lot),
       K.sign(9150, () => S.quiet),
       K.sign(9950, () => S.cave),
       K.sign(W - 470, () => S.winterGoal),
@@ -40,6 +43,7 @@
     L.stalls.forEach((s) => K.add(L, s.kind, s.x));
     L.snowmen.forEach((s) => K.add(L, 'carrot', s.x));
     K.add(L, 'chatabin', L.chata.x + 190);
+    K.add(L, 'catch', L.fisher.catch);
 
     const xmas = Object.assign(K.makeTree(rng, 'smrek', 5440), { xmas: true, h: 250, r: 78, w: 40 });
     L.trees.push(xmas);
@@ -59,6 +63,7 @@
       || (x > L.ice.from - 80 && x < L.ice.to + 80)
       || (x > L.village.from - 40 && x < L.village.to + 40)
       || (x > L.chata.x - 150 && x < L.chata.x + 260)
+      || (x > L.lot.from - 60 && x < L.lot.to + 50)
       || Math.abs(x - L.lift.x) < 60
       || Math.abs(x - orchard) < 90
       || L.snowmen.some((s) => Math.abs(s.x - x) < 70)
@@ -81,6 +86,7 @@
       || (fx > L.ice.from - 40 && fx < L.ice.to + 40)
       || Math.abs(fx - L.feeding) < 140
       || (fx > L.chata.x - 160 && fx < L.chata.x + 260)
+      || (fx > L.lot.from - 20 && fx < L.lot.to + 20)
       || spray(fx), 11,
     (r) => (r < 0.32 ? 'rosehip' : r < 0.7 ? 'snownut' : 'rowan'));
     K.honey(L, 4);

@@ -104,21 +104,23 @@
     rules.float(g, shooter.x, fromY - 26, LABELS.bang, COLORS.shot);
     for (const o of g.shooters) { o.lock = 0; o.reload = Math.max(o.reload, 1.5); }
     if (at === 'tree') {
-      const hay = !!(b.hiding && b.hiding.hay), y = GY - (hay ? 48 : 60);
+      const hay = !!(b.hiding && b.hiding.hay), corn = !b.hiding && !!b.inCorn, soft = hay || corn, y = GY - (hay ? 48 : corn ? 40 : 60);
       g.shots.push({ x1: fromX, y1: fromY, x2: shooter.cross, y2: y, t: 0.3 });
       for (let i = 0; i < 12; i++) {
-        g.particles.push({ x: shooter.cross, y, vx: (Math.random() - 0.5) * 200, vy: -Math.random() * 220, t: 0.9, color: hay ? '#d8b55b' : '#8a6a48' });
+        g.particles.push({ x: shooter.cross, y, vx: (Math.random() - 0.5) * 200, vy: -Math.random() * 220, t: 0.9, color: hay ? '#d8b55b' : corn ? (i % 3 ? '#6f9a3c' : '#e2c35a') : '#8a6a48' });
       }
-      rules.onSound(g, hay ? 'hayHit' : 'tree', shooter.cross);
-      rules.float(g, b.x, GY - (hay ? 108 : 125), hay ? LABELS.hayHit : LABELS.treeHit, COLORS.good);
-      rules.say(g, hay ? NEWS.hayHit : NEWS.treeHit);
+      rules.onSound(g, soft ? 'hayHit' : 'tree', shooter.cross);
+      rules.float(g, b.x, GY - (soft ? 108 : 125), hay ? LABELS.hayHit : corn ? LABELS.cornHit : LABELS.treeHit, COLORS.good);
+      rules.say(g, hay ? NEWS.hayHit : corn ? NEWS.cornHit : NEWS.treeHit);
       return;
     }
     const sprinting = b.running && b.moving;
-    if (Math.random() < (sprinting ? 0.5 : 0.15)) {
+    const corn = ZS.sim.corn.miss(g);
+    if (Math.random() < (sprinting || b.thicket ? 0.5 : Math.max(0.15, corn))) {
+      if (sim.lot.miss(g, fromX, fromY)) return;
       g.shots.push({ x1: fromX, y1: fromY, x2: b.x + (Math.random() < 0.5 ? -1 : 1) * 80, y2: GY - 100, t: 0.3 });
       rules.onSound(g, 'miss', b.x);
-      rules.float(g, b.x, GY - 125, sprinting ? LABELS.missSprint : LABELS.miss, COLORS.good);
+      rules.float(g, b.x, GY - 125, sprinting ? LABELS.missSprint : corn ? LABELS.missCorn : LABELS.miss, COLORS.good);
       rules.say(g, NEWS.missed);
       return;
     }
@@ -131,7 +133,7 @@
     }
     b.inv = 3;
     rules.float(g, b.x, GY - 115, LABELS.hit(g.lives), COLORS.shot);
-    rules.say(g, shooter.kind === 'poacher' ? NEWS.poacherShot : NEWS.hunterShot, true);
+    rules.say(g, shooter.kind === 'poacher' ? NEWS.poacherShot : b.hiding && !b.hiding.hide ? NEWS.birchHit : NEWS.hunterShot, true);
   };
 
   rules.hugged = (g) => g.stats.hugs + g.stats.selfies > 0;
