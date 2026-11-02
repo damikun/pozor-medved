@@ -20,8 +20,8 @@
         if (si === 1) sim.rules.say(g, NEWS.summer);
         if (si === 2) {
           sim.rules.say(g, NEWS.mushrooms, true);
-          const x = Math.min(g.level.w - 600, g.bear.x + 900);
-          g.people.push(sim.people.create(g, 'picker', { from: x - 400, to: x + 400 }));
+          const A = g.level.alpine, x = Math.min(A ? A.line - 400 : g.level.w - 600, g.bear.x + 900);
+          if (x > g.bear.x + 300) g.people.push(sim.people.create(g, 'picker', { from: x - 400, to: x + 400 }));
         }
       }
     }
@@ -69,6 +69,7 @@
     sim.corn.update(g, dt);
     sim.boar.update(g, dt);
     sim.lot.update(g, dt);
+    sim.alpine.update(g, dt);
     sim.fisher.update(g);
     g.cam = cameraX(g);
     ZS.fx.update(g, dt, g.viewW);

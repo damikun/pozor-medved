@@ -58,6 +58,7 @@
     for (const s of L.snowmen) if (vis(s.x, 90)) A.snowman(ctx, s, g.time);
     if (L.lot && span(L.lot.from, L.lot.to, 200)) A.lot(ctx, L.lot, g);
     if (L.fisher && vis(L.fisher.x, 160)) A.fisher(ctx, L.fisher, g);
+    if (L.alpine && span(L.alpine.from, L.alpine.to, 400)) ZS.alpineArt.back(ctx, g, vis, span);
   }
 
   function treesWithBear(ctx, g, vis, withBear) {
@@ -84,7 +85,7 @@
     const h = o.h || (o.h = { aimAt: [0, 0] });
     h.x = o.x; h.y = o.fy; h.dir = o.dir; h.kind = o.kind === 'posed' ? 'walker' : o.kind; h.outfit = g.level.theme; h.cold = b.cold;
     h.armed = !shooter || o.armed !== false; h.empty = !!o.empty; h.clutch = !!o.clutch; h.texting = !!o.texting;
-    h.scared = false; h.kick = 0; h.rifleDir = o.rifleDir; h.rifleX = o.pickX;
+    h.scared = false; h.kick = 0; h.rifleDir = o.rifleDir; h.rifleX = o.pickX; h.offer = o.offer || 0;
     h.aimAt[0] = b.x; h.aimAt[1] = GY - 50;
     if (r === 'down') { h.state = 'down'; h.downPhase = o.downPhase; h.downK = o.downK; }
     else if (r === 'drop') { h.state = 'drop'; h.dropK = o.dropK; }
@@ -113,6 +114,7 @@
   function figures(ctx, g, vis, held) {
     const ph = g.photographer;
     if (ph && ph !== held && vis(ph.x, 120)) ZS.drawPhotographer(ctx, ph, g.time);
+    for (const p of g.people) if (p.aide && vis(p.aide.x, 40)) ZS.drawAide(ctx, p, g);
     for (const p of g.people) if (p !== held && vis(p.x, 40)) ZS.drawHuman(ctx, view(g, p, false), g.time);
     for (const d of g.dogs) if (vis(d.x, 60)) ZS.scenery.dog(ctx, d, g.time);
     for (const d of g.deer) if (vis(d.x, 70)) ZS.winterArt.deer(ctx, d, g.time);
@@ -134,8 +136,8 @@
       const red = g.shooters.some((s) => s.lock > 0);
       label(ctx, '!', b.x, GY - 100 - Math.abs(Math.sin(g.time * 8)) * 6, 30, red ? '#e03131' : '#e8a400');
       const tree = L.trees.some((t) => t.hide && Math.abs(t.x - b.x) < t.w / 2 + 40), hay = !tree && L.haystacks.some((x) => Math.abs(x - b.x) < 72);
-      const lot = !tree && !hay && ZS.sim.lot.inside(L, b.x);
-      if (tree || hay || lot) label(ctx, tree ? LABELS.hideHint : hay ? LABELS.hayHint : LABELS.lot.hint, b.x, GY - 134, 14, '#1d1d1d');
+      const lot = !tree && !hay && ZS.sim.lot.inside(L, b.x), pine = !tree && !hay && !lot && ZS.sim.alpine.thicket(L, b.x);
+      if (tree || hay || lot || pine) label(ctx, tree ? LABELS.hideHint : hay ? LABELS.hayHint : lot ? LABELS.lot.hint : LABELS.alpine.hint, b.x, GY - 134, 14, '#1d1d1d');
     } else if (b.onGround && !b.hiding && !b.act) {
       const hint = b.bumpT > 0 && !b.crouch ? LABELS.crawlHint : b.zapT > 0.8 && b.zapT < 3.5 ? LABELS.fenceHint : null;
       if (hint) label(ctx, hint, b.x, GY - 108 - Math.abs(Math.sin(g.time * 3)) * 3, 14, '#1d1d1d');
@@ -155,7 +157,7 @@
     if (b.reach && !g.touch && !b.warn) {
       const o = b.reach, post = o.post, ph = o.kind === 'photographer', pose = ph;
       ctx.globalAlpha = 0.92;
-      label(ctx, post ? (ZS.sim.ladder.at(g) === post ? LABELS.interactLadder : LABELS.interactStand) : pose ? LABELS.interactPose : o.kind === 'tourist' ? LABELS.interactSelfie : LABELS.interact,
+      label(ctx, post ? (ZS.sim.ladder.at(g) === post ? LABELS.interactLadder : LABELS.interactStand) : pose ? LABELS.interactPose : o.kind === 'tourist' ? LABELS.interactSelfie : o.kind === 'tycoon' && !o.promo ? LABELS.tycoon.interact : LABELS.interact,
         post ? post.x : pose ? Math.max(g.cam + 120, Math.min(g.cam + g.viewW - 120, o.x)) : o.x, (post ? GY - 92 : ph ? GY - 66 : GY - 108) - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
       ctx.globalAlpha = 1;
     }
@@ -234,10 +236,12 @@
     ctx.translate(0, offY);
     if (zoom) { ctx.translate(zoom.x, zoom.y); ctx.scale(zoom.k, zoom.k); ctx.translate(-zoom.x, -zoom.y); }
     B.sky(ctx, g, viewW, offY);
+    if (L.alpine) ZS.alpineArt.backdrop(ctx, g, viewW, offY);
     if (L.slope) ZS.winterArt.slope(ctx, g, viewW, offY);
     B.backForest(ctx, g, viewW, offY);
     ctx.translate(-Math.round(cam), 0);
     B.ground(ctx, cam, viewW, g);
+    if (L.alpine) ZS.alpineArt.ground(ctx, g, cam, viewW);
     if (g.tracks.length) B.tracks(ctx, g, viewW);
     if (L.river && span(L.river.from, L.river.to, 60)) {
       ZS.scenery.river(ctx, L.river.from, L.river.to, g.time);
@@ -247,7 +251,7 @@
     for (const h of L.holes) if (vis(h.x, 60)) ZS.winterArt.hole(ctx, h.x, g.time);
     if (vis(L.startDen, 240)) P.den(ctx, L.startDen, false, T.startDen, g.time, g);
     const hugged = ZS.sim.rules.hugged(g);
-    if (vis(L.goalDen, 240)) P.den(ctx, L.goalDen, hugged && g.fat >= g.def.fatGoal, T.goalDen, g.time, g);
+    if (vis(L.goalDen, 240)) (L.alpine ? ZS.alpineArt.den : P.den)(ctx, L.goalDen, hugged && g.fat >= g.def.fatGoal, T.goalDen, g.time, g);
     if (!hugged && vis(L.goalDen, 120)) denStamp(ctx, g);
     for (const h of L.houses) if (vis(h.x, 220)) P.house(ctx, h, g);
     landmarks(ctx, g, vis, span, withBear);
@@ -255,7 +259,7 @@
     for (const s of L.signs) if (vis(s.x, 160)) P.sign(ctx, s, g);
     for (const p of L.posts) if (vis(p.x, 80)) P.post(ctx, p, g);
     if (b.climbing && b.climbing.ladder) withBear(ZS.drawBearOnLadder);
-    for (const lg of L.logs) if (vis(lg.x, 80)) P.log(ctx, lg, g);
+    for (const lg of L.logs) if (vis(lg.x, 80)) (lg.rock ? ZS.alpineArt.slab : P.log)(ctx, lg, g);
     for (const it of L.items) if ((!it.eaten || P.left(it)) && !OWN_ART[it.type] && vis(it.x, 60)) P.item(ctx, it, g.time, g);
     for (const p of g.props) if (vis(p.x, 60)) ZS.drawDropped(ctx, p, g.time);
     ZS.fx.drawBack(ctx, g, viewW);
@@ -265,6 +269,7 @@
     else if (held) ZS.drawHuman(ctx, view(g, held, g.shooters.includes(held)), g.time);
     if (!b.climbing) withBear(ZS.drawBearHugFront);
     penFront(ctx, g, span);
+    if (L.alpine && span(L.alpine.from, L.alpine.to, 200)) ZS.alpineArt.front(ctx, g, span);
     if (L.corn && span(L.corn.from, L.corn.to, 140)) ZS.scenery.cornFront(ctx, L.corn, g);
     if (L.lot && span(L.lot.from, L.lot.to, 160)) ZS.winterArt.lotFront(ctx, L.lot, g);
     if (b.zapT < 1.4) ZS.scenery.zap(ctx, b, g.time);

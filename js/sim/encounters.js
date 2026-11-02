@@ -168,15 +168,16 @@
   function snap(g, a) {
     const b = g.bear, o = a.target;
     if (!o || o.react !== 'selfie' || o.hugBy !== a) return;
-    const n = g.stats.selfies++;
+    const n = g.stats.selfies++, promo = o.kind === 'tycoon';
     rules().onSound(g, 'selfie', o.x);
     g.syn = Math.min(100, g.syn + 12);
     g.lastHuman = g.time;
     g.viralUntil = g.time + 12;
     rules().float(g, o.x + a.dir * 58, GY - 122, LABELS.selfie, COLORS.love);
-    rules().addPanic(g, n < 2 ? -8 : 3, NEWS.selfie[Math.min(n, NEWS.selfie.length - 1)], n < 3);
+    rules().addPanic(g, n < 2 ? -8 : 3, promo ? NEWS.tycoon.promo : NEWS.selfie[Math.min(n, NEWS.selfie.length - 1)], n < 3 || promo);
     hearts(g, b);
-    if (g.people.filter((p) => p.kind === 'tourist').length < 6) {
+    if (promo) rules().quip(g, ZS.QUIPS.tycoon, true);
+    else if (g.people.filter((p) => p.kind === 'tourist').length < 6) {
       const x = Math.min(g.level.w - 400, b.x + g.viewW + 200);
       g.people.push(ZS.sim.people.create(g, 'tourist', { from: x - 300, to: x + 300 }));
     }
@@ -221,6 +222,7 @@
   function release(g, o) {
     o.reactT = 0; o.hugK = 1; o.hugBy = null;
     o.dir = Math.sign(o.x - g.bear.x) || 1;
+    if (o.kind === 'tycoon') { ZS.sim.tycoon.release(g, o); return; }
     if (o.react === 'selfie') { o.react = null; o.selfieK = 1; o.state = 'walk'; o.texting = true; o.leaving = true; return; }
     if (isShooter(o)) { o.react = 'flee'; return; }
     o.react = null; o.state = 'flee';
@@ -350,7 +352,8 @@
     p.reactT += dt;
     if (p.react === 'bitten') {
       p.bitK = Math.min(1, p.reactT / CFG.HOP);
-      if (p.reactT >= CFG.HOP) { p.react = null; p.state = 'flee'; p.clutch = true; }
+      if (p.reactT >= CFG.HOP && p.kind === 'tycoon') { p.react = null; ZS.sim.tycoon.leave(g, p); }
+      else if (p.reactT >= CFG.HOP) { p.react = null; p.state = 'flee'; p.clutch = true; }
     }
   }
 

@@ -79,9 +79,9 @@
       hotel: { x: at(9300), w: 460, lift: at(9930), chapel: at(10180) },
       park: { from: at(10350), to: at(11850) },
       feeding: at(4320),
-      feedSlots: [at(6060), at(10910), at(11510)],
+      feedSlots: [at(6060), at(10910)],
       corn: { from: 3730, to: at(4170), boar: 4180 },
-      haystacks: [at(6960), at(8040), at(11980)],
+      haystacks: [at(6960), at(8040)],
       skanzen: {
         from: at(4780), to: at(6010), gate: at(5100), tower: at(5398), well: at(5470), notice: at(5202), hen: at(5214), fence: [at(4792), at(5826)], rail: [at(5838), at(6008)], loco: at(5884),
         houses: [{ x: at(4846), gw: 84, sw: 92, hip: true, guard: true, smoke: true }, { x: at(5772), gw: 86, sw: 90, flip: true, braid: true }],
@@ -92,7 +92,7 @@
     L.logs = [
       { x: 1200, w: 96, h: 30 }, { x: 3640, w: 110, h: 34 }, { x: at(4880), w: 90, h: 30 },
       { x: at(5650), w: 100, h: 32 }, { x: at(6350), w: 96, h: 30 },
-      { x: at(10700), w: 110, h: 34 }, { x: at(11400), w: 96, h: 30 },
+      { x: at(10700), w: 110, h: 34 },
     ];
     L.stones = [{ x: at(8300), w: 64 }, { x: at(8425), w: 58 }, { x: at(8550), w: 66 }];
     L.signs = [
@@ -121,6 +121,8 @@
     });
 
     const H = L.hotel;
+    L.lift = { x: H.lift, tower: H.lift + 625 };
+    const A = ZS.levelKit.alpine.zone(L);
     const blocked = (x) => (x > L.village.from - 40 && x < L.village.to + 40)
       || (x > L.salas.from && x < L.salas.to)
       || (x > L.river.from - 70 && x < L.river.to + 70)
@@ -133,7 +135,7 @@
       || L.feedSlots.some((f) => x > f - 70 && x < f + 250)
       || Math.abs(x - 2130) < 150
       || L.signs.some((s) => !s.billboard && Math.abs(s.x - x) < 95)
-      || x < 230 || x > W - 480;
+      || x < 230 || x > W - 480 || x > A.from;
     const birchGrove = (x) => x > at(5820) && x < at(6080);
     forest(L, blocked, (x) => {
       if (birchGrove(x)) return 'breza';
@@ -147,12 +149,13 @@
     for (const t of L.trees) if (Math.abs(t.x - L.skanzen.tower) < 70) t.x = L.skanzen.tower + 142;
     L.trees.sort((a, b) => a.x - b.x);
 
-    backTrees(L, (bx) => (bx > L.village.from && bx < L.village.to) || (bx > H.x - H.w / 2 && bx < H.x + H.w / 2));
+    backTrees(L, (bx) => (bx > L.village.from && bx < L.village.to) || (bx > H.x - H.w / 2 && bx < H.x + H.w / 2)
+      || (bx - 55) / 0.85 > A.from + (A.line - A.from) * rng());
 
     scatter(L, (fx) => (fx > L.village.from - 60 && fx < L.village.to + 60)
       || (fx > L.river.from - 40 && fx < L.river.to + 40)
       || (fx > H.x - H.w / 2 - 40 && fx < H.x + H.w / 2 + 160)
-      || Math.abs(fx - L.feeding) < 120, 20,
+      || Math.abs(fx - L.feeding) < 120 || fx > A.from - 40, 20,
     (r) => (r < 0.3 ? 'berry' : r < 0.48 ? 'herb' : r < 0.62 ? 'ants' : r < 0.8 ? 'mushroom' : 'nut'));
     honey(L, 7);
     [8245, 8365, 8490, 8610].map(at).forEach((fx) => add(L, 'fish', fx, { y: GY + 30, hidden: true, jumpT: 1 + rng() * 3, jump: -1 }));
@@ -167,7 +170,7 @@
       { kind: 'walker', from: at(9750), to: at(10300) },
       { kind: 'picker', from: 1250, to: 2150 },
       { kind: 'picker', from: at(5300), to: at(6600) },
-      { kind: 'picker', from: at(10450), to: at(11300) },
+      { kind: 'picker', from: at(10450), to: at(11000) },
       { kind: 'tourist', from: 2600, to: 3300 },
       { kind: 'tourist', from: 2380, to: 3150 },
       { kind: 'tourist', from: at(9050), to: at(9850) },
@@ -176,7 +179,7 @@
     ];
     for (let i = 0; i < 5; i++) L.spawns.push({ kind: 'sheep', from: at(7340), to: at(7860), x: at(7380) + i * 105 });
 
-    L.lift = { x: H.lift, tower: H.lift + 625 };
+    ZS.levelKit.alpine.build(L);
     hills(L);
     return L;
   }

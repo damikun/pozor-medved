@@ -138,13 +138,35 @@
       lift: ['Skipass hab ich, Munition nicht.', 'Postkartenblick. Durchs Zielfernrohr.', 'Ich schaukle, also bin ich.', 'Liftwart, schneller!'],
       liftTop: ['Oben Gulasch für 19 €. Ich geh zu Fuß.', 'Bergstation? Danke, das reicht.', 'Nächstes Mal nehm ich die Gondel.'],
       corn: ['Ein Maislabyrinth? Mein Fachgebiet.', 'Hier findet mich nicht mal eine Drohne.', 'Das Wildschwein schlemmt, die Rechnung kriege ich.', 'Der Wald gehört dem Umweltministerium, der Mais dem Agrarministerium. Ich niemandem.'],
+      alpine: ['Von hier sehe ich bis Bratislava. Dort suchen sie auch einen Bären.', 'Die Bäume reichen mir hier nur bis zur Hüfte. Der Minister wird enttäuscht sein.', 'Hier oben sitzt hinter jedem Stein ein Murmeltier.', 'Latsche: ein Baum, der aufgegeben hat.'],
+      altitude: ['Auf 1551 m bin ich angeblich überpopuliert. Vertikal.', 'Zweihundert Meter tiefer wäre ich im Soll.', 'Der Höhenmesser zeigt 1551 m. Das Ministerium zeigt auf mich.'],
+      kosodrevina: ['Ich bin nur ein dichtes Latschenfeld.', 'Pikst wie eine Pressekonferenz.', 'Nicht hinter dem Baum. Darunter.'],
+      porter: ['Du trägst die Hütte, ich das Fett. Wir sind Kollegen.', 'Soll ich helfen? Ich esse die halbe Ladung.', '80 Kilo auf dem Rücken, und er dreht sich nicht mal um.'],
+      tycoon: ['Den Skipass nehm ich, die Ski nicht.', 'Erste Fahrt gratis? Ich nehm auch die zweite.', 'Linkes Profil, Sessellift im Hintergrund.'],
     },
 
     NEWS: {
       springStart: 'Der Frühling beginnt. Bären kommen aus ihren Höhlen, Politiker aus Pressekonferenzen.',
       summer: 'Sommer: Im Wald sind die Heidelbeeren reif.',
       mushrooms: 'Die Pilzsaison hat begonnen. Im Wald wimmelt es von Körben.',
-      readyForWinter: 'Der Bär hat genug Fett für den Winter. Die Winterhöhle liegt am Ende des Tals.',
+      readyForWinter: 'Der Bär hat genug Fett für den Winter. Die Winterhöhle liegt in den Latschen am Grünen See.',
+      alpine: 'Der Bär ist in die Latschen gestiegen. Minister Strašiak: Ein hüfthoher Baum ist nur halbe Deckung, der Bär ist also nur halb zu sehen.',
+      altitude: 'Ministerium: Ein Bär auf 1551 m ist vertikal überpopuliert. Der Abschuss wird per Höhenmesser bemessen.',
+      marmot: [
+        'Murmeltiere melden den Bären mit Pfiffen. Das Ministerium erwägt, sie statt Drohnen einzustellen.',
+        'Ein Murmeltier hat den Bären angepfiffen. Abgeordneter Flinta will seinen Waffenschein sehen.',
+      ],
+      chamois: [
+        'Gämsen sind vor dem Bären in die Felsen geflohen. Minister Strašiak: Auch hinter jedem Stein steckt eine Gämse.',
+        'Gämsen haben den Bären angeschnaubt und sind zwischen den Gipfeln verschwunden. Touristen filmten zwanzig Minuten lang.',
+      ],
+      porter: 'Ein Träger schleppte 80 Kilo zur Hütte am Grünen See und traf einen Bären. Er blieb nicht einmal stehen: Der Bär hat keine Reservierung.',
+      hut: 'Bär am Grünen See. Die Terrasse streamt live, der Hüttenwirt hat den Teepreis erhöht.',
+      kosodrevina: 'Der Bär hat sich in den Latschen versteckt. Das Ministerium schlägt vor, sie zu roden und Jäger anzupflanzen.',
+      limbaEaten: [
+        'Der Bär frisst Zirbenzapfen. Die Tannenhäher klagen über unlauteren Wettbewerb.',
+        'Der Bär knackt Zirbenzapfen. Minister Strašiak: Jeder Problembär hat mit Samen angefangen.',
+      ],
       winterStart: 'Der warme Advent hat den Bären geweckt. Eine Schneekanone dröhnt direkt neben der Höhle.',
       snow: 'Starker Schneefall. Jeder Bärenschritt bleibt im Schnee, jeder Ministerschritt in der Zeitung.',
       frost: 'Strenger Frost. Eingefroren: der Bach, die Gehwege und die Regierungsgespräche.',
@@ -317,6 +339,10 @@
           'Ein Bär umarmte einen Kellner. Kein Trinkgeld, aber immerhin ein Lächeln.',
           'Ein Bär umarmte den Hüttenkellner. Nocken am Boden, Bewertungen bei fünf Sternen.',
         ],
+        tycoon: [
+          'Ein Bär umarmte den Herrn der Tatra an der Talstation. Der zuckte nicht einmal: Die Umarmung ist im Saisonskipass inbegriffen.',
+          'Der Herr der Tatra nach der Bärenumarmung: Endlich ein Kunde, der keinen Rabatt will. Die Assistentin schneidet schon den Werbespot.',
+        ],
       },
       hugTired: [
         'Noch ein Video vom kuschelnden Bären. Die Leute scrollen weiter.',
@@ -380,6 +406,10 @@
         waiter: [
           'Ein Bär biss einen Kellner. Die Hütte meldet Serviceausfall, die Gäste merken keinen Unterschied.',
           'Ein Bär biss den Hüttenkellner. Das Ministerium will Kellner unter Artenschutz stellen.',
+        ],
+        tycoon: [
+          'Ein Bär biss dem Herrn der Tatra in die Jacke. Sein Urteil: Premiumstoff, hat gehalten. Kommt in den Katalog.',
+          'Ein Bär kostete vom Herrn der Tatra. Das Skigebiet erinnert: Verkostungen gibt es nur im Bufett an der Bergstation.',
         ],
       },
       stomp: [
@@ -502,6 +532,8 @@
         'Die Jäger haben am Lift alles verschossen. Der Bär hat nicht mal den Bügel geöffnet.',
       ],
       liftDrone: 'Eine Armeedrohne begleitet den Bären am Sessellift. Einen Skipass hat sie auch nicht.',
+      checkpoint: 'Kontrollpunkt: Bergstation des Sessellifts. Das Skigebiet hat den Bären ins Gästebuch eingetragen.',
+      liftResume: 'Der Bär ist wieder an der Bergstation des Sessellifts. Das Skigebiet will ihn nie gesehen haben.',
       lot: 'Der Bär versteckt sich zwischen den Christbäumen. Das Ministerium lässt jeden Baum mit Preisschild kontrollieren.',
       lotSeller: [
         'Der Christbaumverkäufer ist vor dem Bären geflohen. Den Stand ließ er offen, die Kasse nicht.',
@@ -524,6 +556,14 @@
         'Ein Bär fraß den Fang eines Anglers. Der Anglerverband fordert den Abschuss, die Fische protestieren.',
         'Ein Bär leerte den Forelleneimer eines Anglers. Minister Strašiak: Diebstahl von Volksvermögen!',
       ],
+      tycoon: {
+        seen: 'Der Herr der Tatra entdeckte an der Talstation einen Bären: Ausgezeichnet, endlich ein Gast, der nicht mit dem Auto kommt. Er bietet ihm einen Saisonskipass an.',
+        leaflet: 'Der Herr der Tatra verteilt Flyer für ein Pilotprojekt zur Bärenverhütung. Der Bär hat einen gefressen. Naturschützer: Die bisher einzige nachgewiesene Wirkung.',
+        promo: [
+          'Der Herr der Tatra drehte mit einem Bären einen Werbespot für Horný Strach. Der Bär kann nicht Ski fahren, lächelt aber besser in die Kamera als der Minister.',
+          'Werbespot von der Talstation: der Herr der Tatra und ein Bär mit Saisonskipass. Das Skigebiet meldet Rekordinteresse, Minister Strašiak Rekordangst.',
+        ],
+      },
     },
 
     LABELS: {
@@ -562,6 +602,7 @@
         chatabin: 'Container an der Hütte',
         halusky: 'Brimsennocken',
         catch: 'der Fang des Anglers',
+        limba: 'Zirbenzapfen',
       },
       art: { salas: 'SCHAFALM', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['REST-', 'MÜLL'], fence: ['ACHTUNG!', 'ELEKTRO-', 'ZAUN'] },
       skanzen: { name: ['DORFMUSEUM', 'LIPTOV'], notice: ['Der Bär ist', 'kein Exponat!'] },
@@ -607,8 +648,8 @@
       crawlHint: '↓ kriechen',
       fenceHint: '↑ drüberspringen',
       shout: {
-        hug: { walker: 'Lass mich, ich hab einen Waffenschein!', ztmh: 'Das steht nicht im Protokoll!', poacher: 'Ich weiß von nix!', picker: 'Jessas Maria!', tourist: 'Mama, film das!', santa: 'Ho-ho… hooo!', guest: 'Ich wollte nur Nocken essen!', waiter: 'Haben Sie reserviert?!', photographer: 'Noch ein Bild!', seller: 'Nimm irgendeinen, nur lass mich los!', fisher: 'Der war SOO groß!' },
-        bite: { walker: 'Au, meine Ehre!', ztmh: 'Au! Treffer!', poacher: 'Au! Kein Wort zu niemandem!', picker: 'Hilfe!', tourist: 'Auuu!', santa: 'Au, mein Bischofsstab!', guest: 'Au, ich hab noch nicht bezahlt!', waiter: 'Au! Das steht nicht auf der Karte!', photographer: 'Au! Aber gestochen scharf!', seller: 'Au! Ohne Quittung!', fisher: 'Au! Bin ich der Köder?!' },
+        hug: { walker: 'Lass mich, ich hab einen Waffenschein!', ztmh: 'Das steht nicht im Protokoll!', poacher: 'Ich weiß von nix!', picker: 'Jessas Maria!', tourist: 'Mama, film das!', santa: 'Ho-ho… hooo!', guest: 'Ich wollte nur Nocken essen!', waiter: 'Haben Sie reserviert?!', photographer: 'Noch ein Bild!', seller: 'Nimm irgendeinen, nur lass mich los!', fisher: 'Der war SOO groß!', tycoon: 'Umarmung im Skipass inklusive!' },
+        bite: { walker: 'Au, meine Ehre!', ztmh: 'Au! Treffer!', poacher: 'Au! Kein Wort zu niemandem!', picker: 'Hilfe!', tourist: 'Auuu!', santa: 'Au, mein Bischofsstab!', guest: 'Au, ich hab noch nicht bezahlt!', waiter: 'Au! Das steht nicht auf der Karte!', photographer: 'Au! Aber gestochen scharf!', seller: 'Au! Ohne Quittung!', fisher: 'Au! Bin ich der Köder?!', tycoon: 'Au! Die Jacke ist Premium!' },
         selfie: 'Lächeln!',
         fall: 'Uaaah!',
         ladder: ['Mamaaa!', 'Ich wollte nur Vögel beobachten!', 'Er gehört Ihnen!'],
@@ -623,6 +664,11 @@
       basket: 'Pilze aus dem Korb',
       icefish: 'Forelle unterm Eis',
       fisher: { shout: ['Ein Bär! Der will meine Forellen!', 'Behalt die Angel!', 'Ich hab doch nur geangelt!'] },
+      tycoon: {
+        interact: 'C Werbeselfie · X beißen',
+        pitch: ['Ein Saisonskipass für den Bären!', 'Erste Fahrt gratis!', 'Flyer? Bärenverhütung, Pilotprojekt!', 'Lächeln, wir drehen einen Spot!'],
+        cut: 'Schnitt! Das kommt aufs Plakat!', hugged: 'Sehen Sie? Bären lieben uns!', leave: 'Verbinden Sie mich mit der PR-Abteilung!', film: '🎬 Kamera läuft!',
+      },
       lot: {
         sign: ['WEIHNACHTS-', 'BÄUME'],
         price: ['Fichte 25 €', 'Tanne 49 €', 'Aus dem TANAP 15 €'],
@@ -631,6 +677,18 @@
         topple: 'Hoppla!',
         hint: '↓ duck dich zwischen die Bäume',
         cover: 'Zwischen den Bäumen sieht dich keiner',
+      },
+      alpine: {
+        whistle: 'Fiiiep!',
+        chamois: 'Pfff!',
+        porter: ['80 Kilo, keine Zeit.', 'Ein Bär? Ich trage Bier.', 'Weg da, das Bier wird warm.', 'Auf der Hütte gibt’s Gulasch, nicht dich.'],
+        porterFree: ['Heute hab ich nichts mehr.', 'Komm morgen, ich bringe Schnitzel.'],
+        terrace: '📱 Live von der Terrasse!',
+        cover: 'In den Latschen sieht dich keiner',
+        hint: '↓ duck dich in die Latschen',
+        hut: ['CHATA PRI', 'ZELENOM PLESE', '1551 m ü. M.'],
+        post: [['Hütte am Grünen See', '0:10 h'], ['Biela voda', '2:30 h'], ['Téry-Hütte', '3:00 h'], ['Winterhöhle', '0:05 h']],
+        menu: ['TEE 4 €', 'BIER 6 €'],
       },
       billboard: ['Hinter jedem Baum', 'steckt ein Bär!'],
       billboardWinter: ['Winterschlaf', 'ist Pflicht!'],
@@ -642,6 +700,8 @@
         dodge: '← →',
         dodgeTouch: '◀ ▶',
         arrived: 'Bergstation!',
+        checkpoint: 'Kontrollpunkt: Sessellift',
+        resumed: 'Wieder am Sessellift',
         station: 'SESSELLIFT',
         top: 'BERGSTATION',
         bufet: 'IMBISS',
@@ -666,6 +726,7 @@
         cave: 'Važec-Höhle – Winterschlaf ohne Verordnung',
         winterGoal: 'Stille Höhle →',
         lot: 'Christbäume – ↓ duck dich',
+        tatras: 'Hohe Tatra · TANAP',
         by: '— Minister Strašiak',
       },
     },
@@ -704,6 +765,7 @@
       },
       keys: { ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓', Space: '␣', KeyC: 'C', KeyX: 'X', ShiftLeft: 'Shift' },
       again: 'Nochmal',
+      retryLift: 'Ab dem Sessellift nochmal',
       next: 'Weiter in den Winter →',
       menu: 'Level wählen',
       resume: 'Weiter',

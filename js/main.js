@@ -1,6 +1,6 @@
 (function () {
-  const { CFG, NEWS } = ZS;
-  const { rules, loop } = ZS.sim;
+  const { CFG, NEWS, LABELS, COLORS } = ZS;
+  const { rules, loop, checkpoint } = ZS.sim;
   const { input, hud, screens } = ZS.ui;
   const audio = ZS.audio, tally = ZS.tally;
   const canvas = document.getElementById('game');
@@ -8,7 +8,7 @@
   const BOT = /[?&]bot\b/.test(location.search);
   const PORTRAIT_MIN_W = 480;
   const SAVE = 'zaStromom.done';
-  let g = null, vw = 0, vh = 0, viewW = 0, offY = 0, last = 0, hudT = 0, current = 'summer';
+  let g = null, vw = 0, vh = 0, viewW = 0, offY = 0, last = 0, hudT = 0, current = 'summer', mark = null;
 
   const touchy = () => window.matchMedia('(pointer: coarse)').matches;
 
@@ -35,18 +35,26 @@
     if (g) g.viewW = viewW;
   }
 
-  function start(level) {
+  function note(run, label, news) {
+    rules.float(run, run.bear.x, CFG.GROUND - 130, label, COLORS.story);
+    rules.say(run, news);
+  }
+
+  function start(level, from) {
     current = level || current;
+    if (!from) mark = null;
     input.state.keys.clear();
-    g = rules.create(input.state, { viewW, bot: BOT, level: current });
+    g = from ? checkpoint.resume(from, input.state, { viewW, bot: BOT }) : rules.create(input.state, { viewW, bot: BOT, level: current });
     g.touch = touchy();
     g.running = true;
-    tally.watch(g);
+    const seen = tally.watch(g);
+    if (from) Object.assign(seen, { climbs: from.tally.trees, shakes: from.tally.stands - (g.ladders || 0) });
     audio.pause(false);
     hud.showPlaying(g);
     screens.hide();
     if (document.activeElement) document.activeElement.blur();
-    rules.say(g, current === 'winter' ? NEWS.winterStart : NEWS.springStart);
+    if (from) note(g, LABELS.lift.resumed, NEWS.liftResume);
+    else rules.say(g, current === 'winter' ? NEWS.winterStart : NEWS.springStart);
   }
 
   function preview(level) {
@@ -82,13 +90,19 @@
   rules.onNews = hud.showNews;
   rules.onSound = (run, name, x, k) => { audio.event(run, name, x, k); tally.hear(run, name); };
   audio.onChange = screens.syncMute;
+  rules.onLand = (run) => {
+    if (run !== g) return;
+    mark = Object.assign(checkpoint.save(run), { tally: tally.counts(run) });
+    note(run, LABELS.lift.checkpoint, NEWS.checkpoint);
+  };
   rules.onEnd = (run) => {
     audio.end(run.ending);
     tally.check(run);
     hud.update(run);
     hud.setTouch(false);
     if (run.ending === 'win') markDone(run.level.id);
-    screens.showEnd(run, { onAgain: () => start(run.level.id), onNext: () => start('winter'), onMenu: menu });
+    screens.showEnd(run, { onAgain: () => start(run.level.id), onNext: () => start('winter'), onMenu: menu,
+      onRetry: checkpoint.offer(mark, run) ? () => start(run.level.id, mark) : null });
   };
 
   function frame(ts) {
@@ -118,6 +132,8 @@
   ZS.dev.game = () => g;
   ZS.dev.restart = () => start();
   ZS.dev.start = (level) => start(level);
+  ZS.dev.checkpoint = () => mark;
+  ZS.dev.retry = () => { if (mark) start(mark.level, mark); return g; };
   ZS.dev.teleport = (x) => {
     g.bear.x = x; g.bear.trackX = x; g.bear.waking = false;
     g.cam = loop.cameraX(g);

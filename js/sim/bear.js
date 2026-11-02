@@ -351,7 +351,7 @@
   function startAct(g, b, key) {
     const E = ZS.sim.encounters;
     const person = E.target(g), post = key === 'hug' && !person ? E.stand(g) : null;
-    const kind = post ? 'shake' : key === 'hug' && person && person.kind === 'tourist' ? 'selfie' : key;
+    const kind = post ? 'shake' : key === 'hug' && person && (person.kind === 'tourist' || (person.kind === 'tycoon' && !person.promo)) ? 'selfie' : key;
     const target = person || post;
     b.act = (!target && ZS.sim.photographer.act(g, b, key)) || { kind, t: 0, dur: DUR[kind], dir: b.dir, hit: !!target, target, done: false };
     b.moving = false; b.running = false; b.crouch = false; b.eating = false; b.eatT = 0; b.vx = 0;

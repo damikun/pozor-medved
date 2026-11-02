@@ -66,6 +66,19 @@
     skin: '#efc7a3', hair: '#2e2018', coat: '#f6f3ec', vest: '#1e1b19', trim: '#b8322a', pants: '#24211f', boots: '#161210', sole: '#050403',
     scale: 1, walkS: 48, runS: 96, stoop: 0, carry: 'tray', belly: 1.6, top: 'vest', hairdo: 'slick', stache: 1, bootF: 0.16,
   };
+  LOOK.tycoon = {
+    skin: '#ebb993', hair: '#c4c0b8', coat: '#18284a', trim: '#d6ab42', pants: '#262b34', boots: '#f1eee6', sole: '#4a505a', glove: '#202329',
+    shades: '#1b1e24', lens: '#c8762a', scale: 1.03, walkS: 46, runS: 92, stoop: -0.03, carry: 'pass', belly: 2.4, tail: 0.3,
+    top: 'resort', hairdo: 'silver', grin: 1, bootF: 0.5,
+  };
+  LOOK.aide = {
+    skin: '#f2ccb0', hair: '#3a2820', coat: '#eeeae2', trim: '#d6ab42', badge: '#18284a', pants: '#1f2430', boots: '#2c3038', sole: '#121418',
+    scale: 0.93, walkS: 46, runS: 94, stoop: 0.01, carry: 'tablet', belly: 0, top: 'puffer', hairdo: 'bun', blush: 1, bootF: 0.42,
+  };
+  LOOK.porter = {
+    skin: '#dcaa82', hair: '#4a3626', coat: '#a8452e', check: 'rgba(40,16,14,0.4)', pants: '#56584a', boots: '#5a3a22', sole: '#20140b',
+    scale: 1.02, walkS: 30, runS: 80, stoop: 0.3, carry: 'frame', belly: 0.6, top: 'flannel', hairdo: 'short', stache: 1, bootF: 0.5,
+  };
   const lookOf = (kind, look) => (kind === 'guest' ? GUESTS[Math.abs(look | 0) % GUESTS.length] : LOOK[kind] || LOOK.walker);
   const SIZED = new Map();
   function sizedLook(L, s) {
@@ -362,6 +375,16 @@
       const w = sin(tm * 2.6 + sd);
       uN = 1.35 + 0.25 * w; fN = 0.35; uF = -0.95 - 0.25 * w; fF = 0.45; gN = 0; gF = 0;
     }
+    if (K.has && L.carry === 'pass') {
+      const o = K.offer, j = sin(TAU * p0 * 2) * 0.6 * amt, wave = sin(tm * 2.3 + sd);
+      tp(lerp(8.5, 16.5, o), lerp(-11.5, -22, o) + j * (1 - o) + 0.5 * wave * o);
+      gN = 1; gnx = TP.x; gny = TP.y;
+      if (o > 0) { uF = lerp(uF, 1.15 + 0.16 * wave, o); fF = lerp(fF, 0.55 - 0.12 * wave, o); R.face = o > 0.5 ? 5 : R.face; }
+    }
+    if (K.has && L.carry === 'tablet' && !film) {
+      tp(9.5, -15 + sin(TAU * p0 * 2) * 0.5 * amt);
+      gN = 1; gnx = TP.x; gny = TP.y;
+    }
     if (K.has && (L.carry === 'tray' || L.carry === 'mug')) {
       const j = sin(TAU * p0 * 2) * 0.7 * amt, hi = L.carry === 'mug' && K.panic ? smooth(runK * amt * 1.5) : 0;
       if (L.carry === 'tray') tp(9.5, -25 + j); else tp(lerp(10.5, 7, hi), lerp(-12.5, -33, hi) + j);
@@ -379,7 +402,10 @@
     } else if (L.carry === 'tray' || L.carry === 'mug') {
       R.tray.x = a.wx; R.tray.y = a.wy;
       R.tray.ang = K.panic ? 0.14 * sin(TAU * p0 * 2 + 1) * runK * amt : 0.04 * sin(TAU * p0 * 2) * amt;
-    } else if (L.carry === 'phone') {
+    } else if (L.carry === 'pass' && K.sp !== 'selfie') {
+      R.tray.x = a.wx; R.tray.y = a.wy;
+      R.tray.ang = lerp(0.5, -0.25, K.offer) + 0.05 * sin(TAU * p0 * 2) * amt;
+    } else if (L.carry === 'phone' || L.carry === 'pass' || L.carry === 'tablet') {
       const dir = atan2(a.wy - a.ey, a.wx - a.ex);
       R.phone.x = a.wx; R.phone.y = a.wy;
       R.phone.ang = lerp(lerp(dir - PI / 2, K.state === 'film' ? 0.04 : 0, st.aimK), R.pa, R.pw);
@@ -702,7 +728,7 @@
     else if (kind === 'poacher') bootF = L.win ? 0.5 : 0.4;
     else if (kind === 'walker' && L.win) bootF = 0.58;
     else if (kind === 'santa') bootF = 0.56;
-    else if (kind === 'guest' || kind === 'waiter') bootF = L.bootF;
+    else if (kind === 'guest' || kind === 'waiter' || kind === 'tycoon' || kind === 'aide') bootF = L.bootF;
     const mid = (a, b, t) => a + (b - a) * t;
     if (kind === 'tourist' && !ski) {
       limb(ctx, R.px, R.py, mid(R.px, lg.kx, 0.9), mid(R.py, lg.ky, 0.9), 8.8, 7.4, dk(thigh, f));
@@ -832,6 +858,8 @@
       ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(-6.2, -21, 2.6, 18);
     } else if (kind === 'guest') guestTop(ctx, L);
     else if (kind === 'waiter') waiterTop(ctx, L);
+    else if (kind === 'tycoon') resortTop(ctx, L);
+    else if (kind === 'aide') pufferTop(ctx, L);
     ctx.fillStyle = 'rgba(0,0,0,0.14)'; ctx.fillRect(-9, -26, 5, 32);
     ctx.restore();
     ctx.restore();
@@ -886,6 +914,44 @@
     ctx.beginPath(); ctx.moveTo(2.6, -22.6); ctx.lineTo(0.4, -24); ctx.lineTo(0.6, -21.2); ctx.closePath(); ctx.fill();
     ctx.beginPath(); ctx.moveTo(2.6, -22.6); ctx.lineTo(4.8, -24.2); ctx.lineTo(4.8, -21.2); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#121010'; ctx.fillRect(-8, -0.6, 17 + b, 2);
+  }
+
+  function crest(ctx, L, x, y, r) {
+    ctx.fillStyle = L.trim; circle(ctx, x, y, r);
+    ctx.fillStyle = L.badge || L.coat;
+    ctx.beginPath(); ctx.moveTo(x - r * 0.72, y + r * 0.5); ctx.lineTo(x - r * 0.08, y - r * 0.55); ctx.lineTo(x + r * 0.28, y - r * 0.05);
+    ctx.lineTo(x + r * 0.5, y - r * 0.3); ctx.lineTo(x + r * 0.78, y + r * 0.5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.moveTo(x - r * 0.3, y - r * 0.08); ctx.lineTo(x - r * 0.08, y - r * 0.55); ctx.lineTo(x + r * 0.12, y - r * 0.2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = L.trim;
+    ctx.beginPath(); ctx.moveTo(x - r * 0.62, y - r * 1.12); ctx.lineTo(x - r * 0.62, y - r * 1.62); ctx.lineTo(x - r * 0.3, y - r * 1.34); ctx.lineTo(x, y - r * 1.78);
+    ctx.lineTo(x + r * 0.3, y - r * 1.34); ctx.lineTo(x + r * 0.62, y - r * 1.62); ctx.lineTo(x + r * 0.62, y - r * 1.12); ctx.closePath(); ctx.fill();
+  }
+
+  function resortTop(ctx, L) {
+    const b = L.belly;
+    ctx.fillStyle = dk(L.coat, 1.45);
+    ctx.beginPath(); ctx.moveTo(-9, -5.2); ctx.lineTo(10 + b, -10.6); ctx.lineTo(10 + b, -8); ctx.lineTo(-9, -2.6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = L.trim;
+    ctx.beginPath(); ctx.moveTo(-9, -2.2); ctx.lineTo(10 + b, -7.6); ctx.lineTo(10 + b, -6.7); ctx.lineTo(-9, -1.3); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = dk(L.coat, 0.82); ctx.fillRect(-9, 0.6, 19 + b, 3);
+    ctx.fillStyle = dk(L.coat, 0.62); ctx.fillRect(5.6 + b * 0.2, -22.5, 0.9, 25);
+    ctx.fillStyle = L.trim; rr(ctx, 5.3 + b * 0.2, -21.4, 1.5, 2.6, 0.5);
+    ctx.fillStyle = dk(L.coat, 1.3); rr(ctx, -3.2, -27.2, 10.6, 5.2, 2.2);
+    ctx.fillStyle = L.trim; ctx.fillRect(-3, -22.6, 10.2, 0.7);
+    crest(ctx, L, 1.8, -14.6, 2.3);
+    ctx.fillStyle = 'rgba(255,255,255,0.13)'; ctx.fillRect(-6.4, -21, 2.2, 16);
+    ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(-3, -9, 9 + b, 1);
+  }
+
+  function pufferTop(ctx, L) {
+    const b = L.belly;
+    ctx.strokeStyle = dk(L.coat, 0.8); ctx.lineWidth = 0.8;
+    ctx.beginPath(); for (let y = -19.5; y < 3; y += 4.4) { ctx.moveTo(-9, y); ctx.quadraticCurveTo(0, y + 1.4, 10 + b, y); } ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'; for (let y = -21.6; y < 2; y += 4.4) ctx.fillRect(-6, y, 9, 0.8);
+    ctx.fillStyle = dk(L.coat, 0.7); ctx.fillRect(5.2, -22.5, 0.8, 25);
+    ctx.fillStyle = dk(L.coat, 0.9); rr(ctx, -2.6, -26.4, 9.6, 4.4, 2);
+    crest(ctx, L, 1.4, -13.4, 1.5);
   }
 
   const Q = [0, 0], Q2 = [0, 0], SF = { ux: 0, uy: 1 };
@@ -1055,11 +1121,14 @@
     } else if (fc === 6) {
       ctx.strokeStyle = '#7a3b32'; ctx.lineWidth = 0.95;
       ctx.beginPath(); ctx.moveTo(2.6 * yaw, 3.9); ctx.quadraticCurveTo(4.6 * yaw, 6.2, 6.6 * yaw, 3.6); ctx.stroke();
+    } else if (L.grin) {
+      ctx.strokeStyle = '#7a3b32'; ctx.lineWidth = 0.9;
+      ctx.beginPath(); ctx.moveTo(2.8 * yaw, 3.8); ctx.quadraticCurveTo(4.8 * yaw, 5.4, 6.8 * yaw, 3.4); ctx.stroke();
     } else if (kind !== 'santa') ctx.fillRect(3.4 * yaw, 4, 2.4 * yaw, 0.8);
     if (kind === 'walker') { ctx.fillStyle = '#5a3a24'; ell(ctx, 5 * yaw, 2.9, 3.1, 1.2); }
     else if (L.stache && (fc === 0 || fc >= 5)) { ctx.fillStyle = dk(L.hair, 0.82); ell(ctx, 5 * yaw, 2.9, 3, 1.15); }
     if (kind === 'santa') { ctx.fillStyle = '#ffffff'; ell(ctx, 5 * yaw, 3, 3, 1.55, -0.3); ell(ctx, 7.9 * yaw, 3.4, 2.1, 1.35, 0.35); ctx.fillStyle = '#e4e0d7'; ell(ctx, 6.4 * yaw, 3.9, 1.6, 0.5); }
-    if (kind !== 'picker' && !((kind === 'guest' || kind === 'waiter') && !L.hat) && (R.hatA || R.hatY || R.hatS !== 1)) {
+    if (kind !== 'picker' && !((kind === 'guest' || kind === 'waiter' || kind === 'tycoon' || kind === 'aide') && !L.hat) && (R.hatA || R.hatY || R.hatS !== 1)) {
       const hk = kind === 'ztmh' && !win ? 2.4 : mask ? 0.35 : 1;
       ctx.save(); ctx.translate(0, R.hatY * (mask ? 0.4 : 1) - 4); ctx.rotate(R.hatA * hk); ctx.scale(1, R.hatS); ctx.translate(0, 4);
       hat(ctx, K, tm);
@@ -1184,7 +1253,7 @@
       ctx.fillStyle = L.trim; rr(ctx, -8.2, -7.6, 16.4, 3.8, 1.9);
       ctx.fillStyle = '#e6e1d6'; for (let x = -6.6; x < 7; x += 2.8) circle(ctx, x, -5.7, 0.6);
       ctx.fillStyle = L.trim; circle(ctx, -11.2 + sw * 0.3, -3.6 + sw, 2.6);
-    } else if (kind === 'guest' || kind === 'waiter') hairdo(ctx, K, tm);
+    } else if (kind === 'guest' || kind === 'waiter' || kind === 'tycoon' || kind === 'aide') hairdo(ctx, K, tm);
   }
 
   function hairdo(ctx, K, tm) {
@@ -1218,6 +1287,21 @@
       ctx.restore();
     } else if (d === 'slick') {
       ctx.fillStyle = 'rgba(255,255,255,0.24)'; ctx.fillRect(-3.6, -7.7, 5.2, 0.8);
+    } else if (d === 'silver') {
+      ctx.beginPath(); ctx.moveTo(-1.5, -8.6); ctx.quadraticCurveTo(4.4, -10.6, 7.6, -5.6); ctx.quadraticCurveTo(4.6, -7.4, 1.2, -6.8); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(-4.4, -8.2, 6.4, 0.8);
+      ctx.save(); ctx.translate(3, -7.7); ctx.rotate(-0.12);
+      ctx.fillStyle = L.shades; rr(ctx, -4.6, -1.4, 4.4, 2.6, 1.1); rr(ctx, 0.6, -1.5, 4.8, 2.8, 1.2); ctx.fillRect(-0.4, -0.8, 1.2, 0.8);
+      ctx.fillStyle = L.lens; ctx.fillRect(1.2, -1, 3.6, 0.9); ctx.fillRect(-4, -0.9, 3.2, 0.8);
+      ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(1.4, -1.1, 1.2, 0.5);
+      ctx.restore();
+    } else if (d === 'bun') {
+      circle(ctx, -6.4, -6.2, 3.3);
+      ctx.fillStyle = dk(L.hair, 1.3); ctx.fillRect(-7.6, -8.2, 2.4, 0.7);
+      ctx.strokeStyle = '#2b2f36'; ctx.lineWidth = 0.9;
+      ctx.beginPath(); ctx.arc(0, -0.6, 7.6, -2.1, -0.75); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-1.4, 2.6); ctx.quadraticCurveTo(2.8, 6.4, 6.4, 5.4); ctx.stroke();
+      ctx.fillStyle = '#2b2f36'; circle(ctx, 6.6, 5.3, 0.9); rr(ctx, -2.4, 0, 2.6, 3.6, 1);
     }
   }
 
@@ -1321,7 +1405,7 @@
 
   const K = {
     kind: 'walker', L: LOOK.walker, state: 'idle', face: 1, seed: 0, tx: 200, ty: -48,
-    panic: false, glasses: false, squint: false, small: false, kick: 0, armed: true, has: true, film: false, slope: 0, balance: false,
+    panic: false, glasses: false, squint: false, small: false, kick: 0, armed: true, has: true, film: false, slope: 0, balance: false, offer: 0,
   };
 
   function mugArt(ctx, x, y, a, s) {
@@ -1356,6 +1440,35 @@
     ctx.restore();
   }
 
+  function drawPass(ctx, K, tm) {
+    const t = R.tray, o = K.offer;
+    ctx.save(); ctx.translate(t.x, t.y); ctx.rotate(t.ang);
+    ctx.fillStyle = '#f7f4ec'; rr(ctx, 0.6, -6.6, 6.2, 8.4, 1);
+    ctx.fillStyle = K.L.coat; ctx.fillRect(0.6, -6.6, 6.2, 2.6);
+    ctx.fillStyle = K.L.trim; circle(ctx, 3.7, -1.1, 1.3); ctx.fillRect(1.6, 0.8, 4.2, 0.6);
+    if (o > 0.3) {
+      const s = 0.5 + 0.5 * sin(tm * 5.2);
+      ctx.fillStyle = 'rgba(255,255,255,' + (0.85 * s * o).toFixed(3) + ')'; star(ctx, 6.4, -6.4, 1.2 + 1.6 * s, tm * 1.5); ctx.fill();
+    }
+    ctx.restore();
+    ctx.fillStyle = K.L.glove || K.L.skin; circle(ctx, t.x, t.y + 0.3, 2.6);
+  }
+
+  function drawTablet(ctx, K, tm, film) {
+    const p = R.phone;
+    ctx.save();
+    ctx.translate(p.x, p.y); ctx.rotate(p.ang);
+    ctx.fillStyle = '#25282e'; rr(ctx, -2, -12.4, 3.8, 15, 1.2);
+    ctx.fillStyle = film ? '#9fd8ff' : '#5d6b7a'; ctx.fillRect(-2, -11.4, 1, 13);
+    if (film) {
+      ctx.fillStyle = frac(tm * 1.1) < 0.62 ? '#ff3b30' : '#7a1d18';
+      circle(ctx, 0.2, -14.4, 1.25);
+    }
+    ctx.restore();
+    ctx.fillStyle = K.L.skin;
+    circle(ctx, p.x, p.y + 0.4, 2.4);
+  }
+
   function drawCarry(ctx, K) {
     const t = R.tray;
     if (K.L.carry === 'tray') {
@@ -1376,6 +1489,7 @@
       drawLeg(ctx, K, R.legN, false);
       if (kind === 'tourist' && !L.ski) drawPack(ctx, K);
       if (kind === 'santa' && K.has) drawSack(ctx, K);
+      if (kind === 'porter') ZS.alpineArt.load(ctx, R.px, R.py, R.lean, K.has, K.seed);
       if (rf.mode && rf.behind && !rf.back) drawRifle(ctx, rf, tm);
       if (kind === 'picker') drawSkirt(ctx, L.skirt, dk(L.skirt, 1.55), 1.4, 0.53, 1);
       else if (kind === 'santa') drawSkirt(ctx, L.coat, L.trim, 3.2, L.tail, 1.06);
@@ -1392,6 +1506,9 @@
     if (kind === 'tourist' && K.has) drawPhone(ctx, K, tm, K.state === 'film' && st.aimK > 0.5);
     if (K.film) drawPhone(ctx, K, tm, true);
     if ((kind === 'guest' || kind === 'waiter') && K.has && !INN[K.sp]) drawCarry(ctx, K);
+    if (kind === 'tycoon' && K.sp === 'selfie') drawPhone(ctx, K, tm, false);
+    else if (kind === 'tycoon' && K.has && !K.sp) drawPass(ctx, K, tm);
+    if (kind === 'aide' && K.has && !K.sp) drawTablet(ctx, K, tm, K.state === 'film' && st.aimK > 0.5);
     if (R.stars > 0.01) drawStars(ctx, R.stars, tm, st.seed);
   }
 
@@ -1546,14 +1663,14 @@
     if (h.size > 0 && h.size !== 1) L = sizedLook(L, h.size);
     let sp = SPECIAL[h.state] ? h.state : '';
     if ((sp === 'pickup' || sp === 'drop' || sp === 'climbStand') && !CAN_AIM[kind]) sp = '';
-    if (sp === 'selfie' && kind !== 'tourist') sp = '';
+    if (sp === 'selfie' && kind !== 'tourist' && kind !== 'tycoon') sp = '';
     if (INN[sp] && kind !== 'guest' && kind !== 'waiter') sp = '';
     let state = sp ? 'idle' : h.state;
     if (state !== 'walk' && state !== 'run' && state !== 'aim' && state !== 'film') state = 'idle';
     const armed = !!CAN_AIM[kind] && h.armed !== false && sp !== 'down' && sp !== 'pickup' && sp !== 'drop';
     const has = !h.empty;
     if (state === 'aim' && !armed) state = 'idle';
-    if (state === 'film' && (kind !== 'tourist' || !has)) state = 'idle';
+    if (state === 'film' && ((kind !== 'tourist' && kind !== 'aide') || !has)) state = 'idle';
     const targeted = state === 'aim' || state === 'film', at = h.aimAt;
     let face = h.dir < 0 ? -1 : 1;
     if (targeted && at && abs(at[0] - h.x) > 8) face = at[0] < h.x ? -1 : 1;
@@ -1576,7 +1693,7 @@
       K.film = false; K.sp = sp; K.balance = state === 'walk' && !!h.balance;
       K.slope = state === 'walk' && Number.isFinite(h.slope) ? clamp(h.slope * face, -0.8, 0.8) : 0;
       K.squint = state === 'aim' && st.aimK > 0.5;
-      K.small = false; K.fs = 0; K.kick = clamp(h.kick || 0, 0, 1);
+      K.small = false; K.fs = 0; K.kick = clamp(h.kick || 0, 0, 1); K.offer = kind === 'tycoon' && !sp ? clamp(h.offer || 0, 0, 1) : 0;
       if (targeted && at) { K.tx = face * (at[0] - h.x) / L.scale; K.ty = (at[1] - GY) / L.scale; } else { K.tx = 200; K.ty = -48; }
     };
     setK();
@@ -2128,5 +2245,13 @@
     else if (p.kind === 'mug') droppedMug(ctx, p, time, d, y);
     else droppedRifle(ctx, p, time);
     ctx.restore();
+  };
+
+  ZS.drawAide = function (ctx, p, g) {
+    const a = p.aide, h = a.h || (a.h = { kind: 'aide', aimAt: [0, 0], armed: false, empty: false });
+    h.x = a.x; h.dir = a.dir; h.outfit = g.level.theme; h.cold = g.bear.cold;
+    h.state = a.film ? 'film' : 'walk';
+    h.aimAt[0] = a.aim; h.aimAt[1] = GY - 44;
+    ZS.drawHuman(ctx, h, g.time);
   };
 })();

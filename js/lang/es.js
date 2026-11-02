@@ -138,13 +138,35 @@
       lift: ['Forfait tengo, munición no.', 'Vista de postal. Por la mirilla.', 'Me balanceo, luego existo.', '¡Más rápido, telesilla!'],
       liftTop: ['Arriba, gulash a 19 €. Bajo andando.', '¿Estación superior? Gracias, ya vi bastante.', 'La próxima, en telecabina.'],
       corn: ['¿Un laberinto de maíz? Mi especialidad.', 'Aquí no me encuentra ni un dron.', 'El jabalí se da el festín y la factura me la llevo yo.', 'El bosque es de Medio Ambiente, el maíz de Agricultura. Yo no soy de nadie.'],
+      alpine: ['Desde aquí veo hasta Bratislava. Allí también buscan un oso.', 'Aquí los árboles me llegan a la cintura. El ministro se llevará un disgusto.', 'Aquí arriba hay una marmota detrás de cada piedra.', 'Pino enano: un árbol que se rindió.'],
+      altitude: ['A 1551 m dicen que estoy superpoblado. En vertical.', 'Doscientos metros más abajo estaría dentro del cupo.', 'El altímetro marca 1551 m. El ministerio me señala a mí.'],
+      kosodrevina: ['Solo soy un matorral de pino enano.', 'Pincha como una rueda de prensa.', 'Detrás de un árbol no. Debajo, sí.'],
+      porter: ['Tú cargas el refugio, yo la grasa. Somos colegas.', '¿Te ayudo? Me como media carga.', '80 kilos a la espalda y ni se da la vuelta.'],
+      tycoon: ['El forfait me lo quedo, los esquís no.', '¿Primer viaje gratis? Me quedo también el segundo.', 'Perfil izquierdo, telesilla al fondo.'],
     },
 
     NEWS: {
       springStart: 'Llega la primavera. Los osos salen de sus oseras; los políticos, de sus ruedas de prensa.',
       summer: 'Verano: en el bosque maduran los arándanos.',
       mushrooms: 'Empieza la temporada de setas. El bosque se llena de cestas.',
-      readyForWinter: 'El oso ya tiene grasa para el invierno. La osera de invierno está al fondo del valle.',
+      readyForWinter: 'El oso ya tiene grasa para el invierno. La osera de invierno está entre los pinos enanos junto al lago Zelené pleso.',
+      alpine: 'El oso ha subido a los pinos enanos. Ministro Strašiak: Un árbol a la altura de la cintura solo cubre la mitad, así que el oso solo se ve a medias.',
+      altitude: 'Ministerio: Un oso a 1551 m está superpoblado en vertical. La caza se medirá con altímetro.',
+      marmot: [
+        'Las marmotas avisan del oso con silbidos. El ministerio estudia contratarlas en lugar de drones.',
+        'Una marmota le silbó al oso. El diputado Flinta le pide la licencia de armas.',
+      ],
+      chamois: [
+        'Los rebecos huyeron del oso hacia las rocas. Ministro Strašiak: También hay un rebeco detrás de cada piedra.',
+        'Los rebecos resoplaron al oso y desaparecieron entre los picos. Los turistas los grabaron veinte minutos.',
+      ],
+      porter: 'Un porteador subió 80 kilos al refugio de Zelené pleso y se cruzó con un oso. Ni se paró: El oso no tiene reserva.',
+      hut: 'Oso junto a Zelené pleso. La terraza lo emite en directo y el guarda ha subido el precio del té.',
+      kosodrevina: 'El oso se escondió entre los pinos enanos. El ministerio propone arrancarlos y plantar cazadores.',
+      limbaEaten: [
+        'El oso come piñas de pino cembro. Los cascanueces denuncian competencia desleal.',
+        'El oso parte piñas de pino cembro. Ministro Strašiak: Todo oso problemático empezó por las semillas.',
+      ],
       winterStart: 'Un adviento templado despierta al oso. Un cañón de nieve ruge justo al lado de su osera.',
       snow: 'Nieva con fuerza. Cada paso del oso queda en la nieve; cada paso del ministro, en los periódicos.',
       frost: 'Llega la helada. Se congelan el arroyo, los caminos y las negociaciones del Gobierno.',
@@ -317,6 +339,10 @@
           'Un oso abrazó a un camarero. Propina no dejó, pero al menos sonrió.',
           'Un oso abrazó al camarero del mesón. Ñoquis por el suelo, reseñas de cinco estrellas.',
         ],
+        tycoon: [
+          'Un oso abrazó al Señor de los Tatras en la estación de abajo. Ni se inmutó: El abrazo va incluido en el forfait de temporada.',
+          'El Señor de los Tatras tras el abrazo del oso: Por fin un cliente que no pide descuento. Su asistente ya está montando el anuncio.',
+        ],
       },
       hugTired: [
         'Otro video de un oso abrazando. La gente ya hace scroll sin mirar.',
@@ -380,6 +406,10 @@
         waiter: [
           'Un oso mordió a un camarero. El mesón anuncia un corte del servicio; los clientes no notan nada.',
           'Un oso mordió al camarero del mesón. El ministerio estudia declarar a los camareros especie protegida.',
+        ],
+        tycoon: [
+          'Un oso mordió la chaqueta del Señor de los Tatras. Su veredicto: Tejido premium, aguantó. Irá al catálogo.',
+          'Un oso probó al Señor de los Tatras. La estación recuerda que las degustaciones son solo en el bar de la estación de arriba.',
         ],
       },
       stomp: [
@@ -502,6 +532,8 @@
         'Los cazadores vaciaron sus rifles en el telesilla. El oso ni levantó la barra de seguridad.',
       ],
       liftDrone: 'Un dron del ejército escolta al oso en el telesilla. Tampoco tiene forfait.',
+      checkpoint: 'Punto de control: estación superior del telesilla. La estación apuntó al oso en el libro de visitas.',
+      liftResume: 'El oso vuelve a estar en la estación superior del telesilla. La estación asegura que es la primera vez que lo ve.',
       lot: 'El oso se esconde entre los árboles de Navidad. El ministerio ordena revisar cada árbol con etiqueta de precio.',
       lotSeller: [
         'El vendedor de árboles de Navidad huyó del oso. Dejó el puesto abierto, la caja no.',
@@ -524,6 +556,14 @@
         'Un oso se comió la pesca de un pescador. La federación de pesca pide abatirlo; los peces protestan.',
         'Un oso vació el cubo de truchas de un pescador. El ministro Strašiak: ¡Robo del patrimonio nacional!',
       ],
+      tycoon: {
+        seen: 'El Señor de los Tatras vio un oso en la estación de abajo: Excelente, por fin un huésped que no viene en coche. Le ofrece un forfait de temporada.',
+        leaflet: 'El Señor de los Tatras reparte folletos de un programa piloto de anticoncepción para osos. El oso se comió uno. Ecologistas: Es el único efecto demostrado hasta ahora.',
+        promo: [
+          'El Señor de los Tatras grabó con un oso un anuncio de Horný Strach. El oso no sabe esquiar, pero sonríe a la cámara mejor que el ministro.',
+          'Anuncio desde la estación de abajo: el Señor de los Tatras y un oso con forfait de temporada. La estación registra un interés récord; el ministro Strašiak, un miedo récord.',
+        ],
+      },
     },
 
     LABELS: {
@@ -562,6 +602,7 @@
         chatabin: 'contenedor del refugio',
         halusky: 'halušky con queso de oveja',
         catch: 'la pesca del pescador',
+        limba: 'piñas de pino cembro',
       },
       art: { salas: 'MAJADA', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['RESIDUOS', 'URBANOS'], fence: ['¡PELIGRO!', 'CERCA', 'ELÉCTRICA'] },
       skanzen: { name: ['MUSEO DE LA', 'ALDEA DE LIPTOV'], notice: ['¡El oso no está', 'en exposición!'] },
@@ -607,8 +648,8 @@
       crawlHint: '↓ arrástrate',
       fenceHint: '↑ sáltala',
       shout: {
-        hug: { walker: '¡Suéltame, tengo licencia de armas!', ztmh: '¡Esto no está en el protocolo!', poacher: '¡Yo solo pasaba por aquí!', picker: '¡Jesús, María y José!', tourist: '¡Mamá, graba!', santa: '¡Jo, jo… jooo!', guest: '¡Solo vine por los ñoquis!', waiter: '¿Tiene reserva?', photographer: '¡Una foto más!', seller: '¡Llévate el que quieras, pero suéltame!', fisher: '¡Era ASÍ de grande!' },
-        bite: { walker: '¡Ay, mi honor!', ztmh: '¡Ay! ¡Me dieron!', poacher: '¡Ay! ¡Ni una palabra a nadie!', picker: '¡Socorro!', tourist: '¡Auuu!', santa: '¡Ay, mi báculo!', guest: '¡Ay, que aún no he pagado!', waiter: '¡Ay! ¡Eso no está en la carta!', photographer: '¡Ay! ¡Pero qué nítida!', seller: '¡Ay! ¡Sin factura!', fisher: '¡Ay! ¿Soy yo el cebo?' },
+        hug: { walker: '¡Suéltame, tengo licencia de armas!', ztmh: '¡Esto no está en el protocolo!', poacher: '¡Yo solo pasaba por aquí!', picker: '¡Jesús, María y José!', tourist: '¡Mamá, graba!', santa: '¡Jo, jo… jooo!', guest: '¡Solo vine por los ñoquis!', waiter: '¿Tiene reserva?', photographer: '¡Una foto más!', seller: '¡Llévate el que quieras, pero suéltame!', fisher: '¡Era ASÍ de grande!', tycoon: '¡El abrazo va incluido en el forfait!' },
+        bite: { walker: '¡Ay, mi honor!', ztmh: '¡Ay! ¡Me dieron!', poacher: '¡Ay! ¡Ni una palabra a nadie!', picker: '¡Socorro!', tourist: '¡Auuu!', santa: '¡Ay, mi báculo!', guest: '¡Ay, que aún no he pagado!', waiter: '¡Ay! ¡Eso no está en la carta!', photographer: '¡Ay! ¡Pero qué nítida!', seller: '¡Ay! ¡Sin factura!', fisher: '¡Ay! ¿Soy yo el cebo?', tycoon: '¡Ay! ¡Que la chaqueta es premium!' },
         selfie: '¡Sonríe!',
         fall: '¡Aaay!',
         ladder: ['¡Mamááá!', '¡Solo miraba pajaritos!', '¡Todo suyo!'],
@@ -623,6 +664,11 @@
       basket: 'setas de la cesta',
       icefish: 'trucha bajo el hielo',
       fisher: { shout: ['¡Un oso! ¡Va a por mis truchas!', '¡Quédate la caña!', '¡Yo solo estaba pescando!'] },
+      tycoon: {
+        interact: 'C selfie promo · X morder',
+        pitch: ['¡Forfait de temporada para el oso!', '¡El primer viaje es gratis!', '¿Un folleto? ¡Anticoncepción para osos, programa piloto!', '¡Sonríe, que grabamos un anuncio!'],
+        cut: '¡Corten! ¡Esto va a una valla publicitaria!', hugged: '¿Ven? ¡Los osos nos adoran!', leave: '¡Pásenme con el departamento de prensa!', film: '🎬 ¡Grabando!',
+      },
       lot: {
         sign: ['ÁRBOLES DE', 'NAVIDAD'],
         price: ['Pícea 25 €', 'Abeto 49 €', 'Del TANAP 15 €'],
@@ -631,6 +677,18 @@
         topple: '¡Uy!',
         hint: '↓ agáchate entre los árboles',
         cover: 'Entre los arbolitos no te ven',
+      },
+      alpine: {
+        whistle: '¡Fiiiu!',
+        chamois: '¡Fsss!',
+        porter: ['80 kilos, no tengo tiempo.', '¿Un oso? Yo llevo cerveza.', 'Aparta, que se calienta la cerveza.', 'En el refugio hay gulash, no tú.'],
+        porterFree: ['Hoy ya no llevo nada.', 'Vuelve mañana, traigo escalopes.'],
+        terrace: '📱 ¡En directo desde la terraza!',
+        cover: 'Entre los pinos enanos no te ven',
+        hint: '↓ agáchate entre los pinos enanos',
+        hut: ['CHATA PRI', 'ZELENOM PLESE', '1551 m s. n. m.'],
+        post: [['Refugio Zelené pleso', '0:10 h'], ['Biela voda', '2:30 h'], ['Refugio Téry', '3:00 h'], ['Osera de invierno', '0:05 h']],
+        menu: ['TÉ 4 €', 'CERVEZA 6 €'],
       },
       billboard: ['¡Hay un oso detrás', 'de cada árbol!'],
       billboardWinter: ['¡La hibernación', 'es obligatoria!'],
@@ -642,6 +700,8 @@
         dodge: '← →',
         dodgeTouch: '◀ ▶',
         arrived: '¡Estación superior!',
+        checkpoint: 'Punto de control: telesilla',
+        resumed: 'De nuevo en el telesilla',
         station: 'TELESILLA',
         top: 'ESTACIÓN SUPERIOR',
         bufet: 'BAR',
@@ -666,6 +726,7 @@
         cave: 'Cueva de Važec – aquí los osos dormían sin decreto',
         winterGoal: 'Osera silenciosa →',
         lot: 'Arbolitos – ↓ agáchate',
+        tatras: 'Altos Tatras · TANAP',
         by: '— ministro Strašiak',
       },
     },
@@ -704,6 +765,7 @@
       },
       keys: { ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓', Space: '␣', KeyC: 'C', KeyX: 'X', ShiftLeft: 'Shift' },
       again: 'Otra vez',
+      retryLift: 'Reintentar desde el telesilla',
       next: 'Continuar al invierno →',
       menu: 'Elegir nivel',
       resume: 'Continuar',

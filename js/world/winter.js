@@ -13,6 +13,7 @@
       park: { from: 9100, to: W - 300 },
       chata: { x: 6150 },
       lift: { x: 6960, tower: 7510 },
+      tycoon: { x: 7345 },
       slope: { from: 6000, to: 7700 },
       lot: { from: 7950, to: 8470, front: [7990, 8042, 8094, 8146, 8198, 8250], rack: [7976, 8264], stands: [8020, 8122, 8224], barrel: 8298, seller: 8326, booth: 8394 },
       feeding: 2300,
@@ -105,6 +106,7 @@
       { kind: 'santa', from: 4600, to: 5500 },
       { kind: 'tourist', from: 6000, to: 6900 },
       { kind: 'tourist', from: 6650, to: 7350 },
+      { kind: 'tycoon', from: L.tycoon.x, to: L.tycoon.x },
     ];
     [2120, 2260, 2470].forEach((x, i) => L.spawns.push({ kind: 'deer', from: 1960, to: 2640, x, i }));
 

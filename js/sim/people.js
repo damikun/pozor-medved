@@ -13,6 +13,7 @@
       react: null, reactT: 0, empty: false, clutch: false, hurdle: null,
     }, o);
     if (o.from !== o.to) { pen().range(g && g.level, p, pen().KEEP.person, 200); ZS.sim.corn.range(g && g.level, p, undefined, 200); }
+    if (kind === 'tycoon') ZS.sim.tycoon.init(p);
     return p;
   }
 
@@ -44,6 +45,7 @@
     const b = g.bear, L = g.level;
     for (const p of g.people) {
       p.filmCd -= dt; p.dropCd -= dt;
+      if (p.kind === 'tycoon') ZS.sim.tycoon.update(g, p, dt);
       if (p.react) {
         const x0 = p.x;
         ZS.sim.encounters.reactPerson(g, p, dt);
@@ -55,6 +57,7 @@
         if (Math.abs(p.x - b.x) > 1600 || p.x < -200 || p.x > L.w + 200) p.dead = true;
         continue;
       }
+      if (p.kind === 'tycoon') continue;
       if (p.pause > 0) p.pause -= dt;
       else {
         const nx = p.x + p.dir * p.speed * dt, hx = ZS.sim.corn.hold(L, p.x, pen().hold(L, p.x, nx, pen().KEEP.person));

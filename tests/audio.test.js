@@ -124,5 +124,5 @@ test('the recorded sounds are base64 MP3 clips or loops with a loop length', () 
       size += data.length;
     }
   }
-  assert.ok(size < 2600000, 'sounds take ' + size + ' bytes');
+  assert.ok(size < 2900000, 'sounds take ' + size + ' bytes');
 });

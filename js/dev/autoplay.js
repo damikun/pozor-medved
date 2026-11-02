@@ -3,6 +3,7 @@
   const bot = { reaction: 0.25, mode: null };
   const HEAD_T = 0.583, TAKEOFF = [58, 72];
   const cover = (L) => ZS.sim.bear.spots(L);
+  const up = (it) => it.type === 'wildhoney' || it.type === 'stash' || (it.type === 'limba' && it.y !== undefined);
 
   function threat(g) {
     const b = g.bear;
@@ -115,7 +116,7 @@
     else if (b.x >= L.goalDen - 40) pilot.back = true;
     if (b.act) return;
     if (b.climbing) {
-      const honey = L.items.find((it) => !it.eaten && (it.type === 'wildhoney' || it.type === 'stash') && Math.abs(it.x - b.climbing.x) < 20);
+      const honey = L.items.find((it) => !it.eaten && up(it) && Math.abs(it.x - b.climbing.x) < 20);
       keys.add(honey || danger ? 'ArrowUp' : 'ArrowDown');
       return;
     }
@@ -123,7 +124,7 @@
     const st = b.reach && b.reach.post ? b.reach : null;
     if (!runner && st && st.shooter && !st.shooter.react && g.time - pilot.alarm < 3) { g.input.hugPressed = true; return; }
     if (!danger && !runner && (b.onGround || b.vy < 0)) {
-      const honey = L.items.find((it) => !it.eaten && (it.type === 'wildhoney' || it.type === 'stash') && Math.abs(it.x - b.x) < 26);
+      const honey = L.items.find((it) => !it.eaten && up(it) && Math.abs(it.x - b.x) < 26);
       if (honey) { if (b.onGround) jump(g, 'ArrowUp'); keys.add('ArrowUp'); return; }
     }
     if (b.inWater && !danger && !runner) {
@@ -137,7 +138,7 @@
     if (danger && b.inSpray) return;
     if (danger && b.inCorn && b.onGround) { keys.add('ArrowDown'); return; }
     const reach = (t) => Math.abs(t.x - b.x) < t.w / 2 + 34;
-    if (danger && b.onGround && (cover(L).some(reach) || ZS.sim.lot.inside(L, b.x))) { keys.add('ArrowDown'); return; }
+    if (danger && b.onGround && (cover(L).some(reach) || ZS.sim.lot.inside(L, b.x) || ZS.sim.alpine.thicket(L, b.x))) { keys.add('ArrowDown'); return; }
 
     if (!danger && !runner && b.onGround && g.fat < pace(g)) {
       const food = L.items.find((it) => !it.eaten && !it.locked && !ZS.FOOD[it.type].natural && Math.abs(it.x - b.x) < 24);

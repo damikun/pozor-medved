@@ -97,6 +97,7 @@
   }
 
   function trunk(ctx, t, g) {
+    if (t.kind === 'limba') { ZS.alpineArt.limbaTrunk(ctx, t, g); return; }
     const W = cold(g) ? B.look(g) : null;
     const top = t.kind === 'smrek' ? GY - t.h * 0.42 : GY - t.h;
     const half = t.w / 2;
@@ -126,6 +127,7 @@
   }
 
   function crown(ctx, t, season, g) {
+    if (t.kind === 'limba') { ZS.alpineArt.limbaCrown(ctx, t, season, g); return; }
     if (cold(g)) { winterCrown(ctx, t, g); return; }
     const key = keyOf(g, season);
     if (t.kind === 'smrek') {
@@ -133,7 +135,8 @@
       ctx.fillStyle = t.shade < 0.5 ? '#2c5a37' : '#336540';
       for (let i = 0; i < n; i++) {
         const y0 = base - ((base - top) * i) / n, hw = t.r * (1 - i / (n + 0.8));
-        ctx.beginPath(); ctx.moveTo(t.x - hw, y0); ctx.lineTo(t.x, y0 - ((base - top) / n) * 1.7); ctx.lineTo(t.x + hw, y0);
+        const ln = t.lean || 0, sx = t.x + ln * (i + 1) * 7;
+        ctx.beginPath(); ctx.moveTo(sx - hw * (1 - ln * 0.6), y0 + ln * 4); ctx.lineTo(sx + ln * 6, y0 - ((base - top) / n) * 1.7); ctx.lineTo(sx + hw * (1 + ln * 0.35), y0 - ln * 3);
         ctx.closePath(); ctx.fill();
       }
       return;
@@ -820,6 +823,7 @@
     const x = it.x;
     if (it.hidden || LANDMARK[it.type] || (it.eaten && !left(it))) return;
     if (it.type === 'halusky') { halusky(ctx, it, time); return; }
+    if (it.type === 'limba') { ZS.alpineArt.coneItem(ctx, it, time); return; }
     if (WINTER_ITEM[it.type]) { WINTER_ITEM[it.type](ctx, it, time, g); return; }
     const W = cold(g), F = ZS.foodArt;
     if (F.has(it.type)) { F.draw(ctx, it, time, g, W ? B.look(g) : null); return; }
@@ -833,7 +837,7 @@
     emoji(ctx, ZS.FOOD[it.type].emoji, x, it.y !== undefined ? it.y : GY - 12, it.y !== undefined ? 18 : 22);
   }
 
-  const left = (it) => it.type === 'rosehip' || it.type === 'rowan' || ZS.foodArt.left(it);
+  const left = (it) => it.type === 'rosehip' || it.type === 'rowan' || (it.type === 'limba' && it.y === undefined) || ZS.foodArt.left(it);
 
   function crosshair(ctx, s, aimFactor, g) {
     const x = s.cross, y = GY - 30, locked = s.lock > 0, snowy = cold(g);

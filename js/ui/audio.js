@@ -7,7 +7,7 @@
   const LEVEL = {
     walk: 0.45, creep: 0.3, run: 0.6, wind: 0.007, windWinter: 0.01, windFrost: 0.014,
     forest: 0.0151, stream: 0.0472, spruce: 0.0166, crickets: 0.0079, bells: 0.0262, church: 0.0312, spray: 0.0615, drone: 0.0388, cable: 0.0141,
-    murmur: 0.0245, market: 0.03,
+    murmur: 0.0245, market: 0.03, alpine: 0.02,
   };
   const TRIM = {
     'voice.scream.f': 0.0495, 'voice.yell.m': 0.0431, 'voice.gasp.f': 0.0204, 'voice.oof.f': 0.0403, 'voice.oof.m': 0.0389, 'voice.yelp.m': 0.0473,
@@ -31,6 +31,7 @@
     'loco.hiss': 0.0217, 'dog': 0.0476, 'sheep': 0.0208, 'cow': 0.0151, 'hen': 0.0298, 'bird.blackbird': 0.0173, 'bird.robin': 0.0142,
     'bird.crow': 0.0203, 'note.gs4': 0.0346, 'note.cs5': 0.0375, 'note.f5': 0.035, 'note.gs5': 0.0406, 'mbira.c5': 0.069, 'mbira.f5': 0.0555,
     'mbira.gs5': 0.0723, 'boar.grunt': 0.03, 'boar.squeal': 0.037, 'corn.rustle': 0.0355,
+    'marmot': 0.026, 'marmot.one': 0.026, 'chamois': 0.034, 'scree': 0.045, 'bird.alpine': 0.0135,
   };
   const VARIANT = {
     'chat.kids': [-0.5, 0.7, -1.7, -1.2, 0.2, -1.8, 1.3, 2.0, 0.8],
@@ -45,6 +46,7 @@
     'market.clatter': [1.0, -3.9, 3.0], 'shot': [2.6, 1.1, -3.7], 'gun.cock': [2.4, -2.4], 'impact.wood': [1.1, -1.6, 0.6],
     'impact.body': [-0.5, -1.3, 1.9], 'fall.body': [-1.2, 0.2, 1.0], 'zap': [-1.9, 1.9], 'creak': [-2.7, -2.7, 5.5], 'bang.window': [1.8, -1.8],
     'camera': [2.6, -2.6], 'cloth': [0.2, 1.1, -1.4], 'bird.crow': [1.0, -1.1],
+    'scree': [0.1, -0.5, -0.8, 1.9, -1.2, 0.4],
   };
   const rnd = ZS.util.mulberry32(0x5a7e11);
   const { clamp } = ZS.util;
@@ -63,6 +65,7 @@
     summer: [['bird.blackbird', 2], ['bird.robin', 2], ['bird.crow', 1]],
     autumn: [['bird.crow', 2], ['bird.robin', 1]],
     winter: [['bird.crow', 1]],
+    alpine: [['bird.alpine', 4], ['bird.crow', 1]],
   };
 
   let ctx = null, sfx = null, ambBus = null, bedBus = null, verbIn = null, warm = null, out = null;
@@ -397,6 +400,20 @@
     lotTopple(x) { play('crash.wood', x, 0.6, { reach: 1.5, rate: 1.3 }); play('hide.leaves', x, 0.9, { delay: 0.04 }); },
     lotSeller(x) { play('voice.yell.m', x, 1, { reach: 1.4 }); scurry(x, 1); },
     fisher(x) { play('voice.yell.m', x, 1, { reach: 1.4, rate: 1.08 }); play('bin.lid', x, 0.5, { delay: 0.12, rate: 1.3 }); scurry(x, 1); },
+    marmot(x, k) {
+      if (k === 'short') { play('marmot.one', x, 0.8, { reach: 2, send: 0.35 }); return; }
+      play('marmot', x, 1, { reach: 2.2, send: 0.4 });
+      if (rnd() < 0.6) play('marmot.one', x === null || x === undefined ? null : x + rr(-420, 420), rr(0.35, 0.55), { amb: true, reach: 2.4, send: 0.6, delay: rr(0.8, 1.6) });
+    },
+    chamois(x) {
+      play('chamois', x, 1, { reach: 1.8, send: 0.35, rate: rr(1.08, 1.2) });
+      play('scree', x, 0.45, { reach: 1.5, delay: rr(0.35, 0.5), rate: rr(1.1, 1.3) });
+    },
+    scree(x, k) { play('scree', x, typeof k === 'number' ? clamp(k, 0.2, 1) : 0.8, { reach: 1.5, send: 0.25, rate: rr(0.9, 1.2) }); },
+    hut(x) {
+      play(rnd() < 0.5 ? 'chat.walla' : 'chat.mumble', x, 0.8, { amb: true, reach: 1.4, send: 0.3, rate: rr(0.94, 1.06) });
+      if (rnd() < 0.6) play(rnd() < 0.5 ? 'market.clatter' : 'eat.plate', x, 0.5, { amb: true, reach: 1.4, send: 0.25, delay: rr(0.1, 0.6), rate: rr(1, 1.15) });
+    },
   };
 
   function scurry(x, vol) {
@@ -479,6 +496,7 @@
   const LOOPS = {
     forest: ['loop.forest', 0.15], stream: ['loop.stream', 0.15], spruce: ['loop.wind', 0.1], crickets: ['loop.crickets', 0.2], bells: ['loop.bells', 0.25],
     church: ['loop.church', 0.3], spray: ['loop.spray', 0.1], drone: ['loop.drone', 0.1], cable: ['loop.cable', 0], murmur: ['loop.murmur', 0.35], market: ['loop.market', 0.35],
+    alpine: ['loop.alpine', 0.25],
   };
 
   function bed(key) {
@@ -552,7 +570,7 @@
       const kind = o.kind;
       r = {
         state: o.state, react: o.react, scared: o.scaredT || 0, ph: o.ph, cd: 0, vcd: 0, alert: o.alertX, lock: o.lock || 0, film: o.filmCd || 0,
-        female: kind === 'waiter' || !!SHOOTERS[kind] ? false : kind === 'picker' ? rnd() < 0.75 : rnd() < 0.5, santa: kind === 'santa',
+        female: kind === 'waiter' || kind === 'tycoon' || !!SHOOTERS[kind] ? false : kind === 'picker' ? rnd() < 0.75 : rnd() < 0.5, santa: kind === 'santa',
       };
       people.set(o, r);
     }
@@ -785,10 +803,12 @@
     const winter = g.level.theme === 'winter', t = g.time, season = winter ? 'winter' : g.seasonKey;
     if ((w.gustT -= dt) <= 0) { w.gustT = rr(1.5, 4.5); w.gust = rr(0.25, 1); }
     const wind = winter ? (g.seasonKey === 'frost' ? LEVEL.windFrost : LEVEL.windWinter) : LEVEL.wind;
-    level(beds.wind, wind * (0.6 + 0.4 * w.gust), undefined, undefined, 1.2);
-    loopLevel('forest', winter ? 0 : LEVEL.forest * (season === 'autumn' ? 0.8 : 1), 0, 1);
+    const A = g.level.alpine, high = A ? sstep(A.from - 250, A.from + 250, b.x) * (1 - sstep(A.to, A.to + 400, b.x)) : 0;
+    level(beds.wind, wind * (0.6 + 0.4 * w.gust) * (1 + 0.5 * high), undefined, undefined, 1.2);
+    loopLevel('forest', winter ? 0 : LEVEL.forest * (season === 'autumn' ? 0.8 : 1) * (1 - high), 0, 1);
     loopLevel('spruce', winter ? LEVEL.spruce * (0.6 + 0.4 * w.gust) : 0, 0, 1.4);
-    loopLevel('crickets', !winter && season !== 'spring' && !g.ride ? LEVEL.crickets * (season === 'autumn' ? 0.6 : 1) : 0, 0, 1);
+    loopLevel('crickets', !winter && season !== 'spring' && !g.ride ? LEVEL.crickets * (season === 'autumn' ? 0.6 : 1) * (1 - 0.7 * high) : 0, 0, 1);
+    loopLevel('alpine', LEVEL.alpine * high * (0.8 + 0.2 * w.gust), 0, 1);
     const R = g.level.river;
     let creek = 0, cp = 0;
     if (R && !g.ride) {
@@ -804,8 +824,8 @@
     loopLevel('spray', g.ride ? 0 : sv, sp, 0.3);
     droneSounds(g, b, dt);
     if ((w.bird -= dt) <= 0) {
-      w.bird = winter ? rr(16, 30) : rr(9, 18) * (season === 'autumn' ? 1.6 : 1);
-      if (!g.ride || rnd() < 0.5) bird(season);
+      w.bird = high > 0.5 ? rr(12, 24) : winter ? rr(16, 30) : rr(9, 18) * (season === 'autumn' ? 1.6 : 1);
+      if (!g.ride || rnd() < 0.5) bird(high > 0.5 ? 'alpine' : season);
     }
     if (season === 'autumn' && !g.ride && (w.stag -= dt) <= 0) {
       w.stag = rr(25, 50);

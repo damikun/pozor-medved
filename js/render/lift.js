@@ -562,13 +562,7 @@
     if (p.winter) { ctx.globalAlpha = 0.5 + 0.5 * p.deep; ctx.beginPath(); ctx.moveTo(r0[0], r0[1] - 0.05 * s); ctx.lineTo(top[0], top[1] - 0.35 * s); ctx.lineTo(r1[0], r1[1] - 0.05 * s); ctx.lineTo(r1[0], r1[1] + 0.2 * s); ctx.lineTo(top[0], top[1] + 0.15 * s); ctx.lineTo(r0[0], r0[1] + 0.2 * s); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1; }
     const fp = at(-3, 18.6);
     ctx.strokeStyle = mix('#cfd3d6', p.haze, hz); ctx.lineWidth = max(0.6, 0.08 * s); ctx.beginPath(); ctx.moveTo(top[0], top[1]); ctx.lineTo(fp[0], fp[1]); ctx.stroke();
-    const bands = ['#ffffff', '#0b4ea2', '#ee1c25'];
-    for (let b = 0; b < 3; b++) {
-      ctx.fillStyle = mix(bands[b], p.haze, hz); ctx.beginPath();
-      for (let i = 0; i <= 6; i++) { const off = sin(t * 3.4 - i * 0.8) * 0.12 * s * (i / 6); if (i) ctx.lineTo(fp[0] + i * 0.28 * s, fp[1] + b * 0.3 * s + off); else ctx.moveTo(fp[0], fp[1] + b * 0.3 * s); }
-      for (let i = 6; i >= 0; i--) { const off = sin(t * 3.4 - i * 0.8) * 0.12 * s * (i / 6); ctx.lineTo(fp[0] + i * 0.28 * s, fp[1] + (b + 1) * 0.3 * s + off); }
-      ctx.closePath(); ctx.fill();
-    }
+    ZS.scenery.skFlag(ctx, fp[0], fp[1], 0.96 * s, (u) => sin(t * 3.4 - u * 4.8) * 0.12 * s * u, (c) => mix(c, p.haze, hz));
     const h0 = at(4.6, 5.6), h1 = at(10.2, 0), hp = at(7.4, 7.6);
     ctx.fillStyle = wood; ctx.fillRect(h0[0], h0[1], h1[0] - h0[0], h1[1] - h0[1]);
     ctx.fillStyle = roof; ctx.beginPath(); ctx.moveTo(h0[0] - 0.4 * s, h0[1] + 0.2 * s); ctx.lineTo(hp[0], hp[1]); ctx.lineTo(h1[0] + 0.4 * s, h0[1] + 0.2 * s); ctx.closePath(); ctx.fill();

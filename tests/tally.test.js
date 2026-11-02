@@ -87,7 +87,8 @@ test('a real jump on a hunter shows up in the counter', () => {
   for (; x < L.w - 1400; x += 5) {
     const clear = (a, m) => Math.abs(a - x) > m;
     if (L.trees.every((t) => clear(t.x, 200)) && L.logs.every((l) => clear(l.x, 260)) && L.items.every((it) => clear(it.x, 120))
-      && L.posts.every((p) => clear(p.x, 700)) && clear((L.river.from + L.river.to) / 2, 600) && (x < L.salas.from - 600 || x > L.salas.to + 600)) break;
+      && L.posts.every((p) => clear(p.x, 700)) && clear((L.river.from + L.river.to) / 2, 600) && (x < L.salas.from - 600 || x > L.salas.to + 600)
+      && (x < L.corn.from - 300 || x > L.corn.to + 300)) break;
   }
   const s = ZS.sim.hunters.create(g, 'walker', { x, from: x - 400, to: x + 400, dir: -1 });
   Object.assign(s, { pause: 0, speed: 0, cross: x - 300 });

@@ -138,13 +138,35 @@
       lift: ['Got a ski pass. No ammo.', 'Postcard view. Through a rifle scope.', 'I swing, therefore I am.', 'Faster, lift guy!'],
       liftTop: ['Goulash for €19 up here. I’ll walk down.', 'Top station? Thanks, I’ve seen enough.', 'Next time I’m taking the gondola.'],
       corn: ['A corn maze? My specialty.', 'Not even a drone will find me here.', 'The boar feasts, I get the bill.', 'The forest belongs to the environment ministry, the corn to agriculture. I belong to nobody.'],
+      alpine: ['I can see all the way to Bratislava. They’re looking for a bear there too.', 'The trees only come up to my waist here. The minister will be disappointed.', 'Up here there’s a marmot behind every rock.', 'Dwarf pine: a tree that gave up.'],
+      altitude: ['At 1551 m I’m apparently overpopulated. Vertically.', 'Two hundred metres lower and I’d be within quota.', 'The altimeter says 1551 m. The ministry says it’s me.'],
+      kosodrevina: ['I’m just a thick patch of dwarf pine.', 'Prickly as a press conference.', 'Not behind a tree. Under one.'],
+      porter: ['You carry the hut, I carry fat. We’re colleagues.', 'Need a hand? I’ll eat half the load.', '80 kilos on his back and he doesn’t even look round.'],
+      tycoon: ['I’ll take the ski pass, not the skis.', 'First ride free? I’ll take the second too.', 'Left profile, chairlift behind me.'],
     },
 
     NEWS: {
       springStart: 'Spring is here. Bears emerge from their dens, politicians from press conferences.',
       summer: 'Summer: the blueberries in the forest are ripe.',
       mushrooms: 'Mushroom season has begun. The forest is full of baskets.',
-      readyForWinter: 'The bear has enough fat for winter. The winter den is at the end of the valley.',
+      readyForWinter: 'The bear has enough fat for winter. The winter den is in the dwarf pines by Zelené pleso.',
+      alpine: 'The bear has climbed into the dwarf pines. Minister Strašiak: A waist-high tree is only half cover, so the bear is only half visible.',
+      altitude: 'Ministry: A bear at 1551 m is vertically overpopulated. The cull will be measured with an altimeter.',
+      marmot: [
+        'Marmots report the bear by whistling. The ministry is considering hiring them instead of drones.',
+        'A marmot whistled at the bear. MP Flinta asks to see its firearms licence.',
+      ],
+      chamois: [
+        'Chamois fled from the bear into the rocks. Minister Strašiak: There’s a chamois behind every rock too.',
+        'Chamois snorted at the bear and vanished among the peaks. Tourists filmed them for twenty minutes.',
+      ],
+      porter: 'A porter carried 80 kilos up to the hut at Zelené pleso and met a bear. He didn’t even stop: The bear has no reservation.',
+      hut: 'Bear at Zelené pleso. The terrace is streaming live, the hut keeper has raised the price of tea.',
+      kosodrevina: 'The bear hid in the dwarf pines. The ministry proposes clearing them and planting hunters.',
+      limbaEaten: [
+        'The bear is eating stone pine cones. The nutcrackers complain of unfair competition.',
+        'The bear is cracking stone pine cones. Minister Strašiak: Every problem bear started with seeds.',
+      ],
       winterStart: 'A warm Advent woke the bear. A snow cannon is roaring right by the den.',
       snow: 'Heavy snowfall. Every step the bear takes stays in the snow, every step the minister takes in the papers.',
       frost: 'A hard frost. The stream, the pavements and government talks have all frozen.',
@@ -317,6 +339,10 @@
           'A bear hugged a waiter. No tip, but at least he smiled.',
           'A bear hugged the inn’s waiter. Dumplings on the floor, reviews at five stars.',
         ],
+        tycoon: [
+          'A bear hugged the Lord of the Tatras at the bottom station. He didn’t flinch: The hug is included in the season pass.',
+          'The Lord of the Tatras after a bear hug: Finally a customer who doesn’t ask for a discount. His assistant is already cutting the ad.',
+        ],
       },
       hugTired: [
         'Another video of a hugging bear. People just scroll past.',
@@ -380,6 +406,10 @@
         waiter: [
           'A bear bit a waiter. The inn reports a service outage, guests notice no difference.',
           'A bear bit the inn’s waiter. The ministry may declare waiters a protected species.',
+        ],
+        tycoon: [
+          'A bear bit the Lord of the Tatras in the jacket. His verdict: Premium fabric, it held. It’s going in the catalogue.',
+          'A bear had a taste of the Lord of the Tatras. The resort reminds guests that tastings are only at the top-station snack bar.',
         ],
       },
       stomp: [
@@ -502,6 +532,8 @@
         'Hunters emptied their rifles at the chairlift. The bear never even raised the safety bar.',
       ],
       liftDrone: 'An army drone is escorting the bear up the chairlift. It has no ski pass either.',
+      checkpoint: 'Checkpoint: the chairlift top station. The resort wrote the bear into its guest book.',
+      liftResume: 'The bear is back at the chairlift top station. The resort claims it has never seen him before.',
       lot: 'The bear is hiding among the Christmas trees. The ministry orders a check of every tree with a price tag.',
       lotSeller: [
         'The Christmas tree seller fled from the bear. He left the stall open, but not the cash box.',
@@ -524,6 +556,14 @@
         'A bear ate an angler’s catch. The anglers’ union demands a cull, the fish protest.',
         'A bear emptied an angler’s bucket of trout. Minister Strašiak: Theft of national wealth!',
       ],
+      tycoon: {
+        seen: 'The Lord of the Tatras spotted a bear at the bottom station: Excellent, finally a guest who doesn’t come by car. He is offering him a season pass.',
+        leaflet: 'The Lord of the Tatras is handing out leaflets for a pilot bear contraception programme. The bear ate one. Conservationists: The only proven effect so far.',
+        promo: [
+          'The Lord of the Tatras shot a promo with a bear for Horný Strach. The bear can’t ski, but he smiles for the camera better than the minister.',
+          'Promo from the bottom station: the Lord of the Tatras and a bear with a season pass. The resort reports record interest, Minister Strašiak record fear.',
+        ],
+      },
     },
 
     LABELS: {
@@ -562,6 +602,7 @@
         chatabin: 'chalet dumpster',
         halusky: 'sheep-cheese dumplings',
         catch: 'the angler’s catch',
+        limba: 'stone pine cones',
       },
       art: { salas: 'SHEEPFOLD', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['GENERAL', 'WASTE'], fence: ['DANGER!', 'ELECTRIC', 'FENCE'] },
       skanzen: { name: ['MUSEUM OF THE', 'LIPTOV VILLAGE'], notice: ['The bear is not', 'an exhibit!'] },
@@ -607,8 +648,8 @@
       crawlHint: '↓ crawl',
       fenceHint: '↑ jump it',
       shout: {
-        hug: { walker: 'Let go, I have a gun licence!', ztmh: 'This isn’t in the protocol!', poacher: 'I’m just picking mushrooms!', picker: 'Jesus, Mary and Joseph!', tourist: 'Mum, film this!', santa: 'Ho ho… HOOO!', guest: 'I only came for the dumplings!', waiter: 'Do you have a booking?!', photographer: 'One more frame!', seller: 'Take any tree, just let me go!', fisher: 'It was THIS big!' },
-        bite: { walker: 'Ow, my honour!', ztmh: 'Ow! I’m hit!', poacher: 'Ow! Not a word to anyone!', picker: 'Help!', tourist: 'Owww!', santa: 'Ow, my staff!', guest: 'Ow, I haven’t paid yet!', waiter: 'Ow! That’s not on the menu!', photographer: 'Ow! But it’s tack sharp!', seller: 'Ow! No receipt!', fisher: 'Ow! Am I the bait?!' },
+        hug: { walker: 'Let go, I have a gun licence!', ztmh: 'This isn’t in the protocol!', poacher: 'I’m just picking mushrooms!', picker: 'Jesus, Mary and Joseph!', tourist: 'Mum, film this!', santa: 'Ho ho… HOOO!', guest: 'I only came for the dumplings!', waiter: 'Do you have a booking?!', photographer: 'One more frame!', seller: 'Take any tree, just let me go!', fisher: 'It was THIS big!', tycoon: 'The hug is included in the pass!' },
+        bite: { walker: 'Ow, my honour!', ztmh: 'Ow! I’m hit!', poacher: 'Ow! Not a word to anyone!', picker: 'Help!', tourist: 'Owww!', santa: 'Ow, my staff!', guest: 'Ow, I haven’t paid yet!', waiter: 'Ow! That’s not on the menu!', photographer: 'Ow! But it’s tack sharp!', seller: 'Ow! No receipt!', fisher: 'Ow! Am I the bait?!', tycoon: 'Ow! This jacket is premium!' },
         selfie: 'Smile!',
         fall: 'Whoaaa!',
         ladder: ['Mummy!', 'I was only birdwatching!', 'It’s all yours!'],
@@ -623,6 +664,11 @@
       basket: 'mushrooms from a basket',
       icefish: 'trout from under the ice',
       fisher: { shout: ['A bear! He’s after my trout!', 'Keep the rod!', 'I was only fishing!'] },
+      tycoon: {
+        interact: 'C promo selfie · X bite',
+        pitch: ['A season pass for the bear!', 'First ride is free!', 'Leaflet? Bear contraception, pilot programme!', 'Smile, we’re shooting a promo!'],
+        cut: 'Cut! That’s going on a billboard!', hugged: 'See? Bears love us!', leave: 'Get me the PR department!', film: '🎬 Rolling!',
+      },
       lot: {
         sign: ['CHRISTMAS', 'TREES'],
         price: ['Spruce €25', 'Fir €49', 'From TANAP €15'],
@@ -631,6 +677,18 @@
         topple: 'Oops!',
         hint: '↓ crouch among the trees',
         cover: 'Nobody sees you among the trees',
+      },
+      alpine: {
+        whistle: 'Wheeet!',
+        chamois: 'Fsst!',
+        porter: ['80 kilos, no time.', 'A bear? I’m carrying beer.', 'Move, the beer’s getting warm.', 'The hut serves goulash, not you.'],
+        porterFree: ['Nothing left for today.', 'Come back tomorrow, I’m bringing schnitzels.'],
+        terrace: '📱 Live from the terrace!',
+        cover: 'Nobody sees you in the dwarf pines',
+        hint: '↓ crouch in the dwarf pines',
+        hut: ['CHATA PRI', 'ZELENOM PLESE', '1551 m a.s.l.'],
+        post: [['Zelené pleso hut', '0:10 h'], ['Biela voda', '2:30 h'], ['Téry hut', '3:00 h'], ['Winter den', '0:05 h']],
+        menu: ['TEA €4', 'BEER €6'],
       },
       billboard: ['There’s a bear', 'behind every tree!'],
       billboardWinter: ['Hibernation', 'is mandatory!'],
@@ -642,6 +700,8 @@
         dodge: '← →',
         dodgeTouch: '◀ ▶',
         arrived: 'Top station!',
+        checkpoint: 'Checkpoint: chairlift',
+        resumed: 'Back at the chairlift',
         station: 'CHAIRLIFT',
         top: 'TOP STATION',
         bufet: 'SNACK BAR',
@@ -666,6 +726,7 @@
         cave: 'Važec Cave – bears slept here without a decree',
         winterGoal: 'Quiet den →',
         lot: 'Christmas trees – ↓ crouch',
+        tatras: 'High Tatras · TANAP',
         by: '— Minister Strašiak',
       },
     },
@@ -704,6 +765,7 @@
       },
       keys: { ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓', Space: '␣', KeyC: 'C', KeyX: 'X', ShiftLeft: 'Shift' },
       again: 'Play again',
+      retryLift: 'Retry from the chairlift',
       next: 'On to winter →',
       menu: 'Choose level',
       resume: 'Resume',

@@ -5,7 +5,7 @@
   const say = (g, text, hot) => sim.rules.say(g, text, hot);
 
   function spawnAhead(g, kind, extra) {
-    const edge = g.level.w - 250;
+    const A = g.level.alpine, edge = A ? A.hut.x - 360 : g.level.w - 250;
     let x = Math.min(edge, g.bear.x + g.viewW * 0.75 + Math.random() * 500);
     for (let i = 0; i < 6 && g.shooters.some((s) => Math.abs(s.x - x) < 500); i++) x = Math.min(edge, x + 450);
     g.shooters.push(sim.hunters.create(g, kind, Object.assign({ x, from: x - 500, to: x + 200, dir: -1 }, extra)));

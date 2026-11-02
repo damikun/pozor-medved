@@ -140,13 +140,35 @@
     lift: ['Skipas mám, strelivo nie.', 'Výhľad ako z pohľadnice. Cez mušku.', 'Hojdám sa, teda žijem.', 'Lanovkár, pridaj!'],
     liftTop: ['Hore guláš za 19 €. Idem dole pešo.', 'Horná stanica? Ďakujem, stačilo.', 'Nabudúce radšej kabínkou.'],
     corn: ['Kukuričné bludisko? Môj odbor.', 'Tu ma nenájde ani dron.', 'Diviak hoduje, škodu napíšu mne.', 'Les patrí envirorezortu, kukurica agrorezortu. Ja nikomu.'],
+    alpine: ['Odtiaľto vidím až do Bratislavy. Aj tam hľadajú medveďa.', 'Stromy mi tu siahajú po pás. Minister bude sklamaný.', 'Tu je za každým kameňom svišť.', 'Kosodrevina: strom, ktorý to vzdal.'],
+    altitude: ['V 1551 metroch som vraj premnožený. Vertikálne.', 'O dvesto metrov nižšie by som bol v norme.', 'Výškomer ukazuje 1551 m. Ministerstvo ukazuje na mňa.'],
+    kosodrevina: ['Som len hustá kosodrevina.', 'Pichá to ako tlačovka.', 'Za stromom nie, pod stromom áno.'],
+    porter: ['Ty nesieš chatu, ja tuk. Sme kolegovia.', 'Pomôžem? Zjem polovicu nákladu.', 'Na chrbte 80 kíl a ani sa neobzrie.'],
+    tycoon: ['Skipas beriem, lyže nie.', 'Prvá jazda zadarmo? Beriem aj druhú.', 'Ľavý profil, lanovka vzadu.'],
   };
 
   ZS.NEWS = {
     springStart: 'Začína jar. Medvede vychádzajú z brlohov, politici z tlačoviek.',
     summer: 'Leto: v lese dozreli čučoriedky.',
     mushrooms: 'Začala hubárska sezóna. V lese je plno košíkov.',
-    readyForWinter: 'Medveď má dosť tuku na zimu. Zimný brloh je na konci doliny.',
+    readyForWinter: 'Medveď má dosť tuku na zimu. Zimný brloh je v kosodrevine pri Zelenom plese.',
+    alpine: 'Medveď vyšiel do kosodreviny. Minister Strašiak: Strom po pás je len polovičný úkryt, čiže medveď je viditeľný napoly.',
+    altitude: 'Ministerstvo: Medveď v 1551 m je premnožený vertikálne. Odstrel sa bude merať výškomerom.',
+    marmot: [
+      'Svište hlásia medveďa pískaním. Ministerstvo zvažuje, že ich zamestná namiesto dronov.',
+      'Svišť zapískal na medveďa. Poslanec Flinta od neho žiada zbrojný pas.',
+    ],
+    chamois: [
+      'Kamzíky utiekli pred medveďom do skál. Minister Strašiak: Aj kamzík je za každým kameňom.',
+      'Kamzíky odfrkli na medveďa a zmizli v štítoch. Turisti ich natáčali dvadsať minút.',
+    ],
+    porter: 'Nosič vyniesol na Chatu pri Zelenom plese 80 kíl a stretol medveďa. Ani nezastal: Medveď nemá rezerváciu.',
+    hut: 'Medveď pri Zelenom plese. Terasa vysiela naživo, chatár zdvihol cenu čaju.',
+    kosodrevina: 'Medveď sa skryl v kosodrevine. Ministerstvo navrhuje vyklčovať ju a vysadiť poľovníkov.',
+    limbaEaten: [
+      'Medveď je šišky limby. Orešnice sa sťažujú na nekalú konkurenciu.',
+      'Medveď lúska šišky limby. Minister Strašiak: Každý problémový medveď začínal semienkami.',
+    ],
     winterStart: 'Teplý advent zobudil medveďa. Snežné delo hučí rovno pri brlohu.',
     snow: 'Husto sneží. Každý krok medveďa ostane v snehu, každý krok ministra v novinách.',
     frost: 'Udrel mráz. Zamrzol potok, chodníky aj rokovania vlády.',
@@ -319,6 +341,10 @@
         'Medveď objal čašníka. Prepitné nedal, ale aspoň sa usmial.',
         'Medveď objal čašníka z koliby. Halušky na zemi, hodnotenie podniku päť hviezdičiek.',
       ],
+      tycoon: [
+        'Medveď objal pána Tatier pri dolnej stanici. Ten sa ani nepohol: Objatie je v cene sezónneho skipasu.',
+        'Pán Tatier po objatí medveďa: Konečne klient, ktorý nechce zľavu. Asistentka už strihá reklamu.',
+      ],
     },
     hugTired: [
       'Ďalšie video s objímajúcim medveďom. Ľudia už scrollujú ďalej.',
@@ -382,6 +408,10 @@
       waiter: [
         'Medveď kusol čašníka. Koliba hlási výpadok obsluhy, hostia nevidia rozdiel.',
         'Medveď kusol čašníka z koliby. Ministerstvo zvažuje vyhlásiť čašníkov za chránený druh.',
+      ],
+      tycoon: [
+        'Medveď kusol pána Tatier do bundy. Pán Tatier: Prémiový materiál, vydržal. Dáme to do katalógu.',
+        'Medveď ochutnal pána Tatier. Stredisko pripomína, že degustácie sú len v bufete na hornej stanici.',
       ],
     },
     stomp: [
@@ -504,6 +534,8 @@
       'Poľovníci vystrieľali na lanovke všetko. Medveď si ani neodopol bezpečnostnú tyč.',
     ],
     liftDrone: 'Armádny dron sprevádza medveďa na lanovke. Skipas nemá ani on.',
+    checkpoint: 'Kontrolný bod: horná stanica lanovky. Stredisko si medveďa zapísalo do knihy návštev.',
+    liftResume: 'Medveď je znova pri hornej stanici lanovky. Stredisko tvrdí, že ho vidí prvý raz.',
     lot: 'Medveď sa skrýva medzi vianočnými stromčekmi. Ministerstvo nariadilo kontrolu každého stromčeka s cenovkou.',
     lotSeller: [
       'Predajca stromčekov utiekol pred medveďom. Stánok nechal otvorený, pokladničku nie.',
@@ -526,6 +558,14 @@
       'Medveď zjedol rybárovi úlovok. Rybársky zväz žiada odstrel, ryby protestujú.',
       'Medveď vybral rybárovi vedro pstruhov. Minister Strašiak: Krádež národného bohatstva!',
     ],
+    tycoon: {
+      seen: 'Pán Tatier zbadal pri dolnej stanici medveďa: Výborne, konečne hosť, ktorý nepríde autom. Ponúka mu sezónny skipas.',
+      leaflet: 'Pán Tatier rozdáva letáky k pilotnému programu medvedej antikoncepcie. Medveď jeden zjedol. Ochranári: Zatiaľ jediný preukázaný účinok.',
+      promo: [
+        'Pán Tatier natočil s medveďom promo pre Horný Strach. Medveď lyžovať nevie, ale do kamery sa usmieva lepšie ako minister.',
+        'Promo z dolnej stanice: pán Tatier a medveď so sezónnym skipasom. Stredisko hlási rekordný záujem, minister Strašiak rekordný strach.',
+      ],
+    },
   };
 
   ZS.NEWS_ICON = {
@@ -543,8 +583,10 @@
     cornEaten: '🌽', corn: '🌽', cobEaten: '🌽', cornHit: '🌽', boar: '🐗', sandwichEaten: '🥪', appleEaten: '🍎', tv: '📺',
     koliba: '🍺', haluskyEaten: '🥟', photo: '📸', photoWait: '📷',
     lift: '🚠', liftMiss: '💨', liftHit: '💥', liftTop: '🏔️', liftClean: '🚠', liftDrone: '🚁',
+    checkpoint: '🚩', liftResume: '🚠',
     lot: '🎄', lotSeller: '🎄', lotTopple: '🎄', lotMiss: '🎄',
-    fisher: '🎣', catchEaten: '🐟',
+    alpine: '🏔️', marmot: '🐿️', chamois: '🐐', porter: '🎒', hut: '🛖', kosodrevina: '🌲', limbaEaten: '🌰', altitude: '📏',
+    fisher: '🎣', catchEaten: '🐟', tycoon: '⛷️',
   };
 
   ZS.LABELS = {
@@ -583,6 +625,7 @@
       chatabin: 'kontajner pri chate',
       halusky: 'bryndzové halušky',
       catch: 'rybárov úlovok',
+      limba: 'šišky limby',
     },
     art: { salas: 'SALAŠ', hotel: 'HOTEL MEDVEDÍ RAJ', waste: ['KOMUNÁLNY', 'ODPAD'], fence: ['POZOR!', 'ELEKTRICKÝ', 'OHRADNÍK'] },
     skanzen: { name: ['MÚZEUM', 'LIPTOVSKEJ DEDINY'], notice: ['Medveď nie je', 'exponát!'] },
@@ -628,8 +671,8 @@
     crawlHint: '↓ plaz sa',
     fenceHint: '↑ preskoč',
     shout: {
-      hug: { walker: 'Pusti ma, mám zbrojný pas!', ztmh: 'Toto nie je v protokole!', poacher: 'Ja nič, ja muzikant!', picker: 'Ježišmária!', tourist: 'Mami, natáčaj!', santa: 'Hó-hó… hóóó!', guest: 'Ja som len na halušky!', waiter: 'Máte rezerváciu?!', photographer: 'Ešte jeden záber!', seller: 'Vyber si hocijakú, len ma pusť!', fisher: 'Bol takýto veľký!' },
-      bite: { walker: 'Au, moja česť!', ztmh: 'Au! Zásah!', poacher: 'Au! Nikomu ani slovo!', picker: 'Pomóc!', tourist: 'Auuu!', santa: 'Au, moja berla!', guest: 'Au, ešte som nezaplatil!', waiter: 'Au! To nie je na menu!', photographer: 'Au! Ale je ostrá!', seller: 'Au! Bez bločku!', fisher: 'Au! Ja som návnada?!' },
+      hug: { walker: 'Pusti ma, mám zbrojný pas!', ztmh: 'Toto nie je v protokole!', poacher: 'Ja nič, ja muzikant!', picker: 'Ježišmária!', tourist: 'Mami, natáčaj!', santa: 'Hó-hó… hóóó!', guest: 'Ja som len na halušky!', waiter: 'Máte rezerváciu?!', photographer: 'Ešte jeden záber!', seller: 'Vyber si hocijakú, len ma pusť!', fisher: 'Bol takýto veľký!', tycoon: 'Objatie je v cene skipasu!' },
+      bite: { walker: 'Au, moja česť!', ztmh: 'Au! Zásah!', poacher: 'Au! Nikomu ani slovo!', picker: 'Pomóc!', tourist: 'Auuu!', santa: 'Au, moja berla!', guest: 'Au, ešte som nezaplatil!', waiter: 'Au! To nie je na menu!', photographer: 'Au! Ale je ostrá!', seller: 'Au! Bez bločku!', fisher: 'Au! Ja som návnada?!', tycoon: 'Au! Bunda je prémiová!' },
       selfie: 'Úsmev!',
       fall: 'Jéééj!',
       ladder: ['Mamííí!', 'Ja som tu len na vtáčikoch!', 'Posed je váš!'],
@@ -644,6 +687,11 @@
     basket: 'huby z košíka',
     icefish: 'pstruh spod ľadu',
     fisher: { shout: ['Medveď! Ide mi po pstruhy!', 'Udicu si nechaj!', 'Ja som tu len chytal!'] },
+    tycoon: {
+      interact: 'C promo selfie · X kusnúť',
+      pitch: ['Sezónny skipas pre medveďa!', 'Prvá jazda zadarmo!', 'Letáčik? Medvedia antikoncepcia, pilotný program!', 'Usmej sa, točíme promo!'],
+      cut: 'Strih! Ide to na bilbord!', hugged: 'Vidíte? Medvede nás milujú!', leave: 'Volám PR oddelenie!', film: '🎬 Točíme!',
+    },
     lot: {
       sign: ['VIANOČNÉ', 'STROMČEKY'],
       price: ['Smrek 25 €', 'Jedľa 49 €', 'Z TANAP-u 15 €'],
@@ -652,6 +700,18 @@
       topple: 'Hups!',
       hint: '↓ skrč sa medzi stromčeky',
       cover: 'Medzi stromčekmi ťa nevidno',
+    },
+    alpine: {
+      whistle: 'Fííí!',
+      chamois: 'Fšš!',
+      porter: ['80 kíl, nemám čas.', 'Medveď? Ja nesiem pivo.', 'Uhni, pivo sa ohreje.', 'Na chate je guláš, nie ty.'],
+      porterFree: ['Dnes už nič nemám.', 'Príď zajtra, nesiem rezne.'],
+      terrace: '📱 Naživo z terasy!',
+      cover: 'V kosodrevine ťa nevidno',
+      hint: '↓ prikrč sa v kosodrevine',
+      hut: ['CHATA PRI', 'ZELENOM PLESE', '1551 m n. m.'],
+      post: [['Chata pri Zelenom plese', '0:10 h'], ['Biela voda', '2:30 h'], ['Téryho chata', '3:00 h'], ['Zimný brloh', '0:05 h']],
+      menu: ['ČAJ 4 €', 'PIVO 6 €'],
     },
     billboard: ['Medveď je za', 'každým stromom!'],
     billboardWinter: ['Zimný spánok', 'je povinný!'],
@@ -663,6 +723,8 @@
       dodge: '← →',
       dodgeTouch: '◀ ▶',
       arrived: 'Horná stanica!',
+      checkpoint: 'Kontrolný bod: lanovka',
+      resumed: 'Znova od lanovky',
       station: 'LANOVKA',
       top: 'HORNÁ STANICA',
       bufet: 'BUFET',
@@ -687,6 +749,7 @@
       cave: 'Važecká jaskyňa – tu medvede spali bez vyhlášky',
       winterGoal: 'Tichý brloh →',
       lot: 'Stromčeky – ↓ skrč sa',
+      tatras: 'Vysoké Tatry · TANAP',
       by: '— minister Strašiak',
     },
   };
@@ -725,6 +788,7 @@
     },
     keys: { ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓', Space: '␣', KeyC: 'C', KeyX: 'X', ShiftLeft: 'Shift' },
     again: 'Znova',
+    retryLift: 'Skúsiť znova od lanovky',
     next: 'Pokračovať do zimy →',
     menu: 'Vybrať level',
     resume: 'Pokračovať',

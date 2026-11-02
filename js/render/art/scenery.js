@@ -1180,6 +1180,76 @@
     ctx.restore();
   }
 
+  const SK = { red: '#ee1c25', blue: '#0b4ea2', white: '#ffffff', w: 0.41, b: 0.05, mid: 0.47, at: [0, 0] };
+  function skShield(w, top, bot) {
+    const c = SK.mid + (bot - SK.mid) * 0.62, right = [w, SK.mid];
+    for (let i = 1; i <= 8; i++) { const t = i / 8, a = 1 - t; right.push(w * (1 - t * t), a * a * SK.mid + 2 * a * t * c + t * t * bot); }
+    const out = [-w, top, w, top].concat(right);
+    for (let i = right.length - 4; i >= 0; i -= 2) out.push(-right[i], right[i + 1]);
+    return out;
+  }
+  function skHills() {
+    const hump = [[0, 0.64, 0.18], [-0.3, 0.76, 0.2], [0.3, 0.76, 0.2]], out = [-0.6, 1.3, -0.6, 0.95];
+    for (let i = 0; i <= 44; i++) {
+      const x = -0.55 + i * 0.025;
+      let y = 0.95;
+      for (const [hx, ty, r] of hump) { const d = abs(x - hx); if (d < r) y = Math.min(y, ty + r - sqrt(r * r - d * d)); }
+      out.push(x, y);
+    }
+    out.push(0.6, 0.95, 0.6, 1.3);
+    return out;
+  }
+  function skBar(cx, cy, hl, ht, fl, ind) {
+    const f = ht * fl, q = ht * (1 + (fl - 1) * 0.3);
+    return [cx - hl, cy - f, cx - hl * 0.86, cy - q, cx - hl * 0.66, cy - ht, cx + hl * 0.66, cy - ht, cx + hl * 0.86, cy - q, cx + hl, cy - f, cx + hl - ind, cy,
+      cx + hl, cy + f, cx + hl * 0.86, cy + q, cx + hl * 0.66, cy + ht, cx - hl * 0.66, cy + ht, cx - hl * 0.86, cy + q, cx - hl, cy + f, cx - hl + ind, cy];
+  }
+  function skPost(y0, y1, hw, fl, ind) {
+    const f = hw * fl, q = hw * (1 + (fl - 1) * 0.3);
+    return [-f, y0, 0, y0 + ind, f, y0, q, y0 + 0.035, hw, y0 + 0.075, hw, y1, -hw, y1, -hw, y0 + 0.075, -q, y0 + 0.035];
+  }
+  const SK_ART = {
+    shield: skShield(SK.w, 0, 1),
+    hills: skHills(),
+    full: [skPost(0.075, 0.8, 0.045, 1.6, 0.028), skBar(0, 0.265, 0.165, 0.045, 1.6, 0.028), skBar(0, 0.455, 0.25, 0.048, 1.6, 0.03)],
+  };
+  function skTrace(ctx, pts, map, step) {
+    const n = pts.length / 2;
+    map(pts[0], pts[1]); ctx.moveTo(SK.at[0], SK.at[1]);
+    for (let i = 1; i <= n; i++) {
+      const j = i % n, ax = pts[(i - 1) * 2], ay = pts[(i - 1) * 2 + 1], bx = pts[j * 2], by = pts[j * 2 + 1], m = Math.max(1, Math.ceil(hypot(bx - ax, by - ay) / step));
+      for (let k = 1; k <= m; k++) { map(ax + (bx - ax) * k / m, ay + (by - ay) * k / m); ctx.lineTo(SK.at[0], SK.at[1]); }
+    }
+    ctx.closePath();
+  }
+  function skFlag(ctx, x, y, h, wave, tint) {
+    if (!(h > 0)) return;
+    const tn = tint || ((c) => c), L = h * 1.5, m = ctx.getTransform ? ctx.getTransform() : null, dev = m && m.a ? clamp(hypot(m.a, m.b), 0.05, 20) : 1;
+    const n = clamp(Math.ceil(L * dev / 6), 6, 24), bands = [SK.white, SK.blue, SK.red];
+    for (let b = 0; b < 3; b++) {
+      ctx.fillStyle = tn(bands[b]); ctx.beginPath();
+      for (let i = 0; i <= n; i++) { const u = i / n, X = x + u * L, Y = y + b * h / 3 + wave(u); if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y); }
+      for (let i = n; i >= 0; i--) { const u = i / n; ctx.lineTo(x + u * L, y + h + wave(u)); }
+      ctx.closePath(); ctx.fill();
+    }
+    const k = h * 0.5 / (1 + SK.b * 2.4), kd = k * dev;
+    if (kd < 3) return;
+    const ox = L / 3, oy = h * 0.25 + SK.b * k;
+    const map = (sx, sy) => { const px = ox + sx * k; SK.at[0] = x + px; SK.at[1] = y + oy + sy * k + wave(clamp(px / L, 0, 1)); };
+    const step = clamp(4 / kd, 0.03, 0.25), bb = clamp(Math.max(SK.b, 0.9 / kd), SK.b, 0.14);
+    ctx.fillStyle = tn(SK.white); ctx.beginPath(); skTrace(ctx, skShield(SK.w + bb, -bb, 1 + bb * 1.5), map, step); ctx.fill();
+    ctx.save();
+    ctx.fillStyle = tn(SK.red); ctx.beginPath(); skTrace(ctx, SK_ART.shield, map, step); ctx.fill();
+    if (kd >= 6) {
+      ctx.clip();
+      const cross = kd >= 22 ? SK_ART.full : (() => { const ht = Math.max(0.045, 0.55 / kd); return [skPost(0.07, 0.8, ht, 1, 0), skBar(0, 0.25, 0.18, ht, 1, 0), skBar(0, 0.47, 0.26, ht, 1, 0)]; })();
+      ctx.fillStyle = tn(SK.white); ctx.beginPath(); for (const c of cross) skTrace(ctx, c, map, step); ctx.fill();
+      ctx.fillStyle = tn(SK.blue); ctx.beginPath(); skTrace(ctx, SK_ART.hills, map, step); ctx.fill();
+    }
+    ctx.restore();
+  }
+  API.skFlag = skFlag;
+
   function hotel(ctx, x, time) {
     const g = hotelGeo();
     ctx.save(); ctx.translate(x, GY);
@@ -1249,14 +1319,7 @@
     ctx.fillStyle = '#58534d'; ctx.fillRect(-198, -189, 16, 4);
     smoke(ctx, -190, -192, time, 0.6, 0.9);
     line(ctx, 200, -139, 200, -196, 2, '#cfd3d6'); ctx.fillStyle = '#cfd3d6'; circle(ctx, 200, -197, 2);
-    const bands = ['#ffffff', '#0b4ea2', '#ee1c25'];
-    for (let b = 0; b < 3; b++) {
-      ctx.fillStyle = bands[b]; ctx.beginPath();
-      for (let i = 0; i <= 8; i++) { const off = sin(time * 3.4 - i * 0.8) * 2.1 * (i / 8); if (i) ctx.lineTo(201 + i * 3.4, -195 + b * 5 + off); else ctx.moveTo(201, -195 + b * 5); }
-      for (let i = 8; i >= 0; i--) { const off = sin(time * 3.4 - i * 0.8) * 2.1 * (i / 8); ctx.lineTo(201 + i * 3.4, -190 + b * 5 + off); }
-      ctx.closePath(); ctx.fill();
-    }
-    ctx.fillStyle = '#ee1c25'; rr(ctx, 203, -194, 6, 8, 2); ctx.fillStyle = '#fff'; ctx.fillRect(205.6, -193, 0.9, 6); ctx.fillRect(204, -191.4, 4, 0.8); ctx.fillRect(204.4, -189.6, 3.2, 0.8);
+    skFlag(ctx, 201, -195, 16, (u) => sin(time * 3.4 - u * 6.4) * 2.1 * u);
     suv(ctx, 160, -1);
     ctx.restore();
   }

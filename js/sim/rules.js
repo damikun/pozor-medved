@@ -7,6 +7,7 @@
     onNews: () => {},
     onEnd: () => {},
     onSound: () => {},
+    onLand: () => {},
   };
 
   rules.create = function (input, { viewW = CFG.MIN_VIEW_W, bot = false, level: id = 'summer' } = {}) {
