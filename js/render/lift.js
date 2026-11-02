@@ -271,12 +271,12 @@
           const tiers = 3;
           for (let k = 0; k < tiers; k++) {
             const y0 = lerp(base, top + (base - top) * 0.32, k / tiers), w = half * (1 - k * 0.24), yt = k === tiers - 1 ? top : lerp(base, top, (k + 1.35) / tiers);
-            B.dark.moveTo(q[0] - w, y0); B.dark.lineTo(q[0], yt); B.dark.lineTo(q[0] + w, y0); B.dark.closePath();
-            B.lit.moveTo(q[0] - w, y0); B.lit.lineTo(q[0], yt); B.lit.lineTo(q[0] - w * 0.1, y0); B.lit.closePath();
+            B.dark.moveTo(q[0] - w, y0); B.dark.lineTo(q[0], yt); B.dark.lineTo(q[0] + w, y0);
+            B.lit.moveTo(q[0] - w, y0); B.lit.lineTo(q[0], yt); B.lit.lineTo(q[0] - w * 0.1, y0);
             if (p.winter && p.deep > 0.2) {
               const sw = w * 0.62, sy = lerp(y0, yt, 0.55);
-              B.snow.moveTo(q[0], yt - 0.5); B.snow.lineTo(q[0] + sw * 0.5, sy); B.snow.lineTo(q[0] + sw * 0.1, sy + (y0 - sy) * 0.12); B.snow.lineTo(q[0] - sw * 0.35, sy - (y0 - sy) * 0.05); B.snow.lineTo(q[0] - sw * 0.55, sy + (y0 - sy) * 0.1); B.snow.closePath();
-              B.snow.moveTo(q[0] - w * 0.95, y0); B.snow.lineTo(q[0] - w * 0.55, y0 - (y0 - yt) * 0.22); B.snow.lineTo(q[0] - w * 0.2, y0 - (y0 - yt) * 0.05); B.snow.closePath();
+              B.snow.moveTo(q[0], yt - 0.5); B.snow.lineTo(q[0] + sw * 0.5, sy); B.snow.lineTo(q[0] + sw * 0.1, sy + (y0 - sy) * 0.12); B.snow.lineTo(q[0] - sw * 0.35, sy - (y0 - sy) * 0.05); B.snow.lineTo(q[0] - sw * 0.55, sy + (y0 - sy) * 0.1);
+              B.snow.moveTo(q[0] - w * 0.95, y0); B.snow.lineTo(q[0] - w * 0.55, y0 - (y0 - yt) * 0.22); B.snow.lineTo(q[0] - w * 0.2, y0 - (y0 - yt) * 0.05);
             }
           }
           B.trunk.rect(q[0] - 0.14 * s, base - 0.9 * s, 0.28 * s, 0.9 * s);

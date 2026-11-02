@@ -161,14 +161,19 @@
     loadSamples();
   }
 
+  function bytesOf(b64) {
+    if (typeof Uint8Array.fromBase64 === 'function') return Uint8Array.fromBase64(b64);
+    const bin = root.atob(b64), bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
+
   function decode(b64) {
     return new Promise((done) => {
       let over = false;
       const finish = (buf) => { if (!over) { over = true; done(buf || null); } };
       try {
-        const bin = root.atob(b64), bytes = new Uint8Array(bin.length);
-        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-        const p = ctx.decodeAudioData(bytes.buffer, finish, () => finish(null));
+        const p = ctx.decodeAudioData(bytesOf(b64).buffer, finish, () => finish(null));
         if (p && p.then) p.then(finish, () => finish(null));
       } catch (e) { finish(null); }
     });

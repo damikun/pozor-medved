@@ -272,11 +272,11 @@
     const tree = (sx, y, h, hw) => {
       const b = y + 8, tip = b - h;
       dark.moveTo(sx - hw, b); dark.lineTo(sx - hw * 0.34, b - h * 0.42); dark.lineTo(sx - hw * 0.58, b - h * 0.4); dark.lineTo(sx, tip);
-      dark.lineTo(sx + hw * 0.58, b - h * 0.4); dark.lineTo(sx + hw * 0.34, b - h * 0.42); dark.lineTo(sx + hw, b); dark.closePath();
-      lit.moveTo(sx - hw, b); lit.lineTo(sx - hw * 0.34, b - h * 0.42); lit.lineTo(sx - hw * 0.58, b - h * 0.4); lit.lineTo(sx, tip); lit.lineTo(sx + 1, b); lit.closePath();
+      dark.lineTo(sx + hw * 0.58, b - h * 0.4); dark.lineTo(sx + hw * 0.34, b - h * 0.42); dark.lineTo(sx + hw, b);
+      lit.moveTo(sx - hw, b); lit.lineTo(sx - hw * 0.34, b - h * 0.42); lit.lineTo(sx - hw * 0.58, b - h * 0.4); lit.lineTo(sx, tip); lit.lineTo(sx + 1, b);
       snow.moveTo(sx, tip - 0.6); snow.lineTo(sx + hw * 0.27, b - h * 0.68); snow.lineTo(sx + hw * 0.08, b - h * 0.71);
-      snow.lineTo(sx - hw * 0.06, b - h * 0.64); snow.lineTo(sx - hw * 0.3, b - h * 0.69); snow.closePath();
-      snow.moveTo(sx - hw * 0.58, b - h * 0.41); snow.lineTo(sx - hw * 0.3, b - h * 0.47); snow.lineTo(sx - hw * 0.5, b - h * 0.33); snow.closePath();
+      snow.lineTo(sx - hw * 0.06, b - h * 0.64); snow.lineTo(sx - hw * 0.3, b - h * 0.69);
+      snow.moveTo(sx - hw * 0.58, b - h * 0.41); snow.lineTo(sx - hw * 0.3, b - h * 0.47); snow.lineTo(sx - hw * 0.5, b - h * 0.33);
     };
     for (let sx = -((rx % 26) + 26); sx < viewW + 26; sx += 26) {
       const k = Math.round((sx + rx) / 26), y = ZS.silhouetteY(pts, sx + rx), h1 = hash(k * 1.31), h2 = hash(k * 2.17);

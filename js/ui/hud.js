@@ -3,11 +3,12 @@
   const $ = (id) => document.getElementById(id);
   const NEWS_HOLD = 2;
   let badgeHtml = '', levelId = null, reachOn = null, icons = null, rideOn = null;
-  const tv = { hold: 0, next: null };
+  const tv = { hold: 0, next: null }, shown = {};
 
   const TOUCH = { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'hide', ArrowUp: 'jump', KeyC: 'hug', KeyX: 'bite' };
 
-  function bar(id, value) { $(id).querySelector('i').style.width = value + '%'; }
+  function bar(id, value) { const v = value + '%'; if (shown[id] !== v) { shown[id] = v; $(id).querySelector('i').style.width = v; } }
+  function text(id, v) { if (shown[id] !== v) { shown[id] = v; $(id).textContent = v; } }
 
   function relabel() {
     const B = UI.bars;
@@ -50,9 +51,9 @@
     bar('barSyn', g.syn);
     bar('barPanic', g.panic);
     bar('barTrip', Math.min(100, (b.x / g.level.goalDen) * 100));
-    $('season').textContent = T.seasons[g.seasonKey] + ' · ' + T.until + ' ' + Math.ceil(Math.max(0, g.def.year - g.time)) + ' s';
-    $('lives').textContent = '❤️'.repeat(Math.max(0, g.lives)) + ' · ' + UI.hugGoal(g.stats.hugs + g.stats.selfies)
-      + (b.hiding ? ' · ' + (b.hiding.hay ? UI.inHay : UI.behindTree) : b.inSpray ? ' · ' + UI.inSpray : '');
+    text('season', T.seasons[g.seasonKey] + ' · ' + T.until + ' ' + Math.ceil(Math.max(0, g.def.year - g.time)) + ' s');
+    text('lives', '❤️'.repeat(Math.max(0, g.lives)) + ' · ' + UI.hugGoal(g.stats.hugs + g.stats.selfies)
+      + (b.hiding ? ' · ' + (b.hiding.hay ? UI.inHay : UI.behindTree) : b.inSpray ? ' · ' + UI.inSpray : ''));
     const B = UI.badges, list = [];
     if (g.problem) list.push(badge(B.problem));
     if (g.flags.cull) list.push(badge(B.cull));

@@ -234,9 +234,9 @@
     }
     if (L.ice && span(L.ice.from, L.ice.to, 80)) ZS.winterArt.ice(ctx, L.ice.from, L.ice.to, g.time);
     for (const h of L.holes) if (vis(h.x, 60)) ZS.winterArt.hole(ctx, h.x, g.time);
-    P.den(ctx, L.startDen, false, T.startDen, g.time, g);
+    if (vis(L.startDen, 240)) P.den(ctx, L.startDen, false, T.startDen, g.time, g);
     const hugged = ZS.sim.rules.hugged(g);
-    P.den(ctx, L.goalDen, hugged && g.fat >= g.def.fatGoal, T.goalDen, g.time, g);
+    if (vis(L.goalDen, 240)) P.den(ctx, L.goalDen, hugged && g.fat >= g.def.fatGoal, T.goalDen, g.time, g);
     if (!hugged && vis(L.goalDen, 120)) denStamp(ctx, g);
     for (const h of L.houses) if (vis(h.x, 220)) P.house(ctx, h, g);
     landmarks(ctx, g, vis, span, withBear);
