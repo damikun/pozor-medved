@@ -205,7 +205,7 @@
       label(ctx, f.text, f.x, f.y - (1.6 - f.t) * 30, 16, f.color);
       ctx.globalAlpha = 1;
     }
-    if (g.bubble) P.bubble(ctx, b.x, b.climbing ? b.y - 128 : GY - 180, g.bubble.text, g.bubble.t);
+    if (g.bubble) P.bubble(ctx, b.x, b.climbing || b.offTree ? Math.min(b.y - 128, GY - 180) : GY - 180, g.bubble.text, g.bubble.t);
   }
 
   ZS.draw = function (g, ctx, viewW, offY) {

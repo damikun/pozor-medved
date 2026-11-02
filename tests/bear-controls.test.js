@@ -323,6 +323,40 @@ test('jumping off a tree with ↑ still held drops to the ground without grabbin
   assert.ok(b.onGround, 'landed');
 });
 
+test('jumping off a tree carries the bear clear of the trunk a few units per frame, so the view never jumps', () => {
+  const { b, tree, play, press, release } = standAtTrunk();
+  press('ArrowUp');
+  play(90);
+  release('ArrowUp');
+  assert.equal(b.climbing, tree);
+  const side = b.dir;
+  press('Space');
+  let last = b.x, biggest = 0;
+  for (let i = 0; i < 90; i++) {
+    play(1);
+    biggest = Math.max(biggest, Math.abs(b.x - last));
+    last = b.x;
+  }
+  assert.ok(biggest <= 6, 'largest move in one frame ' + biggest.toFixed(1));
+  assert.ok(b.onGround && !b.climbing, 'landed');
+  assert.ok((b.x - tree.x) * side >= tree.w / 2 + 20, 'clear of the trunk');
+});
+
+test('the arrow held when jumping off a tree picks the side', () => {
+  const { b, tree, play, press, hold, release } = standAtTrunk();
+  press('ArrowUp');
+  play(90);
+  release('ArrowUp');
+  assert.equal(b.dir, 1);
+  hold('ArrowLeft');
+  press('Space');
+  play(1);
+  release('ArrowLeft');
+  play(90);
+  assert.ok(b.onGround && !b.climbing, 'landed');
+  assert.ok(b.x <= tree.x - tree.w / 2 - 20, 'left of the trunk by ' + Math.round(tree.x - b.x));
+});
+
 test('on the ice ↑ held does not grab a thick trunk while sliding, only once the bear stops at it', () => {
   const { b, L, play, hold, release } = setup();
   const tree = thickBeech(L);

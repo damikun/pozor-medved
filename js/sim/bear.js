@@ -4,7 +4,7 @@
   const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
   const HALF = 38;
-  const CLIMB_UP = 110, CLIMB_DOWN = 170, WAKE = 2.6, HOLD = 0.18;
+  const CLIMB_UP = 110, CLIMB_DOWN = 170, WAKE = 2.6, HOLD = 0.18, PUSH = 260;
   const COLD = { advent: 0.35, snow: 0.7, frost: 1 };
   const FENCE = { top: 44, nose: 40, rump: 24, feet: 20, stun: 0.8, kick: 300, hop: 240, said: 40 };
   const ROOF = 44, NONE = [];
@@ -16,7 +16,7 @@
       stamina: 1, tired: false, noiseT: 0, eating: false, eatT: 0,
       climbing: null, climbV: 0, climbT: 0, inCanopy: false, covered: false, upT: 0, offTree: false,
       act: null, waking: !!L && L.theme === 'winter', wakeT: 0, slide: 0, cold: 0, tag: false, inSpray: false, onIce: false,
-      trackD: 0, trackX: 240, stun: 0, zapT: 9, zapX: 0, kx: 0, crawl: false, bumpT: 0,
+      trackD: 0, trackX: 240, stun: 0, zapT: 9, zapX: 0, kx: 0, crawl: false, bumpT: 0, push: 0,
     };
   }
 
@@ -136,14 +136,15 @@
     return GY - t.h - t.r * 0.1;
   }
 
-  function climb(g, b, dt, up, down, jump) {
+  function climb(g, b, dt, up, down, jump, dx) {
     const t = b.climbing;
     b.running = false; b.moving = false; b.crouch = false; b.hiding = null; b.eating = false; b.vx = 0;
     b.climbT += dt;
     b.x += (t.x - b.x) * Math.min(1, dt * 12);
     if (jump) {
+      if (dx) b.dir = dx;
       b.climbing = null; b.inCanopy = false; b.covered = false; b.offTree = true;
-      b.x = t.x + b.dir * (t.w / 2 + 24); b.vy = -150; b.onGround = false;
+      b.push = t.x + b.dir * (t.w / 2 + 24) - b.x; b.vy = -150; b.onGround = false;
       rules().onSound(g, 'jump', b.x);
       return;
     }
@@ -353,6 +354,14 @@
     if (target) E.begin(g, b.act);
   }
 
+  function pushOff(g, b, dt) {
+    if (!b.push) return;
+    if (b.climbing || b.hiding || b.act || b.stun > 0) { b.push = 0; return; }
+    const step = Math.sign(b.push) * Math.min(Math.abs(b.push), PUSH * dt);
+    b.x = moveX(g, b, b.x + step);
+    b.push = Math.abs(b.push - step) < 0.01 ? 0 : b.push - step;
+  }
+
   function wake(g, b, dt, input) {
     if (!b.wakeSaid && g.level.theme === 'winter' && g.time > 0.9) { b.wakeSaid = true; rules().quip(g, ZS.QUIPS.wake, true); }
     if (!b.waking) return;
@@ -380,7 +389,7 @@
     b.tag = g.problem;
     b.cold = g.level.theme === 'winter' ? COLD[g.seasonKey] || 0 : 0;
     wake(g, b, dt, left || right || hide || jump || bite || hug);
-    if (b.climbing) { climb(g, b, dt, up, hide, jump && inp.jumpKey === 'Space'); return; }
+    if (b.climbing) { climb(g, b, dt, up, hide, jump && inp.jumpKey === 'Space', (right ? 1 : 0) - (left ? 1 : 0)); return; }
 
     if (b.act && (b.act.t += dt) >= b.act.dur) b.act = null;
     if (!b.act && !b.stun && (bite || hug) && b.onGround && !b.hiding && !underRoof(g.level, b)) startAct(g, b, bite ? 'bite' : 'hug');
@@ -401,6 +410,7 @@
         walkClimbOrJump(g, b, dt, left, right, hide, jump);
       }
     }
+    pushOff(g, b, dt);
     updatePhysics(g, b, dt);
     zapCheck(g, b);
     const shed = shedOf(g.level);
