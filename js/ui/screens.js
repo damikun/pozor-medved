@@ -114,7 +114,7 @@
       .map(([k, n]) => `<div class="stat"><b>${n}</b><span>${S[k]}</span></div>`).join('');
     const next = kind === 'win' && g.level.id === 'summer';
     const G = UI.goals, hugs = st.hugs + st.selfies, goal = g.def.fatGoal;
-    const goals = `<p class="goals">${G.fat} ${Math.floor(g.fat)}\u00a0/ ${UI.pct(goal)} ${g.fat >= goal ? G.ok : G.no} · ${G.hug} ${Math.min(1, hugs)}\u00a0/ 1 ${hugs > 0 ? G.ok : G.no}</p>`;
+    const goals = `<p class="goals">${G.fat} ${Math.floor(g.fat)}\u00a0/ ${UI.pct(goal)} ${g.fat >= goal ? G.ok : G.no} · ${G.hug} ${Math.min(1, hugs)}\u00a0/ 1 ${hugs > 0 ? G.ok : G.no} · ${G.den} ${kind === 'win' ? G.ok : G.no}</p>`;
     show(`<h2>${e.title}</h2>
       <p>${text}</p>
       ${goals}

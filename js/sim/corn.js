@@ -19,7 +19,7 @@
   }
 
   const zones = (L) => (L ? L.keepOut || (L.keepOut = [field(L)].concat((L.cannons || []).map((c) => {
-    const a = c.x + c.dir * 50, e = c.x + c.dir * 230;
+    const a = c.x - c.dir * 60, e = c.x + c.dir * 370;
     return { from: Math.min(a, e), to: Math.max(a, e) };
   })).filter(Boolean)) : []);
 

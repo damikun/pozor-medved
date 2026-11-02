@@ -1222,7 +1222,7 @@
     const sway = pose === 'sweat' ? Math.sin(ht * 2.1) * 2 + Math.sin(ht * 3.4 + 1) * 0.6 : 0;
     const sd = s.side < 0 ? -1 : 1, peek = pose === 'peek' ? peekAmt(ht, f) * smooth(Math.abs(s.side)) : 0;
     const shake = f * (Math.sin(time * 47) * 0.45 + Math.sin(time * 29 + 1) * 0.3);
-    return { t: b.hiding, h: b.hiding.hide ? b.hiding.w / 2 : 27, ht, f, pose, sd, side: s.side, peek, br: Math.sin(ht * (pose === 'stiff' ? 1.3 : 2)),
+    return { t: b.hiding, h: b.hiding.w / 2, ht, f, pose, sd, side: s.side, peek, br: Math.sin(ht * (pose === 'stiff' ? 1.3 : 2)),
       dx: shake + sway + sd * peek * 1.4, tilt: pose === 'sweat' ? Math.sin(ht * 2.1) * 1.2 : 0, tag: s.tg };
   }
 
@@ -1269,16 +1269,112 @@
     ctx.restore();
   }
 
+  const BIRCH = 5.2;
+  function birchState(b, s, time) {
+    const ht = b.hideT || 0, f = s.fear, u = frac(ht / BIRCH) * BIRCH, ex = u - 4.3;
+    const shut = smooth((u - 2.4) / 0.25) * (1 - smooth((u - 4.2) / 0.2));
+    const suck = smooth(u / 0.35) * (1 - smooth(ex / 0.22));
+    const shake = f * (Math.sin(time * 47) * 0.45 + Math.sin(time * 29 + 1) * 0.3);
+    const Q = { t: b.hiding, ht, f, u, shut, suck, n: Math.floor(ht / BIRCH), side: clamp(s.side, -1, 1), tag: s.tg,
+      wob: ex > 0 ? Math.sin(ex * 13) * Math.exp(-ex * 4.5) : 0, br: Math.sin(time * 2.2) * (1 - suck),
+      dart: hold(ht, 1.9, 0.38, 0.07, 0.6) * (1 - 0.7 * f) * (1 - shut), dx: shake + Math.sin(ht * 1.7) * 0.6 };
+    Q.bw = 39 - 5.5 * suck + 3 * Q.wob + 0.8 * Q.br; Q.cw = 19 + 2.5 * suck; Q.ch = -82 - 2.5 * suck - 2 * shut + 0.4 * Q.br;
+    return Q;
+  }
+  const pawY = (Q, σ) => GY + Q.ch + (σ < 0 ? 17 : 25) + 0.3 * Q.br;
+
+  function birchBody(ctx, Q, K, time, X, gx) {
+    const bw = Q.bw, cw = Q.cw, ch = Q.ch;
+    for (const σ of [-1, 1]) {
+      ctx.fillStyle = K.leg; seg(ctx, σ * bw * 0.5, -20, 10, σ * 21.5, -7, 7.6);
+      ctx.fillStyle = K.far; ell(ctx, σ * 23, -3.2, 10, 4.6, σ * 0.08);
+      ctx.fillStyle = K.leg; ell(ctx, σ * 22.6, -4, 9.4, 4.4, σ * 0.08);
+      ctx.strokeStyle = K.clawFar; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+      ctx.beginPath();
+      for (let i = 0; i < 4; i++) { const x = σ * (22 + (i - 1) * 3.6); ctx.moveTo(x, -1.6); ctx.lineTo(x + σ * 0.5, 0.9); }
+      ctx.stroke();
+      claws(ctx, [0, 1, 2, 3].map((i) => { const x = σ * (22 + (i - 1) * 3.6); return [x, -1.4, x + σ * 0.5, 0.7]; }), K.claw, 0.8);
+    }
+    const R = [[cw * 0.55, ch - 1], [cw + 1.5, ch + 6], [cw + 7 + 0.4 * (bw - 39), -63], [bw - 3, -51], [bw, -37], [bw - 2.5, -25], [bw - 9, -15], [bw * 0.42, -10.5]];
+    const pts = [[0, ch - 2]].concat(R, [[0, -11.5]], R.slice().reverse().map(([x, y]) => [-x, y]));
+    ctx.fillStyle = K.fur; blob(ctx, pts); ctx.fill();
+    if (Q.f > 0.05) bristle(ctx, pts, 0.35 * Q.f, K);
+    ctx.save(); blob(ctx, pts); ctx.clip();
+    for (const [x, y, rx, ry, col] of [[0, -12, 36, 10, C.shade], [-bw - 3, -44, 11, 34, C.soft], [bw + 3, -44, 11, 34, C.soft],
+      [0, ch + 3, 21, 5.5, C.light], [0, -40, 16, 22, 'rgba(255,226,190,0.07)'], [0, -20, 22, 6, C.soft]]) { ctx.fillStyle = col; ell(ctx, x, y, rx, ry); }
+    ctx.restore();
+    for (const σ of [-1, 1]) {
+      const y = pawY(Q, σ) - GY, ex = (edgeX(Q.t, σ, GY + y) - X) / gx + σ * 1.5, sx = σ * (cw - 4), sy = ch + 8;
+      ctx.fillStyle = C.shade; seg(ctx, sx, sy + 2.5, 7.5, ex, y + 2.5, 5.5);
+      ctx.fillStyle = K.fur; seg(ctx, sx, sy, 7.5, ex, y, 5.5);
+      ctx.fillStyle = C.light; ell(ctx, lerp(sx, ex, 0.4), lerp(sy, y, 0.4) - 4.5, 6, 2, Math.atan2(y - sy, ex - sx));
+    }
+  }
+
+  function birchHead(ctx, Q, K, time) {
+    const pk = 1 - Q.shut, sd = Q.side, ch = Q.ch;
+    const hx = sd * lerp(10, 12, pk), hy = ch - 9 + 3.5 * Q.shut - 1.2 * Q.suck + Math.sin(time * 1.7) * 0.3;
+    const yaw = Math.PI / 2 - sd * lerp(0.5, 0.62, pk), rot = sd * (0.16 * pk + 0.05) - sd * 0.08 * Q.shut, sc = 1.32;
+    const tw = Math.pow(Math.max(0, Math.sin(Q.ht * 1.9 + 1.3)), 18) * Math.sin(Q.ht * 38);
+    ctx.save();
+    ctx.translate(hx, hy); ctx.rotate(rot); ctx.scale(sc, sc);
+    const n = head(ctx, { yaw, tilt: 0.04 * Math.sin(time * 1.3) + 0.12 * Q.shut, ears: 0.3 + 0.6 * Q.f + 0.3 * Q.shut, flick: tw, wide: (0.6 + 0.4 * Q.f) * pk,
+      look: [2.2 - 4.4 * Q.dart, 0.25 - 0.4 * Q.dart], shut: Q.shut, arc: -0.3, brow: Math.max(Q.shut, 0.5 * Q.f), tag: Q.tag, sway: 0.1 * Math.sin(time * 2.3) }, K);
+    ctx.restore();
+    for (let i = 0; i < 2 + (Q.f > 0.3 ? 1 : 0); i++) {
+      const v = frac(time / (1.1 + 0.3 * i) + i * 0.41), a = Math.sin(Math.PI * v) * (0.55 + 0.45 * Q.f);
+      drop(ctx, hx + sd * (8.5 + 3 * i - 1.5 * v), hy - 9 + 3 * i + v * 7, a);
+    }
+    const c = Math.cos(rot), s = Math.sin(rot);
+    return { x: hx + sc * (n[0] * c - n[1] * s), y: hy + sc * (n[0] * s + n[1] * c), d: Math.cos(yaw) < 0 ? -1 : 1 };
+  }
+
+  function birch(ctx, b, s, time, u) {
+    const Q = birchState(b, s, time), K = C, e = smooth(u);
+    const X = lerp(b.x, Q.t.x, smooth(u * 2)) + Q.dx, gx = lerp(0.6, 1, e), gy = lerp(0.94, 1, e);
+    ctx.fillStyle = 'rgba(0,0,0,0.12)'; ell(ctx, X, GY + 1, 38 * gx, 4.5);
+    ctx.save();
+    ctx.translate(X, GY); ctx.scale(gx, gy);
+    birchBody(ctx, Q, K, time, X, gx);
+    const n = birchHead(ctx, Q, K, time);
+    ctx.restore();
+    const big = Q.u >= 4.3 && s.bex !== Q.n;
+    if (big) s.bex = Q.n;
+    if (s.cold > 0.04 && (big || (s.due && Q.suck < 0.3))) {
+      const i = s.vn % 4, p = s.puffs[i] || (s.puffs[i] = { x: 0, y: 0, t: 0, d: 1, n: 0, k: 1, v: 0, m: 0 });
+      p.x = X + n.x * gx; p.y = GY + n.y * gy; p.t = time; p.d = n.d; p.n = s.vn++; p.k = big ? 2 : 1; p.v = 0; p.m = 1;
+    }
+    s.due = 0;
+  }
+
+  function birchFront(ctx, b, s, time) {
+    const Q = birchState(b, s, time), t = Q.t, K = C;
+    for (const σ of [1, -1]) {
+      const y = pawY(Q, σ), ex = edgeX(t, σ, y), g = 0.5 * Q.f;
+      ctx.fillStyle = K.far; seg(ctx, ex + σ * 2.4, y - 0.6, 4.8, ex - σ * 1.4, y + 0.9, 5.1);
+      ctx.fillStyle = K.fur; seg(ctx, ex + σ * 2.4, y - 1.3, 4.6, ex - σ * 1.4, y, 4.9);
+      ctx.fillStyle = C.light; ell(ctx, ex - σ * 0.2, y - 2.9, 3.4, 1.4);
+      const L = [0, 1, 2].map((i) => {
+        const tap = bump(time, 2.3, 0.14, -i * 0.08) * (1 - Q.f), cy = y - 2.6 + i * 2.6 - 1.1 * tap;
+        return [ex - σ * (5.4 - g), cy, ex - σ * (7.6 - g), cy + 1.3 + 0.4 * tap];
+      });
+      claws(ctx, L, K.pad, 1.8);
+      claws(ctx, L, K.claw, 1);
+    }
+    puffs(ctx, s, time, 1);
+  }
+
   ZS.drawBearBehindTree = function (ctx, b, time) {
     if (!b.hiding) return;
-    const s = track(b, time);
-    enter(s, 'hide');
+    const s = track(b, time), bare = !b.hiding.hide;
+    enter(s, bare ? 'birch' : 'hide');
     const k = b.hideT == null ? 1 : clamp(b.hideT / RISE, 0, 1), x = b.hiding.x;
     faded(ctx, Math.min(x, b.x) - 150, GY - 190, Math.max(x, b.x) + 150, GY + 20, (c) => {
       if (k < SPLIT) {
         const r = smooth(k / SPLIT);
-        side(c, b, s, time, { rear: r, squeeze: 1 - 0.4 * smooth((k - 0.2) / (SPLIT - 0.2)), scale: lerp(1, 0.88, r), pal: mixPal(0.8 * r) });
-      } else upright(c, b, s, time, (k - SPLIT) / (1 - SPLIT));
+        side(c, b, s, time, { rear: r, squeeze: 1 - 0.4 * smooth((k - 0.2) / (SPLIT - 0.2)), scale: lerp(1, 0.88, r), pal: bare ? C : mixPal(0.8 * r) });
+      } else if (bare) birch(c, b, s, time, (k - SPLIT) / (1 - SPLIT));
+      else upright(c, b, s, time, (k - SPLIT) / (1 - SPLIT));
     });
   };
 
@@ -1364,9 +1460,15 @@
     const s = track(b, time);
     const a = b.hideT == null ? 1 : smooth((b.hideT / RISE - 0.75) / 0.25);
     if (a <= 0) return;
-    const Q = hideState(b, s, time), t = Q.t, K = HID;
     ctx.save();
     ctx.globalAlpha *= a;
+    if (!b.hiding.hide) {
+      const x = b.hiding.x;
+      faded(ctx, x - 150, GY - 190, x + 150, GY + 10, (c) => birchFront(c, b, s, time));
+      ctx.restore();
+      return;
+    }
+    const Q = hideState(b, s, time), t = Q.t, K = HID;
     faded(ctx, t.x - 150, GY - 190, t.x + 150, GY + 10, (c) => {
       if (Q.pose === 'hug') {
         for (const σ of [-1, 1]) {

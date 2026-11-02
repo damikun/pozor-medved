@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const { createCanvas, makePath2D } = require('./mock-canvas');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const HEADLESS = /^js\/(core|lang|world|sim|dev)\/|^js\/render\/fx\.js$|^js\/ui\/input\.js$/;
+const HEADLESS = /^js\/(core|lang|world|sim|dev)\/|^js\/render\/fx\.js$|^js\/ui\/(input|tally)\.js$/;
 const RENDERER = /^js\/render\//;
 const AUDIO = /^js\/ui\/(audio|sounds)\.js$/;
 

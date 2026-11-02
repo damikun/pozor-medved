@@ -156,7 +156,7 @@
       const o = b.reach, post = o.post, ph = o.kind === 'photographer', pose = ph;
       ctx.globalAlpha = 0.92;
       label(ctx, post ? (ZS.sim.ladder.at(g) === post ? LABELS.interactLadder : LABELS.interactStand) : pose ? LABELS.interactPose : o.kind === 'tourist' ? LABELS.interactSelfie : LABELS.interact,
-        post ? post.x : pose ? b.x : o.x, (post ? GY - 92 : pose ? GY - 118 : ph ? GY - 66 : GY - 108) - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
+        post ? post.x : pose ? Math.max(g.cam + 120, Math.min(g.cam + g.viewW - 120, o.x)) : o.x, (post ? GY - 92 : ph ? GY - 66 : GY - 108) - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
       ctx.globalAlpha = 1;
     }
   }
@@ -256,7 +256,7 @@
     for (const p of L.posts) if (vis(p.x, 80)) P.post(ctx, p, g);
     if (b.climbing && b.climbing.ladder) withBear(ZS.drawBearOnLadder);
     for (const lg of L.logs) if (vis(lg.x, 80)) P.log(ctx, lg, g);
-    for (const it of L.items) if (!it.eaten && !OWN_ART[it.type] && vis(it.x, 60)) P.item(ctx, it, g.time, g);
+    for (const it of L.items) if ((!it.eaten || P.left(it)) && !OWN_ART[it.type] && vis(it.x, 60)) P.item(ctx, it, g.time, g);
     for (const p of g.props) if (vis(p.x, 60)) ZS.drawDropped(ctx, p, g.time);
     ZS.fx.drawBack(ctx, g, viewW);
     figures(ctx, g, vis, held);

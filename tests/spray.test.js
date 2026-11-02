@@ -11,7 +11,7 @@ test('hunters and people never walk into the snow cannon spray, careful or runni
     Object.assign(ZS.dev.bot, { reaction: 0.4, mode });
     const g = ZS.sim.rules.create(ZS.ui.input.state, { viewW: 480, bot: true, level: 'winter' });
     g.running = true;
-    const Z = g.level.cannons.map((c) => [Math.min(c.x + c.dir * 50, c.x + c.dir * 230), Math.max(c.x + c.dir * 50, c.x + c.dir * 230)]);
+    const Z = g.level.cannons.map((c) => [Math.min(c.x - c.dir * 60, c.x + c.dir * 370), Math.max(c.x - c.dir * 60, c.x + c.dir * 370)]);
     let worst = null, n = 0;
     for (let i = 0; i < 400 * 60 && !g.over; i++) {
       ZS.sim.loop.step(g, DT);
@@ -31,7 +31,7 @@ test('a hunter walking toward the spray turns at its edge', () => {
   const g = ZS.sim.rules.create(ZS.ui.input.state, { viewW: 960, level: 'winter' });
   g.running = true; g.nextEvent = 1e9; g.bear.waking = false;
   g.people = []; g.dogs = []; g.deer = [];
-  const c = g.level.cannons[1], to = c.x + c.dir * 230;
+  const c = g.level.cannons[1], to = c.x + c.dir * 370;
   const s = ZS.sim.hunters.create(g, 'walker', { x: to + 140, dir: -1 });
   s.from = null; s.to = null;
   g.shooters = [s];

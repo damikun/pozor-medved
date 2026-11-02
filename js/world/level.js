@@ -54,9 +54,9 @@
     }
   }
 
-  function honey(L, n) {
+  function honey(L, n, type) {
     L.trees.filter((t) => t.kind === 'buk' && t.h > 235 && t.x > 600).filter((t, i) => i % 2 === 0).slice(0, n)
-      .forEach((t) => add(L, 'wildhoney', t.x + 6, { y: GY - t.h + 14 }));
+      .forEach((t) => add(L, type || 'wildhoney', t.x + 6, { y: GY - t.h + 14 }));
   }
 
   function hills(L) {

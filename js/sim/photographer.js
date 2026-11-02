@@ -17,7 +17,7 @@
 
   function shout(g, p, text) {
     const x = Math.max(g.cam + 90, Math.min(g.cam + g.viewW - 90, p.x));
-    rules().float(g, x, GY - 70, text, COLORS.story);
+    rules().float(g, x, GY - 100, text, COLORS.story);
   }
 
   const ready = (g, p) => g.time >= p.readyAt && !p.react;

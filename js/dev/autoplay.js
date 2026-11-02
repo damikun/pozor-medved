@@ -115,7 +115,7 @@
     else if (b.x >= L.goalDen - 40) pilot.back = true;
     if (b.act) return;
     if (b.climbing) {
-      const honey = L.items.find((it) => !it.eaten && it.type === 'wildhoney' && Math.abs(it.x - b.climbing.x) < 20);
+      const honey = L.items.find((it) => !it.eaten && (it.type === 'wildhoney' || it.type === 'stash') && Math.abs(it.x - b.climbing.x) < 20);
       keys.add(honey || danger ? 'ArrowUp' : 'ArrowDown');
       return;
     }
@@ -123,7 +123,7 @@
     const st = b.reach && b.reach.post ? b.reach : null;
     if (!runner && st && st.shooter && !st.shooter.react && g.time - pilot.alarm < 3) { g.input.hugPressed = true; return; }
     if (!danger && !runner && (b.onGround || b.vy < 0)) {
-      const honey = L.items.find((it) => !it.eaten && it.type === 'wildhoney' && Math.abs(it.x - b.x) < 26);
+      const honey = L.items.find((it) => !it.eaten && (it.type === 'wildhoney' || it.type === 'stash') && Math.abs(it.x - b.x) < 26);
       if (honey) { if (b.onGround) jump(g, 'ArrowUp'); keys.add('ArrowUp'); return; }
     }
     if (b.inWater && !danger && !runner) {

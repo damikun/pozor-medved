@@ -89,7 +89,7 @@
       || (fx > L.lot.from - 20 && fx < L.lot.to + 20)
       || spray(fx), 11,
     (r) => (r < 0.32 ? 'rosehip' : r < 0.7 ? 'snownut' : 'rowan'));
-    K.honey(L, 4);
+    K.honey(L, 4, 'stash');
     L.holes.forEach((h) => K.add(L, 'fish', h.x, { y: GY + 30, hidden: true, jumpT: 1 + rng() * 2, jump: -1, label: LABELS.icefish }));
     L.items.sort((a, b) => a.x - b.x);
 

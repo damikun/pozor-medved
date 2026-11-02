@@ -36,7 +36,23 @@ canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
 #touch .act button[data-key="KeyX"] { background: rgba(163, 38, 31, 0.8); }
 .bar em { position: absolute; top: 0; bottom: 0; left: 60%; width: 2px; background: #fff; opacity: 0.8; z-index: 1; }
 .side { background: rgba(20, 26, 16, 0.65); color: #fff; border-radius: 6px; padding: 4px 10px; font-size: 13px; font-weight: 600; line-height: 1.5; }
-#badges { display: flex; flex-direction: column; gap: 4px; margin-left: auto; align-items: flex-end; }
+#badges { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+#goals { display: flex; flex-wrap: wrap; gap: 4px; margin: 3px 0 2px; }
+.goal { display: inline-flex; align-items: center; gap: 4px; padding: 0 7px 0 5px; border-radius: 10px; background: rgba(255, 255, 255, 0.1); font-size: 12px; line-height: 20px; transition: background-color 0.9s, color 0.9s, box-shadow 0.9s; }
+.goal i { font-style: normal; }
+.goal b { font-weight: 600; opacity: 0.85; }
+.goal em { font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; }
+.goal em:empty { display: none; }
+.goal.done { color: #c6f2d4; }
+.goal.next { box-shadow: inset 0 0 0 1.5px rgba(240, 192, 48, 0.9); }
+.goal.just { background: rgba(47, 125, 79, 0.95); transition: none; }
+#hud .right { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+#hud.ride .right { margin-right: 46px; }
+#tray { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; max-width: 360px; padding: 5px 6px; border-radius: 8px; background: rgba(20, 26, 16, 0.65); color: #fff; font: 700 14px/26px var(--font); }
+#tray .chip { display: inline-flex; align-items: center; gap: 5px; padding: 0 10px 0 7px; border-radius: 13px; background: rgba(255, 255, 255, 0.12); white-space: nowrap; transition: background-color 1s, box-shadow 1s; }
+#tray .chip i { font-style: normal; font-size: 18px; line-height: 1; }
+#tray .chip b { font-weight: 700; font-variant-numeric: tabular-nums; }
+#tray .chip.up { background: rgba(240, 192, 48, 0.35); box-shadow: inset 0 0 0 1.5px rgba(240, 192, 48, 0.7); transition: none; }
 .badge { background: #c0392b; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; }
 .badge.calm { background: #2f7d4f; }
 .badge.dark { background: #333; }
@@ -176,6 +192,12 @@ canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
   .bar { height: 18px; }
   .bar span { line-height: 18px; font-size: 11px; }
   .side { font-size: 12px; }
+  .goal b { display: none; }
+  .goal { font-size: 11px; line-height: 18px; padding: 0 6px 0 4px; }
+  #tray { max-width: 190px; padding: 4px; gap: 3px; font-size: 13px; line-height: 22px; }
+  #tray .chip { padding: 0 6px 0 4px; gap: 2px; border-radius: 11px; }
+  #tray .chip i { font-size: 15px; }
+  #hud.ride .right { margin-right: 0; }
   #ticker { min-height: 30px; font-size: 13px; line-height: 1.25; }
   .tv-label { position: absolute; left: 0; bottom: 100%; height: 19px; font-size: 11px; box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.25); }
   .tv-bug b { padding: 0 5px 0 7px; }

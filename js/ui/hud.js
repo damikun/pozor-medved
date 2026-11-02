@@ -4,6 +4,10 @@
   const NEWS_HOLD = 2;
   let badgeHtml = '', levelId = null, reachOn = null, icons = null, rideOn = null;
   const tv = { hold: 0, next: null }, shown = {};
+  const GOALS = { fat: '🍯', hug: '🤗', den: '💤' }, JUST = 1.6;
+  const TALLY = { hunters: '🎩', stands: '🪜', trees: '🌲', photos: '📸' };
+  let tally = {};
+  let goalOn = {};
 
   const TOUCH = { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'hide', ArrowUp: 'jump', KeyC: 'hug', KeyX: 'bite' };
 
@@ -16,6 +20,8 @@
     $('barSyn').querySelector('span').textContent = B.syn;
     $('barPanic').querySelector('span').textContent = B.panic;
     document.querySelectorAll('#touch [data-key]').forEach((btn) => btn.setAttribute('aria-label', UI.touch[TOUCH[btn.dataset.key]]));
+    goalRow();
+    trayRow();
     levelId = null;
   }
 
@@ -23,6 +29,8 @@
     $('hud').hidden = false;
     $('ticker').hidden = false;
     resetNews();
+    goalRow();
+    trayRow();
     setTouch(window.matchMedia('(pointer: coarse)').matches);
     setLevel(g);
   }
@@ -37,6 +45,7 @@
   function hidePlaying() {
     rideOn = null;
     $('touch').classList.remove('ride');
+    $('hud').classList.remove('ride');
     $('hud').hidden = true;
     $('ticker').hidden = true;
     setTouch(false);
@@ -52,8 +61,10 @@
     bar('barPanic', g.panic);
     bar('barTrip', Math.min(100, (b.x / g.level.goalDen) * 100));
     text('season', T.seasons[g.seasonKey] + ' · ' + T.until + ' ' + Math.ceil(Math.max(0, g.def.year - g.time)) + ' s');
-    text('lives', '❤️'.repeat(Math.max(0, g.lives)) + ' · ' + UI.hugGoal(g.stats.hugs + g.stats.selfies)
+    text('lives', '❤️'.repeat(Math.max(0, g.lives))
       + (b.hiding ? ' · ' + (b.hiding.hay ? UI.inHay : UI.behindTree) : b.inSpray ? ' · ' + UI.inSpray : ''));
+    goals(g);
+    counts(g);
     const B = UI.badges, list = [];
     if (g.problem) list.push(badge(B.problem));
     if (g.flags.cull) list.push(badge(B.cull));
@@ -71,7 +82,48 @@
     const reach = !!b.reach && !g.over && !g.ride;
     if (reach !== reachOn) { reachOn = reach; $('act').classList.toggle('on', reach); }
     const ride = !!g.ride && !g.over;
-    if (ride !== rideOn) { rideOn = ride; $('touch').classList.toggle('ride', ride); }
+    if (ride !== rideOn) { rideOn = ride; $('touch').classList.toggle('ride', ride); $('hud').classList.toggle('ride', ride); }
+  }
+
+  function goalRow() {
+    $('goals').innerHTML = Object.keys(GOALS).map((k) => `<span class="goal" data-goal="${k}"><i>${GOALS[k]}</i><b>${UI.goals[k]}</b><em></em></span>`).join('');
+    shown.goals = {};
+    goalOn = {};
+  }
+
+  function goals(g) {
+    const s = ZS.tally.goals(g), fat = Math.min(Math.floor(g.fat), g.def.fatGoal);
+    const state = { fat: s.fat ? UI.goals.ok : fat + '/' + UI.pct(g.def.fatGoal), hug: s.hug ? UI.goals.ok : '0/1', den: s.den ? UI.goals.ok : s.ready ? '→' : '' };
+    for (const k of Object.keys(GOALS)) {
+      const el = $('goals').querySelector(`[data-goal="${k}"]`);
+      if (shown.goals[k] !== state[k]) { shown.goals[k] = state[k]; el.querySelector('em').textContent = state[k]; }
+      const on = !!s[k];
+      el.classList.toggle('next', k === 'den' && s.ready && !on);
+      if (goalOn[k] === on) continue;
+      if (on && goalOn[k] === false) { el.classList.add('just'); setTimeout(() => el.classList.remove('just'), JUST * 1000); }
+      goalOn[k] = on;
+      el.classList.toggle('done', on);
+    }
+  }
+
+  function trayRow() {
+    $('tray').hidden = true;
+    $('tray').innerHTML = Object.keys(TALLY).map((k) => `<span class="chip" data-tally="${k}" title="${UI.tally[k]}" hidden><i>${TALLY[k]}</i><b></b></span>`).join('');
+    tally = {};
+  }
+
+  function counts(g) {
+    const now = ZS.tally.counts(g);
+    for (const k of Object.keys(TALLY)) {
+      const n = now[k] || 0;
+      if (tally[k] === n) continue;
+      const el = $('tray').querySelector(`[data-tally="${k}"]`);
+      el.querySelector('b').textContent = n;
+      el.hidden = n <= 0;
+      if (tally[k] !== undefined && n > tally[k]) { el.classList.add('up'); setTimeout(() => el.classList.remove('up'), JUST * 1000); }
+      tally[k] = n;
+    }
+    $('tray').hidden = !Object.keys(TALLY).some((k) => tally[k] > 0);
   }
 
   function badge(text, variant) {

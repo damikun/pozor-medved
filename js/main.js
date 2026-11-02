@@ -2,7 +2,7 @@
   const { CFG, NEWS } = ZS;
   const { rules, loop } = ZS.sim;
   const { input, hud, screens } = ZS.ui;
-  const audio = ZS.audio;
+  const audio = ZS.audio, tally = ZS.tally;
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const BOT = /[?&]bot\b/.test(location.search);
@@ -41,6 +41,7 @@
     g = rules.create(input.state, { viewW, bot: BOT, level: current });
     g.touch = touchy();
     g.running = true;
+    tally.watch(g);
     audio.pause(false);
     hud.showPlaying(g);
     screens.hide();
@@ -79,10 +80,11 @@
   }
 
   rules.onNews = hud.showNews;
-  rules.onSound = audio.event;
+  rules.onSound = (run, name, x, k) => { audio.event(run, name, x, k); tally.hear(run, name); };
   audio.onChange = screens.syncMute;
   rules.onEnd = (run) => {
     audio.end(run.ending);
+    tally.check(run);
     hud.update(run);
     hud.setTouch(false);
     if (run.ending === 'win') markDone(run.level.id);
@@ -97,7 +99,7 @@
     if (g.running && !g.over && !g.paused) {
       loop.step(g, dt);
       hud.tick(dt);
-      if (!g.over && (hudT -= dt) <= 0) { hudT = 0.1; hud.update(g); }
+      if (!g.over && (hudT -= dt) <= 0) { hudT = 0.1; tally.check(g); hud.update(g); }
     }
     g.cam = loop.cameraX(g);
     if (viewW) ZS.draw(g, ctx, viewW, offY);
@@ -123,7 +125,7 @@
   };
   ZS.dev.step = (seconds) => {
     loop.advance(g, seconds);
-    if (g.running) { hud.tick(seconds); hud.update(g); }
+    if (g.running) { hud.tick(seconds); tally.check(g); hud.update(g); }
     if (viewW) ZS.draw(g, ctx, viewW, offY);
     return g;
   };

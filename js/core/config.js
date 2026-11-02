@@ -43,6 +43,7 @@ ZS.FOOD = {
   nut:         { emoji: '🌰', fat: 4,  syn: 0,  panic: 0,  natural: true },
   mushroom:    { emoji: '🍄', fat: 3,  syn: 0,  panic: 0,  natural: true },
   wildhoney:   { emoji: '🍯', fat: 9,  syn: 0,  panic: 0,  natural: true },
+  stash:       { emoji: '🌰', fat: 9,  syn: 0,  panic: 0,  natural: true },
   fish:        { emoji: '🐟', fat: 5,  syn: 0,  panic: 0,  natural: true },
   rosehip:     { emoji: '🔴', fat: 3,  syn: 0,  panic: 0,  natural: true },
   snownut:     { emoji: '🌰', fat: 4,  syn: 0,  panic: 0,  natural: true },

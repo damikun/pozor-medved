@@ -658,7 +658,7 @@
     ctx.strokeStyle = '#7d4634'; ctx.lineWidth = 1; ctx.stroke(geo.thorns);
     ctx.fillStyle = W.snow; ctx.globalAlpha = W.cap; ctx.fill(geo.snow);
     ctx.restore();
-    for (let i = 0; i < geo.hips.length; i += 3) hip(ctx, geo.hips[i], geo.hips[i + 1], geo.hips[i + 2], W);
+    if (!it.eaten) for (let i = 0; i < geo.hips.length; i += 3) hip(ctx, geo.hips[i], geo.hips[i + 1], geo.hips[i + 2], W);
   }
 
   function makeRowan(x, sd) {
@@ -686,7 +686,7 @@
     ctx.strokeStyle = W.snow; ctx.lineWidth = 1.5; ctx.globalAlpha = W.cap; ctx.stroke(geo.snow);
     ctx.restore();
     const b = geo.bunches;
-    for (let i = 0; i < b.length; i += 2) {
+    for (let i = 0; i < (it.eaten ? 0 : b.length); i += 2) {
       const bx = b[i], by = b[i + 1];
       for (let j = 0; j < 9; j++) {
         const a = j * 2.4, r = j ? 2.4 + (j % 3) * 1.4 : 0, px = bx + Math.cos(a) * r, py = by + Math.sin(a) * r * 0.7 + (j > 5 ? 1.5 : 0);
@@ -717,17 +717,18 @@
   }
 
   function frozenapple(ctx, it, time, g) {
-    const x = it.x, sd = hash(x * 0.07), ch = (ZS.FOOD.frozenapple && ZS.FOOD.frozenapple.emoji) || '🍎';
+    const x = it.x, sd = hash(x * 0.07), A = ZS.foodArt.apple;
     if (it.y !== undefined) {
       ctx.strokeStyle = '#4a3526'; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(x + 0.5, it.y - 8); ctx.quadraticCurveTo(x - 1, it.y - 15, x - 7 + sd * 4, it.y - 21); ctx.stroke();
       ctx.lineCap = 'butt';
-      emoji(ctx, ch, x, it.y, 18);
+      A(ctx, x, it.y + 0.4, 8, (sd - 0.5) * 0.3, 'frozen', false);
       frosted(ctx, x, it.y, 8.6, time, sd);
       return;
     }
     const W = B.look(g);
-    emoji(ctx, ch, x, GY - 10, 20);
+    ctx.fillStyle = 'rgba(70,92,125,0.16)'; ellipse(ctx, x, GY + 0.8, 12, 2.4);
+    A(ctx, x, GY - 9.6, 8.8, (sd - 0.5) * 0.5, 'frozen', sd < 0.5);
     frosted(ctx, x, GY - 10, 9.4, time, sd);
     bank(ctx, x - 16, x + 14, 4, sd * 10, W);
   }
@@ -817,10 +818,11 @@
 
   function item(ctx, it, time, g) {
     const x = it.x;
-    if (it.hidden || LANDMARK[it.type]) return;
+    if (it.hidden || LANDMARK[it.type] || (it.eaten && !left(it))) return;
     if (it.type === 'halusky') { halusky(ctx, it, time); return; }
     if (WINTER_ITEM[it.type]) { WINTER_ITEM[it.type](ctx, it, time, g); return; }
-    const W = cold(g);
+    const W = cold(g), F = ZS.foodArt;
+    if (F.has(it.type)) { F.draw(ctx, it, time, g, W ? B.look(g) : null); return; }
     if (it.type === 'fish') {
       const f = it.fd || (it.fd = { id: 'fish' + Math.round(it.x0 || it.x), wiggle: (it.x0 || it.x) % 6 });
       f.x = x; f.y = it.y; f.dir = it.dir || 1;
@@ -828,37 +830,10 @@
       return;
     }
     if (it.type === 'container') { if (W) ZS.scenery.container(ctx, x, it.locked, true); else ZS.scenery.container(ctx, x, it.locked); return; }
-    if (it.y !== undefined) {
-      if (it.type === 'wildhoney') {
-        ctx.fillStyle = '#2a1d12'; ellipse(ctx, x, it.y + 4, 9, 14);
-        if (!W) emoji(ctx, '🐝', x + 15, it.y - 15, 11);
-      }
-      emoji(ctx, ZS.FOOD[it.type].emoji, x, it.y, 18);
-      return;
-    }
-    if (it.type === 'berry') {
-      ctx.fillStyle = '#3f7f3a';
-      circle(ctx, x, GY - 16, 20); circle(ctx, x - 15, GY - 9, 14); circle(ctx, x + 16, GY - 9, 14);
-      emoji(ctx, '🫐', x, GY - 22, 16);
-    } else if (it.type === 'ants') {
-      ctx.fillStyle = '#8a6a48'; ctx.beginPath(); ctx.ellipse(x, GY, 24, 18, 0, Math.PI, 0); ctx.fill();
-      emoji(ctx, '🐜', x, GY - 20, 14);
-    } else if (it.type === 'corn') {
-      ctx.fillStyle = '#d9b84a'; ctx.beginPath(); ctx.ellipse(x, GY, 24, 12, 0, Math.PI, 0); ctx.fill();
-      emoji(ctx, '🌽', x, GY - 16, 20);
-    } else if (it.type === 'hive') {
-      ctx.fillStyle = '#d9a441'; ctx.fillRect(x - 15, GY - 38, 30, 38);
-      ctx.fillStyle = '#b8862e'; ctx.fillRect(x - 15, GY - 26, 30, 3); ctx.fillRect(x - 15, GY - 14, 30, 3);
-      ctx.fillStyle = '#6b4a2b'; ctx.fillRect(x - 18, GY - 42, 36, 5);
-      emoji(ctx, '🐝', x + 14, GY - 52, 13);
-    } else if (it.type === 'bin') {
-      emoji(ctx, '🗑️', x, GY - 18, 32);
-      if (it.locked) emoji(ctx, '🔒', x + 12, GY - 38, 14);
-      if (W) { const L = B.look(g); ctx.fillStyle = L.snow; rrect(ctx, x - 13, GY - 37, 26, 5, 2.5); }
-    } else {
-      emoji(ctx, ZS.FOOD[it.type].emoji, x, GY - 12, 22);
-    }
+    emoji(ctx, ZS.FOOD[it.type].emoji, x, it.y !== undefined ? it.y : GY - 12, it.y !== undefined ? 18 : 22);
   }
+
+  const left = (it) => it.type === 'rosehip' || it.type === 'rowan' || ZS.foodArt.left(it);
 
   function crosshair(ctx, s, aimFactor, g) {
     const x = s.cross, y = GY - 30, locked = s.lock > 0, snowy = cold(g);
@@ -904,5 +879,5 @@
   }
 
   ZS.render = ZS.render || {};
-  ZS.render.props = { trunk, crown, tree, house, post, log, sign, den, item, crosshair, drone, bubble };
+  ZS.render.props = { trunk, crown, tree, house, post, log, sign, den, item, left, crosshair, drone, bubble };
 })();
