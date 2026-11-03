@@ -159,8 +159,8 @@
 
   function cover(g) {
     const b = g.bear, L = g.level;
-    if (L.trees.some((t) => t.hide && Math.abs(t.x - b.x) < t.w / 2 + 40)) return LABELS.hideHint;
-    if (L.haystacks.some((x) => Math.abs(x - b.x) < 72)) return LABELS.hayHint;
+    if ((b.spot && !b.spot.hay) || L.trees.some((t) => t.hide && Math.abs(t.x - b.x) < t.w / 2 + 40)) return LABELS.hideHint;
+    if ((b.spot && b.spot.hay) || L.haystacks.some((x) => Math.abs(x - b.x) < 72)) return LABELS.hayHint;
     if (ZS.sim.lot.inside(L, b.x)) return LABELS.lot.hint;
     return ZS.sim.alpine.thicket(L, b.x) ? LABELS.alpine.hint : null;
   }

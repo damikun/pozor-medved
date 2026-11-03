@@ -54,6 +54,11 @@
     return find(code) || (TOUCH[code] ? find(TOUCH[code]) : null);
   }
 
+  function labeled(code) {
+    const a = typeof document !== 'undefined' && document.getElementById ? document.getElementById('act') : null;
+    return !!a && a.classList.contains('on') && (a.dataset.key === code || a.dataset.key === TOUCH[code]);
+  }
+
   function icon(code) {
     const I = ZS.ICONS;
     return (I && (I[code] || I[TOUCH[code]])) || null;
@@ -165,7 +170,7 @@
 
   function show(ctx, g, cue, opts) {
     const f = g.cueFx || (g.cueFx = { id: '', a: 0, t: g.time, cue: null, last: {} });
-    const parts = cue ? cue.parts.filter((p) => codes(p).every((c) => usable(c, g.touch))) : [];
+    const parts = cue ? cue.parts.filter((p) => codes(p).every((c) => usable(c, g.touch)) && !(g.touch && codes(p).every(labeled))) : [];
     const dt = Math.max(0, Math.min(0.1, g.time - f.t)), id = parts.map((p) => codes(p).join('+') + ' ' + p[1]).join(' | ');
     const short = parts.map((p) => (known(p.skill, g) ? [p[0], ''] : p));
     count(g, f, parts);

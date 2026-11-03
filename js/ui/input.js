@@ -126,16 +126,19 @@
     const box = document.getElementById('touch');
     stickPad(box.querySelector('.stick'));
     box.querySelectorAll(':scope > button[data-key]').forEach((btn) => {
-      const key = btn.dataset.key;
-      if (key === 'KeyP') { btn.addEventListener('click', () => { btn.blur(); onPause(); }); return; }
-      if (key === 'KeyX') { safe(btn, key); return; }
+      const fixed = btn.dataset.key, act = btn.id === 'act';
+      if (fixed === 'KeyP') { btn.addEventListener('click', () => { btn.blur(); onPause(); }); return; }
+      if (fixed === 'KeyX') { safe(btn, fixed); return; }
+      let key = fixed;
       const on = (v) => {
+        if (v) key = btn.dataset.key;
         btn.classList.toggle('down', v);
-        if (key === 'ArrowUp') jump(v);
+        if (act && key !== 'KeyC') hold('act', key, v);
+        else if (key === 'ArrowUp') jump(v);
         else if (v) press(key, false);
         else release(key);
       };
-      grab(btn, () => { on(true); if (key === 'KeyC' && btn.classList.contains('on')) buzz(10); }, null, () => on(false));
+      grab(btn, () => { on(true); if (act && btn.classList.contains('on')) buzz(10); }, null, () => on(false));
     });
     box.addEventListener('contextmenu', (e) => e.preventDefault());
   }

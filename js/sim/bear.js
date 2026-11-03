@@ -7,7 +7,7 @@
   const CLIMB_UP = 110, CLIMB_DOWN = 170, WAKE = 2.6, HOLD = 0.18, PUSH = 260;
   const COLD = { advent: 0.35, snow: 0.7, frost: 1 };
   const FENCE = { top: 44, nose: 40, rump: 24, feet: 20, stun: 0.8, kick: 300, hop: 240, said: 40 };
-  const ROOF = 44, NONE = [];
+  const ROOF = 44, ROOM = 24, NONE = [];
 
   function create(L) {
     return {
@@ -29,6 +29,15 @@
 
   function spots(L) {
     return L.coverSpots || (L.coverSpots = L.trees.filter((t) => t.hide).concat(hayOf(L)).sort((a, b) => a.x - b.x));
+  }
+
+  function spotOf(g, b) {
+    let best = null;
+    for (const s of spots(g.level)) {
+      const d = Math.abs(s.x - b.x);
+      if (d < s.w / 2 + 40 + (s === b.spot ? ROOM : 0) && (!best || d < Math.abs(best.x - b.x))) best = s;
+    }
+    return best;
   }
 
   function underRoof(L, b) {
@@ -196,10 +205,8 @@
     g.input.downReleased = false;
     if (hide && b.onGround && !b.hideLatch) {
       if (!b.hiding) {
-        const near = L.trees.filter((tr) => Math.abs(tr.x - b.x) < tr.w / 2 + 40);
-        const hay = hayOf(L).filter((h) => Math.abs(h.x - b.x) < h.w / 2 + 40);
-        const t = near.filter((tr) => tr.hide).concat(hay).sort((p, q) => Math.abs(p.x - b.x) - Math.abs(q.x - b.x))[0];
-        const birch = t ? null : near.sort((p, q) => Math.abs(p.x - b.x) - Math.abs(q.x - b.x))[0];
+        const t = b.spot;
+        const birch = t ? null : L.trees.filter((tr) => Math.abs(tr.x - b.x) < tr.w / 2 + 40).sort((p, q) => Math.abs(p.x - b.x) - Math.abs(q.x - b.x))[0];
         if (t || birch) { b.hiding = t || birch; startHiding(g, b, b.hiding); }
         if (birch && b.birchCd <= 0) { b.birchCd = 2; rules().float(g, b.x, GY - 95, LABELS.birch, COLORS.bad); }
       }
@@ -401,6 +408,8 @@
     b.bumpT = Math.max(0, b.bumpT - dt);
     b.tag = g.problem;
     b.cold = g.level.theme === 'winter' ? COLD[g.seasonKey] || 0 : 0;
+    b.spot = b.onGround && !b.climbing && !b.act ? spotOf(g, b) : null;
+    b.ladderNear = ZS.sim.ladder.at(g);
     wake(g, b, dt, left || right || hide || jump || bite || hug);
     if (b.climbing) { (b.climbing.ladder ? ZS.sim.ladder.climb : climb)(g, b, dt, up, hide, jump && inp.jumpKey === 'Space', (right ? 1 : 0) - (left ? 1 : 0)); return; }
 

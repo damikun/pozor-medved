@@ -822,7 +822,7 @@
       hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
       bars: { fat: 'Grasa', syn: 'Sinantropía', panic: 'Pánico mediático' },
       touch: { left: 'Izquierda', right: 'Derecha', hide: 'Esconderse', jump: 'Saltar, trepar', hug: 'Acción', bite: 'Morder', pause: 'Pausa',
-        acts: { hug: 'Abrazar', selfie: 'Selfi', pose: 'Posar', shake: 'Sacudir', knock: 'Llamar', taste: 'Probar' } },
+        acts: { hide: 'Esconderse', hidden: 'Escondido', climb: 'Subir', down: 'Bajar', hug: 'Abrazar', selfie: 'Selfi', pose: 'Posar', shake: 'Sacudir', knock: 'Llamar', taste: 'Probar' } },
       language: 'Idioma',
       about: 'Sobre el juego en GitHub',
       sound: { mute: 'Silenciar', unmute: 'Activar el sonido' },

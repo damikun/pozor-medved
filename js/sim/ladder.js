@@ -2,7 +2,7 @@
   const { CFG, COLORS, LABELS, NEWS } = ZS;
   const GY = CFG.GROUND;
   const rules = () => ZS.sim.rules;
-  const GRAB = 24, UP = 27, DOWN = 110, RUNG = 25, HATCH = 48, RISE = 118, IN = 0.85, OUT = 0.55, BAIL = 0.42, SIT = 0.7, SNACK = 1.5, CABIN = 150;
+  const GRAB = 24, KEEP = 16, UP = 27, DOWN = 110, RUNG = 25, HATCH = 48, RISE = 118, IN = 0.85, OUT = 0.55, BAIL = 0.42, SIT = 0.7, SNACK = 1.5, CABIN = 150;
 
   const hunterOf = (g, p) => g.shooters.find((s) => s.kind === 'posed' && s.home === p.x && !s.dead) || null;
 
@@ -14,7 +14,7 @@
     const b = g.bear;
     if (!b.onGround || b.act || b.stun > 0 || b.y < GY - 2) return null;
     for (const p of g.level.posts) {
-      if (Math.abs(p.x - b.x) > GRAB) continue;
+      if (Math.abs(p.x - b.x) > (p === b.ladderNear ? GRAB + KEEP : GRAB)) continue;
       return p;
     }
     return null;

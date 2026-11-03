@@ -2,7 +2,7 @@
   const { UI } = ZS;
   const $ = (id) => document.getElementById(id);
   const NEWS_HOLD = 2;
-  let badgeHtml = '', levelId = null, reachOn = null, biteOn = null, actOn = null, icons = null, rideOn = null;
+  let levelId = null, reachOn = null, biteOn = null, actOn = null, icons = null, rideOn = null;
   const tv = { hold: 0, next: null }, shown = {};
   const GOALS = { fat: '🍯', hug: '🤗', den: '💤' }, JUST = 1.6;
   const TALLY = { hunters: '🎩', stands: '🪜', trees: '🌲', photos: '📸' };
@@ -10,6 +10,8 @@
   let goalOn = {};
 
   const TOUCH = { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'hide', ArrowUp: 'jump', KeyC: 'hug', KeyX: 'bite', KeyP: 'pause' };
+  const HOLD_KEY = { hide: 'ArrowDown', hidden: 'ArrowDown', down: 'ArrowDown', climb: 'ArrowUp' };
+  const LOOK = { hide: 'Hide', hidden: 'Hide', down: 'Ladder', climb: 'Ladder' };
 
   function bar(id, value) { const v = value + '%'; if (shown[id] !== v) { shown[id] = v; $(id).querySelector('i').style.width = v; } }
   function text(id, v) { if (shown[id] !== v) { shown[id] = v; $(id).textContent = v; } }
@@ -20,7 +22,7 @@
     $('barSyn').querySelector('span').textContent = B.syn;
     $('barPanic').querySelector('span').textContent = B.panic;
     document.querySelectorAll('#touch [data-key]').forEach((el) => {
-      el.innerHTML = ZS.icon(el.dataset.key) + (el.id === 'act' ? '<span></span>' : '');
+      el.innerHTML = ZS.icon(el.dataset.look || el.dataset.key) + (el.id === 'act' ? '<span></span>' : '');
       el.setAttribute('aria-label', UI.touch[TOUCH[el.dataset.key]]);
     });
     actOn = null;
@@ -72,20 +74,6 @@
       + (b.hiding ? ' · ' + (b.hiding.hay ? UI.inHay : UI.behindTree) : b.inSpray ? ' · ' + UI.inSpray : ''));
     goals(g);
     counts(g);
-    const B = UI.badges, list = [];
-    if (g.problem) list.push(badge(B.problem));
-    if (g.flags.cull) list.push(badge(B.cull));
-    if (g.flags.emergency) list.push(badge(B.emergency));
-    if (g.flags.drones) list.push(badge(B.drones));
-    if (g.time < g.courtUntil) list.push(badge(B.court(Math.ceil(g.courtUntil - g.time)), 'calm'));
-    if (g.time < g.viralUntil) list.push(badge(B.viral, 'love'));
-    if (g.flags.hugBan) list.push(badge(B.hugBan, 'dark'));
-    if (g.flags.decree) list.push(badge(B.decree, 'dark'));
-    if (g.flags.meat) list.push(badge(B.meat, 'dark'));
-    if (g.flags.binsLocked) list.push(badge(B.binsLocked, 'calm'));
-    if (g.flags.stallsLocked) list.push(badge(B.stallsLocked, 'calm'));
-    const html = list.join('');
-    if (html !== badgeHtml) { badgeHtml = html; $('badges').innerHTML = html; }
     const free = !g.over && !g.ride, kind = free ? actOf(g, b) : null, reach = !!kind, bite = free && !!b.reach && !b.reach.post;
     if (reach !== reachOn) { reachOn = reach; $('act').classList.toggle('on', reach); if (!reach) $('act').setAttribute('aria-label', UI.touch.hug); }
     if (kind && kind !== actOn) { actOn = kind; dress(kind); }
@@ -95,18 +83,25 @@
   }
 
   function dress(kind) {
-    const el = $('act');
+    const el = $('act'), key = HOLD_KEY[kind] || 'KeyC', look = LOOK[kind] || 'KeyC';
+    if (el.dataset.look !== look) { el.dataset.look = look; el.innerHTML = ZS.icon(look) + '<span></span>'; }
+    el.dataset.key = key;
     el.querySelector('span').textContent = UI.touch.acts[kind];
     el.setAttribute('aria-label', UI.touch.acts[kind]);
   }
 
   function actOf(g, b) {
-    const o = b.reach, k = b.knock;
+    const o = b.reach, k = b.knock, c = b.climbing;
+    if (b.hiding) return 'hidden';
+    if (c) return c.ladder && c.phase === 'seat' ? 'down' : null;
     if (o) return o.post ? 'shake' : o.kind === 'photographer' ? 'pose' : o.kind === 'tourist' || (o.kind === 'tycoon' && !o.promo) ? 'selfie' : 'hug';
-    if (!k) return null;
-    if (k.kind !== 'stall') return 'knock';
-    const it = g.level.items.find((i) => i.type === k.o.kind && Math.abs(i.x - k.o.x) < 1);
-    return it && !it.locked ? 'taste' : 'knock';
+    if (k && k.kind !== 'stall') return 'knock';
+    if (k) {
+      const it = g.level.items.find((i) => i.type === k.o.kind && Math.abs(i.x - k.o.x) < 1);
+      return it && !it.locked ? 'taste' : 'knock';
+    }
+    if (b.ladderNear) return 'climb';
+    return b.spot ? 'hide' : null;
   }
 
   function goalRow() {
@@ -148,10 +143,6 @@
       tally[k] = n;
     }
     $('tray').hidden = !Object.keys(TALLY).some((k) => tally[k] > 0);
-  }
-
-  function badge(text, variant) {
-    return '<span class="badge' + (variant ? ' ' + variant : '') + '">' + text + '</span>';
   }
 
   function iconOf(text) {

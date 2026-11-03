@@ -41,6 +41,5 @@ with a tourist counts too. Without a hug the den won't let you in.
 | <kbd>P</kbd> | pause |
 | <kbd>M</kbd> | sound on or off (also the 🔊 button on the start screen and in the pause menu) |
 
-On phones and tablets a joystick on the left walks (all the way to sprint, down to hide or sneak, up to climb). On the right two buttons stay in place: the arrow jumps or climbs, and the hand next to it is the action (C). It lights up and names what it will do next to people, stands, the photographer, doors and stalls, and stays dim when there is nothing to do. The claw button appears next to people and bites, and ❚❚ in the corner pauses.
-In the game, a prompt under the bear shows the key to
-press, or the icon of the touch button on a phone.
+On phones and tablets a joystick on the left walks (all the way to sprint, down to hide or sneak, up to climb). On the right two buttons stay in place: the arrow jumps or climbs, and the action button next to it does whatever is possible right now. It lights up and names it: hug, selfie, pose, shake a stand, knock, taste, hide behind a thick tree or in hay while you hold it, or climb an empty stand and back down. The claw button appears next to people and bites, and ❚❚ in the corner pauses.
+In the game, a prompt under the bear shows the key to press. On a phone it only appears for what the action button doesn't already show.
