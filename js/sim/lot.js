@@ -3,8 +3,7 @@
   const GY = CFG.GROUND;
   const rules = () => ZS.sim.rules;
   const SEE = 200, SPRINT = 300, NOISE = 560, AWAY = 1300, BACK = 35, BRUSH = 22, FALL = 0.55, SAID = 30, AIM = 0.5, LOOK = 2;
-  const frac = (v) => v - Math.floor(v);
-  const hash = (n) => frac(Math.sin(n * 127.1 + 311.7) * 43758.5453);
+  const { hash } = ZS.util;
   const pick = (list) => list[Math.floor(Math.random() * list.length)];
 
   function inside(L, x) {

@@ -1,7 +1,7 @@
 (function () {
   const { CFG, COLORS, LABELS, NEWS } = ZS;
   const GY = CFG.GROUND;
-  const { clamp } = ZS.util;
+  const { clamp, smooth } = ZS.util;
   const rules = () => ZS.sim.rules;
 
   const GEO = { door: -28, win: 16, sill: -31, hatch: 16, base: -89, lid: -101, perch: 38, chimney: 45, roof: (x) => -122 + (56 * Math.abs(x)) / 98 };
@@ -16,7 +16,6 @@
   const HATCH_BUSY = { lid: 1, up: 1, perch: 1, sink: 1, climb: 1, descend: 1 };
 
   const rnd = () => Math.random();
-  const smooth = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
   const pick = (list) => list[Math.floor(rnd() * list.length)];
 
   function seat(look, mug) { return { look, mug, mode: 'sit', at: -9, refill: 0 }; }

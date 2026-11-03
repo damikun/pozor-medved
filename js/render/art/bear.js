@@ -7,17 +7,12 @@
     throat: '#3a1510', tongue: '#c25a5c', tag: '#f6c814', tagEdge: '#b98a0c',
     shade: 'rgba(30,14,4,0.17)', soft: 'rgba(30,14,4,0.09)', light: 'rgba(255,226,190,0.06)',
   };
-  const { rrect } = ZS.gfx;
+  const { rrect, ellipse: ell } = ZS.gfx;
   const TAU = Math.PI * 2;
   const RISE = 0.3, SPLIT = 0.55, TAKEOFF = 0.08, LAND = 0.2, DROP = 0.18, DIVE = 0.34, SHOCK = 0.8;
   const HAYC = ['#d8b55b', '#c29d44', '#ecd28b', '#9d7b30'];
 
-  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
-  const frac = (v) => v - Math.floor(v);
-  const ease = (v, target, rate, dt) => v + (target - v) * (1 - Math.exp(-rate * dt));
-
+  const { clamp, lerp, smooth, frac, ease } = ZS.util;
   const WALK = { stride: 96, duty: 0.52, lift: [9, 6], offs: [0.25, 0.75, 0, 0.5], shift: [2, 1], kick: [2, 3], reach: [4, 2] };
   const STALK = { stride: 64, duty: 0.7, lift: [6, 4], offs: [0.25, 0.75, 0, 0.5], shift: [6, 2], kick: [1, 1], reach: [3, 1] };
   const RUN = { stride: 116, duty: 0.36, lift: [10, 8], offs: [0.47, 0.39, 0.07, 0], shift: [6, 5], kick: [4, 9], reach: [12, 6] };
@@ -62,7 +57,6 @@
     ctx.closePath();
   }
 
-  function ell(ctx, x, y, rx, ry, rot) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot || 0, 0, TAU); ctx.fill(); }
 
   function claws(ctx, lines, col, w) {
     ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round';

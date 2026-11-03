@@ -4,21 +4,9 @@
   const API = (ZS.winterArt = {});
   const PI = Math.PI, TAU = PI * 2;
   const sin = Math.sin, cos = Math.cos, abs = Math.abs, sqrt = Math.sqrt, hypot = Math.hypot, atan2 = Math.atan2, exp = Math.exp;
-  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-  const frac = (v) => v - Math.floor(v);
-  const hash = (n) => frac(sin(n * 127.1 + 311.7) * 43758.5453);
-  const hash2 = (a, b) => hash(a * 57.31 + b * 13.97 + 0.17);
-  const rgba = (rgb, a) => 'rgba(' + rgb + ',' + clamp(a, 0, 1).toFixed(3) + ')';
+  const { clamp, lerp, sstep, frac, hash, hash2 } = ZS.util;
+  const { circle, ellipse: ell, rrect: rr, text, fit, rgba } = ZS.gfx;
 
-  function circle(ctx, x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
-  function ell(ctx, x, y, rx, ry, rot) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot || 0, 0, TAU); ctx.fill(); }
-  function rr(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); ctx.fill();
-  }
   function poly(ctx, p) {
     ctx.beginPath(); ctx.moveTo(p[0], p[1]);
     for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]);
@@ -44,18 +32,6 @@
   }
   function line(ctx, x1, y1, x2, y2, w, col) {
     ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-  }
-  function txt(ctx, s, x, y, size, col, weight, spacing) {
-    ctx.font = (weight || 700) + ' ' + size + 'px system-ui, sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    if ('letterSpacing' in ctx) ctx.letterSpacing = (spacing || 0) + 'px';
-    ctx.fillStyle = col; ctx.fillText(s, x, y);
-    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
-  }
-  function fitText(ctx, s, size, weight, maxW) {
-    ctx.font = weight + ' ' + size + 'px system-ui, sans-serif';
-    const w = ctx.measureText(s).width;
-    return w > maxW ? size * maxW / w : size;
   }
   function viewRange(ctx, pad) {
     const m = ctx.getTransform ? ctx.getTransform() : null;
@@ -825,8 +801,8 @@
     ctx.fillStyle = summer ? '#2f5a34' : '#7a2a22'; rr(ctx, -43.5, -111.5, 87, 14, 1.6);
     ctx.strokeStyle = '#e8c27a'; ctx.lineWidth = 0.8; ctx.strokeRect(-41.5, -109.5, 83, 10);
     if (label) {
-      const fs = fitText(ctx, label, 10.5, 900, 64);
-      txt(ctx, label, 0, -104, fs, '#fff1cf', 900, 0.6);
+      const fs = fit(ctx, label, 10.5, 900, 64);
+      text(ctx, label, 0, -104, fs, '#fff1cf', 900, 0.6);
     }
     for (const sx of [-1, 1]) {
       ctx.fillStyle = '#e8c27a'; ctx.save(); ctx.translate(sx * 37.5, -104.5); ctx.rotate(time * 0.5 * sx);
@@ -1255,7 +1231,7 @@
     ctx.fillStyle = '#3b2534'; rr(ctx, -61.5, sy - 10.5, 123, 19, 3);
     if (lbl) {
       const flick = (frac(time * 0.37 + sd) < 0.03 ? 0.35 : 1) * (0.88 + 0.12 * sin(time * 31));
-      const fs = fitText(ctx, lbl, 15, 900, 108);
+      const fs = fit(ctx, lbl, 15, 900, 108);
       ctx.font = '900 ' + fs + 'px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       if ('letterSpacing' in ctx) ctx.letterSpacing = '1px';
       ctx.lineJoin = 'round';
@@ -1816,7 +1792,7 @@
     ctx.fillStyle = 'rgba(255,255,255,0.05)'; ell(ctx, -6, -36, 12, 8, -0.4);
     for (let i = 0; i < P.length; i++) {
       const col = i === P.length - 1 ? 'rgba(255,190,200,0.9)' : 'rgba(242,242,234,0.92)';
-      txt(ctx, P[i], 0, -42 + i * 11, fitText(ctx, P[i], 6.6, 700, 34), col, 700);
+      text(ctx, P[i], 0, -42 + i * 11, fit(ctx, P[i], 6.6, 700, 34), col, 700);
     }
     line(ctx, -15, -16.5, 15, -17.5, 0.7, 'rgba(255,190,200,0.75)');
     snowCap(ctx, -22, 22, -52, 2.4, 61 + sd);
@@ -1854,8 +1830,8 @@
     ctx.fillStyle = '#5d3b22'; rr(ctx, -42, -132, 84, 30, 2.6);
     ctx.fillStyle = '#1f5a3a'; rr(ctx, -39.5, -129.5, 79, 25, 1.8);
     ctx.strokeStyle = '#e8c27a'; ctx.lineWidth = 0.8; ctx.strokeRect(-37.5, -127.5, 75, 21);
-    const fs = Math.min(fitText(ctx, S[0], 9, 900, 64), fitText(ctx, S[1], 9, 900, 64));
-    txt(ctx, S[0], 0, -122, fs, '#fff1cf', 900, 0.5); txt(ctx, S[1], 0, -112, fs, '#fff1cf', 900, 0.5);
+    const fs = Math.min(fit(ctx, S[0], 9, 900, 64), fit(ctx, S[1], 9, 900, 64));
+    text(ctx, S[0], 0, -122, fs, '#fff1cf', 900, 0.5); text(ctx, S[1], 0, -112, fs, '#fff1cf', 900, 0.5);
     snowCap(ctx, -42, 42, -132, 3, 83 + sd);
     const lp = [];
     for (let i = 0; i <= 9; i++) lp.push(-40 + i * 80 / 9, -102 + 2.4 * sin(PI * i / 9));

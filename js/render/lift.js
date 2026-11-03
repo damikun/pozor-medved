@@ -3,12 +3,7 @@
   const GY = ZS.CFG.GROUND;
   const PI = Math.PI, TAU = PI * 2;
   const sin = Math.sin, cos = Math.cos, abs = Math.abs, min = Math.min, max = Math.max, hypot = Math.hypot, asin = Math.asin;
-  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
-  const frac = (v) => v - Math.floor(v);
-  const hash = (n) => frac(sin(n * 127.1 + 311.7) * 43758.5453);
-  const hash2 = (a, b) => hash(a * 57.31 + b * 13.97 + 0.17);
+  const { clamp, lerp, smooth, frac, hash, hash2 } = ZS.util;
   const { label, rrect, circle, ellipse } = ZS.gfx;
   const LIFT = () => ZS.sim.lift;
 

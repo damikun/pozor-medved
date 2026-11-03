@@ -1,7 +1,7 @@
 (function () {
   const HOLD = 0.7, BLEND = 0.45, MIN_DT = 1 / 61, HOVER = 0.18, QUIET = 4000;
   const GLOW = [{ boxShadow: '0 0 0 2px rgba(255, 236, 160, 0.95)' }, { boxShadow: '0 0 0 2px rgba(255, 236, 160, 0)' }];
-  const smooth = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
+  const { smooth } = ZS.util;
   let run = null;
 
   function capsHtml(codes, touch) {

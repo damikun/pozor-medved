@@ -3,19 +3,9 @@
   const GY = ZS.CFG.GROUND;
   const PI = Math.PI, TAU = PI * 2;
   const sin = Math.sin, cos = Math.cos, abs = Math.abs, hypot = Math.hypot;
-  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
-  const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-  const frac = (v) => v - Math.floor(v);
-  const hash = (n) => frac(sin(n * 127.1 + 311.7) * 43758.5453);
-  const hash2 = (a, b) => hash(a * 57.31 + b * 13.97 + 0.17);
+  const { clamp, sstep, frac, hash, hash2 } = ZS.util;
+  const { circle, ellipse: ell, rrect: rr, text } = ZS.gfx;
 
-  function circle(ctx, x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
-  function ell(ctx, x, y, rx, ry, rot) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot || 0, 0, TAU); ctx.fill(); }
-  function rr(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); ctx.fill();
-  }
   function trace(ctx, p) {
     ctx.beginPath(); ctx.moveTo(p[0], p[1]);
     for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]);
@@ -24,15 +14,6 @@
   function poly(ctx, p) { trace(ctx, p); ctx.fill(); }
   function line(ctx, x1, y1, x2, y2, w, col) {
     ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-  }
-  function txt(ctx, s, x, y, size, col, weight, spacing, maxW) {
-    ctx.font = (weight || 700) + ' ' + size + 'px system-ui, sans-serif';
-    const w = maxW ? ctx.measureText(s).width + (spacing || 0) * s.length : 0;
-    if (w > maxW) ctx.font = (weight || 700) + ' ' + (size * maxW / w) + 'px system-ui, sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    if ('letterSpacing' in ctx) ctx.letterSpacing = (spacing || 0) + 'px';
-    ctx.fillStyle = col; ctx.fillText(s, x, y);
-    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
   }
   const shades = {};
   function dk(hex, k) {
@@ -467,8 +448,8 @@
     ctx.fillStyle = '#c29760'; rr(ctx, -P + 5, -132, 2 * P - 10, 23, 1.8);
     ctx.fillStyle = 'rgba(255,255,255,0.16)'; ctx.fillRect(-P + 6, -131, 2 * P - 12, 1.6);
     ctx.fillStyle = 'rgba(0,0,0,0.14)'; ctx.fillRect(-P + 5, -112, 2 * P - 10, 3);
-    txt(ctx, N[0], 0, -125.6, 7.4, '#3a2412', 800, 0.6, 2 * P - 18);
-    txt(ctx, N[1], 0, -116.2, 8.6, '#3a2412', 900, 0.4, 2 * P - 18);
+    text(ctx, N[0], 0, -125.6, 7.4, '#3a2412', 800, 0.6, 2 * P - 18);
+    text(ctx, N[1], 0, -116.2, 8.6, '#3a2412', 900, 0.4, 2 * P - 18);
     const roof = [-P - 17, -140, P + 17, -140, P + 4, -166, -P - 4, -166];
     shingle(ctx, roof, tiles('gateRoof', roof, 6.4, 5.2, 0, 13), 1, 0);
     ctx.fillStyle = 'rgba(255,236,206,0.08)'; poly(ctx, [-P - 4, -166, P + 4, -166, P + 8, -158, -P - 8, -158]);
@@ -493,8 +474,8 @@
     ctx.fillStyle = '#f5f1e6'; rr(ctx, -29.6, -11.6, 59.2, 22.2, 1.2);
     ctx.fillStyle = '#c0392b'; ctx.fillRect(-29.6, -11.6, 59.2, 3);
     ctx.fillStyle = 'rgba(0,0,0,0.06)'; poly(ctx, [12, 10.6, 29.6, 10.6, 29.6, -2]);
-    txt(ctx, N[0], 0, -2.6, 7.6, '#1d1d1d', 800, 0, 54);
-    txt(ctx, N[1], 0, 5.6, 7.6, '#c0392b', 900, 0, 54);
+    text(ctx, N[0], 0, -2.6, 7.6, '#1d1d1d', 800, 0, 54);
+    text(ctx, N[1], 0, 5.6, 7.6, '#c0392b', 900, 0, 54);
     ctx.fillStyle = '#3a3a3a'; circle(ctx, -26.6, -6, 0.9); circle(ctx, 26.6, -6, 0.9);
     ctx.restore();
     ctx.restore();

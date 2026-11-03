@@ -1,7 +1,7 @@
 (function () {
   const { CFG, COLORS, LABELS, NEWS } = ZS;
   const GY = CFG.GROUND;
-  const { clamp } = ZS.util;
+  const { clamp, lerp } = ZS.util;
   const rules = () => ZS.sim.rules;
 
   const T = { board: 0.85, open: 0.5, ride: 24, arrive: 1.9, back: 0.8 };
@@ -13,7 +13,6 @@
   const PACE = { gap: 0.35, twin: 0.3, wait: 0.4, aim: 1.05 };
   const RETURN = 110, CALM = 1.8, BOARD_AT = 40;
   const GEO = { zc: 2.4, pylon0: 18, pylonGap: 28, top: LEN + 20, deck: 13 };
-  const lerp = (a, b, t) => a + (b - a) * t;
 
   const station = (L) => (L && L.lift ? L.lift.x : null);
   const sway = (r) => Math.sin(r.th);

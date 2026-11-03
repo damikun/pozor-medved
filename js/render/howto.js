@@ -3,8 +3,7 @@
   const GY = CFG.GROUND;
   const sim = ZS.sim;
   const STEP = 1 / 60, X = 1000;
-  const smooth = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
-  const lerp = (a, b, t) => a + (b - a) * t;
+  const { smooth, lerp } = ZS.util;
   const within = (t, a, b) => t >= a && t < b;
   const glide = (t, a, b, from, to) => lerp(from, to, smooth((t - a) / (b - a)));
   const TOUCH = { Space: 'ArrowUp' };

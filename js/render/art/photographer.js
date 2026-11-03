@@ -1,10 +1,8 @@
 (function () {
   const GY = ZS.CFG.GROUND;
   const PI = Math.PI, TAU = PI * 2, sin = Math.sin, cos = Math.cos;
-  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const smooth = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
-  const frac = (v) => v - Math.floor(v);
+  const { clamp, lerp, smooth, frac } = ZS.util;
+  const { ellipse: ell, circle, rrect: rr } = ZS.gfx;
 
   const C = {
     jacket: '#6d7846', jacketD: '#58623a', pants: '#5b653b', pantsD: '#4a5330', boot: '#3b2d1e', sole: '#1e150c',
@@ -18,13 +16,6 @@
   const NET = [[-39, 0], [-37, -6], [-31, -11], [-21, -14.5], [-10, -17], [0, -19.5], [9, -21.5], [17, -22], [22, -19.5], [23.5, -13], [25, -6], [23, 0]];
   const TUFTS = [[-33, -10, 0.5], [-24, -14, -0.4], [-15, -16.5, 0.9], [-6, -18.5, -0.2], [3, -20.6, 0.5], [11, -22, -0.7], [18, -22, 0.3], [-28, -6, 1.2], [-10, -9, -1], [8, -12, 0.8]];
 
-  function ell(ctx, x, y, rx, ry, rot) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot || 0, 0, TAU); ctx.fill(); }
-  function circle(ctx, x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
-  function rr(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); ctx.fill();
-  }
   function bone(ctx, pts, w, col) {
     ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.beginPath(); ctx.moveTo(pts[0], pts[1]);

@@ -6,9 +6,7 @@
   const KEYS = ['spring', 'summer', 'autumn'];
   const SKY = { spring: ['#a7d8f5', '#eaf7ff'], summer: ['#7cc4ef', '#d8f1ff'], autumn: ['#efb57c', '#fbe6c8'] };
   const LEAF = { spring: '#4f8a45', summer: '#3d7238', autumn: '#a8692c' };
-  const frac = (v) => v - Math.floor(v);
-  const hash = (n) => frac(Math.sin(n * 127.1 + 311.7) * 43758.5453);
-  const smooth = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
+  const { hash, smooth } = ZS.util;
   const seasonOf = (g) => g.seasonKey || KEYS[g.seasonIdx | 0] || KEYS[0];
   const cold = (g) => !!(g && g.level && g.level.theme === 'winter');
 

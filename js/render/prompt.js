@@ -6,7 +6,7 @@
   const ALT = { ArrowUp: 'KeyW', ArrowDown: 'KeyS', ArrowLeft: 'KeyA', ArrowRight: 'KeyD', KeyC: 'KeyO', KeyX: 'KeyK' };
   const TOUCH = { Space: 'ArrowUp' };
   const SIZE = 13, MIN_PX = 15, IN = 0.15, OUT = 0.12, ARROWS = '←→↑↓';
-  const smooth = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
+  const { smooth } = ZS.util;
   const codes = (part) => (Array.isArray(part[0]) ? part[0] : [part[0]]);
   const paths = new Map();
   const SAVE = 'zaStromom.hints', LIMIT = 2, AGAIN = 3;

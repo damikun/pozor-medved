@@ -3,20 +3,10 @@
   const GY = ZS.CFG.GROUND;
   const API = (ZS.alpineArt = {});
   const PI = Math.PI, TAU = PI * 2;
-  const sin = Math.sin, cos = Math.cos, abs = Math.abs, sqrt = Math.sqrt, min = Math.min, max = Math.max, exp = Math.exp;
-  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-  const frac = (v) => v - Math.floor(v);
-  const hash = (n) => frac(sin(n * 127.1 + 311.7) * 43758.5453);
+  const sin = Math.sin, cos = Math.cos, abs = Math.abs, sqrt = Math.sqrt, min = Math.min, max = Math.max;
+  const { clamp, lerp, sstep, frac, hash, ease } = ZS.util;
+  const { circle, ellipse: ell, rrect: rr } = ZS.gfx;
 
-  function circle(ctx, x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
-  function ell(ctx, x, y, rx, ry, rot) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot || 0, 0, TAU); ctx.fill(); }
-  function rr(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); ctx.fill();
-  }
   function poly(ctx, p) {
     ctx.beginPath(); ctx.moveTo(p[0], p[1]);
     for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]);
@@ -67,7 +57,6 @@
     st.t = time;
     return st;
   }
-  const ease = (v, to, rate, dt) => v + (to - v) * (1 - exp(-rate * dt));
 
   const RIDGE = [
     -1560, -150, -1470, -196, -1400, -182, -1320, -248, -1270, -226, -1210, -262, -1150, -224, -1080, -244, -1010, -190, -930, -214, -870, -180,

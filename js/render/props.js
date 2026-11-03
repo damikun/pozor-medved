@@ -11,13 +11,10 @@
   const TWIG = { buk: '#6e665d', breza: '#5a3a33', jablon: '#5b4232' };
   const BULB = ['#ffe7a0', '#ffad42', '#ff5e4d', '#ffd54f', '#ffc9e0'];
   const CANDY = ['#e63946', '#2a9d8f', '#f4a261', '#7b5ea7', '#3a86ff', '#e9c46a'];
-  const frac = (v) => v - Math.floor(v);
-  const hash = (n) => frac(Math.sin(n * 127.1 + 311.7) * 43758.5453);
-  const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const { frac, hash, sstep } = ZS.util;
   const keyOf = (g, season) => (g && g.seasonKey) || KEYS[season | 0] || KEYS[0];
   let chill = false;
   const cold = (g) => (g ? (chill = B.cold(g)) : chill);
-  const oval = (ctx, x, y, rx, ry, rot) => { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot, 0, TAU); ctx.fill(); };
   const shades = {};
   function dk(hex, k) {
     k = Math.round(k * 40) / 40;
@@ -176,7 +173,7 @@
       const edge = i === n - 1 ? y0 - s * (e + 0.1) : y0 - s * e;
       snowCap(ctx, t.x, y0, hw, th, edge, Math.max(3, Math.round(hw / 13)), sd + i * 3.1, W, 0.4);
       ctx.fillStyle = W.snow;
-      oval(ctx, t.x - hw + 5, y0 - 2, 4 + W.cap * 2, 2.6, -0.3); oval(ctx, t.x + hw - 5, y0 - 2, 4 + W.cap * 2, 2.6, 0.3);
+      ellipse(ctx, t.x - hw + 5, y0 - 2, 4 + W.cap * 2, 2.6, -0.3); ellipse(ctx, t.x + hw - 5, y0 - 2, 4 + W.cap * 2, 2.6, 0.3);
       if (t.xmas) garland(ctx, t, i, y0, hw, s, time);
     }
     if (t.xmas) star(ctx, t.x, top - 3, time);
@@ -368,7 +365,7 @@
     const hw = h.w / 2 + 14;
     snowCap(ctx, h.x, top + 4, hw, 66, top - 22 + 12 * (1 - W.cap), Math.max(4, Math.round(h.w / 30)), sd * 13, W, 0.55);
     ctx.fillStyle = W.snow;
-    oval(ctx, x0 - 13, top + 2.5, 6, 3.4, 0.5); oval(ctx, x0 + h.w + 13, top + 2.5, 6, 3.4, -0.5);
+    ellipse(ctx, x0 - 13, top + 2.5, 6, 3.4, 0.5); ellipse(ctx, x0 + h.w + 13, top + 2.5, 6, 3.4, -0.5);
     icicles(ctx, x0 - 12, x0 + h.w + 12, top + 5, 13, sd * 31, W, time);
     win(ctx, x0 + 18, top + 28, time, sd, W);
     win(ctx, x0 + h.w - 54, top + 28, time, sd + 0.37, W);
@@ -447,7 +444,7 @@
       ctx.fillStyle = W.snow; rrect(ctx, p.x - 32, top - 31.5, 64, 4.5, 2.2);
       snowCap(ctx, p.x, top - 52 + rj, 40, 26, top - 59 + 4 * (1 - W.cap) + rj, 3, sd, W, 0.5);
       ctx.fillStyle = W.snow;
-      oval(ctx, p.x - 40, top - 53 + rj, 4.5, 2.6, 0.5); oval(ctx, p.x + 40, top - 53 + rj, 4.5, 2.6, -0.5);
+      ellipse(ctx, p.x - 40, top - 53 + rj, 4.5, 2.6, 0.5); ellipse(ctx, p.x + 40, top - 53 + rj, 4.5, 2.6, -0.5);
       icicles(ctx, p.x - 40, p.x - 23, top - 51.5 + rj, 9, sd * 3, W, time);
       icicles(ctx, p.x + 23, p.x + 40, top - 51.5 + rj, 9, sd * 5, W, time);
     }
@@ -484,7 +481,7 @@
     ctx.stroke();
     ctx.globalAlpha = 1;
     ctx.fillStyle = W.snow;
-    oval(ctx, x - rx(top - 12), top - 13.2, 2.4, 1.5, 0); oval(ctx, x + rx(top - 12), top - 13.2, 2.4, 1.5, 0);
+    ellipse(ctx, x - rx(top - 12), top - 13.2, 2.4, 1.5, 0); ellipse(ctx, x + rx(top - 12), top - 13.2, 2.4, 1.5, 0);
   }
 
   const LEAVES = ['#7a5a34', '#5f7d3c', '#9a7b4f', '#4f6b34'];
@@ -504,7 +501,7 @@
         ctx.fillStyle = W.snow; circle(ctx, x, y, r * 0.92);
       } else {
         ctx.fillStyle = LEAVES[i % LEAVES.length];
-        oval(ctx, x, y, 2.6 + h * 1.4, 0.9 + 0.6 * Math.abs(Math.sin(time * 7 + i)), time * (3 + h * 4) + i);
+        ellipse(ctx, x, y, 2.6 + h * 1.4, 0.9 + 0.6 * Math.abs(Math.sin(time * 7 + i)), time * (3 + h * 4) + i);
       }
     }
     if (W) {
@@ -634,7 +631,7 @@
       ctx.closePath(); ctx.fill();
     }
     ctx.fillStyle = W.snow;
-    oval(ctx, x - 100, DY(0.17) + 22, 11, 4, -0.6); oval(ctx, x + 92, DY(0.81) + 26, 9, 3.4, 0.6);
+    ellipse(ctx, x - 100, DY(0.17) + 22, 11, 4, -0.6); ellipse(ctx, x + 92, DY(0.81) + 26, 9, 3.4, 0.6);
     ctx.fillStyle = '#1f1610';
     ctx.beginPath(); ctx.moveTo(x - 40, GY); ctx.arc(x, GY, 40, Math.PI, 0); ctx.closePath(); ctx.fill();
     const p = 0.5 + 0.4 * Math.sin(time * 5);
@@ -855,15 +852,15 @@
 
   function halusky(ctx, it, time) {
     const x = it.x, y = GY - 1.5, sd = hash(x * 0.023) * 30;
-    ctx.fillStyle = 'rgba(30,26,12,0.16)'; oval(ctx, x + 1, GY + 0.8, 16, 2.6, 0);
-    ctx.fillStyle = '#c9c4b8'; oval(ctx, x, y + 0.6, 14.5, 3.6, 0);
-    ctx.fillStyle = '#f7f5ef'; oval(ctx, x, y - 0.2, 14, 3, 0);
-    ctx.fillStyle = '#e3d2a0'; oval(ctx, x, y - 3.4, 10.6, 4.4, 0);
+    ctx.fillStyle = 'rgba(30,26,12,0.16)'; ellipse(ctx, x + 1, GY + 0.8, 16, 2.6, 0);
+    ctx.fillStyle = '#c9c4b8'; ellipse(ctx, x, y + 0.6, 14.5, 3.6, 0);
+    ctx.fillStyle = '#f7f5ef'; ellipse(ctx, x, y - 0.2, 14, 3, 0);
+    ctx.fillStyle = '#e3d2a0'; ellipse(ctx, x, y - 3.4, 10.6, 4.4, 0);
     for (let i = 0; i < 12; i++) {
       const a = hash(sd + i * 1.7), b = hash(sd + i * 3.1), px = x - 9 + a * 18, py = y - 2.4 - b * 4.6 - (1 - Math.abs(a - 0.5) * 2) * 2.6;
-      ctx.fillStyle = i % 3 ? '#f6eed6' : '#ecdcb2'; oval(ctx, px, py, 1.9 + b * 0.8, 1.4 + a * 0.5, (a - 0.5) * 1.2);
+      ctx.fillStyle = i % 3 ? '#f6eed6' : '#ecdcb2'; ellipse(ctx, px, py, 1.9 + b * 0.8, 1.4 + a * 0.5, (a - 0.5) * 1.2);
     }
-    ctx.fillStyle = 'rgba(255,255,250,0.88)'; oval(ctx, x - 2, y - 6.6, 5, 1.8, -0.2); oval(ctx, x + 3.6, y - 5.4, 3.4, 1.4, 0.3);
+    ctx.fillStyle = 'rgba(255,255,250,0.88)'; ellipse(ctx, x - 2, y - 6.6, 5, 1.8, -0.2); ellipse(ctx, x + 3.6, y - 5.4, 3.4, 1.4, 0.3);
     for (let i = 0; i < 6; i++) {
       const a = hash(sd + i * 5.3), b = hash(sd + i * 7.9);
       ctx.fillStyle = i % 2 ? '#9c3b22' : '#c8673f'; ctx.fillRect(x - 7 + a * 14, y - 4 - b * 4.4, 2.2, 1.5);

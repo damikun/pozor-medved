@@ -2,6 +2,7 @@
   const ZS = window.ZS;
   const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
   const emojiCache = new Map();
+  const TAU = Math.PI * 2;
 
   function emoji(ctx, ch, x, y, size) {
     const key = ch + size;
@@ -35,8 +36,39 @@
     ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); ctx.fill();
   }
 
-  function circle(ctx, x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
-  function ellipse(ctx, x, y, rx, ry) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fill(); }
+  function circle(ctx, x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
+  function ellipse(ctx, x, y, rx, ry, rot) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot || 0, 0, TAU); ctx.fill(); }
 
-  ZS.gfx = { emoji, label, rrect, circle, ellipse };
+  const widths = new Map();
+  function measure(ctx, s, font) {
+    const key = font + '|' + s;
+    let w = widths.get(key);
+    if (w === undefined) { ctx.font = font; w = ctx.measureText(s).width; widths.set(key, w); }
+    return w;
+  }
+
+  const fontOf = (weight, size) => weight + ' ' + size + 'px system-ui, sans-serif';
+
+  function fit(ctx, s, size, weight, maxW) {
+    const w = measure(ctx, s, fontOf(weight, size));
+    return w > maxW ? size * maxW / w : size;
+  }
+
+  function text(ctx, s, x, y, size, col, weight, spacing, maxW) {
+    const wt = weight || 700, font = fontOf(wt, size);
+    const w = maxW ? measure(ctx, s, font) + (spacing || 0) * s.length : 0;
+    ctx.font = w > maxW ? fontOf(wt, size * maxW / w) : font;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    if ('letterSpacing' in ctx) ctx.letterSpacing = (spacing || 0) + 'px';
+    ctx.fillStyle = col; ctx.fillText(s, x, y);
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+  }
+
+  const tones = {};
+  function rgba(rgb, a) {
+    const i = a <= 0 ? 0 : a >= 1 ? 1000 : Math.round(a * 1000), row = tones[rgb] || (tones[rgb] = []);
+    return row[i] || (row[i] = 'rgba(' + rgb + ',' + (i / 1000).toFixed(3) + ')');
+  }
+
+  ZS.gfx = { emoji, label, rrect, circle, ellipse, text, fit, rgba };
 })();

@@ -3,9 +3,7 @@
   const GY = ZS.CFG.GROUND;
   const PI = Math.PI, TAU = PI * 2;
   const sin = Math.sin, cos = Math.cos, abs = Math.abs, exp = Math.exp;
-  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
-  const frac = (v) => v - Math.floor(v);
-  const hash = (n) => frac(sin(n * 127.1 + 311.7) * 43758.5453);
+  const { clamp, hash } = ZS.util;
   const R = 50, PUSH = 26, WOB = 15;
 
   const PAL = [

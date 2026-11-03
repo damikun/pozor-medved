@@ -10,7 +10,14 @@
     };
   }
 
-  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const smooth = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
+  const sstep = (a, b, x) => smooth((x - a) / (b - a));
+  const ease = (v, to, rate, dt) => v + (to - v) * (1 - Math.exp(-rate * dt));
+  const frac = (v) => v - Math.floor(v);
+  const hash = (n) => frac(Math.sin(n * 127.1 + 311.7) * 43758.5453);
+  const hash2 = (a, b) => hash(a * 57.31 + b * 13.97 + 0.17);
 
-  ZS.util = { mulberry32, clamp };
+  ZS.util = { mulberry32, clamp, lerp, smooth, sstep, ease, frac, hash, hash2 };
 })();

@@ -2,14 +2,11 @@
   const GY = ZS.CFG.GROUND;
   const PI = Math.PI, TAU = PI * 2;
   const sin = Math.sin, cos = Math.cos, abs = Math.abs, hypot = Math.hypot, atan2 = Math.atan2, sqrt = Math.sqrt;
-  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const frac = (v) => v - Math.floor(v);
-  const smooth = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
+  const { clamp, lerp, frac, smooth, ease } = ZS.util;
+  const { circle, ellipse: ell, rrect: rr } = ZS.gfx;
   const bump = (k, a, b) => (k <= a || k >= b ? 0 : Math.pow(sin((PI * (k - a)) / (b - a)), 2));
   const plateau = (k, a, b, c, d) => smooth((k - a) / (b - a)) * (1 - smooth((k - c) / (d - c)));
   const unit = (v) => (v > 0 ? (v < 1 ? v : 1) : 0);
-  const ease = (v, to, rate, dt) => v + (to - v) * (1 - Math.exp(-rate * dt));
 
   const D = { thigh: 15.2, shin: 15.2, ank: 3.2, hip: 33, tor: 21, neck: 11.5, hr: 7, ua: 11.6, fa: 11 };
   const LMAX = D.thigh + D.shin - 0.3;
@@ -118,13 +115,6 @@
     return v;
   }
 
-  function circle(ctx, x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
-  function ell(ctx, x, y, rx, ry, rot) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot || 0, 0, TAU); ctx.fill(); }
-  function rr(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); ctx.fill();
-  }
   function limb(ctx, ax, ay, bx, by, wa, wb, col) {
     const dx = bx - ax, dy = by - ay, d = hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d;
     ctx.fillStyle = col;

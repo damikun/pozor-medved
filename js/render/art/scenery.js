@@ -4,20 +4,9 @@
   const API = (ZS.scenery = {});
   const PI = Math.PI, TAU = PI * 2;
   const sin = Math.sin, cos = Math.cos, abs = Math.abs, sqrt = Math.sqrt, hypot = Math.hypot, atan2 = Math.atan2, exp = Math.exp;
-  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-  const frac = (v) => v - Math.floor(v);
-  const hash = (n) => frac(sin(n * 127.1 + 311.7) * 43758.5453);
-  const hash2 = (a, b) => hash(a * 57.31 + b * 13.97 + 0.17);
+  const { clamp, lerp, sstep, frac, hash, hash2 } = ZS.util;
+  const { circle, ellipse: ell, rrect: rr, text } = ZS.gfx;
 
-  function circle(ctx, x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
-  function ell(ctx, x, y, rx, ry, rot) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot || 0, 0, TAU); ctx.fill(); }
-  function rr(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); ctx.fill();
-  }
   function poly(ctx, p) {
     ctx.beginPath(); ctx.moveTo(p[0], p[1]);
     for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]);
@@ -43,15 +32,6 @@
   }
   function line(ctx, x1, y1, x2, y2, w, col) {
     ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-  }
-  function txt(ctx, s, x, y, size, col, weight, spacing, maxW) {
-    ctx.font = (weight || 700) + ' ' + size + 'px system-ui, sans-serif';
-    const w = maxW ? ctx.measureText(s).width + (spacing || 0) * s.length : 0;
-    if (w > maxW) ctx.font = (weight || 700) + ' ' + (size * maxW / w) + 'px system-ui, sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    if ('letterSpacing' in ctx) ctx.letterSpacing = (spacing || 0) + 'px';
-    ctx.fillStyle = col; ctx.fillText(s, x, y);
-    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
   }
   const shadeCache = {};
   function dk(hex, k) {
@@ -346,7 +326,7 @@
     ctx.fillStyle = '#b98c55'; rr(ctx, -24, 10, 48, 18, 2.5);
     ctx.fillStyle = 'rgba(0,0,0,0.16)'; ctx.fillRect(-24, 24, 48, 4);
     ctx.fillStyle = 'rgba(255,255,255,0.14)'; ctx.fillRect(-22, 11.5, 44, 1.6);
-    txt(ctx, ZS.LABELS.art.salas, 0, 19.5, 12.5, '#35200f', 800, 0.8, 44);
+    text(ctx, ZS.LABELS.art.salas, 0, 19.5, 12.5, '#35200f', 800, 0.8, 44);
     ctx.restore();
     smoke(ctx, 52, -137, time, 1.7, 1);
     ctx.restore();
@@ -440,9 +420,9 @@
     ctx.fillStyle = '#f6c80c'; rr(ctx, -25.6, -63.6, 51.2, 29.2, 2.2);
     ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.fillRect(-24.5, -62.8, 49, 2);
     const [a, b, c] = ZS.LABELS.art.fence;
-    txt(ctx, a, 0, -56.2, 9.4, '#c0221a', 900, 0.4, 46);
-    txt(ctx, b, 0, -46.4, 6.4, '#1d1d1d', 800, 0.2, 46);
-    txt(ctx, c, 0, -39.4, 6.4, '#1d1d1d', 800, 0.2, 46);
+    text(ctx, a, 0, -56.2, 9.4, '#c0221a', 900, 0.4, 46);
+    text(ctx, b, 0, -46.4, 6.4, '#1d1d1d', 800, 0.2, 46);
+    text(ctx, c, 0, -39.4, 6.4, '#1d1d1d', 800, 0.2, 46);
     ctx.fillStyle = '#1d1d1d'; poly(ctx, [0, -78.5, 8.6, -66.2, -8.6, -66.2]);
     ctx.fillStyle = '#f6c80c'; poly(ctx, [0, -76, 6.6, -67.3, -6.6, -67.3]);
     ctx.fillStyle = '#1d1d1d'; bolt(ctx, 0, -70.2, 0.8);
@@ -1392,7 +1372,7 @@
     if (snowy) { snowCap(ctx, -110, -88, -38, 3, 9.1); snowCap(ctx, -88, -66, -38, 3, 9.7); icicles(ctx, -108, -68, -34, 5, 5, 9.3); }
     ctx.fillStyle = '#5a3d22'; ctx.fillRect(-100, -56, 1.6, 8); ctx.fillRect(-77.6, -56, 1.6, 8);
     ctx.fillStyle = '#2f4a35'; rr(ctx, -106, -64, 36, 10, 2);
-    txt(ctx, ZS.LABELS.lift.ticket, -88, -58.6, 6.4, '#f5edd2', 800, 0.4, 32);
+    text(ctx, ZS.LABELS.lift.ticket, -88, -58.6, 6.4, '#f5edd2', 800, 0.4, 32);
     if (snowy) snowCap(ctx, -106, -70, -64, 2.4, 9.9);
   }
 
@@ -1416,7 +1396,7 @@
     ctx.fillStyle = 'rgba(255,255,255,0.15)'; rr(ctx, -60, -15, 78, 5, 3);
     ctx.fillStyle = '#e8b92a'; ctx.fillRect(-60, 4, 78, 3.4);
     ctx.fillStyle = '#2b3138'; rr(ctx, 14, -11, 10, 18, 4);
-    txt(ctx, ZS.LABELS.lift.station, -22, -4, 8.6, '#f5f2e8', 800, 1, 62);
+    text(ctx, ZS.LABELS.lift.station, -22, -4, 8.6, '#f5f2e8', 800, 1, 62);
     if (snowy) snowCap(ctx, -62, 20, -15.5, 4, 3.3);
     ctx.restore();
   }
@@ -1499,7 +1479,7 @@
     ctx.fillStyle = '#17402a'; rr(ctx, -19, -65, 38, 4.6, 2.2);
     ctx.fillStyle = '#f4f1e6'; rr(ctx, -39, -51, 34, 17, 2.4);
     const [w1, w2] = ZS.LABELS.art.waste;
-    txt(ctx, w1, -22, -46, 4.8, '#245a38', 800, 0, 31); txt(ctx, w2, -22, -39.2, 8, '#245a38', 900, 0.3, 31);
+    text(ctx, w1, -22, -46, 4.8, '#245a38', 800, 0, 31); text(ctx, w2, -22, -39.2, 8, '#245a38', 900, 0.3, 31);
     if (locked) {
       ctx.fillStyle = '#f7d21e'; rr(ctx, 12, -54, 26, 26, 3.6);
       ctx.fillStyle = '#1d1d1d'; ell(ctx, 25, -37.5, 5.4, 4.4); circle(ctx, 19.2, -45, 2); circle(ctx, 23.4, -47.6, 2.1); circle(ctx, 27.8, -47.6, 2.1); circle(ctx, 32, -45, 2);
