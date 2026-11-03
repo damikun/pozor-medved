@@ -30,6 +30,11 @@
 
   function free(b) { return !b.act && !b.hiding && !b.climbing && b.onGround && !b.stun; }
 
+  function bitable(g) {
+    const p = g.photographer, b = g.bear;
+    return !!p && !p.react && !b.inWater && free(b) && near(b, p);
+  }
+
   function act(g, b, key) {
     const p = g.photographer;
     if (!p || p.react) return null;
@@ -133,5 +138,5 @@
   }
 
   ZS.sim = ZS.sim || {};
-  ZS.sim.photographer = { update, act, create, POSE, GAP, REST };
+  ZS.sim.photographer = { update, act, create, bitable, POSE, GAP, REST };
 })();

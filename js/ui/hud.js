@@ -67,7 +67,8 @@
     bar('barTrip', Math.min(100, (b.x / g.level.goalDen) * 100));
     hearts(g);
     counts(g);
-    const free = !g.over && !g.ride, kind = free ? actOf(g, b) : null, reach = !!kind, bite = free && !!b.reach && !b.reach.post;
+    const free = !g.over && !g.ride, kind = free ? actOf(g, b) : null, reach = !!kind;
+    const bite = free && !!b.reach && !b.reach.post && (b.reach.kind !== 'photographer' || ZS.sim.photographer.bitable(g));
     if (reach !== reachOn) { reachOn = reach; $('act').classList.toggle('on', reach); }
     if (kind !== actOn) { actOn = kind; dress(kind); }
     if (bite !== biteOn) { biteOn = bite; $('bite').classList.toggle('on', bite); }
