@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://zastromom.sk/</loc>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://zastromom.sk/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zastromom.sk/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://zastromom.sk/?lang=de"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://zastromom.sk/?lang=es"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zastromom.sk/?lang=en"/>
+  </url>
+  <url>
+    <loc>https://zastromom.sk/?lang=en</loc>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://zastromom.sk/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zastromom.sk/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://zastromom.sk/?lang=de"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://zastromom.sk/?lang=es"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zastromom.sk/?lang=en"/>
+  </url>
+  <url>
+    <loc>https://zastromom.sk/?lang=de</loc>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://zastromom.sk/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zastromom.sk/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://zastromom.sk/?lang=de"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://zastromom.sk/?lang=es"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zastromom.sk/?lang=en"/>
+  </url>
+  <url>
+    <loc>https://zastromom.sk/?lang=es</loc>
+    <xhtml:link rel="alternate" hreflang="sk" href="https://zastromom.sk/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zastromom.sk/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://zastromom.sk/?lang=de"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://zastromom.sk/?lang=es"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zastromom.sk/?lang=en"/>
+  </url>
+</urlset>

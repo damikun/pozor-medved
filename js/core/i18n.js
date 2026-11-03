@@ -61,6 +61,9 @@
       if (remember) keep(lang);
       const root = window.document && window.document.documentElement;
       if (root) root.lang = lang;
+      const link = window.document && window.document.querySelector && window.document.querySelector('link[rel="canonical"]');
+      if (link) link.href = link.href.split('?')[0] + (lang === 'sk' ? '' : '?lang=' + lang);
+      if (window.document && ZS.UI.title) window.document.title = ZS.UI.title + ' – ' + ZS.UI.subtitle.split(' · ').pop();
       return lang;
     },
   };
