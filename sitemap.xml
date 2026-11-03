@@ -6,7 +6,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://zastromom.sk/?lang=en"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://zastromom.sk/?lang=de"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://zastromom.sk/?lang=es"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://zastromom.sk/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zastromom.sk/"/>
   </url>
   <url>
     <loc>https://zastromom.sk/?lang=en</loc>
@@ -14,7 +14,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://zastromom.sk/?lang=en"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://zastromom.sk/?lang=de"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://zastromom.sk/?lang=es"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://zastromom.sk/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zastromom.sk/"/>
   </url>
   <url>
     <loc>https://zastromom.sk/?lang=de</loc>
@@ -22,7 +22,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://zastromom.sk/?lang=en"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://zastromom.sk/?lang=de"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://zastromom.sk/?lang=es"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://zastromom.sk/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zastromom.sk/"/>
   </url>
   <url>
     <loc>https://zastromom.sk/?lang=es</loc>
@@ -30,6 +30,6 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://zastromom.sk/?lang=en"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://zastromom.sk/?lang=de"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://zastromom.sk/?lang=es"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://zastromom.sk/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://zastromom.sk/"/>
   </url>
 </urlset>
