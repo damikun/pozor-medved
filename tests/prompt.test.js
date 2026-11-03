@@ -68,7 +68,7 @@ test('keys read as keyboard names, and on touch as the icon of the matching touc
   assert.equal(P.fill('{Nope} ostane', false), '{Nope} ostane');
 });
 
-test('when the game has pictogram icons for touch buttons, prompts draw those instead of text', () => {
+test('when the game has pictogram icons for touch buttons, key caps on touch use those instead of text', () => {
   const { ZS, g, b, problems, frame } = stage('summer');
   ZS.ICONS = { KeyC: 'M8 4h8v16H8z', ArrowUp: 'M12 2 21 12H3z' };
   ZS.icon = (code) => (ZS.ICONS[code] ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + ZS.ICONS[code] + '"/></svg>' : '');
@@ -78,8 +78,8 @@ test('when the game has pictogram icons for touch buttons, prompts draw those in
   g.touch = true;
   const post = g.level.posts[0];
   b.x = post.x - 10; b.trackX = b.x;
-  assert.ok(frame(0.3), 'drawn with the pictogram');
-  assert.deepEqual(problems.slice(0, 5), []);
+  assert.equal(frame(0.3), null, 'no prompt under the bear on touch');
+  assert.deepEqual(problems.slice(0, 5), [], 'the signs still draw their pictograms cleanly');
 });
 
 test('the tutorial signs draw their key next to the text', () => {
@@ -121,25 +121,23 @@ test('the prompt sits under the bear, below every floating text, and stays on sc
   assert.deepEqual(problems.slice(0, 5), []);
 });
 
-test('on touch a prompt shows only when its touch button is on screen, with the button icon', () => {
-  const act = { on: false };
-  const button = (icon, hides) => ({ textContent: icon, closest: (sel) => (hides && !act.on && sel === '.act:not(.on)' ? {} : null) });
-  const buttons = { ArrowUp: button('⤒', false), KeyC: button('🤗', true), KeyX: button('🦷', true) };
+test('on touch nothing is drawn under the bear, the touch buttons carry the actions', () => {
+  const button = (icon) => ({ textContent: icon, closest: () => null });
+  const buttons = { ArrowUp: button('⤒'), KeyC: button('🤗'), KeyX: button('🦷') };
   const document = { querySelector: (sel) => buttons[(/data-key="(\w+)"/.exec(sel) || [])[1]] || null };
   const { ZS, g, b, frame } = stage('summer', { document });
   g.touch = true;
   const house = g.level.houses[0];
   b.x = house.x; b.trackX = b.x;
-  assert.equal(frame(0.3), null, 'no prompt while 🤗 is hidden at a door');
-  assert.equal(json(ZS.render.cue(g)), json([['KeyC', ZS.LABELS.interactKnock]]), 'the same prompt as on a keyboard');
-  act.on = true;
-  assert.ok(frame(0.3), 'shown once 🤗 is up');
+  assert.equal(frame(0.3), null, 'not drawn on a touch screen');
+  assert.equal(json(ZS.render.cue(g)), json([['KeyC', ZS.LABELS.interactKnock]]), 'though it is the same prompt as on a keyboard');
   assert.equal(ZS.prompt.glyph('KeyC', g.touch), '🤗');
   const post = g.level.posts[0];
   b.x = post.x - 10; b.trackX = b.x;
-  act.on = false;
-  assert.ok(frame(0.3), 'climbing the stand uses the ⤒ button, always on screen');
+  assert.equal(frame(0.3), null);
   assert.equal(json(ZS.render.cue(g)), json([['ArrowUp', ZS.LABELS.ladderUp]]));
+  g.touch = false;
+  assert.ok(frame(0.3), 'a keyboard still gets the prompt');
 });
 
 test('entering the corn shows the crouch prompt until the bear crouches', () => {

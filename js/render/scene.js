@@ -221,7 +221,7 @@
 
   function drawCue(ctx, g, viewW) {
     if (g.cues !== false) practice(g);
-    const b = g.bear, parts = g.cues === false ? null : cue(g);
+    const b = g.bear, parts = g.cues === false || g.touch ? null : cue(g);
     ZS.prompt.show(ctx, g, parts && { parts, x: b.x, y: (b.climbing ? b.y : GY) + 6 }, { hang: true, lo: g.cam + 8, hi: g.cam + viewW - 8 });
   }
 
