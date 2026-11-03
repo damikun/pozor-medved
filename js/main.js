@@ -6,9 +6,9 @@
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const BOT = /[?&]bot\b/.test(location.search);
-  const PORTRAIT_MIN_W = 480, BAND = 0.15, BAND_MAX = 64;
+  const PORTRAIT_MIN_W = 480, BAND = 0.15, BAND_MAX = 64, TOUCH_W = 1000, TOUCH_MIN_H = 420;
   const SAVE = 'zaStromom.done';
-  let g = null, vw = 0, vh = 0, viewW = 0, offY = 0, last = 0, hudT = 0, current = 'summer', mark = null, reached = new Set();
+  let g = null, vw = 0, vh = 0, viewW = 0, viewH = 0, offY = 0, last = 0, hudT = 0, current = 'summer', mark = null, reached = new Set();
 
   const touchy = () => input.touched() || window.matchMedia('(pointer: coarse)').matches;
 
@@ -22,18 +22,19 @@
 
   function resize() {
     vw = window.innerWidth; vh = window.innerHeight;
-    viewW = 0; offY = 0;
+    viewW = 0; viewH = 0; offY = 0;
     if (vw && vh) {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.round(vw * dpr); canvas.height = Math.round(vh * dpr);
       const minW = vh > vw ? PORTRAIT_MIN_W : CFG.MIN_VIEW_W;
-      const band = vw > vh && touchy() ? Math.min(BAND_MAX, vh * BAND) : 0;
-      const scale = Math.min((vh - band) / CFG.VIEW_H, vw / minW);
-      viewW = vw / scale;
-      offY = ((vh - band) / scale - CFG.VIEW_H) * 0.45;
+      let band = vw > vh && touchy() ? Math.min(BAND_MAX, vh * BAND) : 0;
+      let scale = Math.min((vh - band) / CFG.VIEW_H, vw / minW);
+      if (band && vw / scale > TOUCH_W) { band = 0; scale = Math.min(vh / TOUCH_MIN_H, vw / TOUCH_W); }
+      viewW = vw / scale; viewH = (vh - band) / scale;
+      offY = viewH >= CFG.VIEW_H ? (viewH - CFG.VIEW_H) * 0.45 : viewH - CFG.VIEW_H;
       ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
     }
-    if (g) g.viewW = viewW;
+    if (g) { g.viewW = viewW; g.viewH = viewH; }
   }
 
   function note(run, label, news) {
@@ -48,6 +49,7 @@
     input.state.keys.clear();
     g = from ? checkpoint.resume(from, input.state, { viewW, bot: BOT }) : rules.create(input.state, { viewW, bot: BOT, level: current });
     g.touch = touchy();
+    g.viewH = viewH;
     g.running = true;
     const seen = tally.watch(g);
     if (from) Object.assign(seen, { climbs: from.tally.trees, shakes: from.tally.stands - (g.ladders || 0) });
@@ -63,6 +65,7 @@
   function preview(level) {
     if (g.running || g.level.id === level) return;
     g = rules.create(input.state, { viewW, level });
+    g.viewH = viewH;
     g.bear.waking = false;
   }
 
@@ -141,6 +144,7 @@
   input.listen({ onPause: togglePause, onMute: audio.toggle, onTouch: () => { resize(); if (g.running && !g.over) { g.touch = true; hud.setTouch(true); } } });
   resize();
   g = rules.create(input.state, { viewW });
+  g.viewH = viewH;
   menu();
   requestAnimationFrame(frame);
 

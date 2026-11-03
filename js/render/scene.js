@@ -257,7 +257,7 @@
     ctx.restore();
   }
 
-  function overlays(ctx, g, vis, viewW) {
+  function overlays(ctx, g, vis, viewW, top) {
     const b = g.bear;
     for (const d of g.drones) P.drone(ctx, d, g.time);
     const aim = ZS.sim.hunters.aimFactor(g);
@@ -277,10 +277,10 @@
     for (const f of g.floaters) {
       if (f.ride) continue;
       ctx.globalAlpha = Math.min(1, f.t);
-      label(ctx, f.text, f.x, f.y - (1.6 - f.t) * 30, 16, f.color);
+      label(ctx, f.text, f.x, Math.max(top + 12, f.y - (1.6 - f.t) * 30), 16, f.color);
       ctx.globalAlpha = 1;
     }
-    if (g.bubble) P.bubble(ctx, b.x, b.climbing || b.offTree ? Math.min(b.y - 128, GY - 180) : GY - 180, g.bubble.text, g.bubble.t, g.cam + 8, g.cam + viewW - 8);
+    if (g.bubble) P.bubble(ctx, b.x, Math.max(top + 34, b.climbing || b.offTree ? Math.min(b.y - 128, GY - 180) : GY - 180), g.bubble.text, g.bubble.t, g.cam + 8, g.cam + viewW - 8);
   }
 
   ZS.draw = function (g, ctx, viewW, offY) {
@@ -337,7 +337,7 @@
     if (b.zapT < 1.4) ZS.scenery.zap(ctx, b, g.time);
     for (const c of L.cannons) if (vis(c.x, 320)) ZS.winterArt.spray(ctx, c, g.time);
     bearCues(ctx, g);
-    overlays(ctx, g, vis, viewW);
+    overlays(ctx, g, vis, viewW, -offY);
     drawCue(ctx, g, viewW);
     ctx.restore();
     if (zoom) lift.cover(g, ctx, viewW, offY);

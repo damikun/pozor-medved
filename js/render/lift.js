@@ -22,12 +22,12 @@
   const PT = [0, 0];
   const SWING = ['ArrowLeft', 'ArrowRight'];
 
-  function setup(viewW, offY) {
-    const k = clamp((viewW / 2 - 8) / 280, 0.55, 1);
-    V.k = k; V.f = 312 * k; V.w = viewW; V.cx = viewW / 2;
+  function setup(viewW, offY, viewH) {
+    const k = clamp((viewW / 2 - 8) / 280, 0.55, 1), h = viewH || 540 + offY / 0.45;
+    V.k = k * min(1, h / 540); V.f = 312 * k; V.w = viewW; V.cx = viewW / 2;
     V.zc = LIFT().GEO.zc;
-    V.top = -offY; V.bot = 540 + offY / 0.45 - offY;
-    V.hz = 100 + offY * 0.75;
+    V.top = -offY; V.bot = V.top + h;
+    V.hz = offY < 0 ? V.top + h * 0.185 : 100 + offY * 0.75;
     V.vx = V.cx + V.f * CAM.x / V.zc;
     V.gx = V.cx; V.gy = V.hz + V.f * (CAM.h - CAM.cable) / V.zc;
     V.near = V.f * CAM.h / (V.bot - V.hz + 20);
@@ -956,7 +956,7 @@
 
   function draw(g, ctx, viewW, offY) {
     const r = g.ride, lift = LIFT(), T = lift.T;
-    setup(viewW, offY);
+    setup(viewW, offY, g.viewH);
     const p = palette(g), vw = view(g), zcam = vw.zcam, zTop = vw.zTop, tau = vw.tau, t = g.time;
     LIFT_T = t;
     const sh = r.shake * r.shake, dx = sh * sin(r.clock * 53) * 5 * V.k, dy = sh * cos(r.clock * 47) * 4 * V.k;
@@ -1035,7 +1035,7 @@
   function cover(g, ctx, viewW, offY) {
     const r = g.ride, T = LIFT().T, z = zoom(g);
     if (!z) return;
-    V.w = viewW; V.top = -offY; V.bot = 540 + offY / 0.45 - offY;
+    V.w = viewW; V.top = -offY; V.bot = V.top + (g.viewH || 540 + offY / 0.45);
     const far = hypot(viewW, V.bot - V.top);
     let rad = far;
     if (r.phase === 'board') rad = far * (1 - smooth((r.t - 0.2) / (T.board - 0.2)));

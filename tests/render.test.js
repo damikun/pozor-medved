@@ -4,20 +4,24 @@ const assert = require('node:assert/strict');
 const { loadGame } = require('./helpers/load-game');
 const { createCanvas, stackDepth } = require('./helpers/mock-canvas');
 
-function viewport(width, height, dpr) {
-  const scale = Math.min(height / 540, width / (height > width ? 480 : 760));
-  return { width: width * dpr, height: height * dpr, scale: dpr * scale, viewW: width / scale, offY: (height / scale - 540) * 0.45 };
+function viewport(width, height, dpr, touch) {
+  let band = touch && width > height ? Math.min(64, height * 0.15) : 0;
+  let scale = Math.min((height - band) / 540, width / (height > width ? 480 : 760));
+  if (band && width / scale > 1000) { band = 0; scale = Math.min(height / 420, width / 1000); }
+  const viewH = (height - band) / scale;
+  return { width: width * dpr, height: height * dpr, scale: dpr * scale, viewW: width / scale, viewH, offY: viewH >= 540 ? (viewH - 540) * 0.45 : viewH - 540 };
 }
 
 function stage(c) {
   const problems = [];
   const ZS = loadGame({ seed: c.seed, withRenderer: true, problems });
   ZS.dev.bot.mode = c.mode || null;
-  const v = viewport(c.width, c.height, c.dpr);
+  const v = viewport(c.width, c.height, c.dpr, c.touch);
   const ctx = createCanvas(v.width, v.height, problems).getContext('2d');
   ctx.setTransform(v.scale, 0, 0, v.scale, 0, 0);
   const g = ZS.sim.rules.create(ZS.ui.input.state, { viewW: v.viewW, bot: !!c.bot, level: c.level });
   g.running = true;
+  g.viewH = v.viewH;
   let frames = 0;
   const draw = () => {
     g.cam = ZS.sim.loop.cameraX(g);
@@ -35,6 +39,8 @@ const CASES = [
   { name: 'winter, landscape 1280x720', width: 1280, height: 720, dpr: 1, seed: 3, level: 'winter' },
   { name: 'winter, portrait 390x844', width: 390, height: 844, dpr: 3, seed: 5, level: 'winter' },
   { name: 'winter, portrait, sprinting autopilot', width: 390, height: 844, dpr: 2, seed: 8, mode: 'runner', level: 'winter' },
+  { name: 'summer, phone landscape 932x410 on touch', width: 932, height: 410, dpr: 3, seed: 10, level: 'summer', touch: true },
+  { name: 'winter, phone landscape 844x390 on touch', width: 844, height: 390, dpr: 3, seed: 11, level: 'winter', touch: true },
 ];
 
 for (const c of CASES) {
@@ -114,6 +120,7 @@ const RIDES = [
   { name: 'summer autumn with the drone, portrait 390x844', width: 390, height: 844, dpr: 3, seed: 4, level: 'summer', time: 250 },
   { name: 'winter, landscape 1280x720', width: 1280, height: 720, dpr: 2, seed: 5, level: 'winter', time: 100 },
   { name: 'winter frost with the drone, portrait 390x844', width: 390, height: 844, dpr: 2, seed: 6, level: 'winter', time: 200 },
+  { name: 'summer, phone landscape 932x410 on touch', width: 932, height: 410, dpr: 3, seed: 7, level: 'summer', time: 20, touch: true },
 ];
 
 for (const c of RIDES) {
