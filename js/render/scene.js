@@ -166,7 +166,7 @@
     if (b.knock && !b.reach && !g.touch && !b.warn && (b.knock.kind === 'stall' || !(g.knock && g.knock.last))) {
       const k = b.knock, stall = k.kind === 'stall';
       ctx.globalAlpha = 0.92;
-      label(ctx, stall ? LABELS.interactStall : LABELS.interactKnock, k.x, (stall ? GY - 170 : GY - 126) - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
+      label(ctx, stall && !(g.level.items.find((it) => it.type === k.o.kind && Math.abs(it.x - k.o.x) < 1) || {}).locked ? LABELS.interactStall : LABELS.interactKnock, k.x, (stall ? GY - 170 : GY - 126) - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
       ctx.globalAlpha = 1;
     }
     const hic = g.time - (b.hicAt || -9);

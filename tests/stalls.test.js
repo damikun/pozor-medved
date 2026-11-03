@@ -196,3 +196,27 @@ test('the stall, the pour, the shutter and the tipsy bear draw cleanly', () => {
   run(3);
   assert.deepEqual(problems, []);
 });
+
+test('when the traders lock their stalls, a knock opens one stall at a time: one vendor serves, another stays shut', () => {
+  const { ZS, g, b, L, run, park, knock } = setup();
+  g.flags.stallsLocked = true;
+  for (const s of L.stalls) for (const it of L.items) if (it.type === s.kind && Math.abs(it.x - s.x) < 1) it.locked = true;
+  const itemAt = (s) => L.items.find((it) => it.type === s.kind && Math.abs(it.x - s.x) < 1);
+  const [first, second] = L.stalls;
+  park(first.x + 10);
+  run(0.1);
+  assert.equal(ZS.sim.vendors.near(g) && ZS.sim.vendors.near(g).kind, first.kind, 'a locked stall can still be knocked on');
+  knock(0.1);
+  run(3);
+  assert.equal(itemAt(first).eaten, true, 'the vendor opened and served');
+  assert.ok(L.stalls.slice(1).every((s) => itemAt(s).locked), 'the other stalls stay shut');
+  run(6);
+  park(second.x + 10);
+  run(0.1);
+  knock(0.9);
+  run(2);
+  assert.equal(itemAt(second).locked, true, 'a scared vendor keeps the shutter down');
+  assert.equal(itemAt(second).eaten, false);
+  b.x = second.x; run(1);
+  assert.equal(itemAt(second).eaten, false, 'a shut stall cannot be raided');
+});

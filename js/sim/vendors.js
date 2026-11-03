@@ -17,7 +17,7 @@
 
   function open(g, v) {
     const it = itemOf(g, v);
-    return v.mode === 'calm' && !!it && !it.eaten && !it.locked;
+    return v.mode === 'calm' && !!it && !it.eaten;
   }
 
   function near(g) {
@@ -39,7 +39,8 @@
   }
 
   function pour(g, v, a) {
-    const b = g.bear, k = state(g);
+    const b = g.bear, k = state(g), it = itemOf(g, v);
+    if (it) it.locked = false;
     v.mode = 'pour'; v.t = 0;
     a.next = { kind: 'taste', t: 0, dur: TASTE, dir: b.dir, hit: false, target: null, stall: v, done: false, food: v.kind, to: a.to };
     rules().onSound(g, 'pour', v.x);
