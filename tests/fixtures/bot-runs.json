@@ -13,7 +13,7 @@
       "syn": 18.5467,
       "panic": 98.805,
       "stats": {
-        "natural": 35,
+        "natural": 31,
         "human": 4,
         "seen": 23,
         "hugs": 0,
@@ -35,7 +35,7 @@
         "bins",
         "feeding"
       ],
-      "eaten": 39
+      "eaten": 35
     }
   },
   {
@@ -52,7 +52,7 @@
       "syn": 4.1833,
       "panic": 98.65,
       "stats": {
-        "natural": 36,
+        "natural": 30,
         "human": 3,
         "seen": 34,
         "hugs": 0,
@@ -76,7 +76,7 @@
         "feeding",
         "meat"
       ],
-      "eaten": 39
+      "eaten": 33
     }
   },
   {
@@ -93,7 +93,7 @@
       "syn": 4.6567,
       "panic": 99.18,
       "stats": {
-        "natural": 37,
+        "natural": 32,
         "human": 2,
         "seen": 25,
         "hugs": 0,
@@ -117,7 +117,7 @@
         "court",
         "bins"
       ],
-      "eaten": 39
+      "eaten": 34
     }
   },
   {
@@ -134,7 +134,7 @@
       "syn": 12.4333,
       "panic": 99.03,
       "stats": {
-        "natural": 36,
+        "natural": 32,
         "human": 3,
         "seen": 24,
         "hugs": 0,
@@ -157,7 +157,7 @@
         "court",
         "constitution"
       ],
-      "eaten": 39
+      "eaten": 35
     }
   },
   {
@@ -174,7 +174,7 @@
       "syn": 9.5567,
       "panic": 99.125,
       "stats": {
-        "natural": 36,
+        "natural": 33,
         "human": 2,
         "seen": 26,
         "hugs": 0,
@@ -196,7 +196,7 @@
         "constitution",
         "bins"
       ],
-      "eaten": 38
+      "eaten": 35
     }
   },
   {
@@ -207,13 +207,13 @@
     "expected": {
       "ending": "hunted",
       "time": 57.3167,
-      "fat": 65.9583,
+      "fat": 54.9583,
       "lives": 0,
       "x": 10709.817,
       "syn": 0,
       "panic": 75.745,
       "stats": {
-        "natural": 19,
+        "natural": 15,
         "human": 0,
         "seen": 11,
         "hugs": 0,
@@ -229,7 +229,7 @@
       "events": [
         "feeding"
       ],
-      "eaten": 19
+      "eaten": 15
     }
   },
   {
@@ -240,13 +240,13 @@
     "expected": {
       "ending": "hunted",
       "time": 57.2667,
-      "fat": 65.9583,
+      "fat": 54.9583,
       "lives": 0,
       "x": 10709.817,
       "syn": 0,
       "panic": 75.76,
       "stats": {
-        "natural": 19,
+        "natural": 15,
         "human": 0,
         "seen": 11,
         "hugs": 0,
@@ -263,7 +263,7 @@
       "events": [
         "bins"
       ],
-      "eaten": 19
+      "eaten": 15
     }
   },
   {
@@ -280,7 +280,7 @@
       "syn": 21.9633,
       "panic": 98.77,
       "stats": {
-        "natural": 37,
+        "natural": 31,
         "human": 5,
         "seen": 25,
         "hugs": 0,
@@ -303,7 +303,7 @@
         "census",
         "bins"
       ],
-      "eaten": 42
+      "eaten": 36
     }
   },
   {
@@ -393,13 +393,13 @@
     "expected": {
       "ending": "win",
       "time": 201.5833,
-      "fat": 83.2445,
+      "fat": 76.2445,
       "lives": 2,
       "x": 10482.563,
       "syn": 10.97,
       "panic": 98.82,
       "stats": {
-        "natural": 13,
+        "natural": 11,
         "human": 1,
         "seen": 27,
         "hugs": 2,
@@ -424,7 +424,7 @@
         "census",
         "stalls"
       ],
-      "eaten": 14
+      "eaten": 12
     }
   },
   {
@@ -508,13 +508,13 @@
     "expected": {
       "ending": "win",
       "time": 200.5667,
-      "fat": 77.5813,
+      "fat": 74.5813,
       "lives": 4,
       "x": 10480.918,
       "syn": 37.59,
       "panic": 99.725,
       "stats": {
-        "natural": 11,
+        "natural": 10,
         "human": 3,
         "seen": 19,
         "hugs": 1,
@@ -539,7 +539,7 @@
         "stalls",
         "census"
       ],
-      "eaten": 14
+      "eaten": 13
     }
   }
 ]

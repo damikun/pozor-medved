@@ -327,7 +327,7 @@
       if (it.eaten || it.hidden || (!ZS.FOOD[it.type].natural && it.y === undefined)) continue;
       if (it.type === 'fish' && b.moving && b.onGround) continue;
       if (it.y === undefined) {
-        if (Math.abs(it.x - b.x) < 34) rules().eat(g, it);
+        if (b.y >= GY - 28 && Math.abs(it.x - b.x) < 34) rules().eat(g, it);
       } else if (Math.hypot(it.x - b.x, it.y - (b.y - 45)) < 55) {
         rules().eat(g, it);
       }

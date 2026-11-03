@@ -15,13 +15,17 @@ The game runs right in the browser, nothing to install. Offline, just open `inde
 
 ## Levels
 
-- **Summer in the Valley**: from the spring den through the village of Dolný Strach, a sheepfold, a hotel and the
-  national park to the winter den.
+- **Summer in the Valley**: from the spring den through the village of Dolný Strach, a cornfield, the Pribylina
+  open-air museum, a sheepfold and a hotel, then by chairlift up to Zelené pleso in the High Tatras and the winter den.
 - **Winter on the Slopes**: a warm Advent and the snow cannons woke you up. Cross the ski resort and the Christmas
   market of Liptovský Mikuláš to reach a quiet den.
 
 **Goal:** reach the den with enough fat (85% in summer, 65% in winter) and hug someone at least once; a selfie
 with a tourist counts too. Without a hug the den won't let you in.
+
+## How to play
+
+<img src="docs/howto.webp" alt="How to play: walk and sprint, hide behind a thick trunk or in hay, climb a tree, jump on a hunter's head, hug, shake a hunting stand, bite, forage and raid human food">
 
 ## Controls
 
