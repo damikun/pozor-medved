@@ -4,12 +4,12 @@ A satirical 2D browser game about a brown bear from Liptov, Slovakia. Politician
 hunters shoot even where bears are protected, the STRACH 24 news channel reports one breaking story after another,
 and the only safe place is behind a thick tree.
 
-**[▶ Play online](https://damikun.github.io/pozor-medved/?lang=en)** · [Slovensky](https://damikun.github.io/pozor-medved/)
-· [Deutsch](https://damikun.github.io/pozor-medved/?lang=de) · [Español](https://damikun.github.io/pozor-medved/?lang=es)
+**[▶ Play online](https://zastromom.sk/?lang=en)** · [Slovensky](https://zastromom.sk/)
+· [Deutsch](https://zastromom.sk/?lang=de) · [Español](https://zastromom.sk/?lang=es)
 
-<a href="https://damikun.github.io/pozor-medved/?lang=en"><img src="docs/summer.png" alt="Summer: the bear in a hunter's crosshair next to a billboard saying “There's a bear behind every tree!”"></a>
+<a href="https://zastromom.sk/?lang=en"><img src="docs/summer.png" alt="Summer: the bear in a hunter's crosshair next to a billboard saying “There's a bear behind every tree!”"></a>
 
-<a href="https://damikun.github.io/pozor-medved/?lang=en"><img src="docs/winter.png" alt="Winter: the bear at the Christmas market in Liptovský Mikuláš with a skier and St Nicholas"></a>
+<a href="https://zastromom.sk/?lang=en"><img src="docs/winter.png" alt="Winter: the bear at the Christmas market in Liptovský Mikuláš with a skier and St Nicholas"></a>
 
 The game runs right in the browser, nothing to install. Offline, just open `index.html`.
 
