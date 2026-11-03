@@ -14,22 +14,23 @@ function pageScripts() {
   return [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map((m) => m[1]);
 }
 
-function loadGame({ seed, withRenderer = false, withAudio = false, globals = {}, problems = [], location, localStorage, document } = {}) {
+function loadGame({ seed, withRenderer = false, withAudio = false, wholePage = false, globals = {}, problems = [], location, localStorage, document } = {}) {
   const sandbox = Object.assign({ console }, globals);
   sandbox.window = sandbox;
   if (location) sandbox.location = location;
   if (localStorage) sandbox.localStorage = localStorage;
   if (document) sandbox.document = document;
-  if (withRenderer) {
+  if (wholePage) sandbox.Path2D = makePath2D(problems);
+  else if (withRenderer) {
     sandbox.Path2D = makePath2D(problems);
     sandbox.document = Object.assign(sandbox.document || {}, { createElement: () => createCanvas(16, 16, problems) });
   }
   vm.createContext(sandbox);
-  const scripts = pageScripts().filter((src) => HEADLESS.test(src) || (withRenderer && RENDERER.test(src)) || (withAudio && AUDIO.test(src)));
+  const scripts = pageScripts().filter((src) => wholePage || HEADLESS.test(src) || (withRenderer && RENDERER.test(src)) || (withAudio && AUDIO.test(src)));
   if (withAudio) scripts.splice(scripts.indexOf('js/ui/audio.js'), 0, 'js/ui/sounds.js');
   for (const src of scripts) vm.runInContext(fs.readFileSync(path.join(ROOT, src), 'utf8'), sandbox, { filename: src });
   if (seed !== undefined) vm.runInContext(`Math.random = ZS.util.mulberry32(${Number(seed)});`, sandbox);
   return sandbox.ZS;
 }
 
-module.exports = { loadGame };
+module.exports = { loadGame, pageScripts };
