@@ -9,6 +9,44 @@
   const smooth = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
   const codes = (part) => (Array.isArray(part[0]) ? part[0] : [part[0]]);
   const paths = new Map();
+  const SAVE = 'zaStromom.hints', LIMIT = 2, AGAIN = 3;
+  const memo = load();
+
+  function load() {
+    try {
+      const m = JSON.parse(localStorage.getItem(SAVE)) || {};
+      return { done: new Set(m.done || []), seen: m.seen || {} };
+    } catch (e) { return { done: new Set(), seen: {} }; }
+  }
+
+  function save() {
+    try { localStorage.setItem(SAVE, JSON.stringify({ done: [...memo.done], seen: memo.seen })); } catch (e) { return; }
+  }
+
+  function learn(skill) {
+    if (!skill || memo.done.has(skill)) return;
+    memo.done.add(skill);
+    save();
+  }
+
+  function showing(g, skill) {
+    const f = g && g.cueFx;
+    return !!f && g.time - (f.last[skill] || -Infinity) < AGAIN;
+  }
+
+  function known(skill, g) {
+    return !!skill && (memo.done.has(skill) || (!showing(g, skill) && (memo.seen[skill] || 0) >= LIMIT));
+  }
+
+  function count(g, f, parts) {
+    let more = false;
+    for (const p of parts) {
+      if (!p.skill) continue;
+      if (!showing(g, p.skill)) { memo.seen[p.skill] = (memo.seen[p.skill] || 0) + 1; more = true; }
+      f.last[p.skill] = g.time;
+    }
+    if (more) save();
+  }
 
   function button(code) {
     if (typeof document === 'undefined' || !document.querySelector) return null;
@@ -126,12 +164,13 @@
   }
 
   function show(ctx, g, cue, opts) {
-    const f = g.cueFx || (g.cueFx = { id: '', a: 0, t: g.time, cue: null });
+    const f = g.cueFx || (g.cueFx = { id: '', a: 0, t: g.time, cue: null, last: {} });
     const parts = cue ? cue.parts.filter((p) => codes(p).every((c) => usable(c, g.touch))) : [];
     const dt = Math.max(0, Math.min(0.1, g.time - f.t)), id = parts.map((p) => codes(p).join('+') + ' ' + p[1]).join(' | ');
+    const short = parts.map((p) => (known(p.skill, g) ? [p[0], ''] : p));
+    count(g, f, parts);
     f.t = g.time;
-    if (id && id !== f.id) f.a = 0;
-    if (id) f.cue = Object.assign({}, cue, { parts });
+    if (id) f.cue = Object.assign({}, cue, { parts: short });
     f.id = id;
     f.a = id ? Math.min(1, f.a + dt / IN) : Math.max(0, f.a - dt / OUT);
     return f.cue && f.a > 0 ? draw(ctx, g, f.cue.parts, f.cue.x, f.cue.y, Object.assign({}, opts, { a: smooth(f.a) })) : null;
@@ -146,5 +185,5 @@
     return String(text).replace(/\{(\w+)\}/g, (m, code) => (ZS.UI.keys[code] ? html(code, touch) : m));
   }
 
-  ZS.prompt = { glyph, width, cap, draw, show, html, fill };
+  ZS.prompt = { glyph, width, cap, draw, show, html, fill, learn, known };
 })();

@@ -3,7 +3,7 @@
   const GY = CFG.GROUND;
   const rules = () => ZS.sim.rules;
   const POSE = 2.9, FIRE = 0.62, SNAP = 1.5, CATCH = 0.3, LET = 2.5, REST = 40, VIEW = 640, GAP = 0.11, HOLD = 44;
-  const CLOSE = 170, WAKE = 1400, HELLO = 30;
+  const CLOSE = 170, WAKE = 1400, HELLO = 30, BEHIND = 24;
 
   const pick = (list) => list[Math.floor(Math.random() * list.length)];
 
@@ -21,6 +21,7 @@
   }
 
   const ready = (g, p) => g.time >= p.readyAt && !p.react;
+  const front = (b, p) => (b.x - p.x) * p.face > -BEHIND;
 
   function near(b, p) {
     const d = p.x - b.x;
@@ -33,7 +34,7 @@
     const p = g.photographer;
     if (!p || p.react) return null;
     if (key === 'hug') {
-      if (Math.abs(p.x - b.x) > VIEW) return null;
+      if (Math.abs(p.x - b.x) > VIEW || !front(b, p)) return null;
       b.dir = Math.sign(p.x - b.x) || 1;
       return { kind: 'pose', t: 0, dur: POSE, dir: b.dir, hit: true, target: p, done: false, land: !b.inWater, paid: ready(g, p) };
     }
@@ -128,7 +129,7 @@
       shout(g, p, LABELS.photo.hello);
     }
     clicks(g, p);
-    if (!b.reach && free(b) && d < VIEW) b.reach = p;
+    if (!b.reach && free(b) && d < VIEW && front(b, p)) b.reach = p;
   }
 
   ZS.sim = ZS.sim || {};

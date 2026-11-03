@@ -108,16 +108,16 @@ test('on land C makes the bear pose too, without a trout or a splash, and a bite
   const s = setup(5);
   const { ZS, g, b, run, press, sounds } = s;
   const p = () => g.photographer;
-  b.x = 9440; b.dir = -1;
+  b.x = 9110; b.dir = 1;
   run(0.2);
   const x0 = p().x;
   let close = false;
-  ZS.ui.input.press('ArrowLeft', true);
+  ZS.ui.input.press('ArrowRight', true);
   run(2, () => {
-    if (Math.abs(b.x - x0) < 60) ZS.ui.input.release('ArrowLeft');
+    if (Math.abs(b.x - x0) < 60) ZS.ui.input.release('ArrowRight');
     close = close || g.floaters.some((f) => f.text === ZS.LABELS.photo.close);
   });
-  ZS.ui.input.release('ArrowLeft');
+  ZS.ui.input.release('ArrowRight');
   run(0.3);
 
   await t.test('the bear walking up does not scare him off, he just complains about the focus', () => {
@@ -143,18 +143,24 @@ test('on land C makes the bear pose too, without a trout or a splash, and a bite
     assert.equal(p().x, x0);
   });
 
-  await t.test('from further along the bank, within view, C still poses', () => {
+  await t.test('from the far bank, within view, C still poses, but not behind his back', () => {
     run(0.5);
-    b.x = x0 + 500; b.dir = 1;
+    b.x = x0 - 600; b.dir = -1;
     run(0.2);
     assert.equal(b.reach, p());
     press('KeyC');
     assert.equal(b.act.kind, 'pose');
-    assert.equal(b.dir, -1);
+    assert.equal(b.dir, 1);
     run(ZS.sim.photographer.POSE);
     assert.equal(g.stats.selfies, 1, 'still on cooldown');
-    b.x = x0 + 900;
+    b.x = x0 - 900;
     run(0.3);
+    press('KeyC');
+    assert.notEqual(b.act && b.act.kind, 'pose');
+    run(1);
+    b.x = x0 + 120; b.dir = -1;
+    run(0.3);
+    assert.notEqual(b.reach, p());
     press('KeyC');
     assert.notEqual(b.act && b.act.kind, 'pose');
   });
@@ -182,7 +188,7 @@ test('the photographer, the poses and the bite draw cleanly on a laptop and on a
     run(0.5);
     press('KeyC');
     run(3.2);
-    b.x = 9275; b.dir = -1;
+    b.x = 9140; b.dir = 1;
     g.photographer.readyAt = 0;
     run(0.3);
     press('KeyC');

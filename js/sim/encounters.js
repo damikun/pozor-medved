@@ -8,7 +8,7 @@
   const SPILL = { picker: ['mushroom', 'basket'], santa: ['candy'], tourist: ['sandwich'], waiter: ['halusky'] };
   const SCALE = { ztmh: 1.04 };
   const CONTACT = { bite: 0.16, hug: 0.3, selfie: 0.3, shake: 0.3 };
-  const HEAD = 78, GAP = 44, SNAP = 1.2, TOPPLE = 1.2, CABIN = 150, FETCH = 62, LEG = 30;
+  const HEAD = 78, GAP = 44, SNAP = 1.2, TOPPLE = 1.2, CABIN = 150, FETCH = 62, LEG = 30, NEAR = 62, STAY = 86;
 
   function humans(g) {
     const list = [];
@@ -35,7 +35,7 @@
   function stand(g) {
     const b = g.bear;
     for (const p of g.level.posts) {
-      if (Math.abs(p.x - b.x) > 62) continue;
+      if (Math.abs(p.x - b.x) > (b.reach && b.reach.post === p ? STAY : NEAR)) continue;
       const s = g.shooters.find((h) => h.kind === 'posed' && h.home === p.x && !h.react);
       if (!s) continue;
       const leg = [p.x - 34, p.x + 34].find((x) => (x - b.x) * b.dir >= 12 && (x - b.x) * b.dir <= 52);

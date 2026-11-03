@@ -165,39 +165,62 @@
     return ZS.sim.alpine.thicket(L, b.x) ? LABELS.alpine.hint : null;
   }
 
+  const aimed = (g) => g.shooters.some((s) => !s.react && s.lock > 0);
+  const use = (code, text, skill) => Object.assign([code, text], { skill });
+  const tip = (code, text, skill) => Object.assign([code, text], { skill, tip: true });
+  const fresh = (g, skill) => !ZS.prompt.known(skill, g);
+
   function interact(g, o) {
-    if (o.post) return ZS.sim.ladder.at(g) === o.post ? [['KeyC', LABELS.interactLadder[0]], ['ArrowUp', LABELS.interactLadder[1]]] : [['KeyC', LABELS.interactStand]];
-    if (o.kind === 'photographer') return [['KeyC', LABELS.interactPose]];
-    const two = o.kind === 'tourist' ? LABELS.interactSelfie : o.kind === 'tycoon' && !o.promo ? LABELS.tycoon.interact : LABELS.interact;
-    return [['KeyC', two[0]], ['KeyX', two[1]]];
+    if (o.post) {
+      return ZS.sim.ladder.at(g) === o.post && fresh(g, 'ladderUp')
+        ? [use('KeyC', LABELS.interactLadder[0], 'shake'), tip('ArrowUp', LABELS.interactLadder[1], 'ladderUp')]
+        : [use('KeyC', LABELS.interactStand, 'shake')];
+    }
+    if (o.kind === 'photographer') return [use('KeyC', LABELS.interactPose, 'pose')];
+    const selfie = o.kind === 'tourist' || (o.kind === 'tycoon' && !o.promo);
+    const two = o.kind === 'tourist' ? LABELS.interactSelfie : selfie ? LABELS.tycoon.interact : LABELS.interact;
+    return [use('KeyC', two[0], selfie ? 'selfie' : 'hug'), use('KeyX', two[1], 'bite')];
   }
 
   function knock(g, b) {
     const k = b.knock;
-    if (!k || b.reach || b.warn || !(k.kind === 'stall' || !(g.knock && g.knock.last))) return null;
+    if (!k || b.reach || aimed(g) || !(k.kind === 'stall' || !(g.knock && g.knock.last))) return null;
     const open = k.kind === 'stall' && !(g.level.items.find((it) => it.type === k.o.kind && Math.abs(it.x - k.o.x) < 1) || {}).locked;
-    return [['KeyC', open ? LABELS.interactStall : LABELS.interactKnock]];
+    return [use('KeyC', open ? LABELS.interactStall : LABELS.interactKnock, open ? 'stall' : 'knock')];
   }
 
   function cue(g) {
     const b = g.bear;
     if (b.warn && !b.hiding && !b.inSpray) {
-      const hide = cover(g);
-      if (hide) return [['ArrowDown', hide]];
+      const hide = fresh(g, 'hide') && cover(g);
+      if (hide) return [tip('ArrowDown', hide, 'hide')];
     } else if (b.onGround && !b.hiding && !b.act) {
-      if (b.bumpT > 0 && !b.crouch) return [['ArrowDown', LABELS.crawlHint]];
-      if (b.zapT > 0.8 && b.zapT < 3.5) return [['ArrowUp', LABELS.fenceHint]];
-      if (b.logT > LOG) return [['ArrowUp', LABELS.logHint]];
+      if (b.bumpT > 0 && !b.crouch && fresh(g, 'crouch')) return [tip('ArrowDown', LABELS.crawlHint, 'crouch')];
+      if (b.zapT > 0.8 && b.zapT < 3.5 && fresh(g, 'jump')) return [tip('ArrowUp', LABELS.fenceHint, 'jump')];
+      if (b.logT > LOG && fresh(g, 'jump')) return [tip('ArrowUp', LABELS.logHint, 'jump')];
     }
     const seat = b.climbing && b.climbing.ladder && b.climbing.phase === 'seat' ? b.climbing : null;
-    if (seat) return seat.t > 0.7 ? [['ArrowDown', LABELS.ladderDown]] : null;
-    if (b.reach && !b.warn) return interact(g, b.reach);
-    if (!b.reach && !b.climbing && ZS.sim.ladder.at(g)) return [['ArrowUp', LABELS.ladderUp]];
-    if (b.inCorn && !b.crouch && g.time - b.cornAt < CORN) return [['ArrowDown', LABELS.cornHint]];
+    if (seat) return seat.t > 0.7 && fresh(g, 'ladderDown') ? [tip('ArrowDown', LABELS.ladderDown, 'ladderDown')] : null;
+    if (b.reach && !aimed(g)) return interact(g, b.reach);
+    if (!b.reach && !b.climbing && ZS.sim.ladder.at(g) && fresh(g, 'ladderUp')) return [tip('ArrowUp', LABELS.ladderUp, 'ladderUp')];
+    if (b.inCorn && !b.crouch && g.time - b.cornAt < CORN && fresh(g, 'crouch')) return [tip('ArrowDown', LABELS.cornHint, 'crouch')];
     return knock(g, b);
   }
 
+  function practice(g) {
+    const b = g.bear, P = ZS.prompt, w = g.cueWas || (g.cueWas = { ground: true, ladder: false });
+    const ladder = !!(b.climbing && b.climbing.ladder), a = b.act;
+    if (b.hiding) P.learn('hide');
+    if (b.crouch) P.learn('crouch');
+    if (w.ground && !b.onGround && b.vy < 0 && !b.stun && !b.climbing) P.learn('jump');
+    if (ladder) P.learn('ladderUp');
+    if (w.ladder && !ladder) P.learn('ladderDown');
+    if (a && (a.target || a.stall || a.house)) P.learn(a.stall ? 'stall' : a.kind);
+    w.ground = b.onGround; w.ladder = ladder;
+  }
+
   function drawCue(ctx, g, viewW) {
+    if (g.cues !== false) practice(g);
     const b = g.bear, parts = g.cues === false ? null : cue(g);
     ZS.prompt.show(ctx, g, parts && { parts, x: b.x, y: (b.climbing ? b.y : GY) + 6 }, { hang: true, lo: g.cam + 8, hi: g.cam + viewW - 8 });
   }
