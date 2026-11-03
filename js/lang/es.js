@@ -779,6 +779,7 @@
       chooseLevel: 'Elige un nivel',
       levelDone: '✓ superado',
       levelNew: 'nuevo',
+      resumeAt: { skanzen: '🔁 Continuar desde el museo', koliba: '🔁 Continuar desde la koliba', lift: '🔁 Continuar desde el telesilla', market: '🔁 Continuar desde el mercado' },
       howTo: 'Cómo se juega',
       tips: {
         walk: 'correr, {ShiftLeft} sprint',

@@ -167,6 +167,8 @@ canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-acti
 .card .lead { margin: 0 0 4px; }
 .card h3.pick { margin: 12px 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 .card .levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin: 0 0 14px; }
+.card .levels .slot { display: flex; flex-direction: column; gap: 6px; }
+.card button.resume { width: 100%; padding: 8px 14px; font-size: 15px; text-align: left; }
 .card button.level { display: flex; gap: 12px; align-items: flex-start; text-align: left; width: 100%; padding: 12px 14px; border-radius: 12px; font-weight: 400; font-size: 15px; color: #fff; background: linear-gradient(120deg, #2f7d4f, #4f8a45); box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18); }
 .card button.level.winter { background: linear-gradient(120deg, #2f5f8f, #6f9fc8); }
 .card button.level:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18); }

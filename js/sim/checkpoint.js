@@ -54,5 +54,23 @@
     return g;
   }
 
-  ZS.sim.checkpoint = { LIVES, save, offer, resume };
+  const FORMAT = 1;
+
+  function pack(s) {
+    return JSON.stringify({ v: FORMAT, s }, (k, v) => (v === Infinity ? 'Infinity' : v === -Infinity ? '-Infinity' : v));
+  }
+
+  function unpack(text) {
+    let data = null;
+    try { data = JSON.parse(text, (k, v) => (v === 'Infinity' ? Infinity : v === '-Infinity' ? -Infinity : v)); } catch (e) { return null; }
+    const s = data && data.v === FORMAT && data.s;
+    if (!plain(s) || !ZS.LEVELS[s.level]) return null;
+    const L = ZS.makeLevel(s.level, 11);
+    const keys = ['lift', ...(L.checkpoints || []).map((c) => c.key)];
+    if (!keys.includes(s.key) || !(s.x > 0 && s.x < L.w)) return null;
+    if (![s.items, s.shooters, s.drones, s.usedEvents, s.posts, s.noses].every(Array.isArray) || !plain(s.tally)) return null;
+    return s;
+  }
+
+  ZS.sim.checkpoint = { LIVES, save, offer, resume, pack, unpack };
 })();

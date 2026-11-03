@@ -803,6 +803,7 @@
     chooseLevel: 'Vyber si level',
     levelDone: '✓ prejdené',
     levelNew: 'novinka',
+    resumeAt: { skanzen: '🔁 Pokračovať od skanzenu', koliba: '🔁 Pokračovať od koliby', lift: '🔁 Pokračovať od lanovky', market: '🔁 Pokračovať od trhov' },
     howTo: 'Ako sa hrá',
     tips: {
       walk: 'beh, {ShiftLeft} šprint',

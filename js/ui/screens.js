@@ -21,6 +21,10 @@
   }
   function hide() { tips().stop(); $('screen').hidden = true; $('corner').hidden = true; }
 
+  function resumeButton(id, s) {
+    return s ? `<button class="resume ghost" data-resume="${id}">${UI.resumeAt[s.key]}</button>` : '';
+  }
+
   function levelCard(id, i, done) {
     const T = ZS.LEVEL_TEXT[id];
     const tag = done[id] ? `<span class="tag done">${UI.levelDone}</span>` : id === 'winter' ? `<span class="tag">${UI.levelNew}</span>` : '';
@@ -76,16 +80,20 @@
     menu.querySelectorAll('[data-lang]').forEach((btn) => { btn.onclick = () => onLang(btn.dataset.lang); });
   }
 
-  function showStart(done, onPlay, onPreview, touch, onLang) {
+  function showStart(done, onPlay, onPreview, touch, onLang, saved) {
     show(`<div class="head"><h1>${UI.title}</h1><p class="sub">${UI.subtitle}</p>${langPicker()}</div>
       <p class="lead">${UI.lead}</p>
       <h3 class="pick">${UI.chooseLevel}</h3>
-      <div class="levels">${ORDER.map((id, i) => levelCard(id, i, done)).join('')}</div>
+      <div class="levels">${ORDER.map((id, i) => `<div class="slot">${levelCard(id, i, done)}${resumeButton(id, saved && saved[id])}</div>`).join('')}</div>
       <h3 class="pick">${UI.howTo}</h3>
       <div class="howto">${howTo(touch)}</div>`, 'start');
     $('screenCard').querySelectorAll('[data-level]').forEach((btn) => {
       btn.onclick = () => onPlay(btn.dataset.level);
       btn.onmouseenter = btn.onfocus = () => onPreview(btn.dataset.level);
+    });
+    $('screenCard').querySelectorAll('[data-resume]').forEach((btn) => {
+      btn.onclick = () => onPlay(btn.dataset.resume, true);
+      btn.onmouseenter = btn.onfocus = () => onPreview(btn.dataset.resume);
     });
     const sel = $('langSel');
     if (sel) sel.onchange = () => onLang(sel.value);

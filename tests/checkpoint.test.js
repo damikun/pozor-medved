@@ -203,3 +203,42 @@ for (const [level, key] of [['summer', 'skanzen'], ['summer', 'koliba'], ['winte
     input.release('ArrowRight');
   });
 }
+
+test('a checkpoint survives a round trip through storage text, hunters that never leave included', () => {
+  const ZS = loadGame({ seed: 3 });
+  const { input } = ZS.ui;
+  const { rules, checkpoint } = ZS.sim;
+  const g = rules.create(input.state, { level: 'summer' });
+  const cp = g.level.checkpoints.find((c) => c.key === 'koliba');
+  g.bear.x = cp.x + 4; g.bear.trackX = cp.x + 4;
+  Object.assign(g, { fat: 41, time: 150 });
+  g.stats.hugs = 2;
+  assert.ok(g.shooters.some((s) => s.life === Infinity), 'the level has a hunter that stays');
+  const snap = Object.assign(checkpoint.save(g, 'koliba'), { tally: { trees: 3, stands: 1 } });
+  const back = checkpoint.unpack(checkpoint.pack(snap));
+  assert.ok(back);
+  assert.deepEqual({ ...back.tally }, { ...snap.tally });
+  const r = checkpoint.resume(back, input.state, {}), d = checkpoint.resume(snap, input.state, {});
+  assert.equal(r.fat, 41); assert.equal(r.stats.hugs, 2);
+  assert.ok(Math.abs(r.bear.x - (cp.x + 4)) < 1);
+  assert.deepEqual(r.shooters.map((s) => [s.x, s.life]), d.shooters.map((s) => [s.x, s.life]));
+  assert.deepEqual(r.level.items.map((it) => it.eaten), d.level.items.map((it) => it.eaten));
+  assert.deepEqual(r.flags, d.flags); assert.deepEqual(r.once, d.once); assert.deepEqual([...r.usedEvents], [...d.usedEvents]);
+});
+
+test('broken or foreign storage text gives no checkpoint', () => {
+  const ZS = loadGame({ seed: 3 });
+  const { input } = ZS.ui;
+  const { rules, checkpoint } = ZS.sim;
+  const g = rules.create(input.state, { level: 'winter' });
+  const cp = g.level.checkpoints[0];
+  g.bear.x = cp.x + 4;
+  const snap = Object.assign(checkpoint.save(g, cp.key), { tally: { trees: 0, stands: 0 } });
+  const text = checkpoint.pack(snap);
+  for (const bad of [null, '', '{', '[]', 'null', JSON.stringify({ v: 99, s: snap }),
+    text.replace('"level":"winter"', '"level":"moon"'), text.replace('"key":"market"', '"key":"koliba"'),
+    text.replace(/"x":[\d.]+,"dir"/, '"x":-5,"dir"')]) {
+    assert.equal(checkpoint.unpack(bad), null, String(bad).slice(0, 40));
+  }
+  assert.ok(checkpoint.unpack(text));
+});

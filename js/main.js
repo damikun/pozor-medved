@@ -7,7 +7,7 @@
   const ctx = canvas.getContext('2d');
   const BOT = /[?&]bot\b/.test(location.search);
   const PORTRAIT_MIN_W = 480, BAND = 0.15, BAND_MAX = 64, TOUCH_W = 1000, TOUCH_MIN_H = 420;
-  const SAVE = 'zaStromom.done';
+  const SAVE = 'zaStromom.done', SPOT = 'zaStromom.checkpoint.';
   let g = null, vw = 0, vh = 0, viewW = 0, viewH = 0, offY = 0, last = 0, hudT = 0, current = 'summer', mark = null, reached = new Set();
 
   const touchy = () => input.touched() || window.matchMedia('(pointer: coarse)').matches;
@@ -18,6 +18,19 @@
 
   function markDone(id) {
     try { localStorage.setItem(SAVE, JSON.stringify(Object.assign(done(), { [id]: true }))); } catch (e) { return; }
+  }
+
+  function stored(id) {
+    try { return checkpoint.unpack(localStorage.getItem(SPOT + id)); } catch (e) { return null; }
+  }
+
+  function keep(s) {
+    if (BOT) return;
+    try { localStorage.setItem(SPOT + s.level, checkpoint.pack(s)); } catch (e) { return; }
+  }
+
+  function forget(id) {
+    try { localStorage.removeItem(SPOT + id); } catch (e) { return; }
   }
 
   function resize() {
@@ -44,7 +57,7 @@
 
   function start(level, from) {
     current = level || current;
-    if (!from) mark = null;
+    mark = from || null;
     reached = new Set(from ? [from.key] : []);
     input.state.keys.clear();
     g = from ? checkpoint.resume(from, input.state, { viewW, bot: BOT }) : rules.create(input.state, { viewW, bot: BOT, level: current });
@@ -78,7 +91,8 @@
     if (g) g.running = false;
     audio.pause(false);
     hud.hidePlaying();
-    screens.showStart(done(), start, preview, touchy(), (code) => { setLang(code); menu(); });
+    const saved = { summer: stored('summer'), winter: stored('winter') };
+    screens.showStart(done(), (id, cont) => start(id, cont ? saved[id] : null), preview, touchy(), (code) => { setLang(code); menu(); }, saved);
   }
 
   function showPause() {
@@ -100,6 +114,7 @@
     if (run !== g) return;
     reached.add('lift');
     mark = Object.assign(checkpoint.save(run, 'lift'), { tally: tally.counts(run) });
+    keep(mark);
     note(run, LABELS.lift.checkpoint, NEWS.checkpoint);
   };
 
@@ -110,6 +125,7 @@
       if (reached.has(c.key) || b.x < c.x) continue;
       reached.add(c.key);
       mark = Object.assign(checkpoint.save(run, c.key), { tally: tally.counts(run) });
+      keep(mark);
       note(run, LABELS.cp[c.key], NEWS.cp[c.key]);
     }
   }
@@ -118,7 +134,7 @@
     tally.check(run);
     hud.update(run);
     hud.setTouch(false);
-    if (run.ending === 'win') markDone(run.level.id);
+    if (run.ending === 'win') { markDone(run.level.id); forget(run.level.id); }
     screens.showEnd(run, { onAgain: () => start(run.level.id), onNext: () => start('winter'), onMenu: menu,
       onRetry: checkpoint.offer(mark, run) ? () => start(run.level.id, mark) : null, retryKey: mark && mark.key });
   };
