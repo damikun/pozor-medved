@@ -5,6 +5,7 @@
   const P = ZS.render.props;
   const B = ZS.render.backdrop;
   const OWN_ART = { feeder: 1, punch: 1, lokse: 1, sausage: 1, cheese: 1, carrot: 1, cob: 1, catch: 1 };
+  const CORN = 3, LOG = 0.3;
 
   function eatenAt(L, type, x) {
     return L.items.some((it) => it.type === type && it.x === x && it.eaten);
@@ -128,7 +129,7 @@
   }
 
   function bearCues(ctx, g) {
-    const b = g.bear, L = g.level;
+    const b = g.bear;
     if (b.inWater) {
       ctx.fillStyle = 'rgba(79,143,192,0.62)'; ellipse(ctx, b.x, GY - 2, 66, 13);
       ctx.strokeStyle = 'rgba(230,245,255,0.7)'; ctx.lineWidth = 1.5;
@@ -137,15 +138,7 @@
     if (b.warn && !b.hiding && !b.inSpray) {
       const red = g.shooters.some((s) => s.lock > 0);
       label(ctx, '!', b.x, GY - 100 - Math.abs(Math.sin(g.time * 8)) * 6, 30, red ? '#e03131' : '#e8a400');
-      const tree = L.trees.some((t) => t.hide && Math.abs(t.x - b.x) < t.w / 2 + 40), hay = !tree && L.haystacks.some((x) => Math.abs(x - b.x) < 72);
-      const lot = !tree && !hay && ZS.sim.lot.inside(L, b.x), pine = !tree && !hay && !lot && ZS.sim.alpine.thicket(L, b.x);
-      if (tree || hay || lot || pine) label(ctx, tree ? LABELS.hideHint : hay ? LABELS.hayHint : lot ? LABELS.lot.hint : LABELS.alpine.hint, b.x, GY - 134, 14, '#1d1d1d');
-    } else if (b.onGround && !b.hiding && !b.act) {
-      const hint = b.bumpT > 0 && !b.crouch ? LABELS.crawlHint : b.zapT > 0.8 && b.zapT < 3.5 ? LABELS.fenceHint : null;
-      if (hint) label(ctx, hint, b.x, GY - 108 - Math.abs(Math.sin(g.time * 3)) * 3, 14, '#1d1d1d');
     }
-    const seat = b.climbing && b.climbing.ladder && b.climbing.phase === 'seat' ? b.climbing : null;
-    if (seat && seat.t > 0.7) label(ctx, LABELS.ladderDown, seat.x, GY - 250 - Math.abs(Math.sin(g.time * 3)) * 3, 14, '#1d1d1d');
     if (b.stamina < 0.99 && !b.hiding && !b.climbing) {
       ctx.fillStyle = 'rgba(20,26,16,0.55)'; ctx.fillRect(b.x - 26, GY - 82, 52, 6);
       ctx.fillStyle = b.tired ? '#e03131' : '#7cc4ef'; ctx.fillRect(b.x - 26, GY - 82, 52 * b.stamina, 6);
@@ -153,21 +146,6 @@
     if (b.eating) {
       ctx.strokeStyle = '#2f7d4f'; ctx.lineWidth = 4;
       ctx.beginPath(); ctx.arc(b.x + b.dir * 34, GY - 70, 11, -Math.PI / 2, -Math.PI / 2 + (b.eatT / 0.5) * Math.PI * 2); ctx.stroke();
-    }
-    const free = !b.reach && !b.climbing && !g.touch ? ZS.sim.ladder.at(g) : null;
-    if (free) label(ctx, LABELS.ladderUp, free.x, GY - 92 - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
-    if (b.reach && !g.touch && !b.warn) {
-      const o = b.reach, post = o.post, ph = o.kind === 'photographer', pose = ph, R = g.level.river, wet = ph && b.inWater && R;
-      ctx.globalAlpha = 0.92;
-      label(ctx, post ? (ZS.sim.ladder.at(g) === post ? LABELS.interactLadder : LABELS.interactStand) : pose ? LABELS.interactPose : o.kind === 'tourist' ? LABELS.interactSelfie : o.kind === 'tycoon' && !o.promo ? LABELS.tycoon.interact : LABELS.interact,
-        post ? post.x : wet ? Math.max(R.from + 90, Math.min(R.to - 90, b.x)) : pose ? Math.max(g.cam + 120, Math.min(g.cam + g.viewW - 120, o.x)) : o.x, (post ? GY - 92 : wet ? GY - 172 : ph ? GY - 66 : GY - 108) - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
-      ctx.globalAlpha = 1;
-    }
-    if (b.knock && !b.reach && !g.touch && !b.warn && (b.knock.kind === 'stall' || !(g.knock && g.knock.last))) {
-      const k = b.knock, stall = k.kind === 'stall';
-      ctx.globalAlpha = 0.92;
-      label(ctx, stall && !(g.level.items.find((it) => it.type === k.o.kind && Math.abs(it.x - k.o.x) < 1) || {}).locked ? LABELS.interactStall : LABELS.interactKnock, k.x, (stall ? GY - 170 : GY - 126) - Math.sin(g.time * 3) * 2, 13, '#1d1d1d');
-      ctx.globalAlpha = 1;
     }
     const hic = g.time - (b.hicAt || -9);
     if (b.tipsy > 0 && hic >= 0 && hic < 0.9 && !b.hiding && !b.climbing) {
@@ -177,6 +155,51 @@
       label(ctx, LABELS.vendor.hic, hx, hy, 12, '#7a3b8a');
       ctx.globalAlpha = 1;
     }
+  }
+
+  function cover(g) {
+    const b = g.bear, L = g.level;
+    if (L.trees.some((t) => t.hide && Math.abs(t.x - b.x) < t.w / 2 + 40)) return LABELS.hideHint;
+    if (L.haystacks.some((x) => Math.abs(x - b.x) < 72)) return LABELS.hayHint;
+    if (ZS.sim.lot.inside(L, b.x)) return LABELS.lot.hint;
+    return ZS.sim.alpine.thicket(L, b.x) ? LABELS.alpine.hint : null;
+  }
+
+  function interact(g, o) {
+    if (o.post) return ZS.sim.ladder.at(g) === o.post ? [['KeyC', LABELS.interactLadder[0]], ['ArrowUp', LABELS.interactLadder[1]]] : [['KeyC', LABELS.interactStand]];
+    if (o.kind === 'photographer') return [['KeyC', LABELS.interactPose]];
+    const two = o.kind === 'tourist' ? LABELS.interactSelfie : o.kind === 'tycoon' && !o.promo ? LABELS.tycoon.interact : LABELS.interact;
+    return [['KeyC', two[0]], ['KeyX', two[1]]];
+  }
+
+  function knock(g, b) {
+    const k = b.knock;
+    if (!k || b.reach || b.warn || !(k.kind === 'stall' || !(g.knock && g.knock.last))) return null;
+    const open = k.kind === 'stall' && !(g.level.items.find((it) => it.type === k.o.kind && Math.abs(it.x - k.o.x) < 1) || {}).locked;
+    return [['KeyC', open ? LABELS.interactStall : LABELS.interactKnock]];
+  }
+
+  function cue(g) {
+    const b = g.bear;
+    if (b.warn && !b.hiding && !b.inSpray) {
+      const hide = cover(g);
+      if (hide) return [['ArrowDown', hide]];
+    } else if (b.onGround && !b.hiding && !b.act) {
+      if (b.bumpT > 0 && !b.crouch) return [['ArrowDown', LABELS.crawlHint]];
+      if (b.zapT > 0.8 && b.zapT < 3.5) return [['ArrowUp', LABELS.fenceHint]];
+      if (b.logT > LOG) return [['ArrowUp', LABELS.logHint]];
+    }
+    const seat = b.climbing && b.climbing.ladder && b.climbing.phase === 'seat' ? b.climbing : null;
+    if (seat) return seat.t > 0.7 ? [['ArrowDown', LABELS.ladderDown]] : null;
+    if (b.reach && !b.warn) return interact(g, b.reach);
+    if (!b.reach && !b.climbing && ZS.sim.ladder.at(g)) return [['ArrowUp', LABELS.ladderUp]];
+    if (b.inCorn && !b.crouch && g.time - b.cornAt < CORN) return [['ArrowDown', LABELS.cornHint]];
+    return knock(g, b);
+  }
+
+  function drawCue(ctx, g, viewW) {
+    const b = g.bear, parts = g.cues === false ? null : cue(g);
+    ZS.prompt.show(ctx, g, parts && { parts, x: b.x, y: (b.climbing ? b.y : GY) + 6 }, { hang: true, lo: g.cam + 8, hi: g.cam + viewW - 8 });
   }
 
   function heart(ctx, x, y, r, a) {
@@ -292,7 +315,10 @@
     for (const c of L.cannons) if (vis(c.x, 320)) ZS.winterArt.spray(ctx, c, g.time);
     bearCues(ctx, g);
     overlays(ctx, g, vis, viewW);
+    drawCue(ctx, g, viewW);
     ctx.restore();
     if (zoom) lift.cover(g, ctx, viewW, offY);
   };
+
+  ZS.render.cue = cue;
 })();

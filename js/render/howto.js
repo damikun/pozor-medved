@@ -35,7 +35,7 @@
       stats: { natural: 0, human: 0, seen: 0, hugs: 0, bites: 0, stomps: 0, selfies: 0 }, falls: 0, refusals: 0, refusedAt: -99,
       running: false, over: true, paused: false, ending: null, bot: false, once: { climb: true, ice: true, spray: true, tracks: true },
       headlines: [], headlineIdx: 0, tickerT: Infinity, tickerQueue: [], tickerHot: false, cycle: new Map(), saidAt: {},
-      touch: true, hideSaid: Infinity,
+      cues: false, hideSaid: Infinity,
     };
   }
 
@@ -318,15 +318,17 @@
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
-  function keysOf(d) {
+  function keysFor(id, touch) {
     const out = [];
-    for (const code of d.def.keys) {
-      if (d.touch && code === 'ShiftLeft') continue;
-      const c = (d.touch && TOUCH[code]) || code;
+    for (const code of SCENES[id].keys) {
+      if (touch && code === 'ShiftLeft') continue;
+      const c = (touch && TOUCH[code]) || code;
       if (!out.includes(c)) out.push(c);
     }
     return out;
   }
+
+  const keysOf = (d) => keysFor(d.id, d.touch);
 
   function lit(d) {
     const on = new Set(d.g.input.keys);
@@ -338,5 +340,5 @@
     return d.def.hud ? d.def.hud(d.g, d.t) : null;
   }
 
-  ZS.howto = { ids: Object.keys(SCENES), create, advance, seek, still, draw, keysOf, lit, hud };
+  ZS.howto = { ids: Object.keys(SCENES), create, advance, seek, still, draw, keysOf, keysFor, lit, hud };
 })();

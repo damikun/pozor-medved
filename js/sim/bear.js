@@ -16,7 +16,7 @@
       stamina: 1, tired: false, noiseT: 0, eating: false, eatT: 0,
       climbing: null, climbV: 0, climbT: 0, inCanopy: false, covered: false, upT: 0, offTree: false,
       act: null, waking: !!L && L.theme === 'winter', wakeT: 0, slide: 0, cold: 0, tag: false, inSpray: false, onIce: false,
-      trackD: 0, trackX: 240, stun: 0, zapT: 9, zapX: 0, kx: 0, crawl: false, bumpT: 0, push: 0, tipsy: 0, hicT: 0, hicAt: -9, knock: null,
+      trackD: 0, trackX: 240, stun: 0, zapT: 9, zapX: 0, kx: 0, crawl: false, bumpT: 0, logT: 0, push: 0, tipsy: 0, hicT: 0, hicAt: -9, knock: null,
     };
   }
 
@@ -179,6 +179,10 @@
     return nx;
   }
 
+  function logAt(L, b) {
+    return L.logs.find((lg) => b.y > GY - lg.h + 2 && Math.abs(b.x - lg.x + b.dir * (lg.w / 2 + HALF * 0.6)) < 1) || null;
+  }
+
   function updateStamina(b, keys, dt, left, right, hide) {
     if (b.tired && b.stamina > 0.35) b.tired = false;
     b.running = (keys.has('ShiftLeft') || keys.has('ShiftRight')) && !b.tired && (left || right) && !hide;
@@ -231,6 +235,7 @@
     } else {
       b.vx = 0;
     }
+    b.logT = b.moving && logAt(L, b) ? b.logT + dt : 0;
     b.slide = ice && !dx && Math.abs(b.vx) > 15 ? Math.min(1, Math.abs(b.vx) / 110) : 0;
     if (ice && !g.once.ice) {
       g.once.ice = true;

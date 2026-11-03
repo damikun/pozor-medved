@@ -29,13 +29,13 @@
     L.logs = [{ x: 1180, w: 100, h: 32 }, { x: 2960, w: 96, h: 30 }, { x: 7820, w: 110, h: 34 }, { x: 9600, w: 100, h: 32 }];
     L.signs = [
       K.sign(900, () => S.cannon),
-      K.sign(1330, () => S.hide),
+      K.sign(1330, () => S.hide, { key: 'ArrowDown' }),
       K.sign(2130, () => S.feeder),
       K.sign(3530, () => S.ice),
       K.sign(4380, () => '', { billboard: true }),
       K.sign(4540, () => ZS.LEVEL_TEXT.winter.village),
       K.sign(7100, () => S.lift),
-      K.sign(7880, () => S.lot),
+      K.sign(7880, () => S.lot, { key: 'ArrowDown' }),
       K.sign(9150, () => S.quiet),
       K.sign(9950, () => S.cave),
       K.sign(W - 470, () => S.winterGoal),

@@ -83,6 +83,7 @@
   function enter(g, b) {
     if (g.once.corn) return;
     g.once.corn = true;
+    b.cornAt = g.time;
     rules().float(g, b.x, GY - 120, LABELS.corn, COLORS.good);
     rules().quip(g, ZS.QUIPS.corn, true);
     rules().say(g, NEWS.corn);

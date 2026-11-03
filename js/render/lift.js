@@ -20,6 +20,7 @@
   const JACKETS = ['#e8590c', '#2f86c8', '#7b5ea7', '#2f8f4e', '#d6336c', '#f2b51e'];
   const V = { k: 1, f: 312, cx: 0, vx: 0, hz: 0, top: 0, bot: 540, w: 760, gx: 0, gy: 0, zc: 2.4, near: 4 };
   const PT = [0, 0];
+  const SWING = ['ArrowLeft', 'ArrowRight'];
 
   function setup(viewW, offY) {
     const k = clamp((viewW / 2 - 8) / 280, 0.55, 1);
@@ -909,26 +910,14 @@
     if (r.phase !== 'ride' || t > 3.6) return;
     const a = smooth((t - 0.25) / 0.35) * (1 - smooth((t - 3.0) / 0.6));
     if (a <= 0.01) return;
-    const text = g.touch ? ZS.LABELS.lift.bannerTouch : ZS.LABELS.lift.banner, size = Math.round(lerp(17, 22, V.k));
-    ctx.font = '800 ' + size + 'px system-ui, sans-serif';
-    const w = min(V.w - 30, ctx.measureText(text).width + 40), h = size + 20, x = V.cx, y = V.hz + 42 * V.k - (1 - a) * 8;
-    ctx.globalAlpha = a;
-    ctx.fillStyle = 'rgba(20,26,16,0.72)'; rrect(ctx, x - w / 2, y - h / 2, w, h, 12);
-    ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const tw = ctx.measureText(text).width;
-    if (tw > w - 24) ctx.font = '800 ' + (size * (w - 24) / tw).toFixed(1) + 'px system-ui, sans-serif';
-    ctx.fillText(text, x, y + 1);
-    ctx.globalAlpha = 1;
+    ZS.prompt.draw(ctx, g, [[SWING, ZS.LABELS.lift.banner]], V.cx, V.hz + 42 * V.k - (1 - a) * 8, { a, size: lerp(14, 17, V.k), max: V.w - 30 });
   }
 
   function hint(ctx, g, r) {
     const s = r.shots.find((o) => o.first && o.state === 'aim');
     if (!s) return;
     const a = smooth((r.t - s.t0) / 0.2) * (0.75 + 0.25 * abs(sin(r.clock * 7)));
-    const text = g.touch ? ZS.LABELS.lift.dodgeTouch : ZS.LABELS.lift.dodge;
-    ctx.globalAlpha = a;
-    label(ctx, text, V.gx + sin(r.th) * 120 * V.k, V.gy + 46 * V.k, max(22, 34 * V.k), '#d62f27');
-    ctx.globalAlpha = 1;
+    ZS.prompt.draw(ctx, g, [[SWING, ZS.LABELS.lift.dodge]], V.gx + sin(r.th) * 120 * V.k, V.gy + 46 * V.k, { a, size: max(14, 17 * V.k), lo: 8, hi: V.w - 8 });
   }
 
   function floaters(ctx, g) {

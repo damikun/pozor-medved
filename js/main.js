@@ -79,7 +79,7 @@
   }
 
   function showPause() {
-    screens.showPause(togglePause, menu);
+    screens.showPause(togglePause, menu, touchy());
   }
 
   function togglePause() {

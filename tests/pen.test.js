@@ -123,7 +123,7 @@ test('a hop that comes down on the wire shocks the bear and throws it clear inst
 
 test('the strunga stops an upright bear and lets a crawling one through, both ways', async (t) => {
   for (const dir of [1, -1]) {
-    const { ZS, b, L, B, run, hold, press, release } = setup();
+    const { ZS, g, b, L, B, run, hold, press, release } = setup(6, true);
     const s = L.salas.strunga, edge = s.x - dir * (s.w / 2 + B.ROOF);
     b.x = edge - dir * 70; b.dir = dir;
     hold(ARROW[dir]);
@@ -132,7 +132,7 @@ test('the strunga stops an upright bear and lets a crawling one through, both wa
     await t.test(`walking upright ${dir > 0 ? '→' : '←'} stops at the low roof`, () => {
       assert.ok(Math.abs(b.x - edge) < 0.5, 'stopped at ' + (b.x - edge).toFixed(1));
       assert.ok(b.bumpT > 0, 'the crawl hint is up');
-      assert.ok(ZS.LABELS.crawlHint.includes('↓'));
+      assert.equal(JSON.stringify(ZS.render.cue(g)), JSON.stringify([['ArrowDown', ZS.LABELS.crawlHint]]));
     });
 
     await t.test('jumping does not get over it', () => {

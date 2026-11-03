@@ -572,11 +572,14 @@
       return;
     }
     ctx.fillRect(s.x - 3, GY - 62, 6, 62);
+    const kw = s.key ? ZS.prompt.width(ctx, g, s.key, 19) + 7 : 0;
     ctx.font = '700 14px system-ui, sans-serif';
-    const bw = Math.max(124, ctx.measureText(s.text).width + 22);
+    const tw = ctx.measureText(s.text).width, bw = Math.max(124, tw + kw + 22);
     ctx.fillStyle = '#2f5d3a'; ctx.fillRect(s.x - bw / 2, GY - 88, bw, 28);
+    if (s.key) ZS.prompt.cap(ctx, g, s.key, s.x - (tw + kw) / 2, GY - 74, 19, false);
+    ctx.font = '700 14px system-ui, sans-serif';
     ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s.text, s.x, GY - 74);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s.text, s.x + kw / 2, GY - 74);
     if (!W) return;
     const sd = s.x * 0.01;
     ctx.fillStyle = W.snowShade; rrect(ctx, s.x - bw / 2 - 1, GY - 91, bw + 3, 5, 2.5);

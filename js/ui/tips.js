@@ -4,18 +4,11 @@
   const smooth = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
   let run = null;
 
-  function cap(code, touch) {
-    return touch && ZS.ICONS[code] ? ZS.icon(code) : ZS.UI.keys[code] || code;
-  }
-
   function capsHtml(codes, touch) {
-    return codes.map((c) => '<kbd data-k="' + c + '">' + cap(c, touch) + '</kbd>').join('');
+    return codes.map((c) => ZS.prompt.html(c, touch)).join('');
   }
 
-  function inText(code, html) {
-    const label = ZS.UI.keys[code];
-    return !!label && html.indexOf('<kbd>' + label + '</kbd>') >= 0;
-  }
+  const inText = (code, text) => text.indexOf('{' + code + '}') >= 0;
 
   function hudHtml(info) {
     if (!info) return '';
@@ -24,12 +17,6 @@
     if (info.goal !== undefined) html += '<span class="goal"></span>';
     if (info.badge !== undefined) html += '<span class="flag" hidden></span>';
     return html;
-  }
-
-  function tag(root) {
-    const names = {};
-    for (const c in ZS.UI.keys) names[ZS.UI.keys[c]] = c;
-    root.querySelectorAll('kbd:not([data-k])').forEach((k) => { if (names[k.textContent]) k.dataset.k = names[k.textContent]; });
   }
 
   function fit() {
@@ -115,8 +102,7 @@
     run.d = H.create(id, { touch: run.touch });
     run.wait = 0;
     const codes = H.keysOf(run.d);
-    run.cue.innerHTML = '<span class="keys' + (run.touch ? ' pads' : '') + '">' + capsHtml(codes, run.touch) + '</span><span class="say">' + T[id] + '</span>';
-    tag(run.cue);
+    run.cue.innerHTML = '<span class="keys' + (run.touch ? ' pads' : '') + '">' + capsHtml(codes, run.touch) + '</span><span class="say">' + ZS.prompt.fill(T[id], run.touch) + '</span>';
     run.hudBox.innerHTML = hudHtml(H.hud(run.d));
     run.hud = { bar: run.hudBox.querySelector('.mini i'), goal: run.hudBox.querySelector('.goal'), flag: run.hudBox.querySelector('.flag'), barW: -1, goalT: null, flagT: null };
     run.chips.forEach((c, j) => { c.classList.toggle('on', j === i); c.setAttribute('aria-pressed', String(j === i)); });
@@ -162,12 +148,10 @@
     const calm = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     const T = touch ? ZS.UI.tipsTouch : ZS.UI.tips;
     chips.forEach((chip, i) => {
-      const d = H.create(ids[i], { touch });
       const k = chip.querySelector('.k');
-      k.innerHTML = capsHtml(H.keysOf(d).filter((c) => !inText(c, T[ids[i]])), touch);
+      k.innerHTML = capsHtml(H.keysFor(ids[i], touch).filter((c) => !inText(c, T[ids[i]])), touch);
       k.classList.toggle('pads', touch);
       chip.title = chip.querySelector('.t').textContent;
-      tag(chip);
       chip.onclick = () => { if (run) { run.hover = null; play(i, true); } };
       chip.onmouseenter = () => { if (run && !run.calm && i !== run.i) run.hover = { i, t: HOVER }; };
       chip.onmouseleave = () => { if (run && run.hover && run.hover.i === i) run.hover = null; };

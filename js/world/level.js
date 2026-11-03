@@ -96,11 +96,11 @@
     ];
     L.stones = [{ x: at(8300), w: 64 }, { x: at(8425), w: 58 }, { x: at(8550), w: 66 }];
     L.signs = [
-      sign(420, () => S.hide),
-      sign(800, () => S.climb),
+      sign(420, () => S.hide, { key: 'ArrowDown' }),
+      sign(800, () => S.climb, { key: 'ArrowUp' }),
       sign(2305, () => ZS.LEVEL_TEXT.summer.village),
       sign(2130, () => '', { billboard: true }),
-      sign(3580, () => S.stomp),
+      sign(3580, () => S.stomp, { key: 'Space' }),
       sign(at(5100), () => S.skanzen),
       sign(L.feeding - 70, () => S.feeding),
       sign(at(8110), () => S.ford),

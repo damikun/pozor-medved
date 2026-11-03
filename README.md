@@ -31,14 +31,16 @@ with a tourist counts too. Without a hug the den won't let you in.
 
 | Key | What it does |
 | --- | --- |
-| ← → | walk |
-| Shift | sprint (on a phone, push the joystick all the way) |
-| ↓ | hide behind a thick tree |
-| ↑ | tap to jump, hold at a thick tree to climb |
-| Space | jump; landing on a hunter's head knocks him down |
-| C | hug a person, take a selfie with a tourist, or shake a hunting stand until the hunter falls out |
-| X | bite a person (turns you into a problem bear) |
-| P | pause |
-| M | sound on or off (also the 🔊 button on the start screen and in the pause menu) |
+| <kbd>←</kbd> <kbd>→</kbd> | walk |
+| <kbd>Shift</kbd> | sprint (on a phone, push the joystick all the way) |
+| <kbd>↓</kbd> | hide behind a thick tree |
+| <kbd>↑</kbd> | tap to jump, hold at a thick tree to climb |
+| <kbd>Space</kbd> | jump; landing on a hunter's head knocks him down |
+| <kbd>C</kbd> | hug a person, take a selfie with a tourist, or shake a hunting stand until the hunter falls out |
+| <kbd>X</kbd> | bite a person (turns you into a problem bear) |
+| <kbd>P</kbd> | pause |
+| <kbd>M</kbd> | sound on or off (also the 🔊 button on the start screen and in the pause menu) |
 
 On phones and tablets a joystick on the left walks (all the way to sprint, down to hide or sneak, up to climb). On the right the arrow jumps or climbs and the tree button hides. Next to people, stands, doors and stalls a hand button says what it will do, the claw button bites, and ❚❚ in the corner pauses.
+In the game, a prompt under the bear shows the key to
+press, or the icon of the touch button on a phone.

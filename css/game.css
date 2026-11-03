@@ -123,7 +123,17 @@ canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-acti
 .card h2 { margin: 0 0 8px; font-size: 24px; }
 .card .sub { margin: 0 0 16px; color: var(--muted); }
 .card p { margin: 0 0 12px; line-height: 1.55; }
-.card kbd { font: 12px ui-monospace, Menlo, monospace; background: #e7e0cc; border-radius: 4px; padding: 1px 6px; }
+.card kbd { display: inline-grid; place-items: center; min-width: 1.75em; height: 1.75em; padding: 0 0.45em; border-radius: 0.42em; font: 800 12px/1 var(--font); color: var(--ink);
+  background: #fffaf0; box-shadow: 0 0.17em 0 #a39c86, inset 0 0 0 1px rgba(29, 35, 24, 0.14); vertical-align: 0.12em; }
+.card kbd.on { background: #f0c030; color: #3a2a00; transform: translateY(0.12em); box-shadow: 0 0.05em 0 #a39c86, inset 0 0 0 1px rgba(58, 42, 0, 0.2); }
+.card kbd[data-k="Space"] { min-width: 3em; }
+.card .pads kbd { width: 1.9em; min-width: 1.9em; height: 1.9em; padding: 0; border-radius: 50%; }
+.card .pads kbd.sprint { background: #e8a400; }
+.card #btnResume kbd { margin-left: 6px; font-size: 12px; vertical-align: 0.05em; }
+.card .controls { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13.5px; line-height: 1.3; }
+.card .controls li { display: flex; align-items: center; gap: 10px; }
+.card .controls .k { flex: none; display: flex; gap: 3px; min-width: 52px; }
+.card .controls kbd { font-size: 12px; }
 .card .goals { font-weight: 700; font-size: 14px; color: var(--muted); margin: -4px 0 10px; }
 .card .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin: 0 0 16px; }
 .card .stat { background: #ece5d2; border-radius: 8px; padding: 8px 10px; }
@@ -135,7 +145,7 @@ canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-acti
 .card button.mute { min-width: 52px; padding: 12px 14px; line-height: 1.2; }
 .card .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .card.start { max-width: 860px; padding: 20px 24px 16px; }
-.card.pause { max-width: 400px; }
+.card.pause { max-width: 440px; }
 .card .head { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 14px; margin: 0 0 6px; }
 .card .head h1 { margin: 0; }
 .card .head .sub { margin: 0; }
@@ -167,22 +177,15 @@ canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-acti
 .card .stage { position: relative; height: clamp(170px, 32vh, 250px); border-radius: 12px; overflow: hidden; background: #b9d4e0; }
 .card .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: auto; pointer-events: none; }
 .card .stage .hud { position: absolute; left: 10px; top: 9px; right: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; pointer-events: none; }
-.card .stage .cue { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 12px; padding: 16px 14px 9px;
-  background: linear-gradient(rgba(20, 26, 16, 0), rgba(20, 26, 16, 0.5)); pointer-events: none; }
-.card .stage .say { color: #fff; font: 700 16px/1.25 var(--font); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); animation: cueIn 0.4s ease-out; }
-.card .stage .say kbd { font: 700 13px/1 var(--font); padding: 2px 6px; background: rgba(247, 243, 232, 0.94); color: var(--ink); text-shadow: none; vertical-align: 1px; }
-.card .stage .keys { flex: none; display: flex; gap: 5px; animation: cueIn 0.4s ease-out; }
+.card .stage .cue { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); width: max-content; max-width: calc(100% - 16px); display: flex; align-items: center; gap: 10px;
+  padding: 5px 16px 5px 6px; border-radius: 999px; background: rgba(20, 26, 16, 0.84); box-shadow: 0 0 0 2px rgba(255, 250, 240, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2); pointer-events: none; }
+.card .stage .say { color: #fff; font: 700 15px/1.25 var(--font); animation: cueIn 0.4s ease-out; }
+.card .stage .say kbd { font-size: 12px; }
+.card .stage .keys { flex: none; display: flex; gap: 4px; animation: cueIn 0.4s ease-out; }
 @keyframes cueIn { from { opacity: 0; } }
 .card .howto kbd { transition: background-color 0.1s, color 0.1s, transform 0.1s, box-shadow 0.1s; }
-.card .howto kbd.on { background: #f0c030; color: #3a2a00; }
-.card .stage .keys kbd { display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 7px; border-radius: 6px; font: 700 15px/1 var(--font);
-  background: rgba(247, 243, 232, 0.95); color: var(--ink); box-shadow: 0 3px 0 rgba(29, 35, 24, 0.6); }
-.card .stage .keys kbd[data-k="Space"] { min-width: 52px; }
-.card .stage .keys kbd.on { background: #f0c030; color: #3a2a00; transform: translateY(3px); box-shadow: 0 0 0 3px rgba(255, 236, 160, 0.7); }
-.card .stage .keys.pads kbd { min-width: 32px; height: 32px; padding: 0; border-radius: 50%; font-size: 15px; background: rgba(20, 26, 16, 0.62); color: #fff; box-shadow: none; }
+.card .stage .keys kbd { font-size: 14px; }
 .card kbd svg { display: block; width: 1.15em; height: 1.15em; fill: currentColor; }
-.card .stage .keys.pads kbd.on { background: rgba(47, 125, 79, 0.95); transform: scale(1.1); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.8); }
-.card .stage .keys.pads kbd.sprint { background: rgba(232, 164, 0, 0.95); }
 .card .stage .mini { position: relative; width: 190px; max-width: 48%; height: 17px; border-radius: 5px; background: rgba(20, 26, 16, 0.62); overflow: hidden; }
 .card .stage .mini i { position: absolute; inset: 0 auto 0 0; width: 0; transition: width 0.25s; }
 .card .stage .mini b { position: relative; display: block; padding: 0 7px; font: 700 11px/17px var(--font); color: #fff; white-space: nowrap; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
@@ -198,13 +201,9 @@ canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-acti
 .card button.chip .t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .card button.chip .k { float: left; display: flex; gap: 2px; margin: 0 5px 0 0; }
 .card button.chip .k:empty { display: none; }
-.card button.chip kbd { display: inline-grid; place-items: center; min-width: 15px; height: 15px; padding: 0 3px; border-radius: 3px; font: 700 9.5px/1 var(--font); background: #fff; color: var(--ink); box-shadow: 0 1px 0 rgba(29, 35, 24, 0.35); }
-.card button.chip .t kbd { display: inline; padding: 0 3px; vertical-align: 0; }
-.card button.chip .k kbd[data-k="Space"] { min-width: 24px; }
+.card button.chip kbd { font-size: 9.5px; }
+.card button.chip .t kbd { font-size: 9px; vertical-align: 0.05em; }
 .card button.chip.on { background: #fff8e1; box-shadow: inset 0 0 0 2px #f0c030; }
-.card button.chip kbd.on { background: #f0c030; color: #3a2a00; }
-.card button.chip .k.pads kbd { min-width: 17px; height: 17px; padding: 0; border-radius: 50%; font-size: 9px; background: rgba(20, 26, 16, 0.6); color: #fff; box-shadow: none; }
-.card button.chip .k.pads kbd.on { background: rgba(47, 125, 79, 0.95); }
 @media (prefers-reduced-motion: reduce) {
   .card .howto * { animation: none !important; transition: none !important; }
 }
@@ -250,10 +249,9 @@ canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-acti
   .card .chips { padding-bottom: 3px; }
   .card button.chip { padding: 5px 9px; }
   .card .stage .say { font-size: 13.5px; }
-  .card .stage .cue { gap: 9px; padding: 14px 10px 7px; }
-  .card .stage .keys kbd { min-width: 24px; height: 24px; font-size: 13px; padding: 0 5px; }
-  .card .stage .keys kbd[data-k="Space"] { min-width: 42px; }
-  .card .stage .keys.pads kbd { min-width: 28px; height: 28px; font-size: 13px; }
+  .card .stage .cue { gap: 8px; bottom: 6px; padding: 4px 13px 4px 5px; }
+  .card .stage .keys kbd { font-size: 12.5px; }
+  .card .controls { font-size: 13px; gap: 5px; }
   .card .stage .mini { height: 15px; }
   .card .stage .mini b { font-size: 10px; line-height: 15px; }
   .card .stage .flag { font-size: 9.5px; }
