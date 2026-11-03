@@ -354,8 +354,9 @@
   const DUR = { bite: CFG.BITE, hug: CFG.HUG, selfie: CFG.SELFIE, shake: CFG.SHAKE };
 
   function startAct(g, b, key) {
-    const E = ZS.sim.encounters;
-    const person = E.target(g), post = key === 'hug' && !person ? E.stand(g) : null;
+    const E = ZS.sim.encounters, kept = b.reach && !b.reach.post && b.reach.kind !== 'photographer' ? b.reach : null;
+    const person = E.target(g) || kept, post = key === 'hug' && !person ? E.stand(g) : null;
+    if (person && Math.abs(person.x - b.x) > 18) b.dir = Math.sign(person.x - b.x);
     const kind = post ? 'shake' : key === 'hug' && person && (person.kind === 'tourist' || (person.kind === 'tycoon' && !person.promo)) ? 'selfie' : key;
     const target = person || post;
     const door = !target && key === 'hug' ? ZS.sim.vendors.act(g, b) || ZS.sim.knock.act(g, b) : null;

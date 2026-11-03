@@ -2,7 +2,7 @@
   const { CFG, COLORS, LABELS, NEWS } = ZS;
   const GY = CFG.GROUND;
   const rules = () => ZS.sim.rules;
-  const REACH = 56, SIDE = 50, SPOT = 22, KNOCK = 0.62, BEAT = 0.42, TASTE = 2.6, SIP = 0.78, BITE = 1.7, REST = 6, TIPSY = 6, HIC = 1.45, SAID = 40;
+  const REACH = 56, KEEP = 24, SIDE = 50, SPOT = 22, KNOCK = 0.62, BEAT = 0.42, TASTE = 2.6, SIP = 0.78, BITE = 1.7, REST = 6, TIPSY = 6, HIC = 1.45, SAID = 40;
   const DUCK = { alarm: 0.35, sink: 0.75, shut: 1.05 };
   const VOICE = { punch: 'f', lokse: 'f', sausage: 'm', cheese: 'm' };
   const pick = (list) => list[Math.floor(Math.random() * list.length)];
@@ -22,9 +22,9 @@
 
   function near(g) {
     const b = g.bear, k = state(g);
-    if (k.cd > 0 || !free(b)) return null;
-    for (const v of k.list) if (Math.abs(v.x - b.x) < REACH && open(g, v)) return v;
-    return null;
+    if (k.cd > 0 || !free(b)) return (k.near = null);
+    for (const v of k.list) if (Math.abs(v.x - b.x) < (v === k.near ? REACH + KEEP : REACH) && open(g, v)) return (k.near = v);
+    return (k.near = null);
   }
 
   function act(g, b) {

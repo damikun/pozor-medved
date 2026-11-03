@@ -2,7 +2,7 @@
   const { CFG, COLORS, LABELS, NEWS } = ZS;
   const GY = CFG.GROUND;
   const rules = () => ZS.sim.rules;
-  const KNOCK = 0.75, DOOR = 24, EDGE = 6, SAID = 45, REST = 4;
+  const KNOCK = 0.75, DOOR = 24, EDGE = 6, KEEP = 24, SAID = 45, REST = 4;
   const T = { open: 1, scare: 1.35, act: 1.55, slam: 2.45, done: 2.7 };
   const WHO = ['granny', 'man', 'kid'];
   const VOICE = { granny: 'f', man: 'm', kid: 'kid' };
@@ -19,9 +19,9 @@
 
   function near(g) {
     const b = g.bear, k = state(g);
-    if (k.cd > 0 || !free(b)) return null;
-    for (const o of k.list) if (o.mode === 'idle' && Math.abs(b.x - o.h.x) < o.h.w / 2 - EDGE) return o;
-    return null;
+    if (k.cd > 0 || !free(b)) return (k.near = null);
+    for (const o of k.list) if (o.mode === 'idle' && Math.abs(b.x - o.h.x) < o.h.w / 2 + (o === k.near ? KEEP : -EDGE)) return (k.near = o);
+    return (k.near = null);
   }
 
   function act(g, b) {

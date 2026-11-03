@@ -311,17 +311,17 @@
     "mode": null,
     "expected": {
       "ending": "win",
-      "time": 139.3,
-      "fat": 82.0437,
-      "lives": 5,
-      "x": 10480.084,
-      "syn": 13.63,
-      "panic": 75.755,
+      "time": 149.0167,
+      "fat": 77.9463,
+      "lives": 4,
+      "x": 10481.45,
+      "syn": 18.2867,
+      "panic": 46.84,
       "stats": {
-        "natural": 12,
-        "human": 1,
-        "seen": 14,
-        "hugs": 2,
+        "natural": 11,
+        "human": 2,
+        "seen": 9,
+        "hugs": 3,
         "bites": 0,
         "stomps": 5,
         "selfies": 2
@@ -329,14 +329,13 @@
       "flags": [
         "press",
         "emergency",
-        "drones",
-        "hugBan",
-        "decree"
+        "stallsLocked",
+        "hugBan"
       ],
       "events": [
         "wrongbear",
+        "stalls",
         "drive",
-        "decree",
         "court"
       ],
       "eaten": 13

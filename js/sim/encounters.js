@@ -8,7 +8,7 @@
   const SPILL = { picker: ['mushroom', 'basket'], santa: ['candy'], tourist: ['sandwich'], waiter: ['halusky'] };
   const SCALE = { ztmh: 1.04 };
   const CONTACT = { bite: 0.16, hug: 0.3, selfie: 0.3, shake: 0.3 };
-  const HEAD = 78, GAP = 44, SNAP = 1.2, TOPPLE = 1.2, CABIN = 150, FETCH = 62, LEG = 30, NEAR = 62, STAY = 86;
+  const HEAD = 78, GAP = 44, SNAP = 1.2, TOPPLE = 1.2, CABIN = 150, FETCH = 62, LEG = 30, NEAR = 62, STAY = 86, LOOSE = 40;
 
   function humans(g) {
     const list = [];
@@ -385,7 +385,14 @@
     stands(g, dt);
     stomp(g);
     props(g, dt);
-    b.reach = !b.act && !b.hiding && !b.climbing && b.onGround ? target(g) || stand(g) : null;
+    const idle = !b.act && !b.hiding && !b.climbing && b.onGround;
+    b.reach = idle ? target(g) || (b.reach && kept(g, b.reach) ? b.reach : null) || stand(g) : null;
+  }
+
+  function kept(g, o) {
+    const b = g.bear, P = ZS.sim.pen;
+    return !o.post && o.kind !== 'photographer' && free(o) && !o.leaving && !o.dead && !o.hurdle
+      && !P.inside(g.level, o.x, 0) && !P.between(g.level, b.x, o.x) && Math.abs(o.x - b.x) <= CFG.REACH + LOOSE;
   }
 
   ZS.sim.encounters = { update, target, stand, begin, reactShooter, reactPerson, free, humans, drop };
