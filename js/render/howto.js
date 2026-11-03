@@ -197,7 +197,7 @@
         d.hold('ArrowRight', t >= 0.2 && !d.done.stop);
       },
       people() { return true; },
-      hud(g) { return { bar: 'syn', value: g.syn }; },
+      hud(g) { return { bar: 'fat', value: g.fat }; },
     },
     panic: {
       sky: 184, dur: 3.8, still: 3.3,

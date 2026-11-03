@@ -818,7 +818,7 @@
       stats: { natural: 'forest food', human: 'human food', seen: 'times spotted', fat: (season) => 'fat · ' + season.toLowerCase(), hugs: 'hugs', selfies: 'selfies', bites: 'bites', stomps: 'hunters flattened' },
       behindTree: 'behind a tree',
       hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
-      bars: { fat: 'Fat', syn: 'Habituation', panic: 'Media panic' },
+      bars: { fat: 'Fat', panic: 'Media panic' },
       touch: { left: 'Left', right: 'Right', hide: 'Hide', jump: 'Jump, climb', hug: 'Action', bite: 'Bite', pause: 'Pause',
         acts: { hide: 'Hide', hidden: 'Hidden', climb: 'Climb', down: 'Climb down', hug: 'Hug', selfie: 'Selfie', pose: 'Pose', shake: 'Shake', knock: 'Knock', taste: 'Taste' } },
       language: 'Language',

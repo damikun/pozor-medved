@@ -818,7 +818,7 @@
       stats: { natural: 'Waldfutter', human: 'Menschenfutter', seen: 'Mal entdeckt', fat: (season) => 'Fett · ' + season, hugs: 'Umarmungen', selfies: 'Selfies', bites: 'Bisse', stomps: 'gestürzte Jäger' },
       behindTree: 'hinterm Baum',
       hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
-      bars: { fat: 'Fett', syn: 'Synanthropie', panic: 'Medienpanik' },
+      bars: { fat: 'Fett', panic: 'Medienpanik' },
       touch: { left: 'Nach links', right: 'Nach rechts', hide: 'Verstecken', jump: 'Springen, klettern', hug: 'Aktion', bite: 'Beißen', pause: 'Pause',
         acts: { hide: 'Verstecken', hidden: 'Versteckt', climb: 'Hochklettern', down: 'Runter', hug: 'Umarmen', selfie: 'Selfie', pose: 'Posieren', shake: 'Rütteln', knock: 'Klopfen', taste: 'Kosten' } },
       language: 'Sprache',

@@ -842,7 +842,7 @@
     stats: { natural: 'jedlo z lesa', human: 'jedlo od ľudí', seen: 'krát ťa videli', fat: (season) => 'tuku · ' + season.toLowerCase(), hugs: 'objatia', selfies: 'selfie', bites: 'uhryznutia', stomps: 'zvalení poľovníci' },
     behindTree: 'za stromom',
     hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
-    bars: { fat: 'Tuk', syn: 'Synantropia', panic: 'Mediálna panika' },
+    bars: { fat: 'Tuk', panic: 'Mediálna panika' },
     touch: { left: 'Doľava', right: 'Doprava', hide: 'Schovať sa', jump: 'Skok, lezenie', hug: 'Akcia', bite: 'Kusnúť', pause: 'Pauza',
       acts: { hide: 'Schovať sa', hidden: 'Skrytý', climb: 'Vyliezť', down: 'Zliezť', hug: 'Objať', selfie: 'Selfie', pose: 'Zapózovať', shake: 'Zatriasť', knock: 'Zaklopať', taste: 'Ochutnať' } },
     language: 'Jazyk',

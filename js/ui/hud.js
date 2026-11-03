@@ -17,13 +17,12 @@
   function relabel() {
     const B = UI.bars;
     $('barFat').querySelector('span').textContent = B.fat;
-    $('barSyn').querySelector('span').textContent = B.syn;
     $('barPanic').querySelector('span').textContent = B.panic;
     document.querySelectorAll('#touch [data-key]').forEach((el) => {
       el.innerHTML = ZS.icon(el.dataset.look || el.dataset.key) + (el.id === 'act' ? '<span></span>' : '');
       el.setAttribute('aria-label', UI.touch[TOUCH[el.dataset.key]]);
     });
-    actOn = null;
+    actOn = undefined;
     trayRow();
     levelId = null;
   }
@@ -64,14 +63,13 @@
     setLevel(g);
     const b = g.bear;
     bar('barFat', g.fat);
-    bar('barSyn', g.syn);
     bar('barPanic', g.panic);
     bar('barTrip', Math.min(100, (b.x / g.level.goalDen) * 100));
     hearts(g);
     counts(g);
     const free = !g.over && !g.ride, kind = free ? actOf(g, b) : null, reach = !!kind, bite = free && !!b.reach && !b.reach.post;
-    if (reach !== reachOn) { reachOn = reach; $('act').classList.toggle('on', reach); if (!reach) $('act').setAttribute('aria-label', UI.touch.hug); }
-    if (kind && kind !== actOn) { actOn = kind; dress(kind); }
+    if (reach !== reachOn) { reachOn = reach; $('act').classList.toggle('on', reach); }
+    if (kind !== actOn) { actOn = kind; dress(kind); }
     if (bite !== biteOn) { biteOn = bite; $('bite').classList.toggle('on', bite); }
     const ride = !!g.ride && !g.over;
     if (ride !== rideOn) { rideOn = ride; $('touch').classList.toggle('ride', ride); $('hud').classList.toggle('ride', ride); }
@@ -81,8 +79,8 @@
     const el = $('act'), key = HOLD_KEY[kind] || 'KeyC', look = LOOK[kind] || 'KeyC';
     if (el.dataset.look !== look) { el.dataset.look = look; el.innerHTML = ZS.icon(look) + '<span></span>'; }
     el.dataset.key = key;
-    el.querySelector('span').textContent = UI.touch.acts[kind];
-    el.setAttribute('aria-label', UI.touch.acts[kind]);
+    el.querySelector('span').textContent = kind ? UI.touch.acts[kind] : '';
+    el.setAttribute('aria-label', kind ? UI.touch.acts[kind] : UI.touch.hug);
   }
 
   function actOf(g, b) {
