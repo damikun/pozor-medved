@@ -255,7 +255,7 @@ test('X behind a hunter bites him: he drops the rifle, runs off for good and the
   assert.ok(!g.shooters.includes(s), 'he left');
 });
 
-test('C or X with nobody around plays the move on air, and a held arrow key applies right after it', () => {
+test('C or X with nobody around does nothing, and a held arrow key keeps the bear walking', () => {
   const { g, b, L, run, press, hold } = setup();
   b.x = openGround(L); b.dir = 1;
   g.shooters = []; g.people = [];
@@ -263,14 +263,13 @@ test('C or X with nobody around plays the move on air, and a held arrow key appl
   press('KeyC');
   run(0.05);
   const x0 = b.x;
-  assert.equal(b.act.kind, 'hug');
-  assert.equal(b.act.hit, false);
-  run(1.5);
-  assert.ok(Math.abs(b.x - x0) < 1, 'stood still during the hug');
+  assert.ok(!b.act, 'no hug on thin air');
   run(0.5);
-  assert.ok(b.x - x0 > 40, 'walked on after it');
+  assert.ok(b.x - x0 > 40, 'kept walking');
   assert.equal(g.stats.hugs, 0);
   press('KeyX');
+  run(0.05);
+  assert.ok(!b.act, 'no bite on thin air');
   run(0.6);
   assert.equal(g.stats.bites, 0);
 });

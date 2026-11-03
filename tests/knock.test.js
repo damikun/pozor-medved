@@ -117,7 +117,7 @@ test('the man in the undershirt throws a slipper that lands near the bear and do
   assert.ok(sounds.includes('throw'));
 });
 
-test('the winter houses take knocks too, a hug next to a person still hugs, and bare air still hugs air', () => {
+test('the winter houses take knocks too, a hug next to a person still hugs, and C on bare air does nothing', () => {
   const { ZS, g, b, L, run, park, knock } = setup({ level: 'winter' });
   const h = L.houses[1];
   park(h.x + 40);
@@ -138,7 +138,7 @@ test('the winter houses take knocks too, a hug next to a person still hugs, and 
   u.park(600);
   u.run(DT);
   u.knock();
-  assert.equal(u.b.act.kind, 'hug');
+  assert.ok(!u.b.act, 'nothing to hug, nothing happens');
   assert.equal(b.knock, null);
 });
 

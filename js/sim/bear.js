@@ -359,7 +359,9 @@
     const kind = post ? 'shake' : key === 'hug' && person && (person.kind === 'tourist' || (person.kind === 'tycoon' && !person.promo)) ? 'selfie' : key;
     const target = person || post;
     const door = !target && key === 'hug' ? ZS.sim.vendors.act(g, b) || ZS.sim.knock.act(g, b) : null;
-    b.act = door || (!target && ZS.sim.photographer.act(g, b, key)) || { kind, t: 0, dur: DUR[kind], dir: b.dir, hit: !!target, target, done: false };
+    const act = door || (!target && ZS.sim.photographer.act(g, b, key)) || (target && { kind, t: 0, dur: DUR[kind], dir: b.dir, hit: true, target, done: false });
+    if (!act) return;
+    b.act = act;
     b.moving = false; b.running = false; b.crouch = false; b.eating = false; b.eatT = 0; b.vx = 0;
     if (b.act.target) E.begin(g, b.act);
   }

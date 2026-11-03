@@ -83,8 +83,7 @@ test('sprinting under a stand, C away from it or X under it never shakes the sta
   b.x = post.x - 160; b.vx = 0;
   press('KeyC');
   run(0.4);
-  assert.equal(b.act.kind, 'hug');
-  assert.equal(b.act.hit, false);
+  assert.ok(!b.act, 'C away from the stand does nothing');
   run(1.6);
   b.x = post.x - 30;
   press('KeyX');
