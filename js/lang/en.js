@@ -822,7 +822,7 @@
       hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
       bars: { fat: 'Fat', syn: 'Habituation', panic: 'Media panic' },
       touch: { left: 'Left', right: 'Right', hide: 'Hide', jump: 'Jump, climb', hug: 'Action', bite: 'Bite', pause: 'Pause',
-        acts: { hug: 'Hug', selfie: 'Selfie', pose: 'Pose', shake: 'Shake', knock: 'Knock', taste: 'Taste' } },
+        acts: { hide: 'Hide', hug: 'Hug', selfie: 'Selfie', pose: 'Pose', shake: 'Shake', knock: 'Knock', taste: 'Taste' } },
       language: 'Language',
       about: 'About the game on GitHub',
       sound: { mute: 'Mute sound', unmute: 'Turn sound on' },

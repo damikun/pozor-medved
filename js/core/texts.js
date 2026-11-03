@@ -846,7 +846,7 @@
     hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
     bars: { fat: 'Tuk', syn: 'Synantropia', panic: 'Mediálna panika' },
     touch: { left: 'Doľava', right: 'Doprava', hide: 'Schovať sa', jump: 'Skok, lezenie', hug: 'Akcia', bite: 'Kusnúť', pause: 'Pauza',
-      acts: { hug: 'Objať', selfie: 'Selfie', pose: 'Zapózovať', shake: 'Zatriasť', knock: 'Zaklopať', taste: 'Ochutnať' } },
+      acts: { hide: 'Schovať sa', hug: 'Objať', selfie: 'Selfie', pose: 'Zapózovať', shake: 'Zatriasť', knock: 'Zaklopať', taste: 'Ochutnať' } },
     language: 'Jazyk',
     about: 'O hre na GitHube',
     sound: { mute: 'Vypnúť zvuk', unmute: 'Zapnúť zvuk' },

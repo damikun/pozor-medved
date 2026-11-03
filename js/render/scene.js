@@ -192,8 +192,8 @@
   function cue(g) {
     const b = g.bear;
     if (b.warn && !b.hiding && !b.inSpray) {
-      const hide = fresh(g, 'hide') && cover(g);
-      if (hide) return [tip('ArrowDown', hide, 'hide')];
+      const hide = cover(g);
+      if (hide) return fresh(g, 'hide') ? [tip('ArrowDown', hide, 'hide')] : null;
     } else if (b.onGround && !b.hiding && !b.act) {
       if (b.bumpT > 0 && !b.crouch && fresh(g, 'crouch')) return [tip('ArrowDown', LABELS.crawlHint, 'crouch')];
       if (b.zapT > 0.8 && b.zapT < 3.5 && fresh(g, 'jump')) return [tip('ArrowUp', LABELS.fenceHint, 'jump')];
@@ -344,4 +344,5 @@
   };
 
   ZS.render.cue = cue;
+  ZS.render.cover = cover;
 })();

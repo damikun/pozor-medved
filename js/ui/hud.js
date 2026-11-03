@@ -86,18 +86,26 @@
     if (g.flags.stallsLocked) list.push(badge(B.stallsLocked, 'calm'));
     const html = list.join('');
     if (html !== badgeHtml) { badgeHtml = html; $('badges').innerHTML = html; }
-    const free = !g.over && !g.ride, reach = free && !!(b.reach || b.knock), bite = free && !!b.reach && !b.reach.post;
+    const free = !g.over && !g.ride, kind = free ? actOf(g, b) : null, reach = !!kind, bite = free && !!b.reach && !b.reach.post;
     if (reach !== reachOn) { reachOn = reach; $('act').classList.toggle('on', reach); }
-    const kind = reach ? actOf(g, b) : actOn;
-    if (kind !== actOn) { actOn = kind; $('act').querySelector('span').textContent = UI.touch.acts[kind]; }
+    if (kind && kind !== actOn) { actOn = kind; dress(kind); }
     if (bite !== biteOn) { biteOn = bite; $('bite').classList.toggle('on', bite); }
     const ride = !!g.ride && !g.over;
     if (ride !== rideOn) { rideOn = ride; $('touch').classList.toggle('ride', ride); $('hud').classList.toggle('ride', ride); }
   }
 
+  function dress(kind) {
+    const el = $('act'), key = kind === 'hide' ? 'ArrowDown' : 'KeyC';
+    if (el.dataset.key !== key) { el.dataset.key = key; el.innerHTML = ZS.icon(key) + '<span></span>'; }
+    el.querySelector('span').textContent = UI.touch.acts[kind];
+    el.setAttribute('aria-label', UI.touch.acts[kind]);
+  }
+
   function actOf(g, b) {
     const o = b.reach, k = b.knock;
+    if (b.hiding || (b.warn && !b.inSpray && b.onGround && !b.act && !b.climbing && ZS.render.cover(g))) return 'hide';
     if (o) return o.post ? 'shake' : o.kind === 'photographer' ? 'pose' : o.kind === 'tourist' || (o.kind === 'tycoon' && !o.promo) ? 'selfie' : 'hug';
+    if (!k) return null;
     if (k.kind !== 'stall') return 'knock';
     const it = g.level.items.find((i) => i.type === k.o.kind && Math.abs(i.x - k.o.x) < 1);
     return it && !it.locked ? 'taste' : 'knock';

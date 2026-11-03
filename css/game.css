@@ -44,7 +44,6 @@ canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-acti
 #touch .stick.on .base { background: rgba(20, 26, 16, 0.45); }
 #touch .stick.sprint .knob { background: rgba(232, 164, 0, 0.95); }
 #touch .jump { right: var(--r); bottom: var(--y); width: var(--b); height: var(--b); }
-#touch .hide { right: calc(var(--r) + var(--b) + var(--gap)); bottom: calc(var(--y) + (var(--b) - var(--s)) / 2); }
 #touch .act { display: flex; align-items: center; gap: 7px; right: var(--r); bottom: calc(var(--y) + var(--b) + 14px); width: auto; height: calc(var(--s) * 0.8); padding: 0 18px 0 13px;
   border-radius: 999px; background: rgba(47, 125, 79, 0.9); font: 700 calc(var(--s) * 0.24)/1 var(--font); white-space: nowrap;
   opacity: 0; transform: translateY(8px) scale(0.9); pointer-events: none; }
@@ -56,7 +55,7 @@ canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-acti
 #touch .bite svg { width: 52%; height: 52%; }
 #touch .pause { top: calc(10px + env(safe-area-inset-top)); right: calc(10px + env(safe-area-inset-right)); width: 44px; height: 44px; }
 #touch .pause svg { width: 50%; height: 50%; }
-#touch.ride .hide, #touch.ride .jump, #touch.ride .act { visibility: hidden; }
+#touch.ride .jump, #touch.ride .act { visibility: hidden; }
 #touch.ride .pause { right: calc(52px + env(safe-area-inset-right)); }
 #touch.ride .base { background: rgba(20, 26, 16, 0.55); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3), 0 0 0 3px rgba(255, 255, 255, 0.55); }
 .bar em { position: absolute; top: 0; bottom: 0; left: 60%; width: 2px; background: #fff; opacity: 0.8; z-index: 1; }
