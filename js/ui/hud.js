@@ -87,7 +87,7 @@
     const html = list.join('');
     if (html !== badgeHtml) { badgeHtml = html; $('badges').innerHTML = html; }
     const free = !g.over && !g.ride, kind = free ? actOf(g, b) : null, reach = !!kind, bite = free && !!b.reach && !b.reach.post;
-    if (reach !== reachOn) { reachOn = reach; $('act').classList.toggle('on', reach); }
+    if (reach !== reachOn) { reachOn = reach; $('act').classList.toggle('on', reach); if (!reach) $('act').setAttribute('aria-label', UI.touch.hug); }
     if (kind && kind !== actOn) { actOn = kind; dress(kind); }
     if (bite !== biteOn) { biteOn = bite; $('bite').classList.toggle('on', bite); }
     const ride = !!g.ride && !g.over;
@@ -95,15 +95,13 @@
   }
 
   function dress(kind) {
-    const el = $('act'), key = kind === 'hide' ? 'ArrowDown' : 'KeyC';
-    if (el.dataset.key !== key) { el.dataset.key = key; el.innerHTML = ZS.icon(key) + '<span></span>'; }
+    const el = $('act');
     el.querySelector('span').textContent = UI.touch.acts[kind];
     el.setAttribute('aria-label', UI.touch.acts[kind]);
   }
 
   function actOf(g, b) {
     const o = b.reach, k = b.knock;
-    if (b.hiding || (b.warn && !b.inSpray && b.onGround && !b.act && !b.climbing && ZS.render.cover(g))) return 'hide';
     if (o) return o.post ? 'shake' : o.kind === 'photographer' ? 'pose' : o.kind === 'tourist' || (o.kind === 'tycoon' && !o.promo) ? 'selfie' : 'hug';
     if (!k) return null;
     if (k.kind !== 'stall') return 'knock';

@@ -39,17 +39,21 @@ canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-acti
 #touch .base i { position: absolute; top: 50%; width: 20%; height: 20%; margin-top: -10%; color: rgba(255, 255, 255, 0.6); }
 #touch .base i[data-key="ArrowLeft"] { left: 4%; }
 #touch .base i[data-key="ArrowRight"] { right: 4%; }
+#touch .base i[data-key="ArrowDown"] { top: auto; bottom: 4%; left: 40%; margin-top: 0; }
 #touch .base i svg { width: 100%; height: 100%; }
 #touch .knob { position: absolute; left: 28%; top: 28%; width: 44%; height: 44%; border-radius: 50%; background: rgba(247, 243, 232, 0.62); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); transition: background-color 0.12s; }
 #touch .stick.on .base { background: rgba(20, 26, 16, 0.45); }
 #touch .stick.sprint .knob { background: rgba(232, 164, 0, 0.95); }
 #touch .jump { right: var(--r); bottom: var(--y); width: var(--b); height: var(--b); }
-#touch .act { display: flex; align-items: center; gap: 7px; right: var(--r); bottom: calc(var(--y) + var(--b) + 14px); width: auto; height: calc(var(--s) * 0.8); padding: 0 18px 0 13px;
-  border-radius: 999px; background: rgba(47, 125, 79, 0.9); font: 700 calc(var(--s) * 0.24)/1 var(--font); white-space: nowrap;
-  opacity: 0; transform: translateY(8px) scale(0.9); pointer-events: none; }
-#touch .act svg { width: calc(var(--s) * 0.36); height: calc(var(--s) * 0.36); }
+#touch .act { opacity: 0; transform: translateY(8px) scale(0.9); pointer-events: none; }
 #touch .act.on { opacity: 1; transform: none; pointer-events: auto; }
 #touch .act.on.down { transform: scale(0.95); }
+#touch #act { right: calc(var(--r) + var(--b) + var(--gap)); bottom: calc(var(--y) + (var(--b) - var(--s)) / 2); opacity: 1; transform: none; pointer-events: auto; }
+#touch #act.on { opacity: 1; background: rgba(47, 125, 79, 0.92); }
+#touch #act.down { transform: scale(0.93); }
+#touch #act span { position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); padding: 5px 10px; border-radius: 999px;
+  background: rgba(47, 125, 79, 0.92); font: 700 calc(var(--s) * 0.22)/1 var(--font); white-space: nowrap; opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+#touch #act.on span { opacity: 1; }
 #touch .bite { display: grid; left: var(--l); right: auto; bottom: calc(var(--y) + var(--k) + 26px); width: calc(var(--s) * 0.86); height: calc(var(--s) * 0.86); padding: 0;
   border-radius: 50%; background: rgba(163, 38, 31, 0.85); }
 #touch .bite svg { width: 52%; height: 52%; }
