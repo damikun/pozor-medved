@@ -6,11 +6,11 @@
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const BOT = /[?&]bot\b/.test(location.search);
-  const PORTRAIT_MIN_W = 480;
+  const PORTRAIT_MIN_W = 480, BAND = 0.15, BAND_MAX = 64;
   const SAVE = 'zaStromom.done';
   let g = null, vw = 0, vh = 0, viewW = 0, offY = 0, last = 0, hudT = 0, current = 'summer', mark = null, reached = new Set();
 
-  const touchy = () => window.matchMedia('(pointer: coarse)').matches;
+  const touchy = () => input.touched() || window.matchMedia('(pointer: coarse)').matches;
 
   function done() {
     try { return JSON.parse(localStorage.getItem(SAVE)) || {}; } catch (e) { return {}; }
@@ -27,9 +27,10 @@
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.round(vw * dpr); canvas.height = Math.round(vh * dpr);
       const minW = vh > vw ? PORTRAIT_MIN_W : CFG.MIN_VIEW_W;
-      const scale = Math.min(vh / CFG.VIEW_H, vw / minW);
+      const band = vw > vh && touchy() ? Math.min(BAND_MAX, vh * BAND) : 0;
+      const scale = Math.min((vh - band) / CFG.VIEW_H, vw / minW);
       viewW = vw / scale;
-      offY = (vh / scale - CFG.VIEW_H) * 0.45;
+      offY = ((vh - band) / scale - CFG.VIEW_H) * 0.45;
       ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
     }
     if (g) g.viewW = viewW;
@@ -137,7 +138,7 @@
 
   window.addEventListener('resize', resize);
   document.addEventListener('visibilitychange', () => { if (document.hidden && g && g.running && !g.paused) togglePause(); });
-  input.listen({ onPause: togglePause, onMute: audio.toggle });
+  input.listen({ onPause: togglePause, onMute: audio.toggle, onTouch: () => { resize(); if (g.running && !g.over) { g.touch = true; hud.setTouch(true); } } });
   resize();
   g = rules.create(input.state, { viewW });
   menu();

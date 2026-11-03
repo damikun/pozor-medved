@@ -795,7 +795,7 @@
         panic: 'Panik lockt Politiker an',
       },
       tipsTouch: {
-        walk: 'laufen, 2× tippen und halten: Sprint',
+        walk: 'Stick: laufen, bis zum Rand: Sprint',
         hide: 'am dicken Stamm oder Heu halten: verstecken',
         climb: 'tippen: Sprung, am Stamm halten: klettern',
         stomp: 'spring dem Jäger auf den Kopf',
@@ -821,7 +821,8 @@
       behindTree: 'hinterm Baum',
       hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
       bars: { fat: 'Fett', syn: 'Synanthropie', panic: 'Medienpanik' },
-      touch: { left: 'Nach links', right: 'Nach rechts', hide: 'Verstecken', jump: 'Springen', hug: 'Umarmen', bite: 'Beißen' },
+      touch: { left: 'Nach links', right: 'Nach rechts', hide: 'Verstecken', jump: 'Springen, klettern', hug: 'Aktion', bite: 'Beißen', pause: 'Pause',
+        acts: { hug: 'Umarmen', selfie: 'Selfie', pose: 'Posieren', shake: 'Rütteln', knock: 'Klopfen', taste: 'Kosten' } },
       language: 'Sprache',
       about: 'Über das Spiel auf GitHub',
       sound: { mute: 'Ton aus', unmute: 'Ton an' },

@@ -819,7 +819,7 @@
       panic: 'panika privolá politikov',
     },
     tipsTouch: {
-      walk: 'beh, dvakrát ťukni a drž: šprint',
+      walk: 'joystickom bež, až po okraj: šprint',
       hide: 'drž pri hrubom kmeni či sene: skry sa',
       climb: 'ťukni: skok, drž pri kmeni: lez',
       stomp: 'skoč poľovníkovi na hlavu',
@@ -845,7 +845,8 @@
     behindTree: 'za stromom',
     hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
     bars: { fat: 'Tuk', syn: 'Synantropia', panic: 'Mediálna panika' },
-    touch: { left: 'Doľava', right: 'Doprava', hide: 'Schovať sa', jump: 'Skok', hug: 'Objať', bite: 'Kusnúť' },
+    touch: { left: 'Doľava', right: 'Doprava', hide: 'Schovať sa', jump: 'Skok, lezenie', hug: 'Akcia', bite: 'Kusnúť', pause: 'Pauza',
+      acts: { hug: 'Objať', selfie: 'Selfie', pose: 'Zapózovať', shake: 'Zatriasť', knock: 'Zaklopať', taste: 'Ochutnať' } },
     language: 'Jazyk',
     about: 'O hre na GitHube',
     sound: { mute: 'Vypnúť zvuk', unmute: 'Zapnúť zvuk' },

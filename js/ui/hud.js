@@ -2,14 +2,14 @@
   const { UI } = ZS;
   const $ = (id) => document.getElementById(id);
   const NEWS_HOLD = 2;
-  let badgeHtml = '', levelId = null, reachOn = null, icons = null, rideOn = null;
+  let badgeHtml = '', levelId = null, reachOn = null, biteOn = null, actOn = null, icons = null, rideOn = null;
   const tv = { hold: 0, next: null }, shown = {};
   const GOALS = { fat: '🍯', hug: '🤗', den: '💤' }, JUST = 1.6;
   const TALLY = { hunters: '🎩', stands: '🪜', trees: '🌲', photos: '📸' };
   let tally = {};
   let goalOn = {};
 
-  const TOUCH = { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'hide', ArrowUp: 'jump', KeyC: 'hug', KeyX: 'bite' };
+  const TOUCH = { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'hide', ArrowUp: 'jump', KeyC: 'hug', KeyX: 'bite', KeyP: 'pause' };
 
   function bar(id, value) { const v = value + '%'; if (shown[id] !== v) { shown[id] = v; $(id).querySelector('i').style.width = v; } }
   function text(id, v) { if (shown[id] !== v) { shown[id] = v; $(id).textContent = v; } }
@@ -19,7 +19,11 @@
     $('barFat').querySelector('span').textContent = B.fat;
     $('barSyn').querySelector('span').textContent = B.syn;
     $('barPanic').querySelector('span').textContent = B.panic;
-    document.querySelectorAll('#touch [data-key]').forEach((btn) => btn.setAttribute('aria-label', UI.touch[TOUCH[btn.dataset.key]]));
+    document.querySelectorAll('#touch [data-key]').forEach((el) => {
+      el.innerHTML = ZS.icon(el.dataset.key) + (el.id === 'act' ? '<span></span>' : '');
+      el.setAttribute('aria-label', UI.touch[TOUCH[el.dataset.key]]);
+    });
+    actOn = null;
     goalRow();
     trayRow();
     levelId = null;
@@ -31,7 +35,7 @@
     resetNews();
     goalRow();
     trayRow();
-    setTouch(window.matchMedia('(pointer: coarse)').matches);
+    setTouch(!!g.touch);
     setLevel(g);
   }
 
@@ -51,7 +55,10 @@
     setTouch(false);
   }
 
-  function setTouch(visible) { $('touch').hidden = !visible; }
+  function setTouch(visible) {
+    $('touch').hidden = !visible;
+    $('hud').classList.toggle('touch', visible);
+  }
 
   function update(g) {
     setLevel(g);
@@ -79,10 +86,21 @@
     if (g.flags.stallsLocked) list.push(badge(B.stallsLocked, 'calm'));
     const html = list.join('');
     if (html !== badgeHtml) { badgeHtml = html; $('badges').innerHTML = html; }
-    const reach = !!b.reach && !g.over && !g.ride;
+    const free = !g.over && !g.ride, reach = free && !!(b.reach || b.knock), bite = free && !!b.reach && !b.reach.post;
     if (reach !== reachOn) { reachOn = reach; $('act').classList.toggle('on', reach); }
+    const kind = reach ? actOf(g, b) : actOn;
+    if (kind !== actOn) { actOn = kind; $('act').querySelector('span').textContent = UI.touch.acts[kind]; }
+    if (bite !== biteOn) { biteOn = bite; $('bite').classList.toggle('on', bite); }
     const ride = !!g.ride && !g.over;
     if (ride !== rideOn) { rideOn = ride; $('touch').classList.toggle('ride', ride); $('hud').classList.toggle('ride', ride); }
+  }
+
+  function actOf(g, b) {
+    const o = b.reach, k = b.knock;
+    if (o) return o.post ? 'shake' : o.kind === 'photographer' ? 'pose' : o.kind === 'tourist' || (o.kind === 'tycoon' && !o.promo) ? 'selfie' : 'hug';
+    if (k.kind !== 'stall') return 'knock';
+    const it = g.level.items.find((i) => i.type === k.o.kind && Math.abs(i.x - k.o.x) < 1);
+    return it && !it.locked ? 'taste' : 'knock';
   }
 
   function goalRow() {

@@ -795,7 +795,7 @@
         panic: 'panic brings in the politicians',
       },
       tipsTouch: {
-        walk: 'run; double-tap and hold: sprint',
+        walk: 'stick: run, push to the edge: sprint',
         hide: 'hold by a thick trunk or hay: hide',
         climb: 'tap: jump; hold by a trunk: climb',
         stomp: 'jump on a hunter’s head',
@@ -821,7 +821,8 @@
       behindTree: 'behind a tree',
       hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
       bars: { fat: 'Fat', syn: 'Habituation', panic: 'Media panic' },
-      touch: { left: 'Left', right: 'Right', hide: 'Hide', jump: 'Jump', hug: 'Hug', bite: 'Bite' },
+      touch: { left: 'Left', right: 'Right', hide: 'Hide', jump: 'Jump, climb', hug: 'Action', bite: 'Bite', pause: 'Pause',
+        acts: { hug: 'Hug', selfie: 'Selfie', pose: 'Pose', shake: 'Shake', knock: 'Knock', taste: 'Taste' } },
       language: 'Language',
       about: 'About the game on GitHub',
       sound: { mute: 'Mute sound', unmute: 'Turn sound on' },

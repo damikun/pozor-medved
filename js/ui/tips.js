@@ -5,8 +5,7 @@
   let run = null;
 
   function cap(code, touch) {
-    const btn = touch && document.querySelector('#touch [data-key="' + code + '"]');
-    return btn ? btn.textContent : ZS.UI.keys[code] || code;
+    return touch && ZS.ICONS[code] ? ZS.icon(code) : ZS.UI.keys[code] || code;
   }
 
   function capsHtml(codes, touch) {

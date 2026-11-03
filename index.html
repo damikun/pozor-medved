@@ -11,7 +11,7 @@
 
   gtag('config', 'G-NV6DYPNM0Y');
 </script>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Za stromom – satirická hra o medveďovi z Liptova</title>
 <link rel="canonical" href="https://zastromom.sk/">
 <link rel="alternate" hreflang="sk" href="https://zastromom.sk/">
@@ -99,15 +99,14 @@
 </div>
 
 <div id="touch" hidden>
-  <button data-key="ArrowLeft">◀</button>
-  <button data-key="ArrowRight">▶</button>
-  <span class="gap"></span>
-  <button data-key="ArrowDown">🌲</button>
-  <button data-key="ArrowUp">⤒</button>
-  <div class="act" id="act">
-    <button data-key="KeyC">🤗</button>
-    <button data-key="KeyX">🦷</button>
+  <div class="stick" id="stick">
+    <div class="base"><i data-key="ArrowLeft"></i><i data-key="ArrowRight"></i><b class="knob"></b></div>
   </div>
+  <button class="hide" data-key="ArrowDown"></button>
+  <button class="jump" data-key="ArrowUp"></button>
+  <button class="act" id="act" data-key="KeyC"></button>
+  <button class="act bite" id="bite" data-key="KeyX"></button>
+  <button class="pause" data-key="KeyP"></button>
 </div>
 
 <div id="screen" class="screen">
@@ -120,6 +119,7 @@
 <div id="corner" hidden></div>
 
 <script src="js/core/config.js"></script>
+<script src="js/core/icons.js"></script>
 <script src="js/core/texts.js"></script>
 <script src="js/lang/en.js"></script>
 <script src="js/lang/de.js"></script>

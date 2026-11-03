@@ -32,7 +32,7 @@ with a tourist counts too. Without a hug the den won't let you in.
 | Key | What it does |
 | --- | --- |
 | ← → | walk |
-| Shift | sprint (on a phone, double-tap an arrow and hold) |
+| Shift | sprint (on a phone, push the joystick all the way) |
 | ↓ | hide behind a thick tree |
 | ↑ | tap to jump, hold at a thick tree to climb |
 | Space | jump; landing on a hunter's head knocks him down |
@@ -41,4 +41,4 @@ with a tourist counts too. Without a hug the den won't let you in.
 | P | pause |
 | M | sound on or off (also the 🔊 button on the start screen and in the pause menu) |
 
-On phones there are touch buttons, and 🤗 and 🦷 appear next to people.
+On phones and tablets a joystick on the left walks (all the way to sprint, down to hide or sneak, up to climb). On the right the arrow jumps or climbs and the tree button hides. Next to people, stands, doors and stalls a hand button says what it will do, the claw button bites, and ❚❚ in the corner pauses.

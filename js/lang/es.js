@@ -795,7 +795,7 @@
         panic: 'el pánico atrae a los políticos',
       },
       tipsTouch: {
-        walk: 'correr; doble toque y mantén: sprint',
+        walk: 'joystick: corre, hasta el borde: sprint',
         hide: 'mantén junto a un tronco o heno: escóndete',
         climb: 'toca: salto; mantén junto al tronco: trepa',
         stomp: 'salta sobre la cabeza del cazador',
@@ -821,7 +821,8 @@
       behindTree: 'tras el árbol',
       hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
       bars: { fat: 'Grasa', syn: 'Sinantropía', panic: 'Pánico mediático' },
-      touch: { left: 'Izquierda', right: 'Derecha', hide: 'Esconderse', jump: 'Saltar', hug: 'Abrazar', bite: 'Morder' },
+      touch: { left: 'Izquierda', right: 'Derecha', hide: 'Esconderse', jump: 'Saltar, trepar', hug: 'Acción', bite: 'Morder', pause: 'Pausa',
+        acts: { hug: 'Abrazar', selfie: 'Selfi', pose: 'Posar', shake: 'Sacudir', knock: 'Llamar', taste: 'Probar' } },
       language: 'Idioma',
       about: 'Sobre el juego en GitHub',
       sound: { mute: 'Silenciar', unmute: 'Activar el sonido' },
