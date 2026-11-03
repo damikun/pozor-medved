@@ -816,7 +816,6 @@
       goulash: ' Y como el Estado autorizó la venta de carne, acabaste como gulash en un restaurante de los Tatras.',
       winterTeaser: 'Pero dentro de unas semanas te despertarán un adviento templado y los cañones de nieve de Liptovský Mikuláš…',
       stats: { natural: 'comida del bosque', human: 'comida humana', seen: 'veces te vieron', fat: (season) => 'de grasa · ' + season.toLowerCase(), hugs: 'abrazos', selfies: 'selfies', bites: 'mordiscos', stomps: 'cazadores tumbados' },
-      behindTree: 'tras el árbol',
       hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
       bars: { fat: 'Grasa', panic: 'Pánico mediático' },
       touch: { left: 'Izquierda', right: 'Derecha', hide: 'Esconderse', jump: 'Saltar, trepar', hug: 'Acción', bite: 'Morder', pause: 'Pausa',
@@ -828,8 +827,6 @@
       goals: { fat: 'Grasa', hug: 'Abrazo', den: 'Guarida', ok: '✓', no: '✗' },
       tally: { hunters: 'Cazadores neutralizados', stands: 'Puestos sacudidos u ocupados', trees: 'Árboles trepados', photos: 'Fotos y selfis' },
       pct: (n) => n + '\u00a0%',
-      inSpray: 'en la nieve',
-      inHay: 'en el heno',
       badges: {
         problem: 'Oso problemático',
         cull: 'Abatimiento: 350 uds.',

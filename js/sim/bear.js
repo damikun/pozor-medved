@@ -31,11 +31,11 @@
     return L.coverSpots || (L.coverSpots = L.trees.filter((t) => t.hide).concat(hayOf(L)).sort((a, b) => a.x - b.x));
   }
 
-  function spotOf(g, b) {
+  function nearest(list, b, held) {
     let best = null;
-    for (const s of spots(g.level)) {
+    for (const s of list) {
       const d = Math.abs(s.x - b.x);
-      if (d < s.w / 2 + 40 + (s === b.spot ? ROOM : 0) && (!best || d < Math.abs(best.x - b.x))) best = s;
+      if (d < s.w / 2 + 40 + (s === held ? ROOM : 0) && (!best || d < Math.abs(best.x - b.x))) best = s;
     }
     return best;
   }
@@ -200,13 +200,11 @@
   }
 
   function updateHiding(g, b, dt, hide) {
-    const L = g.level;
     if (!hide || g.input.downReleased) b.hideLatch = false;
     g.input.downReleased = false;
     if (hide && b.onGround && !b.hideLatch) {
       if (!b.hiding) {
-        const t = b.spot;
-        const birch = t ? null : L.trees.filter((tr) => Math.abs(tr.x - b.x) < tr.w / 2 + 40).sort((p, q) => Math.abs(p.x - b.x) - Math.abs(q.x - b.x))[0];
+        const t = b.spot, birch = t ? null : b.thin;
         if (t || birch) { b.hiding = t || birch; startHiding(g, b, b.hiding); }
         if (birch && b.birchCd <= 0) { b.birchCd = 2; rules().float(g, b.x, GY - 95, LABELS.birch, COLORS.bad); }
       }
@@ -367,7 +365,8 @@
     const kind = post ? 'shake' : key === 'hug' && person && (person.kind === 'tourist' || (person.kind === 'tycoon' && !person.promo)) ? 'selfie' : key;
     const target = person || post;
     const door = !target && key === 'hug' ? ZS.sim.vendors.act(g, b) || ZS.sim.knock.act(g, b) : null;
-    const act = door || (!target && ZS.sim.photographer.act(g, b, key)) || (target && { kind, t: 0, dur: DUR[kind], dir: b.dir, hit: true, target, done: false });
+    const act = door || (!target && ZS.sim.photographer.act(g, b, key))
+      || ((target || key === 'bite') && { kind, t: 0, dur: DUR[kind], dir: b.dir, hit: !!target, target, done: false });
     if (!act) return;
     b.act = act;
     b.moving = false; b.running = false; b.crouch = false; b.eating = false; b.eatT = 0; b.vx = 0;
@@ -408,7 +407,9 @@
     b.bumpT = Math.max(0, b.bumpT - dt);
     b.tag = g.problem;
     b.cold = g.level.theme === 'winter' ? COLD[g.seasonKey] || 0 : 0;
-    b.spot = b.onGround && !b.climbing && !b.act ? spotOf(g, b) : null;
+    const ground = b.onGround && !b.climbing && !b.act;
+    b.spot = ground ? nearest(spots(g.level), b, b.spot) : null;
+    b.thin = ground && !b.spot ? nearest(g.level.trees, b, b.thin) : null;
     b.ladderNear = ZS.sim.ladder.at(g);
     wake(g, b, dt, left || right || hide || jump || bite || hug);
     if (b.climbing) { (b.climbing.ladder ? ZS.sim.ladder.climb : climb)(g, b, dt, up, hide, jump && inp.jumpKey === 'Space', (right ? 1 : 0) - (left ? 1 : 0)); return; }

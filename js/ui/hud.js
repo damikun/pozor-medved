@@ -95,7 +95,7 @@
       return it && !it.locked ? 'taste' : 'knock';
     }
     if (b.ladderNear) return 'climb';
-    return b.spot ? 'hide' : null;
+    return b.spot || b.thin ? 'hide' : null;
   }
 
   function trayRow() {
@@ -105,14 +105,11 @@
   }
 
   function hearts(g) {
-    const b = g.bear, n = Math.max(0, g.lives), total = Math.max(ZS.CFG.LIVES, n);
-    const state = b.hiding ? (b.hiding.hay ? UI.inHay : UI.behindTree) : b.inSpray ? UI.inSpray : '';
-    const key = n + '/' + total + '/' + state;
+    const n = Math.max(0, g.lives), total = Math.max(ZS.CFG.LIVES, n), key = n + '/' + total;
     if (shown.lives === key) return;
     const was = shown.livesN;
     shown.lives = key; shown.livesN = n;
-    $('lives').innerHTML = (state ? `<b>${state}</b>` : '')
-      + Array.from({ length: total }, (_, i) => `<i${i < n ? ' class="on"' : was !== undefined && i < was ? ' class="lost"' : ''}>❤️</i>`).join('');
+    $('lives').innerHTML = Array.from({ length: total }, (_, i) => `<i${i < n ? ' class="on"' : was !== undefined && i < was ? ' class="lost"' : ''}>❤️</i>`).join('');
   }
 
   function counts(g) {

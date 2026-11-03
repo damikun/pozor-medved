@@ -255,7 +255,7 @@ test('X behind a hunter bites him: he drops the rifle, runs off for good and the
   assert.ok(!g.shooters.includes(s), 'he left');
 });
 
-test('C or X with nobody around does nothing, and a held arrow key keeps the bear walking', () => {
+test('with nobody around C does nothing and the bear keeps walking, while X still snaps at the air', () => {
   const { g, b, L, run, press, hold } = setup();
   b.x = openGround(L); b.dir = 1;
   g.shooters = []; g.people = [];
@@ -269,9 +269,10 @@ test('C or X with nobody around does nothing, and a held arrow key keeps the bea
   assert.equal(g.stats.hugs, 0);
   press('KeyX');
   run(0.05);
-  assert.ok(!b.act, 'no bite on thin air');
+  assert.equal(b.act && b.act.kind, 'bite');
+  assert.equal(b.act.hit, false);
   run(0.6);
-  assert.equal(g.stats.bites, 0);
+  assert.equal(g.stats.bites, 0, 'a bite on air bites nobody');
 });
 
 test('a hunter hugged while picking up his rifle drops it again and still gets it back afterwards', () => {

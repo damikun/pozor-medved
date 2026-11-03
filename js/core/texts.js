@@ -840,7 +840,6 @@
     goulash: ' A keďže štát povolil predaj mäsa, skončil si ako guláš v tatranskej reštaurácii.',
     winterTeaser: 'O pár týždňov ťa však zobudí teplý advent a snežné delá z Liptovského Mikuláša…',
     stats: { natural: 'jedlo z lesa', human: 'jedlo od ľudí', seen: 'krát ťa videli', fat: (season) => 'tuku · ' + season.toLowerCase(), hugs: 'objatia', selfies: 'selfie', bites: 'uhryznutia', stomps: 'zvalení poľovníci' },
-    behindTree: 'za stromom',
     hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
     bars: { fat: 'Tuk', panic: 'Mediálna panika' },
     touch: { left: 'Doľava', right: 'Doprava', hide: 'Schovať sa', jump: 'Skok, lezenie', hug: 'Akcia', bite: 'Kusnúť', pause: 'Pauza',
@@ -852,8 +851,6 @@
     goals: { fat: 'Tuk', hug: 'Objatie', den: 'Brloh', ok: '✓', no: '✗' },
     tally: { hunters: 'Zneškodnení poľovníci', stands: 'Zvalené a obsadené posedy', trees: 'Stromy, na ktoré si vyliezol', photos: 'Fotky a selfie' },
     pct: (n) => n + '\u00a0%',
-    inSpray: 'v snehu',
-    inHay: 'v sene',
     badges: {
       problem: 'Problémový medveď',
       cull: 'Odstrel 350 ks',

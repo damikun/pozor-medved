@@ -816,7 +816,6 @@
       goulash: ' Und weil der Staat den Verkauf von Bärenfleisch erlaubt hat, bist du als Gulasch in einem Tatra-Restaurant gelandet.',
       winterTeaser: 'In ein paar Wochen wecken dich aber der warme Advent und die Schneekanonen von Liptovský Mikuláš…',
       stats: { natural: 'Waldfutter', human: 'Menschenfutter', seen: 'Mal entdeckt', fat: (season) => 'Fett · ' + season, hugs: 'Umarmungen', selfies: 'Selfies', bites: 'Bisse', stomps: 'gestürzte Jäger' },
-      behindTree: 'hinterm Baum',
       hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
       bars: { fat: 'Fett', panic: 'Medienpanik' },
       touch: { left: 'Nach links', right: 'Nach rechts', hide: 'Verstecken', jump: 'Springen, klettern', hug: 'Aktion', bite: 'Beißen', pause: 'Pause',
@@ -828,8 +827,6 @@
       goals: { fat: 'Fett', hug: 'Umarmung', den: 'Höhle', ok: '✓', no: '✗' },
       tally: { hunters: 'Erledigte Jäger', stands: 'Hochsitze gerüttelt oder besetzt', trees: 'Erkletterte Bäume', photos: 'Fotos und Selfies' },
       pct: (n) => n + '\u00a0%',
-      inSpray: 'im Schnee',
-      inHay: 'im Heu',
       badges: {
         problem: 'Problembär',
         cull: 'Abschuss 350 Stück',

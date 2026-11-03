@@ -816,7 +816,6 @@
       goulash: ' And since the state allowed the sale of bear meat, you ended up as goulash in a Tatra restaurant.',
       winterTeaser: 'But in a few weeks, a warm Advent and the snow cannons of Liptovský Mikuláš will wake you up…',
       stats: { natural: 'forest food', human: 'human food', seen: 'times spotted', fat: (season) => 'fat · ' + season.toLowerCase(), hugs: 'hugs', selfies: 'selfies', bites: 'bites', stomps: 'hunters flattened' },
-      behindTree: 'behind a tree',
       hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
       bars: { fat: 'Fat', panic: 'Media panic' },
       touch: { left: 'Left', right: 'Right', hide: 'Hide', jump: 'Jump, climb', hug: 'Action', bite: 'Bite', pause: 'Pause',
@@ -828,8 +827,6 @@
       goals: { fat: 'Fat', hug: 'Hug', den: 'Den', ok: '✓', no: '✗' },
       tally: { hunters: 'Hunters dealt with', stands: 'Stands shaken or taken', trees: 'Trees climbed', photos: 'Photos and selfies' },
       pct: (n) => n + '%',
-      inSpray: 'in the snow',
-      inHay: 'in the hay',
       badges: {
         problem: 'Problem bear',
         cull: 'Cull: 350 head',

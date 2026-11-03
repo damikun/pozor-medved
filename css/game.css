@@ -8,7 +8,7 @@
   --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 * { box-sizing: border-box; }
-html { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+html { -webkit-tap-highlight-color: transparent; touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; background: #2c3b22; font-family: var(--font); color: var(--ink); }
 canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 [hidden] { display: none !important; }
@@ -64,7 +64,6 @@ canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-acti
 .bar em { position: absolute; top: 0; bottom: 0; left: 60%; width: 2px; background: #fff; opacity: 0.8; z-index: 1; }
 .bar em.tick { top: 0.3em; bottom: 0.3em; width: 1px; opacity: 0.5; }
 #lives { display: flex; align-items: center; gap: 0.12em; box-sizing: border-box; height: 1.42em; padding: 0 0.4em; border-radius: 0.38em; background: rgba(20, 26, 16, 0.65); color: #fff; font-size: 1.9em; line-height: 1; }
-#lives b { margin-right: 0.6em; font-size: 0.5em; font-weight: 600; }
 #lives i { display: block; width: 1em; height: 1em; font-style: normal; line-height: 1; text-align: center; opacity: 0.25; filter: grayscale(1); }
 #lives i.on { opacity: 1; filter: none; }
 #lives i.lost { animation: lost 0.8s ease-out; }

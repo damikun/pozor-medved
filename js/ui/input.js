@@ -115,10 +115,10 @@
   function safe(btn, key) {
     grab(btn, () => btn.classList.add('down'), null, (e) => {
       btn.classList.remove('down');
-      if (e.type !== 'pointerup' || !btn.classList.contains('on') || !inside(e, btn)) return;
+      if (e.type !== 'pointerup' || !inside(e, btn)) return;
       press(key, false);
       release(key);
-      buzz(10);
+      if (btn.classList.contains('on')) buzz(10);
     });
   }
 
