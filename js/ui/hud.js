@@ -13,7 +13,6 @@
   const LOOK = { hide: 'Hide', hidden: 'Hide', down: 'Ladder', climb: 'Ladder' };
 
   function bar(id, value) { const v = value + '%'; if (shown[id] !== v) { shown[id] = v; $(id).querySelector('i').style.width = v; } }
-  function text(id, v) { if (shown[id] !== v) { shown[id] = v; $(id).textContent = v; } }
 
   function relabel() {
     const B = UI.bars;
@@ -34,6 +33,7 @@
     $('ticker').hidden = false;
     resetNews();
     trayRow();
+    shown.lives = null; shown.livesN = undefined;
     setTouch(!!g.touch);
     setLevel(g);
   }
@@ -43,6 +43,7 @@
     levelId = g.level.id;
     $('barTrip').querySelector('span').textContent = ZS.LEVEL_TEXT[levelId].trip;
     $('barFat').querySelector('em').style.left = g.def.fatGoal + '%';
+    $('tray').querySelector('[data-tally="photos"]').hidden = !g.level.photographer;
   }
 
   function hidePlaying() {
@@ -66,8 +67,7 @@
     bar('barSyn', g.syn);
     bar('barPanic', g.panic);
     bar('barTrip', Math.min(100, (b.x / g.level.goalDen) * 100));
-    text('lives', '❤️'.repeat(Math.max(0, g.lives))
-      + (b.hiding ? ' · ' + (b.hiding.hay ? UI.inHay : UI.behindTree) : b.inSpray ? ' · ' + UI.inSpray : ''));
+    hearts(g);
     counts(g);
     const free = !g.over && !g.ride, kind = free ? actOf(g, b) : null, reach = !!kind, bite = free && !!b.reach && !b.reach.post;
     if (reach !== reachOn) { reachOn = reach; $('act').classList.toggle('on', reach); if (!reach) $('act').setAttribute('aria-label', UI.touch.hug); }
@@ -100,9 +100,20 @@
   }
 
   function trayRow() {
-    $('tray').hidden = true;
-    $('tray').innerHTML = Object.keys(TALLY).map((k) => `<span class="chip" data-tally="${k}" title="${UI.tally[k]}" hidden><i>${TALLY[k]}</i><b></b></span>`).join('');
+    $('tray').innerHTML = Object.keys(TALLY).map((k) => `<span class="chip" data-tally="${k}" title="${UI.tally[k]}"><i>${TALLY[k]}</i><b>0</b></span>`).join('');
     tally = {};
+    levelId = null;
+  }
+
+  function hearts(g) {
+    const b = g.bear, n = Math.max(0, g.lives), total = Math.max(ZS.CFG.LIVES, n);
+    const state = b.hiding ? (b.hiding.hay ? UI.inHay : UI.behindTree) : b.inSpray ? UI.inSpray : '';
+    const key = n + '/' + total + '/' + state;
+    if (shown.lives === key) return;
+    const was = shown.livesN;
+    shown.lives = key; shown.livesN = n;
+    $('lives').innerHTML = (state ? `<b>${state}</b>` : '')
+      + Array.from({ length: total }, (_, i) => `<i${i < n ? ' class="on"' : was !== undefined && i < was ? ' class="lost"' : ''}>❤️</i>`).join('');
   }
 
   function counts(g) {
@@ -112,11 +123,9 @@
       if (tally[k] === n) continue;
       const el = $('tray').querySelector(`[data-tally="${k}"]`);
       el.querySelector('b').textContent = n;
-      el.hidden = n <= 0;
       if (tally[k] !== undefined && n > tally[k]) { el.classList.add('up'); setTimeout(() => el.classList.remove('up'), JUST * 1000); }
       tally[k] = n;
     }
-    $('tray').hidden = !Object.keys(TALLY).some((k) => tally[k] > 0);
   }
 
   function iconOf(text) {
