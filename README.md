@@ -25,7 +25,7 @@ with a tourist counts too. Without a hug the den won't let you in.
 
 ## How to play
 
-<img src="docs/howto.webp" alt="How to play: walk and sprint, hide behind a thick trunk or in hay, climb a tree, jump on a hunter's head, hug, shake a hunting stand, bite, forage and raid human food">
+<img src="docs/howto.webp" alt="How to play: hide behind a thick trunk or in hay, climb a tree, jump on a hunter's head, hug, shake a hunting stand, bite">
 
 ## Controls
 
