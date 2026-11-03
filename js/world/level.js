@@ -159,6 +159,13 @@
       || Math.abs(fx - L.feeding) < 120 || fx > A.from - 40, 20,
     (r) => (r < 0.3 ? 'berry' : r < 0.48 ? 'herb' : r < 0.62 ? 'ants' : r < 0.8 ? 'mushroom' : 'nut'));
     honey(L, 7);
+    const stand = L.posts[1].x;
+    L.trees = L.trees.filter((t) => Math.abs(t.x - (stand - 100)) > 60);
+    L.trees.push({ kind: 'buk', x: stand - 130, w: 54, h: 250, r: 104, hide: true, shade: 0.42 });
+    L.trees.sort((a, b) => a.x - b.x);
+    L.haystacks.push(at(6465));
+    L.haystacks.sort((a, b) => a - b);
+    L.signs.push(sign(1670, () => S.stand));
     L.stalls = [{ x: 7230, kind: 'cheese', salas: true }];
     L.stalls.forEach((s) => add(L, s.kind, s.x));
     [8245, 8365, 8490, 8610].map(at).forEach((fx) => add(L, 'fish', fx, { y: GY + 30, hidden: true, jumpT: 1 + rng() * 3, jump: -1 }));

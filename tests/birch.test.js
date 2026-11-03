@@ -34,7 +34,7 @@ function setup(level) {
     assert.equal(b.covered, false, 'a birch gives no cover');
     assert.ok(g.floaters.some((f) => f.text === ZS.LABELS.birch));
     assert.ok(ZS.QUIPS.birch.includes(g.bubble && g.bubble.text), 'a birch quip');
-    const s = ZS.sim.hunters.create(g, 'walker', { x: b.x - 300, from: b.x - 600, to: b.x - 200 });
+    const s = ZS.sim.hunters.create(g, 'walker', { x: b.x - 300, from: b.x - 600, to: b.x - 60 });
     s.dir = 1; s.cross = b.x;
     g.shooters = [s];
     const lives = g.lives;

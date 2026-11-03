@@ -112,8 +112,10 @@
     const danger = runner || (pilot.bold > 0 && pilot.danger < 2) ? 0 : pilot.danger;
     if (pilot.bold > 0 && !runner) keys.add('ShiftLeft');
 
-    if (ZS.sim.rules.hugged(g)) pilot.back = false;
+    if (ZS.sim.rules.hugged(g) && g.fat >= g.def.fatGoal) pilot.back = false;
     else if (b.x >= L.goalDen - 40) pilot.back = true;
+    else if (pilot.back && ZS.sim.rules.hugged(g) && !pilot.hungry) pilot.back = false;
+    pilot.hungry = pilot.back && ZS.sim.rules.hugged(g);
     if (b.act) return;
     if (b.climbing) {
       const honey = L.items.find((it) => !it.eaten && up(it) && Math.abs(it.x - b.climbing.x) < 20);

@@ -35,6 +35,7 @@ canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
 #touch .act button { pointer-events: none; width: 58px; height: 58px; font-size: 24px; background: rgba(214, 51, 108, 0.78); }
 #touch .act button[data-key="KeyX"] { background: rgba(163, 38, 31, 0.8); }
 .bar em { position: absolute; top: 0; bottom: 0; left: 60%; width: 2px; background: #fff; opacity: 0.8; z-index: 1; }
+.bar em.tick { top: 5px; bottom: 5px; width: 1px; opacity: 0.5; }
 .side { background: rgba(20, 26, 16, 0.65); color: #fff; border-radius: 6px; padding: 4px 10px; font-size: 13px; font-weight: 600; line-height: 1.5; }
 #badges { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
 #goals { display: flex; flex-wrap: wrap; gap: 4px; margin: 3px 0 2px; }

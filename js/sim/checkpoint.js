@@ -4,7 +4,7 @@
   const sim = ZS.sim;
   const LIVES = 3;
   const SCALARS = ['fat', 'syn', 'panic', 'time', 'seasonIdx', 'seasonKey', 'nextEvent', 'courtUntil', 'viralUntil', 'hugBanAt', 'problem', 'lastHuman',
-    'readySaid', 'falls', 'refusals', 'ladders', 'liftCalm', 'hideSaid', 'zapSaid'];
+    'readySaid', 'falls', 'refusals', 'ladders', 'liftCalm', 'hideSaid', 'zapSaid', 'ztmhAt'];
 
   const plain = (v) => !!v && typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype;
   const copy = (v) => (Array.isArray(v) ? v.map(copy) : plain(v) ? Object.fromEntries(Object.keys(v).map((k) => [k, copy(v[k])])) : v);

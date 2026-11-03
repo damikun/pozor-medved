@@ -19,7 +19,7 @@
       floaters: [], shots: [], particles: [], bubble: null,
       time: 0, seasonIdx: 0, seasonKey: def.seasons[0].key, fat: def.startFat, syn: 0, panic: 0, lives: CFG.LIVES, cam: 0,
       flags: { press: false, emergency: false, drones: false, cull: false, meat: false, binsLocked: false, stallsLocked: false, hugBan: false, decree: false },
-      courtUntil: 0, viralUntil: 0, hugBanAt: 0, lastKnown: null, lastHuman: -99, problem: false, nextEvent: 30, usedEvents: new Set(),
+      courtUntil: 0, viralUntil: 0, hugBanAt: 0, ztmhAt: -99, lastKnown: null, lastHuman: -99, problem: false, nextEvent: 30, usedEvents: new Set(),
       stats: { natural: 0, human: 0, seen: 0, hugs: 0, bites: 0, stomps: 0, selfies: 0 }, falls: 0, refusals: 0, refusedAt: -99, running: false, over: false, paused: false, ending: null,
       bot, once: {}, ride: null, liftCalm: 0,
       headlines: (id === 'winter' ? ZS.WINTER_HEADLINES : ZS.HEADLINES).map((_, i) => i).sort(() => Math.random() - 0.5), headlineIdx: 0,
@@ -140,13 +140,14 @@
   rules.hugged = (g) => g.stats.hugs + g.stats.selfies > 0;
 
   rules.refuse = function (g) {
-    const b = g.bear, x = g.level.goalDen - 22;
+    const b = g.bear, x = g.level.goalDen - 22, hungry = rules.hugged(g);
     if (b.x > x) { b.x = x; b.vx = 0; }
     if (g.time - g.refusedAt < 5) return;
     g.refusedAt = g.time;
-    rules.float(g, g.level.goalDen, GY - 112, LABELS.denRefuse, COLORS.bad);
-    rules.say(g, NEWS.denRefuse[g.refusals++ % NEWS.denRefuse.length], true);
-    rules.quip(g, ZS.QUIPS.denRefuse, true);
+    const news = hungry ? NEWS.denHungry : NEWS.denRefuse;
+    rules.float(g, g.level.goalDen, GY - 112, hungry ? LABELS.denHungry : LABELS.denRefuse, COLORS.bad);
+    rules.say(g, news[g.refusals++ % news.length], true);
+    rules.quip(g, hungry ? ZS.QUIPS.denHungry : ZS.QUIPS.denRefuse, true);
   };
 
   function end(g, kind) {

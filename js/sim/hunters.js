@@ -157,7 +157,7 @@
       if (b.hiding && d < 32 && s.kind !== 'posed' && s.scaredT <= 0) {
         s.scaredT = 4; s.dir = Math.sign(s.x - b.x) || 1; s.lock = 0; s.pause = 0;
         rules().float(g, s.x, GY - 110, LABELS.hunterScared, COLORS.bad);
-        rules().addPanic(g, 10, NEWS.hunterScared);
+        rules().addPanic(g, 2, NEWS.hunterScared);
       }
       const facing = s.kind === 'posed' || Math.sign(b.x - s.x) === s.dir || d < 60;
       const allowed = (s.kind === 'poacher' || !courtPause) && s.scaredT <= 0 && !calm;

@@ -28,7 +28,7 @@
     let used = 0, free = START;
     for (let i = 0; i < n; i++) {
       const k = i / (n - 1), drone = late && i === n - 1;
-      const aim = i === 0 ? 1.35 : lerp(1.1, 0.9, k);
+      const aim = i === 0 ? 1.6 : i === 1 ? 1.35 : lerp(1.1, 0.9, k);
       const at = Math.max(START + i * slot + Math.random() * 0.35, free);
       let pair = pairs && !drone && i >= 3 && used < 2 && Math.random() < 0.45 ? (Math.random() < 0.5 ? 'twin' : 'chase') : null;
       if (pair && at + span(aim, pair) > LAST) pair = null;

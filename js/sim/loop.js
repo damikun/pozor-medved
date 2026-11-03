@@ -92,7 +92,7 @@
     ageEffects(g, dt);
 
     if (g.bear.x >= g.level.goalDen - 20) {
-      if (sim.rules.hugged(g)) { sim.rules.end(g, g.fat >= g.def.fatGoal ? 'win' : 'starve'); return; }
+      if (sim.rules.hugged(g) && g.fat >= g.def.fatGoal) { sim.rules.end(g, 'win'); return; }
       sim.rules.refuse(g);
     }
     sim.rules.tickerStep(g, dt);

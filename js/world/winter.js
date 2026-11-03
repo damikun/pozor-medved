@@ -92,6 +92,8 @@
       || spray(fx), 11,
     (r) => (r < 0.32 ? 'rosehip' : r < 0.7 ? 'snownut' : 'rowan'));
     K.honey(L, 4, 'stash');
+    L.trees.push({ kind: 'smrek', x: L.lot.to + 75, w: 48, h: 320, r: 90, hide: true, shade: 0.37 });
+    L.trees.sort((a, b) => a.x - b.x);
     L.holes.forEach((h) => K.add(L, 'fish', h.x, { y: GY + 30, hidden: true, jumpT: 1 + rng() * 2, jump: -1, label: LABELS.icefish }));
     L.items.sort((a, b) => a.x - b.x);
 
@@ -99,7 +101,7 @@
       { kind: 'posed', x: 1550, range: 470 },
       { kind: 'posed', x: 2640, range: 480 },
       { kind: 'posed', x: 8650, range: 480 },
-      { kind: 'walker', from: 2850, to: 3500 },
+      { kind: 'walker', from: 3050, to: 3500 },
       { kind: 'walker', from: 7450, to: 8350 },
       { kind: 'walker', from: 8800, to: 9700 },
       { kind: 'tourist', from: 4420, to: 5300 },

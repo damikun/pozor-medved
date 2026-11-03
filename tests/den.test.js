@@ -65,15 +65,26 @@ for (const level of ['summer', 'winter']) {
   });
 }
 
-test('a hug alone is not enough: reaching the den hungry ends the level as starving', () => {
-  const { g, b, L, run, hold } = setup('winter');
-  g.stats.hugs = 1;
-  g.fat = g.def.fatGoal - 12;
-  b.x = L.goalDen - 120; b.dir = 1;
-  hold('ArrowRight');
-  run(3);
-  assert.equal(g.ending, 'starve');
-});
+for (const level of ['summer', 'winter']) {
+  test(`a hug alone is not enough: a hungry bear is turned away at the den and can still eat and come back (${level})`, () => {
+    const { ZS, g, b, L, run, news, hold, release } = setup(level);
+    g.stats.hugs = 1;
+    g.fat = g.def.fatGoal - 12;
+    b.x = L.goalDen - 120; b.dir = 1;
+    hold('ArrowRight');
+    let stamp = false;
+    run(3, () => { stamp = stamp || g.floaters.some((f) => f.text === ZS.LABELS.denHungry); });
+    assert.equal(g.over, false);
+    assert.ok(b.x < L.goalDen - 20, String(b.x));
+    assert.ok(stamp);
+    assert.ok(news.includes(ZS.NEWS.denHungry[0]), news.join(' | '));
+    release('ArrowRight');
+    g.fat = g.def.fatGoal + 1;
+    hold('ArrowRight');
+    run(1);
+    assert.equal(g.ending, 'win');
+  });
+}
 
 test('when the year runs out, enough fat without a hug is a lonely ending and too little fat is starving', () => {
   for (const [fat, ending] of [[90, 'lonely'], [40, 'starve']]) {

@@ -189,8 +189,8 @@
     ctx.globalAlpha = 1;
   }
 
-  function denStamp(ctx, g) {
-    const x = g.level.goalDen, k = 0.5 + 0.5 * Math.sin(g.time * 2.4), [big, small] = LABELS.denStamp;
+  function denStamp(ctx, g, hungry) {
+    const x = g.level.goalDen, k = 0.5 + 0.5 * Math.sin(g.time * 2.4), [big, small] = hungry ? LABELS.denStampFat : LABELS.denStamp;
     ctx.save();
     ctx.translate(x, GY - 96);
     ctx.rotate(-0.12 + 0.015 * Math.sin(g.time * 1.3));
@@ -234,7 +234,7 @@
       label(ctx, f.text, f.x, f.y - (1.6 - f.t) * 30, 16, f.color);
       ctx.globalAlpha = 1;
     }
-    if (g.bubble) P.bubble(ctx, b.x, b.climbing || b.offTree ? Math.min(b.y - 128, GY - 180) : GY - 180, g.bubble.text, g.bubble.t);
+    if (g.bubble) P.bubble(ctx, b.x, b.climbing || b.offTree ? Math.min(b.y - 128, GY - 180) : GY - 180, g.bubble.text, g.bubble.t, g.cam + 8, g.cam + viewW - 8);
   }
 
   ZS.draw = function (g, ctx, viewW, offY) {
@@ -266,9 +266,9 @@
     if (L.ice && span(L.ice.from, L.ice.to, 80)) ZS.winterArt.ice(ctx, L.ice.from, L.ice.to, g.time);
     for (const h of L.holes) if (vis(h.x, 60)) ZS.winterArt.hole(ctx, h.x, g.time);
     if (vis(L.startDen, 240)) P.den(ctx, L.startDen, false, T.startDen, g.time, g);
-    const hugged = ZS.sim.rules.hugged(g);
-    if (vis(L.goalDen, 240)) (L.alpine ? ZS.alpineArt.den : P.den)(ctx, L.goalDen, hugged && g.fat >= g.def.fatGoal, T.goalDen, g.time, g);
-    if (!hugged && vis(L.goalDen, 120)) denStamp(ctx, g);
+    const hugged = ZS.sim.rules.hugged(g), fed = g.fat >= g.def.fatGoal;
+    if (vis(L.goalDen, 240)) (L.alpine ? ZS.alpineArt.den : P.den)(ctx, L.goalDen, hugged && fed, T.goalDen, g.time, g);
+    if (!(hugged && fed) && vis(L.goalDen, 120)) denStamp(ctx, g, hugged);
     for (const h of L.houses) if (vis(h.x, 220)) P.house(ctx, h, g);
     landmarks(ctx, g, vis, span, withBear);
     treesWithBear(ctx, g, vis, withBear);

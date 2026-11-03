@@ -74,7 +74,7 @@
         rules().spotted(g, p.x, GY - 100, LABELS.pickerSeen);
         ZS.sim.hunters.alert(g, b.x);
       } else if (sees && p.filmCd <= 0) {
-        p.filmCd = 10;
+        p.filmCd = Infinity;
         rules().addPanic(g, 12, NEWS.touristSeen);
         rules().spotted(g, p.x, GY - 100, LABELS.touristFilm);
       }

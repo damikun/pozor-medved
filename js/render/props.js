@@ -898,7 +898,7 @@
   const left = (it) => it.type === 'rosehip' || it.type === 'rowan' || (it.type === 'limba' && it.y === undefined) || ZS.foodArt.left(it);
 
   function crosshair(ctx, s, aimFactor, g) {
-    const x = s.cross, y = GY - 30, locked = s.lock > 0, snowy = cold(g);
+    const x = s.cross, y = GY - 30, locked = s.lock > 0, snowy = cold(g), idle = !locked && !s.blocked && s.reload > 0;
     const from = s.kind === 'posed' ? [s.x, GY - 178] : [s.x + s.dir * 20, GY - 48];
     ctx.strokeStyle = locked ? 'rgba(224,49,49,0.5)' : snowy ? 'rgba(28,38,56,0.32)' : 'rgba(255,255,255,0.25)';
     ctx.lineWidth = 1.5; ctx.setLineDash([6, 6]);
@@ -906,10 +906,12 @@
     ctx.beginPath(); ctx.arc(x, y, 20, 0, Math.PI * 2);
     ctx.moveTo(x - 30, y); ctx.lineTo(x - 9, y); ctx.moveTo(x + 9, y); ctx.lineTo(x + 30, y);
     ctx.moveTo(x, y - 30); ctx.lineTo(x, y - 9); ctx.moveTo(x, y + 9); ctx.lineTo(x, y + 30);
-    if (snowy) { ctx.strokeStyle = 'rgba(18,26,40,0.5)'; ctx.lineWidth = 5; ctx.stroke(); }
-    ctx.strokeStyle = s.blocked ? 'rgba(150,150,150,0.7)' : locked ? '#e03131' : 'rgba(255,255,255,0.9)';
+    if (idle) ctx.setLineDash([5, 5]);
+    if (snowy) { ctx.strokeStyle = idle ? 'rgba(18,26,40,0.3)' : 'rgba(18,26,40,0.5)'; ctx.lineWidth = 5; ctx.stroke(); }
+    ctx.strokeStyle = s.blocked ? 'rgba(150,150,150,0.7)' : locked ? '#e03131' : idle ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.9)';
     ctx.lineWidth = 2.5;
     ctx.stroke();
+    ctx.setLineDash([]);
     if (locked) {
       ctx.beginPath(); ctx.arc(x, y, 26, -Math.PI / 2, -Math.PI / 2 + Math.min(1, s.lock / (s.aimTime * aimFactor)) * Math.PI * 2);
       if (snowy) { ctx.strokeStyle = 'rgba(18,26,40,0.45)'; ctx.lineWidth = 6.5; ctx.stroke(); ctx.strokeStyle = '#e03131'; }
@@ -928,15 +930,16 @@
     ctx.fillStyle = Math.sin(time * 6) > 0 ? '#ff3b30' : '#7a1d18'; circle(ctx, d.x, d.y + 6, 2.5);
   }
 
-  function bubble(ctx, x, y, text, t) {
+  function bubble(ctx, x, y, text, t, lo, hi) {
     ctx.globalAlpha = Math.min(1, t * 2);
     ctx.font = '600 15px system-ui, sans-serif';
-    const w = ctx.measureText(text).width + 24, h = 30, bx = x - w / 2, by = y - h;
+    const w = ctx.measureText(text).width + 24, h = 30, by = y - h;
+    const bx = hi === undefined ? x - w / 2 : Math.max(lo, Math.min(hi - w, x - w / 2)), tx = Math.max(bx + 16, Math.min(bx + w - 16, x));
     ctx.fillStyle = 'rgba(0,0,0,0.18)'; rrect(ctx, bx + 2, by + 3, w, h, 12);
     ctx.fillStyle = '#fff'; rrect(ctx, bx, by, w, h, 12);
-    ctx.beginPath(); ctx.moveTo(x - 8, y - 1); ctx.lineTo(x + 2, y + 12); ctx.lineTo(x + 8, y - 1); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(tx - 8, y - 1); ctx.lineTo(tx + 2, y + 12); ctx.lineTo(tx + 8, y - 1); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#1d1d1d'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(text, x, by + h / 2 + 1);
+    ctx.fillText(text, bx + w / 2, by + h / 2 + 1);
     ctx.globalAlpha = 1;
   }
 

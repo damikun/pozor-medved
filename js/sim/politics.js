@@ -3,11 +3,13 @@
   const GY = CFG.GROUND;
   const sim = ZS.sim;
   const say = (g, text, hot) => sim.rules.say(g, text, hot);
+  const RETURN = 20;
 
   function spawnAhead(g, kind, extra) {
-    const A = g.level.alpine, edge = A ? A.hut.x - 360 : g.level.w - 250;
+    const A = g.level.alpine, edge = A ? A.hut.x - 360 : g.level.goalDen - 450;
     let x = Math.min(edge, g.bear.x + g.viewW * 0.75 + Math.random() * 500);
-    for (let i = 0; i < 6 && g.shooters.some((s) => Math.abs(s.x - x) < 500); i++) x = Math.min(edge, x + 450);
+    for (let i = 0; i < 12 && x < edge && g.shooters.some((s) => Math.abs(s.x - x) < 500); i++) x = Math.min(edge, x + 450);
+    if (x < g.bear.x + 300 || g.shooters.some((s) => Math.abs(s.x - x) < 500)) return;
     g.shooters.push(sim.hunters.create(g, kind, Object.assign({ x, from: x - 500, to: x + 200, dir: -1 }, extra)));
   }
 
@@ -18,10 +20,16 @@
     if (!f.drones && g.panic >= 65) { f.drones = true; g.drones.push(sim.drones.create(g, 0), sim.drones.create(g, 3)); say(g, NEWS.drones, true); }
     if (!f.cull && g.panic >= 85) { f.cull = true; spawnAhead(g, 'walker'); spawnAhead(g, 'walker'); say(g, NEWS.cull, true); }
     if (!f.hugBan && g.hugBanAt && g.time >= g.hugBanAt) { f.hugBan = true; say(g, NEWS.hugBan, true); }
+    const team = g.shooters.some((s) => s.kind === 'ztmh');
+    if (team) g.ztmhAt = g.time;
     if (!g.problem && g.syn >= CFG.PROBLEM) {
       g.problem = true;
-      if (!g.shooters.some((s) => s.kind === 'ztmh')) g.shooters.push(sim.hunters.create(g, 'ztmh', { x: g.cam - 150, dir: 1 }));
+      if (!team) { g.shooters.push(sim.hunters.create(g, 'ztmh', { x: g.cam - 150, dir: 1 })); g.ztmhAt = g.time; }
       say(g, NEWS.problem, true);
+    } else if (g.problem && !team && g.time - g.ztmhAt > RETURN) {
+      g.shooters.push(sim.hunters.create(g, 'ztmh', { x: g.cam - 150, dir: 1 }));
+      g.ztmhAt = g.time;
+      say(g, NEWS.problem);
     }
     if (g.problem && g.syn < CFG.CALM) { g.problem = false; say(g, NEWS.calm); }
   }
