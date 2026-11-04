@@ -866,6 +866,7 @@
         acts: { hide: 'Hide', hidden: 'Hidden', climb: 'Climb', down: 'Climb down', hug: 'Hug', selfie: 'Selfie', pose: 'Pose', shake: 'Shake', knock: 'Knock', taste: 'Taste', rub: 'Wipe' } },
       language: 'Language',
       about: 'About the game on GitHub',
+      privacy: 'Privacy',
       sound: { mute: 'Mute sound', unmute: 'Turn sound on' },
       tv: { channel: 'STRACH', num: '24', live: 'LIVE', breaking: 'BREAKING', slogan: 'STRACH 24: We’re scared for you.' },
       goals: { fat: 'Fat', hug: 'Hug', den: 'Den', ok: '✓', no: '✗' },

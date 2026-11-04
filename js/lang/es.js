@@ -866,6 +866,7 @@
         acts: { hide: 'Esconderse', hidden: 'Escondido', climb: 'Subir', down: 'Bajar', hug: 'Abrazar', selfie: 'Selfi', pose: 'Posar', shake: 'Sacudir', knock: 'Llamar', taste: 'Probar', rub: 'Borrar' } },
       language: 'Idioma',
       about: 'Sobre el juego en GitHub',
+      privacy: 'Privacidad',
       sound: { mute: 'Silenciar', unmute: 'Activar el sonido' },
       tv: { channel: 'STRACH', num: '24', live: 'EN DIRECTO', breaking: 'ÚLTIMA HORA', slogan: 'STRACH 24: Pasamos miedo por ti.' },
       goals: { fat: 'Grasa', hug: 'Abrazo', den: 'Guarida', ok: '✓', no: '✗' },

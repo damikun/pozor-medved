@@ -1,0 +1,25 @@
+{
+  "id": "/",
+  "name": "Za stromom",
+  "short_name": "Za stromom",
+  "description": "Satirická hra o medveďovi z Liptova: schovaj sa za strom, zvaľ poľovníka z posedu, urob si selfie s turistom a prežij leto aj zimu.",
+  "lang": "sk",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#2c3b22",
+  "theme_color": "#2f5a3a",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "docs/summer.png", "sizes": "2560x1440", "type": "image/png", "form_factor": "wide", "label": "Leto v doline: medveď, poľovníci a turisti" },
+    { "src": "docs/winter.png", "sizes": "2560x1440", "type": "image/png", "form_factor": "wide", "label": "Zima na svahu v Liptovskom Mikuláši" }
+  ]
+}

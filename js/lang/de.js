@@ -866,6 +866,7 @@
         acts: { hide: 'Verstecken', hidden: 'Versteckt', climb: 'Hochklettern', down: 'Runter', hug: 'Umarmen', selfie: 'Selfie', pose: 'Posieren', shake: 'Rütteln', knock: 'Klopfen', taste: 'Kosten', rub: 'Wischen' } },
       language: 'Sprache',
       about: 'Über das Spiel auf GitHub',
+      privacy: 'Datenschutz',
       sound: { mute: 'Ton aus', unmute: 'Ton an' },
       tv: { channel: 'STRACH', num: '24', live: 'LIVE', breaking: 'EILMELDUNG', slogan: 'STRACH 24: Wir haben Angst – für Sie.' },
       goals: { fat: 'Fett', hug: 'Umarmung', den: 'Höhle', ok: '✓', no: '✗' },

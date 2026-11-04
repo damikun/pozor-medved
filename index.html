@@ -3,13 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="default-language" content="sk">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-NV6DYPNM0Y"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-NV6DYPNM0Y');
+  if (!matchMedia('(display-mode: fullscreen), (display-mode: standalone), (display-mode: minimal-ui), (display-mode: window-controls-overlay)').matches && !navigator.standalone) {
+    const tag = document.createElement('script');
+    tag.async = true;
+    tag.src = 'https://www.googletagmanager.com/gtag/js?id=G-NV6DYPNM0Y';
+    document.head.appendChild(tag);
+    gtag('js', new Date());
+    gtag('config', 'G-NV6DYPNM0Y');
+  }
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Za stromom – satirická hra o medveďovi z Liptova</title>
@@ -61,6 +68,11 @@
   "locationCreated": { "@type": "Place", "name": "Liptov, Slovakia" }
 }
 </script>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Za stromom">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐻</text></svg>">
 <link rel="stylesheet" href="css/game.css">
 </head>

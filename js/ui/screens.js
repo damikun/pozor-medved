@@ -69,7 +69,7 @@
     box.innerHTML = `<a class="round" href="${ZS.REPO_URL}" target="_blank" rel="noopener" title="${UI.about}" aria-label="${UI.about}">${GITHUB}</a>`
       + muteButton('round')
       + `<button class="round" id="btnSettings" title="${UI.language}" aria-label="${UI.language}" aria-expanded="false">⚙️</button>`
-      + `<div class="menu" id="cornerMenu" hidden>${langs}<a href="${ZS.REPO_URL}" target="_blank" rel="noopener">${UI.about}</a></div>`;
+      + `<div class="menu" id="cornerMenu" hidden>${langs}<a href="${ZS.REPO_URL}" target="_blank" rel="noopener">${UI.about}</a><a href="privacy.html?lang=${ZS.i18n.lang}">${UI.privacy}</a></div>`;
     box.hidden = false;
     syncMute();
     const gear = $('btnSettings'), menu = $('cornerMenu');

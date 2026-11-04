@@ -891,6 +891,7 @@
       acts: { hide: 'Schovať sa', hidden: 'Skrytý', climb: 'Vyliezť', down: 'Zliezť', hug: 'Objať', selfie: 'Selfie', pose: 'Zapózovať', shake: 'Zatriasť', knock: 'Zaklopať', taste: 'Ochutnať', rub: 'Zotri' } },
     language: 'Jazyk',
     about: 'O hre na GitHube',
+    privacy: 'Ochrana súkromia',
     sound: { mute: 'Vypnúť zvuk', unmute: 'Zapnúť zvuk' },
     tv: { channel: 'STRACH', num: '24', live: 'ŽIVE', breaking: 'MIMORIADNE', slogan: 'STRACH 24: Bojíme sa za vás.' },
     goals: { fat: 'Tuk', hug: 'Objatie', den: 'Brloh', ok: '✓', no: '✗' },
