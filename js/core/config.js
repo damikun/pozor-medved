@@ -15,7 +15,7 @@ ZS.CFG = {
 
 ZS.LEVELS = {
   summer: {
-    w: 14750, year: 360, fatGoal: 85, startFat: 20, metabolism: 0.1,
+    w: 16250, year: 360, fatGoal: 85, startFat: 20, metabolism: 0.1,
     seasons: [{ key: 'spring', end: 110 }, { key: 'summer', end: 240 }, { key: 'autumn', end: 360 }],
   },
   winter: {

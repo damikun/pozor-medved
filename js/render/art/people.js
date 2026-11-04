@@ -99,7 +99,14 @@
     if (!v) m.set(s, (v = Object.assign({}, L, { scale: L.scale * s })));
     return v;
   }
-  const CAN_AIM = { walker: 1, ztmh: 1, poacher: 1 };
+  LOOK.forester = {
+    skin: '#e9be97', hair: '#5a4030', coat: '#4d6a3d', vest: '#ff7a1a', trim: '#eef1e8', pants: '#3e4b33', boots: '#4a3424', sole: '#1e140c', hat: '#3f5a33',
+    scale: 1, walkS: 46, runS: 96, stoop: 0.05, carry: 'spray', gun: 'hunt', slung: true, belly: 1.4, top: 'forester', hairdo: 'cap', stache: 1, bootF: 0.55,
+  };
+  const GENERIC = { guest: 1, waiter: 1, tycoon: 1, aide: 1, forester: 1 };
+  const CAN_FILM = { tourist: 1, aide: 1, forester: 1 };
+  const CAN_AIM = { walker: 1, ztmh: 1, poacher: 1, forester: 1 };
+  const slung = (L) => L.carry === 'sling' || !!L.slung;
   const SPECIAL = { down: 1, pickup: 1, hugged: 1, bitten: 1, drop: 1, climbStand: 1, selfie: 1, dive: 1, jump: 1, climbOut: 1, cling: 1, hurdle: 1 };
   const INN = { dive: 1, jump: 1, climbOut: 1, cling: 1 };
 
@@ -324,31 +331,33 @@
 
     const rf = R.rf;
     rf.mode = ''; rf.back = false; rf.sx = 1;
+    const gunK = film ? 0 : aimK;
     if (K.armed) {
       let cx = 0, cy = 0, ca = 0;
-      if (L.carry === 'sling') { tp(-8, -2); cx = TP.x; cy = TP.y; ca = -1.78 + R.lean + sin(TAU * p0) * 0.05 * amt; }
+      if (slung(L)) { tp(-8, -2); cx = TP.x; cy = TP.y; ca = -1.78 + R.lean + sin(TAU * p0) * 0.05 * amt; }
       else if (L.carry === 'ready') { tp(-1, -18); cx = TP.x; cy = TP.y; ca = lerp(0.3, -0.3, runK * amt) + R.lean * 0.4 + sin(TAU * p0 * 2) * 0.03 * amt; gN = 1; gF = 1; }
       else { tp(-5, -19); cx = TP.x; cy = TP.y; ca = 0.5 + R.lean * 0.5 + sin(TAU * p0 * 2) * 0.04 * amt; gN = 1; }
-      const sg = L.carry === 'sling' ? 0 : st.sling;
+      const sg = slung(L) ? 0 : st.sling;
       if (sg > 0) {
         tp(-8.5, -1.5); cx = lerp(cx, TP.x, sg); cy = lerp(cy, TP.y, sg); ca = lerp(ca, -1.82 + R.lean + sin(TAU * p0) * 0.06 * amt, sg);
         gN *= 1 - sg; gF *= 1 - sg;
       }
       const ax = R.sx + 1.6, ay = R.sy + 2.6;
       const aa = clamp(atan2(K.ty - ay, Math.max(8, K.tx - ax)), -0.95, 0.85) + sin(tm * 1.3 + sd) * 0.004 + sin(tm * 2.9 + sd) * 0.002;
-      rf.mode = L.gun; rf.ox = lerp(cx, ax, aimK); rf.oy = lerp(cy, ay, aimK); rf.ang = lerp(ca, aa, aimK);
-      rf.behind = (L.carry === 'sling' || sg > 0.5) && aimK < 0.35;
-      rf.kick = K.kick * aimK;
+      rf.mode = L.gun; rf.ox = lerp(cx, ax, gunK); rf.oy = lerp(cy, ay, gunK); rf.ang = lerp(ca, aa, gunK);
+      rf.behind = (slung(L) || sg > 0.5) && gunK < 0.35;
+      rf.kick = K.kick * gunK;
       rf.ox -= 2.6 * rf.kick; rf.ang -= 0.15 * rf.kick;
-      gN = Math.max(gN, aimK); gF = Math.max(gF, aimK);
-      if (L.carry === 'sling') { gN = aimK; gF = aimK; }
+      gN = Math.max(gN, gunK); gF = Math.max(gF, gunK);
+      if (slung(L)) { gN = gunK; gF = gunK; }
       const ux = cos(rf.ang), uy = sin(rf.ang);
       gnx = rf.ox + ux * 13 - uy * 2.4; gny = rf.oy + uy * 13 + ux * 2.4;
       gfx = rf.ox + ux * 25 - uy * 3.2; gfy = rf.oy + uy * 25 + ux * 3.2;
-      if (aimK > 0) {
-        R.hx = lerp(R.hx, R.sx + 3.4 - 0.9 * rf.kick, aimK); R.hy = lerp(R.hy, R.sy - 8.6, aimK); R.hang = lerp(R.hang, aa * 0.5, aimK);
+      if (gunK > 0) {
+        R.hx = lerp(R.hx, R.sx + 3.4 - 0.9 * rf.kick, gunK); R.hy = lerp(R.hy, R.sy - 8.6, gunK); R.hang = lerp(R.hang, aa * 0.5, gunK);
       }
-    } else if (film) {
+    }
+    if (film) {
       const pitch = clamp(atan2(K.ty - (R.sy - 8), Math.max(8, K.tx - R.sx)), -0.5, 0.5);
       const jx = sin(tm * 7.3 + sd) * 0.25, jy = sin(tm * 9.1 + sd) * 0.25;
       gN = aimK; gF = aimK;
@@ -409,7 +418,7 @@
     } else if (L.carry === 'pass' && K.sp !== 'selfie') {
       R.tray.x = a.wx; R.tray.y = a.wy;
       R.tray.ang = lerp(0.5, -0.25, K.offer) + 0.05 * sin(TAU * p0 * 2) * amt;
-    } else if (L.carry === 'phone' || L.carry === 'pass' || L.carry === 'tablet') {
+    } else if (L.carry === 'phone' || L.carry === 'pass' || L.carry === 'tablet' || L.carry === 'spray') {
       const dir = atan2(a.wy - a.ey, a.wx - a.ex);
       R.phone.x = a.wx; R.phone.y = a.wy;
       R.phone.ang = lerp(lerp(dir - PI / 2, K.state === 'film' ? 0.04 : 0, st.aimK), R.pa, R.pw);
@@ -732,7 +741,7 @@
     else if (kind === 'poacher') bootF = L.win ? 0.5 : 0.4;
     else if (kind === 'walker' && L.win) bootF = 0.58;
     else if (kind === 'santa') bootF = 0.56;
-    else if (kind === 'guest' || kind === 'waiter' || kind === 'tycoon' || kind === 'aide') bootF = L.bootF;
+    else if (GENERIC[kind]) bootF = L.bootF;
     const mid = (a, b, t) => a + (b - a) * t;
     if (kind === 'tourist' && !ski) {
       limb(ctx, R.px, R.py, mid(R.px, lg.kx, 0.9), mid(R.py, lg.ky, 0.9), 8.8, 7.4, dk(thigh, f));
@@ -864,6 +873,7 @@
     else if (kind === 'waiter') waiterTop(ctx, L);
     else if (kind === 'tycoon') resortTop(ctx, L);
     else if (kind === 'aide') pufferTop(ctx, L);
+    else if (kind === 'forester') foresterTop(ctx, L);
     ctx.fillStyle = 'rgba(0,0,0,0.14)'; ctx.fillRect(-9, -26, 5, 32);
     ctx.restore();
     ctx.restore();
@@ -975,6 +985,21 @@
     crest(ctx, L, 1.8, -14.6, 2.3);
     ctx.fillStyle = 'rgba(255,255,255,0.13)'; ctx.fillRect(-6.4, -21, 2.2, 16);
     ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(-3, -9, 9 + b, 1);
+  }
+
+  function foresterTop(ctx, L) {
+    const b = L.belly;
+    ctx.fillStyle = L.vest;
+    ctx.beginPath();
+    ctx.moveTo(-5.8, 3); ctx.quadraticCurveTo(-7, -6, -6.8, -15); ctx.quadraticCurveTo(-6.6, -21, -3.6, -22);
+    ctx.lineTo(1.2, -16.8); ctx.lineTo(4.8, -20.4); ctx.quadraticCurveTo(7.8, -13, 7.1 + b, -6);
+    ctx.quadraticCurveTo(7.3 + b, 0, 5.6, 3); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = L.trim; ctx.fillRect(-7, -12.6, 15 + b, 1.7); ctx.fillRect(-7, -6.4, 15.4 + b, 1.7);
+    ctx.fillStyle = 'rgba(160,170,175,0.55)'; ctx.fillRect(-7, -11.5, 15 + b, 0.6); ctx.fillRect(-7, -5.3, 15.4 + b, 0.6);
+    ctx.fillStyle = dk(L.vest, 0.82); ctx.fillRect(1.8, -19.2, 3.6, 3.2);
+    ctx.fillStyle = '#ffd9a8'; ctx.fillRect(2, -19, 3.2, 0.7);
+    ctx.fillStyle = '#2b3324'; ctx.fillRect(-7, -0.6, 16 + b, 2);
+    ctx.fillStyle = '#c9a647'; ctx.fillRect(3.6 + b * 0.5, -0.4, 2, 1.6);
   }
 
   function pufferTop(ctx, L) {
@@ -1161,7 +1186,7 @@
     if (kind === 'walker') { ctx.fillStyle = '#5a3a24'; ell(ctx, 5 * yaw, 2.9, 3.1, 1.2); }
     else if (L.stache && (fc === 0 || fc >= 5)) { ctx.fillStyle = dk(L.hair, 0.82); ell(ctx, 5 * yaw, 2.9, 3, 1.15); }
     if (kind === 'santa') { ctx.fillStyle = '#ffffff'; ell(ctx, 5 * yaw, 3, 3, 1.55, -0.3); ell(ctx, 7.9 * yaw, 3.4, 2.1, 1.35, 0.35); ctx.fillStyle = '#e4e0d7'; ell(ctx, 6.4 * yaw, 3.9, 1.6, 0.5); }
-    if (kind !== 'picker' && !((kind === 'guest' || kind === 'waiter' || kind === 'tycoon' || kind === 'aide') && !L.hat) && (R.hatA || R.hatY || R.hatS !== 1)) {
+    if (kind !== 'picker' && !(GENERIC[kind] && !L.hat) && (R.hatA || R.hatY || R.hatS !== 1)) {
       const hk = kind === 'ztmh' && !win ? 2.4 : mask ? 0.35 : 1;
       ctx.save(); ctx.translate(0, R.hatY * (mask ? 0.4 : 1) - 4); ctx.rotate(R.hatA * hk); ctx.scale(1, R.hatS); ctx.translate(0, 4);
       hat(ctx, K, tm);
@@ -1286,7 +1311,7 @@
       ctx.fillStyle = L.trim; rr(ctx, -8.2, -7.6, 16.4, 3.8, 1.9);
       ctx.fillStyle = '#e6e1d6'; for (let x = -6.6; x < 7; x += 2.8) circle(ctx, x, -5.7, 0.6);
       ctx.fillStyle = L.trim; circle(ctx, -11.2 + sw * 0.3, -3.6 + sw, 2.6);
-    } else if (kind === 'guest' || kind === 'waiter' || kind === 'tycoon' || kind === 'aide') hairdo(ctx, K, tm);
+    } else if (GENERIC[kind]) hairdo(ctx, K, tm);
   }
 
   function hairdo(ctx, K, tm) {
@@ -1525,6 +1550,27 @@
     ctx.fillStyle = K.L.glove || K.L.skin; circle(ctx, t.x, t.y + 0.3, 2.6);
   }
 
+  function drawSpray(ctx, K, tm, on) {
+    const p = R.phone;
+    ctx.save();
+    ctx.translate(p.x, p.y); ctx.rotate(p.ang + (on ? PI / 2 : 0));
+    ctx.fillStyle = '#ff7a1a'; rr(ctx, -1.9, -9.4, 3.8, 9, 1);
+    ctx.fillStyle = '#f2f2ee'; ctx.fillRect(-1.9, -6.4, 3.8, 2.2);
+    ctx.fillStyle = '#ff7a1a'; ctx.fillRect(-1.2, -5.9, 2.4, 1.1);
+    ctx.fillStyle = '#d9d9d4'; rr(ctx, -1.4, -10.8, 2.8, 1.8, 0.6);
+    ctx.fillStyle = '#222'; ctx.fillRect(-0.7, -12, 1.4, 1.4);
+    if (on) {
+      for (let i = 0; i < 9; i++) {
+        const u = frac(tm * 3.1 + i * 0.137), a = (frac(i * 0.618) - 0.5) * 0.7;
+        ctx.fillStyle = 'rgba(255,122,26,' + (0.55 * (1 - u)).toFixed(3) + ')';
+        circle(ctx, sin(a) * u * 10, -12.5 - u * 16, 0.8 + u * 2.2);
+      }
+    }
+    ctx.restore();
+    ctx.fillStyle = K.L.skin;
+    circle(ctx, p.x, p.y + 0.4, 2.4);
+  }
+
   function drawTablet(ctx, K, tm, film) {
     const p = R.phone;
     ctx.save();
@@ -1580,6 +1626,7 @@
     if (kind === 'tycoon' && K.sp === 'selfie') drawPhone(ctx, K, tm, false);
     else if (kind === 'tycoon' && K.has && !K.sp) drawPass(ctx, K, tm);
     if (kind === 'aide' && K.has && !K.sp) drawTablet(ctx, K, tm, K.state === 'film' && st.aimK > 0.5);
+    if (kind === 'forester' && K.has && !K.sp && K.state !== 'aim') drawSpray(ctx, K, tm, K.state === 'film' && st.aimK > 0.5);
     if (R.stars > 0.01) drawStars(ctx, R.stars, tm, st.seed);
   }
 
@@ -1741,7 +1788,7 @@
     const armed = !!CAN_AIM[kind] && h.armed !== false && sp !== 'down' && sp !== 'pickup' && sp !== 'drop';
     const has = !h.empty;
     if (state === 'aim' && !armed) state = 'idle';
-    if (state === 'film' && ((kind !== 'tourist' && kind !== 'aide') || !has)) state = 'idle';
+    if (state === 'film' && (!CAN_FILM[kind] || !has)) state = 'idle';
     const targeted = state === 'aim' || state === 'film', at = h.aimAt;
     let face = h.dir < 0 ? -1 : 1;
     if (targeted && at && abs(at[0] - h.x) > 8) face = at[0] < h.x ? -1 : 1;

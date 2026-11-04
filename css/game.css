@@ -59,6 +59,7 @@ canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-acti
 #touch .pause { top: calc(10px + env(safe-area-inset-top)); right: calc(10px + env(safe-area-inset-right)); width: 44px; height: 44px; }
 #touch .pause svg { width: 50%; height: 50%; }
 #touch.ride .jump, #touch.ride .act { visibility: hidden; }
+#touch.cut .bite { visibility: hidden; }
 #touch.ride .pause { right: calc(52px + env(safe-area-inset-right)); }
 #touch.ride .base { background: rgba(20, 26, 16, 0.55); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3), 0 0 0 3px rgba(255, 255, 255, 0.55); }
 .bar em { position: absolute; top: 0; bottom: 0; left: 60%; width: 2px; background: #fff; opacity: 0.8; z-index: 1; }
@@ -74,6 +75,19 @@ canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-acti
 #hud.touch .right { display: contents; }
 #hud.touch .bars { width: auto; }
 #hud.touch #tray { justify-content: flex-start; max-width: none; }
+#trees { display: flex; align-items: center; gap: 0.75em; padding: 0.42em 0.75em 0.42em 0.6em; border-radius: 0.55em; background: rgba(20, 26, 16, 0.72); color: #fff; font: 700 1em/1.15 var(--font); }
+#trees[hidden] { display: none; }
+#trees .count { display: grid; gap: 0.12em; min-width: 4.2em; }
+#trees .count b { font-size: 1.9em; line-height: 1; font-variant-numeric: tabular-nums; color: #8fe08a; }
+#trees .count b small { font-size: 0.62em; color: #fff; opacity: 0.75; }
+#trees .count span { font-size: 0.74em; font-weight: 600; opacity: 0.88; white-space: nowrap; }
+#trees .row { display: flex; align-items: flex-end; gap: 0.14em; }
+#trees .row i { display: block; width: 1.5em; height: 1.95em; }
+#trees .row svg { display: block; width: 100%; height: 100%; }
+#trees .row i.mark svg { animation: treeMark 1.1s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes treeMark { 50% { transform: translateY(-0.1em) scale(1.08); } }
+@media (prefers-reduced-motion: reduce) { #trees .row i.mark svg { animation: none; } }
+#hud.cut .bars, #hud.cut #tray { display: none; }
 #tray { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 0.4em; max-width: min(46vw, 30em); padding: 0.35em 0.42em; border-radius: 0.55em; background: rgba(20, 26, 16, 0.65); color: #fff; font: 700 1em/1.85 var(--font); }
 #tray .chip { display: inline-flex; align-items: center; gap: 0.35em; height: 1.8em; padding: 0 0.7em 0 0.5em; border-radius: 0.95em; background: rgba(255, 255, 255, 0.12); white-space: nowrap; transition: background-color 1s, box-shadow 1s; }
 #tray .chip i { font-style: normal; font-size: 1.3em; line-height: 1; }

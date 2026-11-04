@@ -192,7 +192,6 @@
     for (const s of g.shooters) { s.lock = 0; s.reload = Math.max(s.reload, CALM + T.back); s.alertX = null; }
     g.liftCalm = g.time + CALM + T.back;
     g.lastKnown = null;
-    rules().onLand(g);
   }
 
   function walk(b, to, speed, dt) {

@@ -110,17 +110,10 @@
   rules.onNews = hud.showNews;
   rules.onSound = (run, name, x, k) => { audio.event(run, name, x, k); tally.hear(run, name); };
   audio.onChange = screens.syncMute;
-  rules.onLand = (run) => {
-    if (run !== g) return;
-    reached.add('lift');
-    mark = Object.assign(checkpoint.save(run, 'lift'), { tally: tally.counts(run) });
-    keep(mark);
-    note(run, LABELS.lift.checkpoint, NEWS.checkpoint);
-  };
 
   function pass(run) {
     const b = run.bear;
-    if (run.ride || run.over || !b.onGround) return;
+    if (run.ride || run.cut || run.over) return;
     for (const c of run.level.checkpoints || []) {
       if (reached.has(c.key) || b.x < c.x) continue;
       reached.add(c.key);

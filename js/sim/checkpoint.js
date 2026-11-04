@@ -46,7 +46,7 @@
     for (const k of SCALARS) g[k] = s[k];
     Object.assign(g, {
       lives: s.lives, flags: copy(s.flags), once: copy(s.once), stats: copy(s.stats), usedEvents: new Set(s.usedEvents),
-      saidAt: copy(s.saidAt), shooters: s.shooters.map(copy), drones: s.drones.map(copy), ride: null, lastKnown: null,
+      saidAt: copy(s.saidAt), shooters: s.shooters.map(copy), drones: s.drones.map(copy), ride: null, cut: null, lastKnown: null,
     });
     items(g.level, s);
     Object.assign(b, { x: s.x, trackX: s.x, dir: s.dir, y: GY, vy: 0, onGround: true, waking: false, wakeT: 0 });
@@ -54,7 +54,7 @@
     return g;
   }
 
-  const FORMAT = 1;
+  const FORMAT = 2;
 
   function pack(s) {
     return JSON.stringify({ v: FORMAT, s }, (k, v) => (v === Infinity ? 'Infinity' : v === -Infinity ? '-Infinity' : v));
@@ -66,7 +66,7 @@
     const s = data && data.v === FORMAT && data.s;
     if (!plain(s) || !ZS.LEVELS[s.level]) return null;
     const L = ZS.makeLevel(s.level, 11);
-    const keys = ['lift', ...(L.checkpoints || []).map((c) => c.key)];
+    const keys = (L.checkpoints || []).map((c) => c.key);
     if (!keys.includes(s.key) || !(s.x > 0 && s.x < L.w)) return null;
     if (![s.items, s.shooters, s.drones, s.usedEvents, s.posts, s.noses].every(Array.isArray) || !plain(s.tally)) return null;
     return s;

@@ -221,7 +221,7 @@ test('the bear never gets stuck at the pen, whatever keys are mashed', () => {
   for (let seed = 1; seed <= 8; seed++) {
     const { ZS, g, b, L, B, run, hold, release, input } = setup(seed);
     const rnd = ZS.util.mulberry32(seed * 97);
-    b.x = 7590 + rnd() * 850;
+    b.x = 9090 + rnd() * 850;
     let bad = null;
     const check = () => {
       if (b.stun > B.FENCE.stun + 1e-9) bad = 'stun ' + b.stun;
@@ -238,7 +238,7 @@ test('the bear never gets stuck at the pen, whatever keys are mashed', () => {
     for (const key of KEYS) release(key);
     g.bot = true;
     g.pilot = { t: 0, danger: 0, wait: 0, bold: 0, alarm: -9, back: seed % 2 === 0 };
-    const goal = seed % 2 === 0 ? (x) => x < 7490 : (x) => x > 8540;
+    const goal = seed % 2 === 0 ? (x) => x < 8990 : (x) => x > 10040;
     run(30, () => { check(); if (goal(b.x)) g.running = false; });
     g.bot = false;
     assert.ok(goal(b.x), `seed ${seed}: the autopilot got out of the pen, x = ${b.x.toFixed(1)}`);
@@ -253,16 +253,16 @@ test('the autopilot jumps both fences cleanly and crawls through the strunga, bo
       ZS.dev.bot.reaction = reaction;
       g.bot = true;
       g.pilot = { t: 0, danger: 0, wait: 0, bold: 0, alarm: -9, back };
-      b.x = back ? 8540 : 7440; b.dir = back ? -1 : 1;
+      b.x = back ? 10040 : 8940; b.dir = back ? -1 : 1;
       let shocks = 0, crawled = false;
       run(14, () => {
         if (b.zapT === 0) shocks++;
         crawled = crawled || b.crawl;
-        if (back ? b.x < 7440 : b.x > 8540) g.running = false;
+        if (back ? b.x < 8940 : b.x > 10040) g.running = false;
       });
       assert.equal(shocks, 0, (back ? '←' : '→') + ' ' + reaction);
       assert.ok(crawled);
-      assert.ok(back ? b.x < 7440 : b.x > 8540, 'through the pen: ' + b.x.toFixed(1));
+      assert.ok(back ? b.x < 8940 : b.x > 10040, 'through the pen: ' + b.x.toFixed(1));
     }
   }
 });
@@ -323,10 +323,10 @@ function crowd(seed = 4, withRenderer = false) {
 test('walking hunters whose beat crosses the pen stop at the wire, look over, turn back and never step in', () => {
   const { ZS, g, P, F, run, park, band } = crowd();
   const H = band(P.KEEP.hunter);
-  park(8040);
+  park(9540);
   g.courtUntil = 1e9;
-  const left = ZS.sim.hunters.create(g, 'walker', { x: 7440, from: 7240, to: 8240, dir: 1 });
-  const right = ZS.sim.hunters.create(g, 'walker', { x: 8590, from: 7840, to: 8840, dir: -1 });
+  const left = ZS.sim.hunters.create(g, 'walker', { x: 8940, from: 8740, to: 9740, dir: 1 });
+  const right = ZS.sim.hunters.create(g, 'walker', { x: 10090, from: 9340, to: 10340, dir: -1 });
   assert.ok(left.to <= H[0] && right.from >= H[1], `beats ${left.from}-${left.to} and ${right.from}-${right.to}`);
   g.shooters = [left, right];
   const seen = new Map(g.shooters.map((s) => [s, { turns: 0, flips: [], last: s.dir, looked: 0 }]));
@@ -349,7 +349,7 @@ test('walking hunters whose beat crosses the pen stop at the wire, look over, tu
 
 test('hunters sent ahead by politics, poachers and a feeding stand never land in or across the pen', () => {
   for (let seed = 1; seed <= 6; seed++) {
-    for (let x = 6240; x <= 8740; x += 125) {
+    for (let x = 7740; x <= 10240; x += 125) {
       const { ZS, g, L, P, park, band } = crowd(seed);
       const H = band(P.KEEP.hunter);
       park(x);
@@ -376,7 +376,7 @@ test('hunters sent ahead by politics, poachers and a feeding stand never land in
 
 test('hunters chasing, fleeing, scared or leaving stop at the wire without jitter and the ZTMH waits on its side', async (t) => {
   await t.test('the ZTMH stops at the wire facing the bear and leaves on its own side', () => {
-    for (const [from, bear, side] of [[7240, 8740, -1], [8940, 7340, 1]]) {
+    for (const [from, bear, side] of [[8740, 10240, -1], [10440, 8840, 1]]) {
       const { ZS, g, P, run, park, band } = crowd();
       const H = band(P.KEEP.hunter);
       park(bear);
@@ -404,9 +404,9 @@ test('hunters chasing, fleeing, scared or leaving stop at the wire without jitte
     for (const mode of ['scared', 'flee', 'gone', 'poacher']) {
       const { ZS, g, P, run, park, band } = crowd();
       const H = band(P.KEEP.hunter);
-      park(6840);
+      park(8340);
       g.courtUntil = 1e9;
-      const s = ZS.sim.hunters.create(g, mode === 'poacher' ? 'poacher' : 'walker', { x: 7540, from: 7140, to: 7640, dir: 1 });
+      const s = ZS.sim.hunters.create(g, mode === 'poacher' ? 'poacher' : 'walker', { x: 9040, from: 8640, to: 9140, dir: 1 });
       if (mode === 'scared') s.scaredT = 4;
       if (mode === 'flee' || mode === 'gone') { s.react = mode; s.reactT = 0; }
       if (mode === 'poacher') { s.from = null; s.to = null; }
@@ -428,7 +428,7 @@ test('a rifle knocked toward the pen never lands inside and the hunter fetches i
     const { ZS, g, b, L, P, run, band } = crowd(seed);
     const H = band(P.KEEP.hunter);
     g.courtUntil = 1e9;
-    const s = ZS.sim.hunters.create(g, 'walker', { x: H[0], from: 7240, to: 7840, dir: 1 });
+    const s = ZS.sim.hunters.create(g, 'walker', { x: H[0], from: 8740, to: 9340, dir: 1 });
     s.pause = 99;
     g.shooters = [s];
     b.x = s.x - 22; b.trackX = b.x; b.dir = 1; b.onGround = false; b.prevY = ZS.CFG.GROUND - 120; b.y = ZS.CFG.GROUND - 76; b.vy = 300;
@@ -436,7 +436,7 @@ test('a rifle knocked toward the pen never lands inside and the hunter fetches i
     assert.equal(s.react, 'down', 'the hunter went down');
     const rifle = g.props.find((p) => p.kind === 'rifle');
     assert.ok(rifle);
-    b.x = 6740; b.trackX = 6740;
+    b.x = 8240; b.trackX = 8240;
     run(14, () => {
       assert.ok(!P.inside(L, s.x, P.KEEP.hunter - 1e-6), 'the hunter stepped in at ' + s.x.toFixed(1));
       assert.ok(!P.inside(L, rifle.x, 0), 'the rifle flew into the pen');
@@ -449,9 +449,9 @@ test('a rifle knocked toward the pen never lands inside and the hunter fetches i
 
 test('the sheepdog jumps the wire on its rounds, in and out of the pen, and never touches it', () => {
   const { g, P, F, run, park } = crowd();
-  park(6040);
+  park(7540);
   const { ZS } = crowd();
-  g.dogs = [ZS.sim.wildlife.createDog({ from: 7590, to: 8390 }, g.level)];
+  g.dogs = [ZS.sim.wildlife.createDog({ from: 9090, to: 9890 }, g.level)];
   const d = g.dogs[0];
   const over = [0, 0], peak = [0, 0];
   let prev = d.x, gathered = 0, ground = Infinity;
@@ -475,10 +475,10 @@ test('the sheepdog jumps the wire on its rounds, in and out of the pen, and neve
 
 test('the sheepdog still barks at the bear and follows it over the wire into the pen', () => {
   const { ZS, g, b, F, run, park } = crowd();
-  park(7960);
-  g.dogs = [ZS.sim.wildlife.createDog({ from: 7590, to: 8390 }, g.level)];
+  park(9460);
+  g.dogs = [ZS.sim.wildlife.createDog({ from: 9090, to: 9890 }, g.level)];
   const d = g.dogs[0];
-  Object.assign(d, { x: 7580, dir: 1 });
+  Object.assign(d, { x: 9080, dir: 1 });
   const seen = g.stats.seen;
   let leapt = false, barked = false;
   run(6, () => {
@@ -495,7 +495,7 @@ test('koliba guests who run for the pen hurdle the wire, cross without stopping 
   let crossed = 0, waiters = 0;
   for (let seed = 1; seed <= 10; seed++) {
     const { ZS, g, b, L, P, F, run, park, input } = crowd(seed);
-    park(7300);
+    park(8800);
     input.press('ArrowRight', true);
     run(0.4);
     input.release('ArrowRight');
@@ -516,7 +516,7 @@ test('koliba guests who run for the pen hurdle the wire, cross without stopping 
         } else if (o.enter !== null && p.x > F[1]) o.out = true;
         o.prev = p.x; o.air = !!p.hurdle;
       }
-      if (b.x > 7390) b.x = 7300;
+      if (b.x > 8890) b.x = 8800;
     });
     for (const [p, o] of track) {
       if (o.enter === null) continue;
@@ -534,9 +534,9 @@ test('koliba guests who run for the pen hurdle the wire, cross without stopping 
 test('pickers fleeing toward the pen hurdle it too, while walking and leaving people turn at the wire', async (t) => {
   await t.test('a picker who sees the bear runs off and hurdles both wires', () => {
     const { ZS, g, P, F, run, park } = crowd();
-    park(6940);
-    const p = ZS.sim.people.create(g, 'picker', { from: 7140, to: 7340 });
-    Object.assign(p, { x: 7190, dir: -1 });
+    park(8440);
+    const p = ZS.sim.people.create(g, 'picker', { from: 8640, to: 8840 });
+    Object.assign(p, { x: 8690, dir: -1 });
     g.people = [p];
     let hurdles = 0, was = false;
     run(8, () => {
@@ -552,25 +552,25 @@ test('pickers fleeing toward the pen hurdle it too, while walking and leaving pe
   await t.test('tourists and pickers on a beat by the pen and a texting tourist walking off turn at the wire', () => {
     const { ZS, g, L, P, run, park, band } = crowd();
     const H = band(P.KEEP.person);
-    park(6540);
-    const a = ZS.sim.people.create(g, 'tourist', { from: 7340, to: 8140 });
-    const c = ZS.sim.people.create(g, 'picker', { from: 8040, to: 8740 });
-    const e = ZS.sim.people.create(g, 'tourist', { from: 7440, to: 7540 });
-    Object.assign(e, { x: 7540, dir: 1, leaving: true, texting: true, state: 'walk' });
+    park(8040);
+    const a = ZS.sim.people.create(g, 'tourist', { from: 8840, to: 9640 });
+    const c = ZS.sim.people.create(g, 'picker', { from: 9540, to: 10240 });
+    const e = ZS.sim.people.create(g, 'tourist', { from: 8940, to: 9040 });
+    Object.assign(e, { x: 9040, dir: 1, leaving: true, texting: true, state: 'walk' });
     assert.ok(a.to <= H[0] && c.from >= H[1], `beats ${a.from}-${a.to}, ${c.from}-${c.to}`);
     g.people = [a, c, e];
     let turned = false;
     run(60, () => {
       for (const p of g.people) assert.ok(!P.inside(L, p.x, P.KEEP.person - 1e-6), p.kind + ' walked into the pen at ' + p.x.toFixed(1));
       turned = turned || e.dir < 0;
-      g.bear.x = 6540;
+      g.bear.x = 8040;
     });
     assert.ok(turned, 'the texting tourist turned at the wire');
   });
 
   await t.test('the bear cannot grab anybody across the wire or in mid-jump', () => {
     const { ZS, g, b, P, F, park } = crowd();
-    const p = ZS.sim.people.create(g, 'tourist', { from: 7240, to: 7640 });
+    const p = ZS.sim.people.create(g, 'tourist', { from: 8740, to: 9140 });
     Object.assign(p, { x: P.band(g.level, P.KEEP.person)[0], dir: 1, pause: 99 });
     g.people = [p];
     park(F[0] + 41); b.dir = -1;
@@ -591,18 +591,18 @@ test('the dog leaping, a guest hurdling and a hunter turning at the wire draw cl
     ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
     g.viewW = viewW;
     g.courtUntil = 1e9;
-    g.dogs = [ZS.sim.wildlife.createDog({ from: 7590, to: 8390 }, g.level)];
-    Object.assign(g.dogs[0], { x: 7600, dir: 1 });
-    g.shooters = [ZS.sim.hunters.create(g, 'walker', { x: 7540, from: 7340, to: 8040, dir: 1 })];
-    const picker = ZS.sim.people.create(g, 'picker', { from: 7430, to: 7540 });
-    Object.assign(picker, { x: 7440, state: 'flee', dir: 1 });
+    g.dogs = [ZS.sim.wildlife.createDog({ from: 9090, to: 9890 }, g.level)];
+    Object.assign(g.dogs[0], { x: 9100, dir: 1 });
+    g.shooters = [ZS.sim.hunters.create(g, 'walker', { x: 9040, from: 8840, to: 9540, dir: 1 })];
+    const picker = ZS.sim.people.create(g, 'picker', { from: 8930, to: 9040 });
+    Object.assign(picker, { x: 8940, state: 'flee', dir: 1 });
     g.people = [picker];
-    park(7300);
+    park(8800);
     input.press('ArrowRight', true);
     let leaps = 0, hurdles = 0;
     run(9, (i) => {
       if (i === 24) input.release('ArrowRight');
-      if (g.bear.x > 7390) g.bear.x = 7300;
+      if (g.bear.x > 8890) g.bear.x = 8800;
       if (g.dogs[0].leap) leaps++;
       if (g.people.some((p) => p.hurdle)) hurdles++;
       g.cam = ZS.sim.loop.cameraX(g);

@@ -29,11 +29,12 @@
     L.items.push(Object.assign({ type, x, eaten: false, locked: false }, extra));
   }
 
-  function forest(L, blocked, pick, gap) {
-    let x = 240;
-    while (x < L.w - 480) {
+  function forest(L, blocked, pick, gap, cut) {
+    const w = cut ? cut.w : 0;
+    for (let u = 240; u < L.w - 480 - w;) {
+      const x = cut && u >= cut.from ? u + w : u;
       if (!blocked(x)) L.trees.push(makeTree(L.rng, pick(x), x));
-      x += gap(x);
+      u += gap(x);
     }
   }
 
@@ -65,8 +66,8 @@
     for (let rx = -200; rx < L.w * 0.35 + 3200; rx += 60 + rng() * 60) L.ridge.push([rx, GY - 60 - rng() * 60]);
   }
 
-  const WIDE = 440, GAP = 300;
-  const at = (x) => x + (x >= 4170 ? WIDE : 0) + (x >= 8900 ? GAP : 0);
+  const WIDE = 440, SITE = 1500, GAP = 300;
+  const at = (x) => x + (x >= 4170 ? WIDE : 0) + (x >= 4700 ? SITE : 0) + (x >= 8900 ? GAP : 0);
 
   function summer(rng) {
     const L = base('summer', rng);
@@ -120,9 +121,10 @@
       add(L, 'apple', x + 28, { y: GY - 148 });
     });
 
+    const C = ZS.levelKit.clearing(L, at(4700) - SITE, SITE);
     const H = L.hotel;
     L.lift = { x: H.lift, tower: H.lift + 625 };
-    L.checkpoints = [{ key: 'skanzen', x: L.skanzen.gate + 40 }, { key: 'koliba', x: L.salas.to + 60 }];
+    L.checkpoints = [{ key: 'logging', x: C.cp }, { key: 'skanzen', x: L.skanzen.gate + 40 }, { key: 'koliba', x: L.salas.to + 60 }, { key: 'lift', x: H.lift - 120 }];
     const A = ZS.levelKit.alpine.zone(L);
     const blocked = (x) => (x > L.village.from - 40 && x < L.village.to + 40)
       || (x > L.salas.from && x < L.salas.to)
@@ -144,7 +146,7 @@
       if (x > L.park.from) return rng() < 0.7 ? 'smrek' : 'buk';
       const r = rng();
       return r < 0.5 ? 'buk' : r < 0.92 ? 'smrek' : 'breza';
-    }, (x) => (birchGrove(x) ? 85 + rng() * 40 : x >= L.park.to ? 170 + rng() * 110 : 115 + rng() * 85));
+    }, (x) => (birchGrove(x) ? 85 + rng() * 40 : x >= L.park.to ? 170 + rng() * 110 : 115 + rng() * 85), { from: C.from, w: SITE });
     L.trees = L.trees.filter((t) => Math.abs(t.x - at(5950)) > 70 && (t.x < L.corn.from - 50 || t.x > L.corn.to + 40));
     L.trees.push(makeTree(rng, 'buk', at(5950)), makeTree(rng, 'buk', at(7040)), makeTree(rng, 'buk', at(7760)));
     for (const t of L.trees) if (Math.abs(t.x - L.skanzen.tower) < 70) t.x = L.skanzen.tower + 142;
@@ -152,11 +154,12 @@
 
     backTrees(L, (bx) => (bx > L.village.from && bx < L.village.to) || (bx > H.x - H.w / 2 && bx < H.x + H.w / 2)
       || (bx - 55) / 0.85 > A.from + (A.line - A.from) * rng());
+    for (const t of L.backTrees) if ((t.x - 55) / 0.85 > C.from + 60 && (t.x - 55) / 0.85 < C.to - 60) t.dead = true;
 
     scatter(L, (fx) => (fx > L.village.from - 60 && fx < L.village.to + 60)
       || (fx > L.river.from - 40 && fx < L.river.to + 40)
       || (fx > H.x - H.w / 2 - 40 && fx < H.x + H.w / 2 + 160)
-      || Math.abs(fx - L.feeding) < 120 || fx > A.from - 40, 20,
+      || Math.abs(fx - L.feeding) < 120 || (fx > C.x - 40 && fx < C.exit + 40) || fx > A.from - 40, 20,
     (r) => (r < 0.3 ? 'berry' : r < 0.48 ? 'herb' : r < 0.62 ? 'ants' : r < 0.8 ? 'mushroom' : 'nut'));
     honey(L, 7);
     const stand = L.posts[1].x;
@@ -166,7 +169,7 @@
     L.haystacks.push(at(6465));
     L.haystacks.sort((a, b) => a - b);
     L.signs.push(sign(1670, () => S.stand));
-    L.stalls = [{ x: 7230, kind: 'cheese', salas: true }];
+    L.stalls = [{ x: at(6790), kind: 'cheese', salas: true }];
     L.stalls.forEach((s) => add(L, s.kind, s.x));
     [8245, 8365, 8490, 8610].map(at).forEach((fx) => add(L, 'fish', fx, { y: GY + 30, hidden: true, jumpT: 1 + rng() * 3, jump: -1 }));
     L.items.sort((a, b) => a.x - b.x);
@@ -175,7 +178,7 @@
       { kind: 'posed', x: 1900, range: 480 },
       { kind: 'posed', x: at(4560), range: 500 },
       { kind: 'walker', from: 3260, to: 3700 },
-      { kind: 'walker', from: at(4250), to: at(4950) },
+      { kind: 'walker', from: at(4250), to: C.from + 250 },
       { kind: 'walker', from: at(5250), to: at(6650) },
       { kind: 'walker', from: at(9750), to: at(10300) },
       { kind: 'picker', from: 1250, to: 2150 },

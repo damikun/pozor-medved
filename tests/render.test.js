@@ -157,3 +157,43 @@ for (const c of RIDES) {
     assert.deepEqual(problems.slice(0, 5), [], `${problems.length} bad canvas calls`);
   });
 }
+
+const CLEARINGS = [
+  { name: 'landscape 1280x720', width: 1280, height: 720, dpr: 1, seed: 3, time: 130 },
+  { name: 'portrait 390x844', width: 390, height: 844, dpr: 3, seed: 4, time: 250 },
+  { name: 'phone landscape 844x390 on touch', width: 844, height: 390, dpr: 3, seed: 5, time: 130, touch: true },
+  { name: 'phone landscape 932x410 on touch, a bear in the open behind the forester', width: 932, height: 410, dpr: 2, seed: 6, time: 60, touch: true, idle: true },
+];
+
+for (const c of CLEARINGS) {
+  test(`the logging clearing draws cleanly from the door and back, ${c.name}`, () => {
+    const { ZS, g, problems, draw } = stage(Object.assign({ level: 'summer', bot: !c.idle }, c));
+    ZS.dev.bot.reaction = 0.6;
+    g.nextEvent = 1e9;
+    g.time = c.time;
+    g.lives = 99;
+    g.touch = !!c.touch;
+    g.bear.waking = false;
+    g.shooters = []; g.people = [];
+    const D = g.level.clearing;
+    g.bear.x = D.x - 40; g.bear.trackX = D.x - 40;
+    const seen = new Set(), results = new Set();
+    let frames = 0;
+    for (let i = 0; i < 60 * 60 && !g.over; i++) {
+      if (c.idle && !g.cut) ZS.ui.input.press('ArrowRight', true);
+      if (c.idle && g.cut) ZS.ui.input.release('ArrowRight');
+      const f = c.idle && g.cut && g.cut.phase === 'play' && g.cut.forester;
+      if (f && !f.dead) { g.bear.x = Math.max(g.level.logging.from + 40, f.x - 260); g.bear.trackX = g.bear.x; }
+      ZS.sim.loop.step(g, 1 / 60);
+      if (g.cut) { seen.add(g.cut.phase); if (g.cut.aim.result) results.add(g.cut.aim.result); }
+      if (i % 2 === 0) { draw(); frames++; }
+      if (seen.has('back') && !g.cut) break;
+    }
+    ZS.ui.input.release('ArrowRight');
+    for (let i = 0; i < 30; i++) { ZS.sim.loop.step(g, 1 / 60); draw(); }
+    assert.deepEqual([...seen], ['in', 'open', 'play', 'out', 'back']);
+    if (c.idle) assert.ok(results.has('hit'), [...results].join(','));
+    assert.ok(frames > 1000, frames + ' frames');
+    assert.deepEqual(problems.slice(0, 5), [], `${problems.length} bad canvas calls`);
+  });
+}

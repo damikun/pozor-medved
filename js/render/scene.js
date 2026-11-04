@@ -62,6 +62,8 @@
     if (L.lot && span(L.lot.from, L.lot.to, 200)) A.lot(ctx, L.lot, g);
     if (L.fisher && vis(L.fisher.x, 160)) A.fisher(ctx, L.fisher, g);
     if (L.alpine && span(L.alpine.from, L.alpine.to, 400)) ZS.alpineArt.back(ctx, g, vis, span);
+    if (L.logging && span(L.logging.from - 300, L.logging.to + 300, 200)) ZS.loggingArt.back(ctx, g, vis, span, withBear);
+    if (L.clearing) ZS.loggingArt.site(ctx, g, vis, span, withBear);
   }
 
   function treesWithBear(ctx, g, vis, withBear) {
@@ -101,6 +103,10 @@
     else if (r === 'flee') { h.state = 'run'; h.scared = true; }
     else if (r === 'gone') { h.state = o.clutch || o.bolt ? 'run' : 'walk'; h.scared = !!(o.clutch || o.bolt); }
     else if (r === 'fetch') h.state = o.rifle && o.rifle.rest ? 'walk' : 'idle';
+    else if (o.pose && !shooter && o.state !== 'flee') {
+      h.state = o.pose; h.kick = o.kick || 0;
+      if (o.pose === 'film' || o.pose === 'aim') { h.aimAt[0] = o.aim[0]; h.aimAt[1] = o.aim[1]; }
+    }
     else if (shooter) {
       h.scared = o.scaredT > 0;
       h.state = o.scaredT > 0 ? 'run' : o.lock > 0 || o.kick > 0 ? 'aim' : 'walk';
@@ -159,6 +165,7 @@
 
   function cover(g) {
     const b = g.bear, L = g.level;
+    if (b.spot && b.spot.logs) return LABELS.logging.pile;
     if ((b.spot && !b.spot.hay) || L.trees.some((t) => t.hide && Math.abs(t.x - b.x) < t.w / 2 + 40)) return LABELS.hideHint;
     if ((b.spot && b.spot.hay) || L.haystacks.some((x) => Math.abs(x - b.x) < 72)) return LABELS.hayHint;
     if (ZS.sim.lot.inside(L, b.x)) return LABELS.lot.hint;
@@ -202,6 +209,7 @@
     const seat = b.climbing && b.climbing.ladder && b.climbing.phase === 'seat' ? b.climbing : null;
     if (seat) return seat.t > 0.7 && fresh(g, 'ladderDown') ? [tip('ArrowDown', LABELS.ladderDown, 'ladderDown')] : null;
     if (b.reach && !aimed(g)) return interact(g, b.reach);
+    if (!b.act && b.onGround && !b.hiding && !b.climbing && ZS.sim.logging.marked(g, b)) return [use('KeyC', LABELS.logging.rub, 'rub')];
     if (!b.reach && !b.climbing && ZS.sim.ladder.at(g) && fresh(g, 'ladderUp')) return [tip('ArrowUp', LABELS.ladderUp, 'ladderUp')];
     if (b.inCorn && !b.crouch && g.time - b.cornAt < CORN && fresh(g, 'crouch')) return [tip('ArrowDown', LABELS.cornHint, 'crouch')];
     return knock(g, b);
@@ -216,6 +224,7 @@
     if (ladder) P.learn('ladderUp');
     if (w.ladder && !ladder) P.learn('ladderDown');
     if (a && (a.target || a.stall || a.house)) P.learn(a.stall ? 'stall' : a.kind);
+    if (a && a.kind === 'rub' && a.wiped) P.learn('rub');
     w.ground = b.onGround; w.ladder = ladder;
   }
 
@@ -261,7 +270,8 @@
     const b = g.bear;
     for (const d of g.drones) P.drone(ctx, d, g.time);
     const aim = ZS.sim.hunters.aimFactor(g);
-    for (const s of g.shooters) if (!s.react && vis(s.cross, 60) && Math.abs(s.x - b.x) < 1500) P.crosshair(ctx, s, aim, g);
+    if (!g.cut) for (const s of g.shooters) if (!s.react && vis(s.cross, 60) && Math.abs(s.x - b.x) < 1500) P.crosshair(ctx, s, aim, g);
+    if (g.level.logging) ZS.loggingArt.over(ctx, g, viewW, top);
     for (const sh of g.shots) {
       const a = sh.t / 0.3;
       ctx.strokeStyle = 'rgba(255,220,120,' + a + ')'; ctx.lineWidth = 2;
@@ -297,10 +307,13 @@
     ctx.save();
     ctx.translate(0, offY);
     if (zoom) { ctx.translate(zoom.x, zoom.y); ctx.scale(zoom.k, zoom.k); ctx.translate(-zoom.x, -zoom.y); }
-    B.sky(ctx, g, viewW, offY);
-    if (L.alpine) ZS.alpineArt.backdrop(ctx, g, viewW, offY);
-    if (L.slope) ZS.winterArt.slope(ctx, g, viewW, offY);
-    B.backForest(ctx, g, viewW, offY);
+    if (L.stage) ZS.loggingArt.backdrop(ctx, g, viewW, offY);
+    else {
+      B.sky(ctx, g, viewW, offY);
+      if (L.alpine) ZS.alpineArt.backdrop(ctx, g, viewW, offY);
+      if (L.slope) ZS.winterArt.slope(ctx, g, viewW, offY);
+      B.backForest(ctx, g, viewW, offY);
+    }
     ctx.translate(-Math.round(cam), 0);
     B.ground(ctx, cam, viewW, g);
     if (L.alpine) ZS.alpineArt.ground(ctx, g, cam, viewW);
@@ -330,6 +343,7 @@
     if (held && held === g.photographer) ZS.drawPhotographer(ctx, held, g.time);
     else if (held) ZS.drawHuman(ctx, view(g, held, g.shooters.includes(held)), g.time);
     if (!b.climbing) withBear(ZS.drawBearHugFront);
+    if (L.logging || L.clearing) ZS.loggingArt.front(ctx, g, vis);
     penFront(ctx, g, span);
     if (L.alpine && span(L.alpine.from, L.alpine.to, 200)) ZS.alpineArt.front(ctx, g, span);
     if (L.corn && span(L.corn.from, L.corn.to, 140)) ZS.scenery.cornFront(ctx, L.corn, g);
@@ -341,6 +355,7 @@
     drawCue(ctx, g, viewW);
     ctx.restore();
     if (zoom) lift.cover(g, ctx, viewW, offY);
+    if (g.cut) ZS.loggingArt.iris(ctx, g, viewW, offY);
   };
 
   ZS.render.cue = cue;

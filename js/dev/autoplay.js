@@ -97,11 +97,57 @@
     else if (dir < 0) keys.add('ArrowLeft');
   }
 
+  function closest(list, x) {
+    let best = null;
+    for (const t of list) if (!best || Math.abs(t.x - x) < Math.abs(best.x - x)) best = t;
+    return best;
+  }
+
+  function scope(g) {
+    const b = g.bear, c = g.cut, r = c.aim, S = ZS.sim.logging, A = g.level.logging, L = g.level, f = c.forester;
+    const shelter = (x) => ({ kind: 'hide', t: closest(cover(L), x === undefined ? b.x : x) });
+    if (r.state === 'lock' || r.state === 'seek') return shelter();
+    const live = f && !f.dead && f.job !== 'home';
+    const watch = live && f.job !== 'walk' && r.state !== 'done' && c.t >= S.T.aim - 1;
+    if (watch && Math.abs(f.x - b.x) < S.LOOK.range + 80) return shelter();
+    const m = A.machine, marked = A.trees.filter((t) => t.mark && S.standing(g, t) && (!live || t.x < f.x - 60));
+    if (!marked.length) return live ? shelter(f.x - 170) : shelter();
+    return { kind: 'rub', t: m.tree && m.tree.mark && S.standing(g, m.tree) ? m.tree : marked.reduce((a, t) => (t.x < a.x ? t : a)) };
+  }
+
+  function heed(g, plan) {
+    const b = g.bear, keys = g.input.keys, S = ZS.sim.logging, L = g.level;
+    if (!plan) return;
+    let t = plan.t;
+    if (t && !S.standing(g, t)) t = plan.t = closest(cover(L), b.x);
+    if (!t) return;
+    const at = Math.abs(t.x - b.x) < t.w / 2 + 30;
+    if (plan.kind === 'rub' && t.mark) {
+      if (at) { keys.add('KeyC'); return; }
+      keys.add(t.x > b.x ? 'ArrowRight' : 'ArrowLeft');
+      return;
+    }
+    if (at) { keys.add('ArrowDown'); return; }
+    keys.add(t.x > b.x ? 'ArrowRight' : 'ArrowLeft');
+    keys.add('ShiftLeft');
+  }
+
+  function clearing(g, dt) {
+    const keys = g.input.keys, c = g.cut;
+    if (c.phase !== 'play') return;
+    if (bot.mode === 'runner') { keys.add('ShiftLeft'); keys.add('ArrowRight'); return; }
+    const p = c.pilot || (c.pilot = { t: 0, plan: null });
+    p.t -= dt || 0;
+    if (p.t <= 0) { p.t = bot.reaction; p.plan = scope(g); }
+    heed(g, p.plan);
+  }
+
   function autopilot(g, dt) {
     const b = g.bear, L = g.level, keys = g.input.keys;
     const runner = bot.mode === 'runner';
     keys.clear();
     if (g.ride) { swingTo(g, dt); return; }
+    if (g.cut && g.cut.phase !== 'done') { clearing(g, dt); return; }
     const pilot = g.pilot || (g.pilot = { t: 0, danger: 0, wait: 0, bold: 0, alarm: -9 });
     pilot.t -= dt || 0;
     if (pilot.t <= 0) { pilot.t = bot.reaction; pilot.danger = threat(g); }

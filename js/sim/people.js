@@ -57,6 +57,7 @@
         if (Math.abs(p.x - b.x) > 1600 || p.x < -200 || p.x > L.w + 200) p.dead = true;
         continue;
       }
+      if (p.kind === 'forester') { ZS.sim.logging.forester(g, p, dt); continue; }
       if (p.kind === 'tycoon') continue;
       if (p.pause > 0) p.pause -= dt;
       else {

@@ -4,7 +4,7 @@
   const sim = ZS.sim;
 
   function cameraX(g) {
-    return Math.max(0, Math.min(g.level.w - g.viewW, g.bear.x - g.viewW * 0.38));
+    return sim.logging.camera(g, Math.max(0, Math.min(g.level.w - g.viewW, g.bear.x - g.viewW * 0.38)));
   }
 
   function changeSeason(g) {
@@ -21,7 +21,7 @@
         if (si === 2) {
           sim.rules.say(g, NEWS.mushrooms, true);
           const A = g.level.alpine, x = Math.min(A ? A.line - 400 : g.level.w - 600, g.bear.x + 900);
-          if (x > g.bear.x + 300) g.people.push(sim.people.create(g, 'picker', { from: x - 400, to: x + 400 }));
+          if (x > g.bear.x + 300 && !g.level.stage) g.people.push(sim.people.create(g, 'picker', { from: x - 400, to: x + 400 }));
         }
       }
     }
@@ -29,7 +29,7 @@
   }
 
   function updateMeters(g, dt) {
-    if (!g.ride) g.fat = Math.max(0, g.fat - g.def.metabolism * dt * (g.bear.running && g.bear.moving ? 4 : 1));
+    if (!g.ride && !g.cut) g.fat = Math.max(0, g.fat - g.def.metabolism * dt * (g.bear.running && g.bear.moving ? 4 : 1));
     if (g.time - g.lastHuman > 8) g.syn = Math.max(0, g.syn - CFG.SYN_DECAY * dt);
     g.panic = Math.max(0, g.panic - CFG.PANIC_DECAY * dt);
   }
@@ -58,13 +58,28 @@
     sim.rules.tickerStep(g, dt);
   }
 
+  function staged(g, dt) {
+    sim.logging.update(g, dt);
+    if (g.over) return;
+    g.cam = cameraX(g);
+    ZS.fx.update(g, dt, g.viewW);
+    updateMeters(g, dt);
+    sim.politics.escalate(g);
+    sim.politics.randomEvents(g, dt);
+    ageEffects(g, dt);
+    sim.rules.tickerStep(g, dt);
+  }
+
   function step(g, dt) {
     if (g.bot && ZS.dev && ZS.dev.autopilot) ZS.dev.autopilot(g, dt);
     g.time += dt;
     if (!changeSeason(g)) return;
     if (g.ride) { riding(g, dt); return; }
+    if (sim.logging.carried(g)) { staged(g, dt); return; }
     sim.bear.update(g, dt);
+    sim.logging.walls(g);
     if (sim.lift.check(g)) { g.cam = cameraX(g); sim.rules.tickerStep(g, dt); return; }
+    sim.logging.check(g);
     sim.encounters.update(g, dt);
     sim.corn.update(g, dt);
     sim.boar.update(g, dt);
@@ -74,6 +89,8 @@
     g.cam = cameraX(g);
     ZS.fx.update(g, dt, g.viewW);
     sim.hunters.update(g, dt);
+    if (g.over) return;
+    sim.logging.update(g, dt);
     if (g.over) return;
     sim.people.update(g, dt);
     sim.koliba.update(g, dt);

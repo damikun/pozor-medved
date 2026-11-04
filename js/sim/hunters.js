@@ -131,7 +131,7 @@
     const b = g.bear;
     if (g.ride) { b.warn = false; return; }
     const quick = aimFactor(g);
-    const courtPause = g.time < g.courtUntil, calm = g.time < (g.liftCalm || 0);
+    const courtPause = g.time < g.courtUntil, calm = g.time < (g.liftCalm || 0) || ZS.sim.logging.hold(g);
     let aiming = g.shooters.find((s) => s.lock > 0) || null;
     for (const s of g.shooters) {
       s.reload -= dt;

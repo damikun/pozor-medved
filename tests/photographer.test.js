@@ -45,7 +45,7 @@ test('a wildlife photographer lies just beyond the Belá ford, with a stretch of
 test('standing in the river and pressing C, the bear poses with a trout for a long shutter burst that counts like a selfie', async (t) => {
   const s = setup();
   const { ZS, g, b, run, press, said, sounds } = s;
-  b.x = 8920; b.dir = -1;
+  b.x = 10420; b.dir = -1;
   run(0.5);
   const p = g.photographer, x0 = p.x, panic = (g.panic = 40);
 
@@ -108,7 +108,7 @@ test('on land C makes the bear pose too, without a trout or a splash, and a bite
   const s = setup(5);
   const { ZS, g, b, run, press, sounds } = s;
   const p = () => g.photographer;
-  b.x = 9110; b.dir = 1;
+  b.x = 10610; b.dir = 1;
   run(0.2);
   const x0 = p().x;
   let close = false;
@@ -184,11 +184,11 @@ test('the photographer, the poses and the bite draw cleanly on a laptop and on a
   for (const [w, h] of [[1280, 720], [390, 844]]) {
     const s = setup(6, { draw: true, w, h });
     const { g, b, run, press, problems } = s;
-    b.x = 8920; b.dir = 1;
+    b.x = 10420; b.dir = 1;
     run(0.5);
     press('KeyC');
     run(3.2);
-    b.x = 9140; b.dir = 1;
+    b.x = 10640; b.dir = 1;
     g.photographer.readyAt = 0;
     run(0.3);
     press('KeyC');

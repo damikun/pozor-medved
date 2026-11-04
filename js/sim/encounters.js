@@ -24,7 +24,7 @@
     const b = g.bear, P = ZS.sim.pen;
     let best = null, bd = Infinity;
     for (const o of humans(g)) {
-      if (!free(o) || o.leaving || o.hurdle || P.inside(g.level, o.x, 0) || P.between(g.level, b.x, o.x)) continue;
+      if (!free(o) || o.leaving || o.hurdle || o.kind === 'forester' || P.inside(g.level, o.x, 0) || P.between(g.level, b.x, o.x)) continue;
       const dx = o.x - b.x, d = Math.abs(dx);
       if (d > CFG.REACH || (d > 18 && Math.sign(dx) !== b.dir)) continue;
       if (d < bd) { best = o; bd = d; }
@@ -391,7 +391,7 @@
 
   function kept(g, o) {
     const b = g.bear, P = ZS.sim.pen;
-    return !o.post && o.kind !== 'photographer' && free(o) && !o.leaving && !o.dead && !o.hurdle
+    return !o.post && o.kind !== 'photographer' && o.kind !== 'forester' && free(o) && !o.leaving && !o.dead && !o.hurdle
       && !P.inside(g.level, o.x, 0) && !P.between(g.level, b.x, o.x) && Math.abs(o.x - b.x) <= CFG.REACH + LOOSE;
   }
 

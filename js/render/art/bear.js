@@ -108,7 +108,7 @@
   }
 
   const anim = new WeakMap();
-  const modeOf = (b) => (b.climbing ? 'climb' : b.hiding ? (b.hiding.hay ? 'hay' : 'hide') : 'side');
+  const modeOf = (b) => (b.climbing ? 'climb' : b.hiding ? (b.hiding.hay ? 'hay' : b.hiding.logs ? 'logs' : 'hide') : 'side');
   const ramp = (v, target, speed, dt) => v + clamp(target - v, -speed * dt, speed * dt);
   const busy = (b) => (b.act || b.waking || (b.slide || 0) > 0.05 ? 1 : 0);
 
@@ -193,7 +193,7 @@
 
   function enter(s, mode, time, x) {
     if (s.mode === mode) return;
-    if (mode === 'side') { s.from = s.mode; s.dropT = s.mode === 'hay' ? 0 : DROP; }
+    if (mode === 'side') { s.from = s.mode; s.dropT = s.mode === 'hay' || s.mode === 'logs' ? 0 : DROP; }
     if (s.mode === 'hay' && time !== undefined) { s.hayOut = time; s.hayX = x; }
     s.mode = mode;
   }
@@ -353,6 +353,12 @@
     glad: [1.95, 0, 2.1, 1, 2.4, 1, 2.55, 0],
     step: [[0.05, 0.2, 2.25, 2.4], [0.12, 0.28, 2.3, 2.5]],
   };
+  const RUB = {
+    up: [0.02, 0, 0.28, 1],
+    arm: [0.04, 0, 0.2, 1],
+    calm: [0.25, 0, 0.55, 1],
+    step: [[0.04, 0.18, 98, 99], [0.1, 0.24, 98, 99]],
+  };
   const MV = { up: 0, sx: 1, sy: 1, hug: 0, ht: 0, hit: 0, reach: 0, lf: 0, sq: 0, nf: 0, wake: 0, wt: 0, slide: 0, tuck: 0, touch: 0, cy: 0, any: false,
     grab: 0, ph: 0, st: null, dang: 0, o: [0, 0, 0], hn: [0, 0, 0], hf: [0, 0, 0] };
   const put = (v, x, y, a) => { v[0] = x; v[1] = y; v[2] = a; };
@@ -453,6 +459,20 @@
       P.smile = Math.max(P.smile, gl, 0.5 * sp); P.grin = Math.max(P.grin, gl);
       P.held = M.ph > 1.2 ? hold : '';
       P.fill = 1 - smooth((t - 0.7) / 0.25);
+    }
+    if (act === 'rub') {
+      const t = s.at, w = s.ax, u = key(t, RUB.up) * w, bl = key(t, RUB.calm) * w, sh = Math.sin(time * 11), ab = Math.abs(Math.sin(time * 5.5));
+      M.grab = w; M.ht = Math.min(t, 0.9); M.up = u; M.ph = key(t, RUB.arm) * w; M.st = RUB.step; M.reach = 0; M.dang = 1;
+      put(M.o, 12, 6, 0.4);
+      put(M.hn, 22 + 2.4 * sh * bl, -52 + 3 * ab * bl, 0.9);
+      P.pitch = lerp(P.pitch, -1.56 + 0.035 * sh * bl, u);
+      P.by = lerp(P.by, 1.5 - 4.4 * ab * bl, u);
+      P.bx -= 9 * u;
+      P.headA = lerp(P.headA, 1.62 + 0.22 * bl + 0.05 * sh * bl, u);
+      P.headX = lerp(P.headX, -1, u); P.headY = lerp(P.headY, -4, u);
+      P.ears = lerp(P.ears, 0.15, u);
+      P.shut = Math.max(P.shut, 0.95 * bl); P.arc = lerp(P.arc, 1, bl); P.smile = Math.max(P.smile, bl);
+      P.shake += 0.03 * sh * bl;
     }
     if (act === 'pose') {
       const t = s.at, w = s.ax, k = (n) => key(t, POSE[n]) * w, u = k('up'), dp = k('dip'), pr = k('proud'), wv = Math.sin(time * 8);
@@ -1433,9 +1453,9 @@
   };
 
   function hayFace(ctx, b, s, time, k) {
-    const t = b.hiding, f = s.fear, look = clamp(s.side, -1, 1), ht = b.hideT || 0, K = HID;
+    const t = b.hiding, f = s.fear, look = clamp(s.side, -1, 1), ht = b.hideT || 0, K = HID, logs = !!t.logs;
     const tr = f * (Math.sin(time * 47) * 0.45 + Math.sin(time * 29 + 1) * 0.3);
-    const x = t.x + look * 5 + tr, y = GY - 50 + (1 - k) * 9 + Math.sin(time * 1.6) * 0.4;
+    const x = t.x + look * 5 + tr, y = (logs ? t.top - 7 : GY - 50) + (1 - k) * 9 + Math.sin(time * 1.6) * 0.4;
     const u = frac(time / 3.9 + t.shade), shut = u < 0.035 ? Math.sin((Math.PI * u) / 0.035) : 0;
     const tw = Math.pow(Math.max(0, Math.sin(time * 1.3 + t.shade * 5)), 24) * Math.sin(time * 34);
     ctx.save(); ctx.translate(x, y); ctx.scale(1.18, 1.18); ctx.translate(-x, -y);
@@ -1457,6 +1477,7 @@
       }
     }
     ctx.globalAlpha = ga;
+    if (logs) { ctx.restore(); return; }
     ctx.lineCap = 'round';
     for (let i = 0; i < 10; i++) {
       const h = frac(Math.sin((i + 3) * 12.9898) * 43758.5453), h2 = frac(h * 57.3 + 0.21);
@@ -1488,7 +1509,7 @@
   ZS.drawBearInHay = function (ctx, b, time) {
     if (!b.hiding) return;
     const s = track(b, time);
-    enter(s, 'hay');
+    enter(s, b.hiding.logs ? 'logs' : 'hay');
     const k = b.hideT == null ? 1 : clamp(b.hideT / DIVE, 0, 1);
     if (k >= 1) return;
     const e = smooth(k), x = b.hiding.x;

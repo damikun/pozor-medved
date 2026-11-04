@@ -286,6 +286,20 @@
     ctx.globalAlpha = 1; ctx.fill(snow);
   }
 
+  function snag(ctx, t) {
+    const h = t.h * 0.82, w = Math.max(3, t.w * 0.22), top = GY - h;
+    ctx.fillStyle = '#8f877c';
+    ctx.beginPath(); ctx.moveTo(t.x - w, GY); ctx.lineTo(t.x - w * 0.3, top); ctx.lineTo(t.x + w * 0.3, top); ctx.lineTo(t.x + w, GY); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#8f877c'; ctx.lineWidth = 1.4; ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (let i = 1; i < 6; i++) {
+      const y = top + h * i * 0.13, l = t.r * (0.18 + i * 0.07), s = i % 2 ? 1 : -1;
+      ctx.moveTo(t.x, y); ctx.lineTo(t.x + s * l, y + l * 0.45);
+      ctx.moveTo(t.x, y + 6); ctx.lineTo(t.x - s * l * 0.8, y + 6 + l * 0.4);
+    }
+    ctx.stroke();
+  }
+
   function backForest(ctx, g, viewW, offY) {
     if (cold(g)) { winterForest(ctx, g, viewW, offY); return; }
     const px = g.cam * 0.85;
@@ -294,6 +308,7 @@
     ctx.translate(-Math.round(px), 0);
     for (const t of g.level.backTrees) {
       if (t.x < px - 120 || t.x > px + viewW + 120) continue;
+      if (t.dead) { snag(ctx, t); continue; }
       ctx.fillStyle = '#5e574d';
       ctx.fillRect(t.x - t.w / 2, GY - t.h * (t.kind === 'smrek' ? 0.4 : 1), t.w, t.h * (t.kind === 'smrek' ? 0.4 : 1));
       if (t.kind === 'smrek') {

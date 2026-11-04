@@ -136,6 +136,7 @@
     lot: ['Som len ďalší stromček.', 'Jedľa? Nie, medveď. Ale tiež pichám.', 'Kúpte si ma, aj bez bločku.'],
     zap: ['Áu! Kto tu pustil prúd?', 'Ohradník funguje. Na rozdiel od štátu.', 'Aspoň mám zadarmo trvalú.', 'Toto treba preskočiť, nie oňuchať.'],
     hay: ['Som len kopa sena.', 'Ihla v kope sena? Skús medveďa.', 'Šteklí ma to v nose…', 'Minister ráta kopy sena. Mňa nie.'],
+    pile: ['Som len kopa dreva.', 'Kubík navyše. Nikto to nespočíta.', 'Drevo mlčí. Ja tiež.'],
     lift: ['Skipas mám, strelivo nie.', 'Výhľad ako z pohľadnice. Cez mušku.', 'Hojdám sa, teda žijem.', 'Lanovkár, pridaj!'],
     liftTop: ['Hore guláš za 19 €. Idem dole pešo.', 'Horná stanica? Ďakujem, stačilo.', 'Nabudúce radšej kabínkou.'],
     corn: ['Kukuričné bludisko? Môj odbor.', 'Tu ma nenájde ani dron.', 'Diviak hoduje, škodu napíšu mne.', 'Les patrí envirorezortu, kukurica agrorezortu. Ja nikomu.'],
@@ -146,6 +147,8 @@
     tycoon: ['Skipas beriem, lyže nie.', 'Prvá jazda zadarmo? Beriem aj druhú.', 'Ľavý profil, lanovka vzadu.'],
     tipsy: ['Hik! Na zdravie aj ministrovi.', 'Borovička? Každú borievku v lese poznám osobne.', 'Hik! Ešte že nešoférujem.', 'Jedna na cestu. Hik!'],
     knock: ['Dobrý deň, nesiem letáky.', 'Sčítanie medveďov, otvorte!', 'Ťuk-ťuk. Kto je tam? Medveď.', 'Máte cukor? Vrátim.'],
+    logging: ['Svrbí ma to od jari.', 'Toto nie je objatie, to je reklamácia.', 'Oranžová mi nepristane.', 'Strom zachránený, chrbát poškrabaný.'],
+    loggingGate: ['TANAP: medveď je tu doma. Vstup zakázaný.', 'Ťaží sa môj úkryt. Ja počkám.', 'Závora pre medveďa. Konečne niečo funguje.'],
   };
 
   ZS.NEWS = {
@@ -475,6 +478,11 @@
       'Medveď je v kope sena. Rezorty sa hádajú, či je to poľnohospodárska, alebo environmentálna kopa.',
     ],
     hayHit: 'Poľovník strelil do kopy sena. Ministerstvo hlási úspešný zásah proti krmivu.',
+    pile: [
+      'Medveď sa skryl za kopu dreva z kalamity. Ministerstvo: Ťažba úkryty neberie, ťažba ich vyrába.',
+      'Medveď sa krčí za skládkou dreva. Lesníci ho evidujú ako kubík navyše.',
+    ],
+    pileHit: 'Poľovník strelil do kopy dreva. Drevo z kalamity má po novom aj olovo.',
     corn: [
       'Medveď vošiel do kukurice. Agrorezort už vyčísľuje škody, ktoré ešte nevznikli.',
       'Medveď v kukurici. Envirorezort tvrdí, že pole patrí agrorezortu. Agrorezort tvrdí, že medveď patrí envirorezortu.',
@@ -540,12 +548,13 @@
       'Poľovníci vystrieľali na lanovke všetko. Medveď si ani neodopol bezpečnostnú tyč.',
     ],
     liftDrone: 'Armádny dron sprevádza medveďa na lanovke. Skipas nemá ani on.',
-    checkpoint: 'Kontrolný bod: horná stanica lanovky. Stredisko si medveďa zapísalo do knihy návštev.',
-    liftResume: 'Medveď je znova pri hornej stanici lanovky. Stredisko tvrdí, že ho vidí prvý raz.',
+    liftResume: 'Medveď je znova pri dolnej stanici lanovky. Stredisko tvrdí, že ho vidí prvý raz.',
     cp: {
       skanzen: 'Kontrolný bod: Skanzen Pribylina. Múzeum si medveďa zaradilo do stálej expozície.',
       koliba: 'Kontrolný bod: koliba. Bača zapísal medveďa do salašníckej knihy, hneď pod ovce.',
       market: 'Kontrolný bod: vianočné trhy. Mesto vydalo medveďovi trhové povolenie na jeden deň.',
+      logging: 'Kontrolný bod: lesná cesta. Lesníci zapísali medveďa do projektu ťažby – ako prekážku.',
+      lift: 'Kontrolný bod: dolná stanica lanovky. Stredisko si medveďa zapísalo do knihy návštev.',
     },
     cpResume: 'Medveď sa vrátil na kontrolný bod. Ministerstvo hlási druhú vlnu.',
     lot: 'Medveď sa skrýva medzi vianočnými stromčekmi. Ministerstvo nariadilo kontrolu každého stromčeka s cenovkou.',
@@ -598,6 +607,20 @@
         'Promo z dolnej stanice: pán Tatier a medveď so sezónnym skipasom. Stredisko hlási rekordný záujem, minister Strašiak rekordný strach.',
       ],
     },
+    logging: {
+      start: 'Kalamita spracovaná, v lese sa nemá kde skryť. Minister Strašiak: Konečne vidno, koľko ich je.',
+      notPerson: 'Ministerstvo upozorňuje: objatie stromu sa do štatistiky objatí nepočíta. Strom nie je osoba.',
+      felled: 'Harvester zoťal v TANAP-e prvý strom. Minister Strašiak: Každý vyrúbaný strom je o úkryt menej.',
+      hunter: 'Lesník značí stromy na výrub a medveďa na odstrel. Ministerstvo: Je to jeden projekt.',
+      scared: 'Lesník s puškou utiekol z holiny pred medveďom. Ministerstvo: Išlo o plánovaný taktický ústup.',
+      hit: 'Zásah na holine! Minister Strašiak: Medveď stál tam, kde mal byť strom. Problémové správanie.',
+      forester: 'Lesník so sprejom obnovuje zotreté značky. Ministerstvo: Plán ťažby sa nemení, len sa prestrieka.',
+      end: [
+        'Ťažba v TANAP-e skončila. Stromy, ktoré medveď ošúchal, vraj nie sú v projekte. Ministerstvo pripravuje projekt na medveďa.',
+        'Lesník strieľal, medveď šúchal. Zachránené stromy ministerstvo eviduje ako škodu na pláne ťažby.',
+        'Kalamita spracovaná do posledného stromu. Minister Strašiak: Konečne vidno, kde sa medveď neskryje.',
+      ],
+    },
   };
 
   ZS.NEWS_ICON = {
@@ -615,11 +638,12 @@
     cornEaten: '🌽', corn: '🌽', cobEaten: '🌽', cornHit: '🌽', boar: '🐗', sandwichEaten: '🥪', appleEaten: '🍎', tv: '📺',
     koliba: '🍺', haluskyEaten: '🥟', photo: '📸', photoWait: '📷',
     lift: '🚠', liftMiss: '💨', liftHit: '💥', liftTop: '🏔️', liftClean: '🚠', liftDrone: '🚁',
-    checkpoint: '🚩', liftResume: '🚠', cp: '🚩', cpResume: '🔁',
+    liftResume: '🚠', cp: '🚩', cpResume: '🔁', pile: '🪵', pileHit: '🪵',
     lot: '🎄', lotSeller: '🎄', lotTopple: '🎄', lotMiss: '🎄',
     alpine: '🏔️', marmot: '🐿️', chamois: '🐐', porter: '🎒', hut: '🛖', kosodrevina: '🌲', limbaEaten: '🌰', altitude: '📏',
     fisher: '🎣', catchEaten: '🐟', tycoon: '⛷️',
     vendorPour: '🥃', vendorDuck: '🧀', knock: '🚪', cheeseEaten: '🧀', mikulasMap: '🗺️',
+    logging: '🪓',
   };
 
   ZS.LABELS = {
@@ -763,7 +787,6 @@
       banner: 'Lanovka: hojdaj sedačkou',
       dodge: 'uhni',
       arrived: 'Horná stanica!',
-      checkpoint: 'Kontrolný bod: lanovka',
       resumed: 'Znova od lanovky',
       station: 'LANOVKA',
       top: 'HORNÁ STANICA',
@@ -771,7 +794,26 @@
     ticket: 'POKLADŇA',
       price: 'Guláš 19 €',
     },
-    cp: { skanzen: 'Kontrolný bod: skanzen', koliba: 'Kontrolný bod: koliba', market: 'Kontrolný bod: trhy', resumed: 'Znova od kontrolného bodu' },
+    cp: { skanzen: 'Kontrolný bod: skanzen', koliba: 'Kontrolný bod: koliba', market: 'Kontrolný bod: trhy', logging: 'Kontrolný bod: ťažba', lift: 'Kontrolný bod: lanovka', resumed: 'Znova od kontrolného bodu' },
+    logging: {
+      banner: 'Zotri značku zo stromu',
+      rub: 'podrž: zotri značku',
+      duck: 'za strom!',
+      pile: 'za drevo!',
+      pileHit: 'Trafil drevo!',
+      aim: 'Lesník sa obzerá: skry sa za strom či drevo',
+      forester: 'Lesník značí znova: zotri, keď sa nepozerá',
+      scared: 'Ja len značím!',
+      rule: 'Harvester reže len stromy so značkou',
+      wiped: 'Značka zotretá!',
+      notPlan: 'Nie je v projekte.',
+      film: '📱 Medveď na holine!',
+      closed: 'Ťažba – vstup zakázaný',
+      marker: ['Tento ide dole.', 'Projekt je projekt.'],
+      saved: (n, of) => '🌲 Zachránené stromy: ' + n + ' z ' + of,
+      sign: ['ŤAŽBA DREVA', 'VSTUP ZAKÁZANÝ'],
+      notice: ['Kalamita', 'spracovaná'],
+    },
     signs: {
       hide: 'Drž pri hrubom strome',
       climb: 'Drž pri strome = lez hore',
@@ -792,6 +834,7 @@
       winterGoal: 'Tichý brloh →',
       lot: 'Skrč sa medzi stromčeky',
       tatras: 'Vysoké Tatry · TANAP',
+      logging: 'Spracovanie kalamity – pozor, ťažba',
       by: '— minister Strašiak',
     },
   };
@@ -803,7 +846,7 @@
     chooseLevel: 'Vyber si level',
     levelDone: '✓ prejdené',
     levelNew: 'novinka',
-    resumeAt: { skanzen: '🔁 Pokračovať od skanzenu', koliba: '🔁 Pokračovať od koliby', lift: '🔁 Pokračovať od lanovky', market: '🔁 Pokračovať od trhov' },
+    resumeAt: { skanzen: '🔁 Pokračovať od skanzenu', koliba: '🔁 Pokračovať od koliby', lift: '🔁 Pokračovať od lanovky', logging: '🔁 Pokračovať od ťažby', market: '🔁 Pokračovať od trhov' },
     howTo: 'Ako sa hrá',
     tips: {
       walk: 'beh, {ShiftLeft} šprint',
@@ -832,7 +875,7 @@
     keys: { ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓', Space: '␣', KeyC: 'C', KeyX: 'X', ShiftLeft: 'Shift', KeyP: 'P' },
     again: 'Znova',
     retryLift: 'Skúsiť znova od lanovky',
-    retryAt: { skanzen: 'Skúsiť znova od skanzenu', koliba: 'Skúsiť znova od koliby', market: 'Skúsiť znova od trhov' },
+    retryAt: { skanzen: 'Skúsiť znova od skanzenu', koliba: 'Skúsiť znova od koliby', lift: 'Skúsiť znova od lanovky', logging: 'Skúsiť znova od ťažby', market: 'Skúsiť znova od trhov' },
     next: 'Pokračovať do zimy →',
     menu: 'Vybrať level',
     resume: 'Pokračovať',
@@ -843,8 +886,9 @@
     stats: { natural: 'jedlo z lesa', human: 'jedlo od ľudí', seen: 'krát ťa videli', fat: (season) => 'tuku · ' + season.toLowerCase(), hugs: 'objatia', selfies: 'selfie', bites: 'uhryznutia', stomps: 'zvalení poľovníci' },
     hugGoal: (n) => '🤗 ' + (n > 0 ? '✓' : '0/1'),
     bars: { fat: 'Tuk', panic: 'Mediálna panika' },
+    clearing: { saved: 'Zachránené stromy' },
     touch: { left: 'Doľava', right: 'Doprava', hide: 'Schovať sa', jump: 'Skok, lezenie', hug: 'Akcia', bite: 'Kusnúť', pause: 'Pauza',
-      acts: { hide: 'Schovať sa', hidden: 'Skrytý', climb: 'Vyliezť', down: 'Zliezť', hug: 'Objať', selfie: 'Selfie', pose: 'Zapózovať', shake: 'Zatriasť', knock: 'Zaklopať', taste: 'Ochutnať' } },
+      acts: { hide: 'Schovať sa', hidden: 'Skrytý', climb: 'Vyliezť', down: 'Zliezť', hug: 'Objať', selfie: 'Selfie', pose: 'Zapózovať', shake: 'Zatriasť', knock: 'Zaklopať', taste: 'Ochutnať', rub: 'Zotri' } },
     language: 'Jazyk',
     about: 'O hre na GitHube',
     sound: { mute: 'Vypnúť zvuk', unmute: 'Zapnúť zvuk' },

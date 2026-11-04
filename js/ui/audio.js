@@ -8,7 +8,7 @@
   const LEVEL = {
     walk: 0.45, creep: 0.3, run: 0.6, wind: 0.007, windWinter: 0.01, windFrost: 0.014,
     forest: 0.0151, stream: 0.0472, spruce: 0.0166, crickets: 0.0079, bells: 0.0262, church: 0.0312, spray: 0.0615, drone: 0.0388, cable: 0.0141,
-    murmur: 0.0245, market: 0.03, alpine: 0.02,
+    murmur: 0.0245, market: 0.03, alpine: 0.02, machine: 0.05, saw: 0.035, hiss: 0.05,
   };
   const TRIM = {
     'voice.scream.f': 0.0495, 'voice.yell.m': 0.0431, 'voice.gasp.f': 0.0204, 'voice.oof.f': 0.0403, 'voice.oof.m': 0.0389, 'voice.yelp.m': 0.0473,
@@ -70,7 +70,7 @@
   };
 
   let ctx = null, sfx = null, ambBus = null, bedBus = null, verbIn = null, warm = null, out = null;
-  let brown = null, rooms = {}, panOk = false;
+  let brown = null, white = null, rooms = {}, panOk = false;
   let hidden = false, paused = false, sleepT = 0, game = null, beds = null, base = 0, studio = false, loading = false;
   const samples = {}, loops = {}, lastClip = {};
   const ends = new Float64Array(MAX), ambEnds = new Float64Array(AMB_MAX);
@@ -110,6 +110,12 @@
     for (let i = 0; i < n; i++) { last = (last + 0.02 * (rnd() * 2 - 1)) / 1.02; d[i] = last * 3.5; }
     const fade = Math.min(n >> 1, Math.floor(c.sampleRate * 0.01));
     for (let i = 0; i < fade; i++) { const k = i / fade; d[i] *= k; d[n - 1 - i] *= k; }
+    return buf;
+  }
+
+  function hiss(c, seconds) {
+    const n = Math.floor(c.sampleRate * seconds), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = rnd() * 2 - 1;
     return buf;
   }
 
@@ -153,6 +159,7 @@
     ctx = c; sfx = ch.sfx; ambBus = ch.amb; bedBus = ch.beds; verbIn = ch.send; warm = ch.warm;
     panOk = typeof c.createStereoPanner === 'function';
     brown = brown || noise(c, 4);
+    white = white || hiss(c, 1.5);
   }
 
   function build() {
@@ -360,6 +367,7 @@
     climb(x) { play('claw', x, 1); },
     leaves(x) { play('hide.leaves', x, 1); },
     hay(x) { play('hay', x, 1); },
+    pile(x) { play('impact.wood', x, 0.4, { rate: 1.55 }); play('cloth', x, 0.7, { delay: 0.04 }); },
     corn(x, k) {
       const v = 0.35 + 0.45 * (k || 0.6);
       if (rnd() < 0.6) play('corn.rustle', x, v, { rate: rr(0.92, 1.12) });
@@ -435,11 +443,67 @@
       play('scree', x, 0.45, { reach: 1.5, delay: rr(0.35, 0.5), rate: rr(1.1, 1.3) });
     },
     scree(x, k) { play('scree', x, typeof k === 'number' ? clamp(k, 0.2, 1) : 0.8, { reach: 1.5, send: 0.25, rate: rr(0.9, 1.2) }); },
+    gate(x) { play('pylon', x, 0.45, { rate: 1.7, reach: 1.4 }); play('creak', x, 0.35, { rate: 1.35, delay: 0.06, reach: 1.4 }); },
+    rub(x) { play('claw', x, 0.55, { rate: 0.75 }); play('bear.huff', x, 0.45, { rate: 0.85, delay: 0.12 }); },
+    wipe(x) { play('bear.huff', x, 0.85, { rate: 0.8 }); play('hide.leaves', x, 0.4, { rate: 0.75, delay: 0.05 }); },
+    fell(x) { saw(x, 0.55, 1); play('creak', x, 1, { rate: 0.55, delay: 0.3, reach: 1.6 }); },
+    crash(x) {
+      play('crash.wood', x, 1, { rate: 0.68, reach: 1.8, send: 0.25 });
+      play('impact.dirt', x, 0.9, { rate: 0.55, reach: 1.8, delay: 0.02 });
+      play('hide.leaves', x, 0.8, { rate: 0.7, delay: 0.06, reach: 1.6 });
+    },
+    spray,
+    lock(x) { play('gun.cock', x, 1, { reach: 2 }); },
     hut(x) {
       play(rnd() < 0.5 ? 'chat.walla' : 'chat.mumble', x, 0.8, { amb: true, reach: 1.4, send: 0.3, rate: rr(0.94, 1.06) });
       if (rnd() < 0.6) play(rnd() < 0.5 ? 'market.clatter' : 'eat.plate', x, 0.5, { amb: true, reach: 1.4, send: 0.25, delay: rr(0.1, 0.6), rate: rr(1, 1.15) });
     },
   };
+
+  function spray(x, k) {
+    const dur = 0.25 + 0.75 * (k || 1), d = voice('spray', dur + 0.15, x, LEVEL.hiss * 10, { send: 0.04 });
+    if (!d) return;
+    const t = ctx.currentTime + base, s = ctx.createBufferSource(), f = filter('bandpass', 5600, 0.9), h = filter('highpass', 2600, 0.7), g = ctx.createGain();
+    s.buffer = white;
+    g.gain.setValueAtTime(LOW, t);
+    g.gain.linearRampToValueAtTime(0.5, t + 0.03);
+    g.gain.setValueAtTime(0.42, t + dur - 0.06);
+    g.gain.exponentialRampToValueAtTime(LOW, t + dur + 0.08);
+    s.connect(h); h.connect(f); f.connect(g); g.connect(d);
+    s.start(t, rnd() * 0.5); s.stop(t + dur + 0.12);
+    play('impact.wood', x, 0.25, { rate: 2.2, delay: 0.01 });
+  }
+
+  function saw(x, dur, vol) {
+    const d = voice('saw', dur + 0.2, x, vol, { send: 0.08 });
+    if (!d) return;
+    const t = ctx.currentTime + base, g = ctx.createGain(), f = filter('bandpass', 1300, 1.2), lfo = ctx.createOscillator(), lg = ctx.createGain();
+    const a = ctx.createOscillator(), b = ctx.createOscillator();
+    a.type = 'sawtooth'; b.type = 'sawtooth';
+    a.frequency.setValueAtTime(118, t); a.frequency.linearRampToValueAtTime(152, t + 0.18); a.frequency.setValueAtTime(152, t + dur - 0.15); a.frequency.linearRampToValueAtTime(96, t + dur + 0.1);
+    b.frequency.setValueAtTime(121, t); b.frequency.linearRampToValueAtTime(155.5, t + 0.18); b.frequency.setValueAtTime(155.5, t + dur - 0.15); b.frequency.linearRampToValueAtTime(98, t + dur + 0.1);
+    lfo.frequency.value = 31; lg.gain.value = 0.12;
+    g.gain.setValueAtTime(LOW, t);
+    g.gain.linearRampToValueAtTime(0.3, t + 0.06);
+    g.gain.setValueAtTime(0.3, t + dur - 0.05);
+    g.gain.exponentialRampToValueAtTime(LOW, t + dur + 0.12);
+    lfo.connect(lg); lg.connect(g.gain);
+    a.connect(f); b.connect(f); f.connect(g); g.connect(d);
+    for (const o of [a, b, lfo]) { o.start(t); o.stop(t + dur + 0.15); }
+  }
+
+  function makeMachine() {
+    const g = ctx.createGain(), f = filter('lowpass', 240, 1.1), p = panOk ? ctx.createStereoPanner() : null, a = ctx.createOscillator(), b = ctx.createOscillator(), mix = ctx.createGain();
+    const n = ctx.createBufferSource(), nf = filter('lowpass', 420, 0.6), ng = ctx.createGain();
+    a.type = 'sawtooth'; b.type = 'square';
+    a.frequency.value = 44; b.frequency.value = 88.6; mix.gain.value = 0.35;
+    n.buffer = brown; n.loop = true; ng.gain.value = 0.9;
+    g.gain.value = 0;
+    a.connect(f); b.connect(mix); mix.connect(f); n.connect(nf); nf.connect(ng); ng.connect(f); f.connect(g);
+    (p ? (g.connect(p), p) : g).connect(bedBus);
+    a.start(0); b.start(0); n.start(0, rnd() * 3);
+    return { g, p, v: 0, pan: 0, a, b, f, hz: 44 };
+  }
 
   function scurry(x, vol) {
     play(game && game.level.theme === 'winter' ? 'flee.snow' : 'flee.grass', x, vol, { reach: 1.2 });
@@ -811,6 +875,28 @@
     }
   }
 
+  function machineSounds(g, b) {
+    const A = g.level.logging, D = g.level.clearing;
+    let v = 0, x = 0, work = 0, saw0 = false;
+    if (A) {
+      const m = A.machine;
+      x = m.x; work = m.state === 'saw' || m.state === 'strip' || m.state === 'fell' ? 1 : m.state === 'drive' || m.state === 'reach' ? 0.5 : 0;
+      v = m.on ? LEVEL.machine * (0.75 + 0.25 * work) : m.state === 'fell' || m.state === 'strip' ? LEVEL.machine * 0.5 : 0;
+      saw0 = m.state === 'saw';
+      if (g.cut && g.cut.still) v *= 0.35;
+    } else if (D && !g.once.logging && !g.ride) {
+      const d = Math.abs(D.x + 300 - b.x);
+      x = D.x + 300; v = LEVEL.machine * 0.55 * Math.max(0, 1 - d / 1100);
+    }
+    if (!beds.machine && v > 0) beds.machine = makeMachine();
+    const m = beds.machine;
+    if (!m) return;
+    level(m, v, relPan(x), undefined, 0.35);
+    const hz = 44 + 9 * work, t = ctx.currentTime;
+    if (Math.abs(hz - m.hz) > 0.5) { m.hz = hz; m.a.frequency.setTargetAtTime(hz, t, 0.35); m.b.frequency.setTargetAtTime(hz * 2.013, t, 0.35); m.f.frequency.setTargetAtTime(240 + 160 * work, t, 0.35); }
+    if (saw0 && !w.saw) { w.saw = true; saw(x, 0.85, 1.2); } else if (!saw0) w.saw = false;
+  }
+
   function droneSounds(g, b, dt) {
     let near = null;
     if (!g.ride) for (const d of g.drones) if (!near || Math.abs(d.x - b.x) < Math.abs(near.x - b.x)) near = d;
@@ -894,6 +980,7 @@
     if (!w.active) { w.active = true; w.lastX = b.x; w.stepD = 0; }
     walkSounds(g, b, dt);
     rideSounds(g);
+    machineSounds(g, b);
     natureSounds(g, b, dt);
     if (g.ride) { loopLevel('murmur', 0); loopLevel('market', 0); loopLevel('bells', 0); loopLevel('church', 0); return; }
     rummage(g, b, dt);

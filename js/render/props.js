@@ -95,6 +95,7 @@
 
   function trunk(ctx, t, g) {
     if (t.kind === 'limba') { ZS.alpineArt.limbaTrunk(ctx, t, g); return; }
+    if (t.dry) { ZS.loggingArt.trunk(ctx, t, g); return; }
     const W = cold(g) ? B.look(g) : null;
     const top = t.kind === 'smrek' ? GY - t.h * 0.42 : GY - t.h;
     const half = t.w / 2;
@@ -125,6 +126,7 @@
 
   function crown(ctx, t, season, g) {
     if (t.kind === 'limba') { ZS.alpineArt.limbaCrown(ctx, t, season, g); return; }
+    if (t.dry) { ZS.loggingArt.crown(ctx, t, season, g); return; }
     if (cold(g)) { winterCrown(ctx, t, g); return; }
     const key = keyOf(g, season);
     if (t.kind === 'smrek') {

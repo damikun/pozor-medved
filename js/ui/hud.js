@@ -2,10 +2,16 @@
   const { UI } = ZS;
   const $ = (id) => document.getElementById(id);
   const NEWS_HOLD = 2;
-  let levelId = null, reachOn = null, biteOn = null, actOn = null, icons = null, rideOn = null;
+  let levelId = null, reachOn = null, biteOn = null, actOn = null, icons = null, rideOn = null, cutOn = null, treesKey = '';
   const tv = { hold: 0, next: null }, shown = {};
   const JUST = 1.6;
   const TALLY = { hunters: '🎩', stands: '🪜', trees: '🌲', photos: '📸' };
+  const SPRUCE = 'M10 1 17 11h-4l5 7h-6.5v7h-3v-7H2l5-7H3z';
+  const TREE = {
+    ok: `<svg viewBox="0 0 20 26" aria-hidden="true"><path d="${SPRUCE}" fill="#5cb85c"/><path d="M10 1 7 5.6h6z" fill="#9ee09a"/></svg>`,
+    mark: `<svg viewBox="0 0 20 26" aria-hidden="true"><path d="${SPRUCE}" fill="#a39886"/><rect x="4.6" y="12.3" width="10.8" height="3.4" rx="1" fill="#ff7a1a"/></svg>`,
+    cut: '<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M5 25.5v-6h10v6z" fill="#8a6a48"/><ellipse cx="10" cy="19.5" rx="5" ry="1.9" fill="#e7cd9b"/><circle cx="10" cy="19.5" r="0.9" fill="#b48a52"/></svg>',
+  };
   let tally = {};
 
   const TOUCH = { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'hide', ArrowUp: 'jump', KeyC: 'hug', KeyX: 'bite', KeyP: 'pause' };
@@ -23,6 +29,7 @@
       el.setAttribute('aria-label', UI.touch[TOUCH[el.dataset.key]]);
     });
     actOn = undefined;
+    treesKey = '';
     trayRow();
     levelId = null;
   }
@@ -46,9 +53,10 @@
   }
 
   function hidePlaying() {
-    rideOn = null;
-    $('touch').classList.remove('ride');
-    $('hud').classList.remove('ride');
+    rideOn = null; cutOn = null;
+    $('touch').classList.remove('ride', 'cut');
+    $('hud').classList.remove('ride', 'cut');
+    $('trees').hidden = true;
     $('hud').hidden = true;
     $('ticker').hidden = true;
     setTouch(false);
@@ -64,7 +72,7 @@
     const b = g.bear;
     bar('barFat', g.fat);
     bar('barPanic', g.panic);
-    bar('barTrip', Math.min(100, (b.x / g.level.goalDen) * 100));
+    bar('barTrip', Math.min(100, ZS.sim.logging.trip(g) * 100));
     hearts(g);
     counts(g);
     const free = !g.over && !g.ride, kind = free ? actOf(g, b) : null, reach = !!kind;
@@ -74,6 +82,18 @@
     if (bite !== biteOn) { biteOn = bite; $('bite').classList.toggle('on', bite); }
     const ride = !!g.ride && !g.over;
     if (ride !== rideOn) { rideOn = ride; $('touch').classList.toggle('ride', ride); $('hud').classList.toggle('ride', ride); }
+    trees(g);
+  }
+
+  function trees(g) {
+    const led = ZS.sim.logging.ledger(g), on = !!led;
+    if (on !== cutOn) { cutOn = on; $('hud').classList.toggle('cut', on); $('touch').classList.toggle('cut', on); $('trees').hidden = !on; treesKey = ''; }
+    if (!on) return;
+    const key = led.state.join() + UI.clearing.saved;
+    if (key === treesKey) return;
+    treesKey = key;
+    $('trees').innerHTML = `<div class="count"><b>${led.saved}<small>/${led.of}</small></b><span>${UI.clearing.saved}</span></div>`
+      + `<div class="row">${led.state.map((s) => `<i class="${s}">${TREE[s]}</i>`).join('')}</div>`;
   }
 
   function dress(kind) {
@@ -89,6 +109,7 @@
     if (b.hiding) return 'hidden';
     if (c) return c.ladder && c.phase === 'seat' ? 'down' : null;
     if (o) return o.post ? 'shake' : o.kind === 'photographer' ? 'pose' : o.kind === 'tourist' || (o.kind === 'tycoon' && !o.promo) ? 'selfie' : 'hug';
+    if ((!b.act || b.act.kind === 'rub') && b.onGround && ZS.sim.logging.marked(g, b)) return 'rub';
     if (k && k.kind !== 'stall') return 'knock';
     if (k) {
       const it = g.level.items.find((i) => i.type === k.o.kind && Math.abs(i.x - k.o.x) < 1);

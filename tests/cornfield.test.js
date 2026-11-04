@@ -40,7 +40,8 @@ test('the cornfield grows between Dolný Strach and the feeding station, with th
   assert.equal(L.feeding, 4760);
   assert.ok(L.posts.some((p) => p.x === 5000));
   assert.ok(L.spawns.some((s) => s.kind === 'posed' && s.x === 5000 && s.range === 500));
-  assert.equal(L.skanzen.from, 5220);
+  assert.equal(L.skanzen.from, 6720, 'the skanzen comes after the logging area');
+  assert.ok(L.clearing.from > L.posts[1].x && L.clearing.to < L.skanzen.from, 'the logging area lies between the stand and the skanzen');
   assert.ok(!L.trees.some((t) => t.x > F.from - 50 && t.x < F.to + 40), 'no tree grows in the corn');
   assert.ok(!L.logs.some((l) => l.x + l.w / 2 > F.from && l.x - l.w / 2 < F.to), 'no log lies in the corn');
   const cobs = L.items.filter((it) => it.type === 'cob');

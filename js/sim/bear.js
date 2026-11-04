@@ -28,7 +28,7 @@
   }
 
   function spots(L) {
-    return L.coverSpots || (L.coverSpots = L.trees.filter((t) => t.hide).concat(hayOf(L)).sort((a, b) => a.x - b.x));
+    return L.coverSpots || (L.coverSpots = L.trees.filter((t) => t.hide).concat(hayOf(L), (L.covers || []).filter((c) => c.hide)).sort((a, b) => a.x - b.x));
   }
 
   function nearest(list, b, held) {
@@ -105,12 +105,12 @@
   }
 
   function startHiding(g, b, t) {
-    b.pose = t.hay ? 'hay' : !t.hide ? 'sweat' : ZS.POSES[Math.floor(t.shade * ZS.POSES.length) % ZS.POSES.length];
+    b.pose = t.hay ? 'hay' : t.logs ? 'pile' : !t.hide ? 'sweat' : ZS.POSES[Math.floor(t.shade * ZS.POSES.length) % ZS.POSES.length];
     b.hideT = 0;
-    rules().onSound(g, t.hay ? 'hay' : 'leaves', t.x);
+    rules().onSound(g, t.hay ? 'hay' : t.logs ? 'pile' : 'leaves', t.x);
     if (t.hide && g.time - (g.hideSaid || -99) > 45 && g.shooters.some((s) => Math.abs(s.x - b.x) < 700)) {
       g.hideSaid = g.time;
-      rules().say(g, t.hay ? NEWS.hay : NEWS.hide);
+      rules().say(g, t.hay ? NEWS.hay : t.logs ? NEWS.pile : NEWS.hide);
     }
     if (b.quipCd <= 0) {
       const list = ZS.QUIPS[t.hide ? b.pose : 'birch'];
@@ -128,8 +128,8 @@
     b.sweatT -= dt;
     if ((b.pose === 'sweat' || b.danger) && b.sweatT <= 0) {
       b.sweatT = 0.12;
-      const side = Math.random() < 0.5 ? -1 : 1, hay = !!b.hiding.hay;
-      g.particles.push({ x: b.x + side * (hay ? 13 : 20), y: GY - (hay ? 62 : 134), vx: side * (40 + Math.random() * 60), vy: -60 - Math.random() * 60, t: 0.8, color: '#5bc0eb', round: true });
+      const side = Math.random() < 0.5 ? -1 : 1, hay = !!b.hiding.hay || !!b.hiding.logs;
+      g.particles.push({ x: b.x + side * (hay ? 13 : 20), y: hay ? (b.hiding.top || GY - 50) - 12 : GY - 134, vx: side * (40 + Math.random() * 60), vy: -60 - Math.random() * 60, t: 0.8, color: '#5bc0eb', round: true });
     }
   }
 
@@ -373,6 +373,14 @@
     if (b.act.target) E.begin(g, b.act);
   }
 
+  function rub(g, b) {
+    const a = ZS.sim.logging.act(g, b);
+    if (!a) return;
+    b.act = a; b.dir = a.dir;
+    b.moving = false; b.running = false; b.crouch = false; b.eating = false; b.eatT = 0; b.vx = 0;
+    rules().onSound(g, 'rub', a.tree.x);
+  }
+
   function pushOff(g, b, dt) {
     if (!b.push) return;
     if (b.climbing || b.hiding || b.act || b.stun > 0) { b.push = 0; return; }
@@ -416,6 +424,7 @@
 
     if (b.act && (b.act.t += dt) >= b.act.dur) b.act = b.act.next || null;
     if (!b.act && !b.stun && (bite || hug) && b.onGround && !b.hiding && !underRoof(g.level, b)) startAct(g, b, bite ? 'bite' : 'hug');
+    if (!b.act && !b.stun && b.onGround && !b.hiding && !left && !right && !hide && !up && (keys.has('KeyC') || keys.has('KeyO'))) rub(g, b);
     if (b.stun > 0) {
       stunned(g, b, dt);
     } else if (b.act) {
