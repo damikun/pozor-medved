@@ -1,92 +1,200 @@
 (function () {
   const { CFG, LABELS, NEWS } = ZS;
-  const GY = CFG.GROUND;
+  const GROUND = CFG.GROUND;
   const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
   const pen = () => ZS.sim.pen;
+
   const SPEED = { tourist: 25, santa: 22, picker: 35 };
   const SHY = { picker: 'pickerSeen', santa: 'santaSeen' };
 
-  function create(g, kind, o) {
-    const p = Object.assign({
-      kind, x: (o.from + o.to) / 2, dir: 1, speed: SPEED[kind] || 30, state: 'walk', pause: 0, filmCd: 0, dropCd: 8,
+  const WALK = {
+    defaultSpeed: 30,
+    shortestBeat: 200,
+    waitAtBeatEnd: 2,
+  };
+
+  const FLEE = {
+    leaveSpeedUp: 1.4,
+    bittenSpeed: 170,
+    runSpeed: 210,
+    goneBeyond: 1600,
+    offLevel: 200,
+  };
+
+  const SIGHT = {
+    around: 110,
+    ahead: 300,
+    touristAhead: 380,
+    hidingBearWithin: 55,
+  };
+
+  const ALARM = {
+    shyPanic: 8,
+    filmPanic: 12,
+    labelHeight: 100,
+  };
+
+  const SANDWICH = {
+    firstDropAfter: 8,
+    dropEvery: 18,
+    mostLyingAround: 3,
+    dropAhead: 30,
+    fenceMargin: 40,
+  };
+
+  function create(game, kind, options) {
+    const person = Object.assign({
+      kind, x: (options.from + options.to) / 2, dir: 1, speed: SPEED[kind] || WALK.defaultSpeed,
+      state: 'walk', pause: 0, filmCd: 0, dropCd: SANDWICH.firstDropAfter,
       react: null, reactT: 0, empty: false, clutch: false, hurdle: null,
-    }, o);
-    if (o.from !== o.to) { pen().range(g && g.level, p, pen().KEEP.person, 200); ZS.sim.corn.range(g && g.level, p, undefined, 200); }
-    if (kind === 'tycoon') ZS.sim.tycoon.init(p);
-    return p;
+    }, options);
+    if (options.from !== options.to) keepBeatOutsideFences(game && game.level, person);
+    if (kind === 'tycoon') ZS.sim.tycoon.init(person);
+    return person;
   }
 
-  function flee(g, p, dt) {
-    const P = pen(), L = g.level;
-    if (p.hurdle) { P.hurdleStep(p, dt); return; }
-    const v = p.leaving ? p.speed * 1.4 : (p.clutch ? 170 : 210) * (P.inside(L, p.x, 0) ? P.HURDLE.inside : 1);
-    const nx = p.x + p.dir * v * dt;
-    if (p.leaving) {
-      const hx = ZS.sim.corn.hold(L, p.x, P.hold(L, p.x, nx, P.KEEP.person));
-      if (hx !== nx) p.dir *= -1;
-      p.x = hx;
+  function keepBeatOutsideFences(level, person) {
+    pen().range(level, person, pen().KEEP.person, WALK.shortestBeat);
+    ZS.sim.corn.range(level, person, undefined, WALK.shortestBeat);
+  }
+
+  function update(game, dt) {
+    for (const person of game.people) updatePerson(game, person, dt);
+    game.people = game.people.filter((person) => !person.dead);
+  }
+
+  function updatePerson(game, person, dt) {
+    person.filmCd -= dt;
+    person.dropCd -= dt;
+    if (person.kind === 'tycoon') ZS.sim.tycoon.update(game, person, dt);
+    if (person.react) playReaction(game, person, dt);
+    else if (person.state === 'flee' || person.leaving || person.hurdle) fleeUntilGone(game, person, dt);
+    else if (person.kind === 'forester') ZS.sim.logging.forester(game, person, dt);
+    else if (person.kind !== 'tycoon') goAboutBusiness(game, person, dt);
+  }
+
+  function playReaction(game, person, dt) {
+    const previousX = person.x;
+    ZS.sim.encounters.reactPerson(game, person, dt);
+    person.x = ZS.sim.corn.hold(game.level, previousX, person.x);
+  }
+
+  function fleeUntilGone(game, person, dt) {
+    flee(game, person, dt);
+    if (farEnoughAway(game, person)) person.dead = true;
+  }
+
+  function farEnoughAway(game, person) {
+    return Math.abs(person.x - game.bear.x) > FLEE.goneBeyond
+      || person.x < -FLEE.offLevel
+      || person.x > game.level.w + FLEE.offLevel;
+  }
+
+  function flee(game, person, dt) {
+    if (person.hurdle) {
+      pen().hurdleStep(person, dt);
       return;
     }
-    const fx = P.ahead(L, p.x, p.dir);
-    if (fx !== null && Math.abs(fx - nx) <= P.HURDLE.reach) { P.hurdleAt(p, fx, p.dir); P.hurdleStep(p, dt); return; }
-    const cx = ZS.sim.corn.hold(L, p.x, nx);
-    if (cx !== nx) p.dir *= -1;
-    p.x = cx;
+    const level = game.level;
+    const nextX = person.x + person.dir * fleeSpeed(level, person) * dt;
+    if (person.leaving) walkOff(level, person, nextX);
+    else runOrHurdle(level, person, nextX, dt);
   }
 
-  function crumbs(L, p) {
-    let x = p.x + 30 * p.dir;
-    if (pen().inside(L, x, 40)) x = p.x - 30 * p.dir;
-    return x;
+  function fleeSpeed(level, person) {
+    if (person.leaving) return person.speed * FLEE.leaveSpeedUp;
+    const speed = person.clutch ? FLEE.bittenSpeed : FLEE.runSpeed;
+    return speed * (pen().inside(level, person.x, 0) ? pen().HURDLE.inside : 1);
   }
 
-  function update(g, dt) {
-    const b = g.bear, L = g.level;
-    for (const p of g.people) {
-      p.filmCd -= dt; p.dropCd -= dt;
-      if (p.kind === 'tycoon') ZS.sim.tycoon.update(g, p, dt);
-      if (p.react) {
-        const x0 = p.x;
-        ZS.sim.encounters.reactPerson(g, p, dt);
-        p.x = ZS.sim.corn.hold(L, x0, p.x);
-        continue;
-      }
-      if (p.state === 'flee' || p.leaving || p.hurdle) {
-        flee(g, p, dt);
-        if (Math.abs(p.x - b.x) > 1600 || p.x < -200 || p.x > L.w + 200) p.dead = true;
-        continue;
-      }
-      if (p.kind === 'forester') { ZS.sim.logging.forester(g, p, dt); continue; }
-      if (p.kind === 'tycoon') continue;
-      if (p.pause > 0) p.pause -= dt;
-      else {
-        const nx = p.x + p.dir * p.speed * dt, hx = ZS.sim.corn.hold(L, p.x, pen().hold(L, p.x, nx, pen().KEEP.person));
-        p.x = hx;
-        if (hx !== nx || p.x < p.from || p.x > p.to) { p.dir *= -1; p.x = clamp(p.x, p.from, p.to); p.pause = 2; }
-      }
-      const d = Math.abs(b.x - p.x);
-      const ahead = Math.sign(b.x - p.x) === p.dir;
-      const sees = (!b.covered || (b.hiding && d < 55)) && (d < 110 || (ahead && d < (p.kind === 'tourist' ? 380 : 300)));
-      if (sees && SHY[p.kind]) {
-        p.state = 'flee';
-        p.dir = Math.sign(p.x - b.x) || 1;
-        rules().addPanic(g, 8, NEWS[SHY[p.kind]]);
-        rules().spotted(g, p.x, GY - 100, LABELS.pickerSeen);
-        ZS.sim.hunters.alert(g, b.x);
-      } else if (sees && p.filmCd <= 0) {
-        p.filmCd = Infinity;
-        rules().addPanic(g, 12, NEWS.touristSeen);
-        rules().spotted(g, p.x, GY - 100, LABELS.touristFilm);
-      }
-      if (p.kind === 'tourist' && p.dropCd <= 0) {
-        p.dropCd = 18;
-        if (L.items.filter((it) => it.type === 'sandwich' && !it.eaten).length < 3) {
-          L.items.push({ type: 'sandwich', x: crumbs(L, p), eaten: false, locked: false });
-        }
-      }
+  function walkOff(level, person, nextX) {
+    stepOrTurnBack(person, nextX, stopAtFencesAndCorn(level, person.x, nextX));
+  }
+
+  function runOrHurdle(level, person, nextX, dt) {
+    const fence = pen().ahead(level, person.x, person.dir);
+    if (fence !== null && Math.abs(fence - nextX) <= pen().HURDLE.reach) {
+      pen().hurdleAt(person, fence, person.dir);
+      pen().hurdleStep(person, dt);
+      return;
     }
-    g.people = g.people.filter((p) => !p.dead);
+    stepOrTurnBack(person, nextX, ZS.sim.corn.hold(level, person.x, nextX));
+  }
+
+  function stepOrTurnBack(person, wantedX, allowedX) {
+    if (allowedX !== wantedX) person.dir *= -1;
+    person.x = allowedX;
+  }
+
+  function stopAtFencesAndCorn(level, fromX, toX) {
+    return ZS.sim.corn.hold(level, fromX, pen().hold(level, fromX, toX, pen().KEEP.person));
+  }
+
+  function goAboutBusiness(game, person, dt) {
+    if (person.pause > 0) person.pause -= dt;
+    else walkBeat(game.level, person, dt);
+    reactToBear(game, person);
+    if (person.kind === 'tourist' && person.dropCd <= 0) dropSandwich(game.level, person);
+  }
+
+  function walkBeat(level, person, dt) {
+    const nextX = person.x + person.dir * person.speed * dt;
+    const allowedX = stopAtFencesAndCorn(level, person.x, nextX);
+    person.x = allowedX;
+    if (allowedX !== nextX || person.x < person.from || person.x > person.to) turnAtBeatEnd(person);
+  }
+
+  function turnAtBeatEnd(person) {
+    person.dir *= -1;
+    person.x = clamp(person.x, person.from, person.to);
+    person.pause = WALK.waitAtBeatEnd;
+  }
+
+  function reactToBear(game, person) {
+    if (!seesBear(game.bear, person)) return;
+    if (SHY[person.kind]) runOffScared(game, person);
+    else if (person.filmCd <= 0) startFilming(game, person);
+  }
+
+  function seesBear(bear, person) {
+    const distance = Math.abs(bear.x - person.x);
+    const bearAhead = Math.sign(bear.x - person.x) === person.dir;
+    const inView = !bear.covered || (bear.hiding && distance < SIGHT.hidingBearWithin);
+    const aheadRange = person.kind === 'tourist' ? SIGHT.touristAhead : SIGHT.ahead;
+    return inView && (distance < SIGHT.around || (bearAhead && distance < aheadRange));
+  }
+
+  function runOffScared(game, person) {
+    const bear = game.bear;
+    person.state = 'flee';
+    person.dir = Math.sign(person.x - bear.x) || 1;
+    rules().addPanic(game, ALARM.shyPanic, NEWS[SHY[person.kind]]);
+    rules().spotted(game, person.x, GROUND - ALARM.labelHeight, LABELS.pickerSeen);
+    ZS.sim.hunters.alert(game, bear.x);
+  }
+
+  function startFilming(game, person) {
+    person.filmCd = Infinity;
+    rules().addPanic(game, ALARM.filmPanic, NEWS.touristSeen);
+    rules().spotted(game, person.x, GROUND - ALARM.labelHeight, LABELS.touristFilm);
+  }
+
+  function dropSandwich(level, person) {
+    person.dropCd = SANDWICH.dropEvery;
+    if (sandwichesLyingAround(level) < SANDWICH.mostLyingAround) {
+      level.items.push({ type: 'sandwich', x: sandwichDropX(level, person), eaten: false, locked: false });
+    }
+  }
+
+  function sandwichesLyingAround(level) {
+    return level.items.filter((item) => item.type === 'sandwich' && !item.eaten).length;
+  }
+
+  function sandwichDropX(level, person) {
+    const inFront = person.x + SANDWICH.dropAhead * person.dir;
+    if (pen().inside(level, inFront, SANDWICH.fenceMargin)) return person.x - SANDWICH.dropAhead * person.dir;
+    return inFront;
   }
 
   ZS.sim = ZS.sim || {};

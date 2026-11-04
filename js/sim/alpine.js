@@ -1,225 +1,652 @@
 (function () {
   const { CFG, COLORS, LABELS, NEWS } = ZS;
-  const GY = CFG.GROUND;
+  const GROUND = CFG.GROUND;
   const rules = () => ZS.sim.rules;
+
   const MARMOT = { see: 250, sneak: 115, calm: 320, alarm: 0.6, dive: 0.3, hide: 2.6, peek: 2.4, rise: 0.5 };
   const CHAMOIS = { see: 320, sneak: 160, far: 820, leap: 0.5, rest: 5 };
   const PORTER = { up: 22, down: 44, unload: 7, load: 5, near: 120, said: 14 };
-  const HUT = { see: 340, panic: 5, hear: 700 };
-  const SCREE = 1.6;
 
-  function rnd(o) {
-    o.seed = (o.seed * 16807) % 2147483647;
-    return (o.seed - 1) / 2147483646;
+  const LONG_AGO = -99;
+  const NEWS_REPEAT_AFTER = 45;
+  const THICKET_MARGIN = 12;
+  const RUNNING_VISIBILITY = 1.3;
+
+  const RANDOM = {
+    multiplier: 16807,
+    modulus: 2147483647,
+    range: 2147483646,
+  };
+
+  const SEED = {
+    marmot: 7919,
+    marmotOffset: 3,
+    chamois: 4111,
+    chamoisOffset: 2,
+    terrace: 7577,
+  };
+
+  const START = {
+    marmotWait: 1,
+    marmotWaitStep: 1.7,
+    chamoisWait: 1.2,
+    chamoisWaitStep: 0.9,
+    chamoisStandAside: 6,
+    chamoisLandAside: 7,
+    porterAlongTrail: 0.18,
+  };
+
+  const LABEL_HEIGHT = {
+    whistle: 62,
+    snort: 120,
+    porter: 150,
+    terrace: 170,
+    cover: 110,
+  };
+
+  const BASKING = {
+    poseShortest: 2,
+    poseExtra: 4,
+    turnChance: 0.4,
+    afterPeekShortest: 2.5,
+    afterPeekExtra: 2,
+  };
+
+  const WHISTLE = {
+    sitUpAtLeast: 0.6,
+    heardWithin: 420,
+    echoShortest: 0.2,
+    echoExtra: 0.35,
+    quietFor: 3,
+  };
+
+  const BURROW = {
+    holdWhileBearNear: 0.5,
+    peekHeight: 0.42,
+    peekEase: 6,
+    peekSight: 0.8,
+  };
+
+  const HERD = {
+    grazeShortest: 2,
+    grazeExtra: 3,
+    leaderStare: 0.35,
+    stareShortest: 0.3,
+    stareExtra: 0.45,
+    followerStare: 0.35,
+    followerStareExtra: 0.5,
+    skipChance: 0.3,
+    homeGrazeShortest: 1,
+    homeGrazeExtra: 2,
+  };
+
+  const LEAP = {
+    homewardDuration: 0.62,
+    paceFrom: 0.92,
+    paceSpread: 0.16,
+    clearance: 14,
+    risePerWidth: 0.14,
+    fleeCrouch: 0.06,
+    fleeCrouchExtra: 0.12,
+    homewardCrouch: 0.5,
+    homewardCrouchExtra: 0.6,
+  };
+
+  const HUT = {
+    see: 340,
+    hear: 700,
+    panic: 5,
+    chatShortest: 6,
+    chatExtra: 4,
+    terraceOffset: 210,
+    labelOffset: 60,
+    alarmRise: 2.5,
+    alarmFade: 0.4,
+  };
+
+  const SCREE = {
+    quietFor: 1.6,
+    hooves: 0.6,
+    offSlab: 0.8,
+    running: 0.5,
+  };
+
+  const SLAB = {
+    reach: 10,
+    standsAbove: 4,
+    stepsDown: 0.5,
+  };
+
+  function seededRandom(owner) {
+    owner.seed = (owner.seed * RANDOM.multiplier) % RANDOM.modulus;
+    return (owner.seed - 1) / RANDOM.range;
   }
 
-  function thicket(L, x) {
-    const A = L && L.alpine;
-    return !!A && A.thickets.some((t) => x > t[0] - 12 && x < t[1] + 12);
+  function inThicket(level, x) {
+    const zone = level && level.alpine;
+    if (!zone) return false;
+    return zone.thickets.some((thicket) => x > thicket[0] - THICKET_MARGIN && x < thicket[1] + THICKET_MARGIN);
   }
 
-  function route(A) {
-    return A.crag.ledges.concat(A.crag.perch);
+  function cragRoute(zone) {
+    return zone.crag.ledges.concat(zone.crag.perch);
   }
 
-  function create(L) {
-    const A = L.alpine, R = route(A), n = A.crag.ledges.length;
+  function create(level) {
+    const zone = level.alpine;
     return {
-      marmots: A.marmots.map((m, i) => ({ id: 'marmot' + i, x: m.x, h: m.h, dir: i % 2 ? -1 : 1, state: 'sit', pose: 'sit', t: 1 + i * 1.7, k: 1, seed: 7919 * (i + 3), whistleAt: -99 })),
-      chamois: R.slice(0, n).map((p, i) => ({
-        id: 'chamois' + i, x: p[0] + (i % 2 ? 6 : -6), h: p[1], at: i, home: i, top: n + (i % A.crag.perch.length), dir: i % 2 ? 1 : -1,
-        state: 'graze', t: 1.2 + i * 0.9, leap: null, seed: 4111 * (i + 2), kid: i === n - 1, off: (i % 2 ? 7 : -7), calm: 0, snortAt: -99,
-      })),
-      porter: { id: 'porter', x: A.porter.from + (A.porter.to - A.porter.from) * 0.18, dir: 1, state: 'up', t: 0, load: true, saidAt: -99, met: false },
-      hut: { alarm: 0, seen: false, chat: 0, seed: 7577 },
-      said: {}, screeAt: -99,
+      marmots: zone.marmots.map(newMarmot),
+      chamois: zone.crag.ledges.map((ledge, index) => newChamois(zone, ledge, index)),
+      porter: newPorter(zone.porter),
+      hut: { alarm: 0, seen: false, chat: 0, seed: SEED.terrace },
+      said: {},
+      screeAt: LONG_AGO,
     };
   }
 
-  function sees(b, d, see, sneak) {
-    return !b.covered && d < (b.crouch && !b.running ? sneak : b.running && b.moving ? see * 1.3 : see);
+  function newMarmot(rock, index) {
+    return {
+      id: 'marmot' + index,
+      x: rock.x,
+      h: rock.h,
+      dir: index % 2 ? -1 : 1,
+      state: 'sit',
+      pose: 'sit',
+      t: START.marmotWait + index * START.marmotWaitStep,
+      k: 1,
+      seed: SEED.marmot * (index + SEED.marmotOffset),
+      whistleAt: LONG_AGO,
+    };
   }
 
-  function whistle(g, m, lead) {
-    const b = g.bear, A = g.alpine;
-    m.state = 'alarm'; m.pose = 'sit'; m.k = Math.max(m.k, 0.6);
-    m.t = MARMOT.alarm + (lead ? 0 : 0.2 + rnd(m) * 0.35);
-    m.dir = Math.sign(b.x - m.x) || m.dir;
-    if (!lead) return;
-    m.whistleAt = g.time;
-    rules().onSound(g, 'marmot', m.x);
-    rules().float(g, m.x, GY - m.h - 62, LABELS.alpine.whistle, COLORS.story);
-    if (!(g.time - A.said.marmot < 45)) { A.said.marmot = g.time; rules().say(g, NEWS.marmot); }
-    for (const o of A.marmots) if (o !== m && Math.abs(o.x - m.x) < 420 && (o.state === 'sit' || o.state === 'graze')) whistle(g, o, false);
+  function newChamois(zone, ledge, index) {
+    const ledgeCount = zone.crag.ledges.length;
+    return {
+      id: 'chamois' + index,
+      x: ledge[0] + (index % 2 ? START.chamoisStandAside : -START.chamoisStandAside),
+      h: ledge[1],
+      at: index,
+      home: index,
+      top: ledgeCount + (index % zone.crag.perch.length),
+      dir: index % 2 ? 1 : -1,
+      state: 'graze',
+      t: START.chamoisWait + index * START.chamoisWaitStep,
+      leap: null,
+      seed: SEED.chamois * (index + SEED.chamoisOffset),
+      kid: index === ledgeCount - 1,
+      off: index % 2 ? START.chamoisLandAside : -START.chamoisLandAside,
+      calm: 0,
+      snortAt: LONG_AGO,
+    };
   }
 
-  function marmot(g, m, dt) {
-    const b = g.bear, d = Math.abs(b.x - m.x), threat = !g.ride && sees(b, d, MARMOT.see, MARMOT.sneak);
-    m.t -= dt;
-    if (m.state === 'sit' || m.state === 'graze') {
-      m.k = Math.min(1, m.k + dt / MARMOT.rise);
-      if (threat) { whistle(g, m, true); return; }
-      if (m.t <= 0) { m.state = m.state === 'sit' ? 'graze' : 'sit'; m.pose = m.state; m.t = 2 + rnd(m) * 4; if (rnd(m) < 0.4) m.dir *= -1; }
-    } else if (m.state === 'alarm') {
-      m.k = Math.min(1, m.k + dt / MARMOT.rise);
-      if (m.t <= 0) { m.state = 'dive'; m.t = 0; }
-    } else if (m.state === 'dive') {
-      m.k = Math.max(0, m.k - dt / MARMOT.dive);
-      if (m.k <= 0) { m.state = 'hidden'; m.t = MARMOT.hide + rnd(m); }
-    } else if (m.state === 'hidden') {
-      if (d < MARMOT.calm && !b.covered) m.t = Math.max(m.t, MARMOT.hide * 0.5);
-      if (m.t <= 0) { m.state = 'peek'; m.t = MARMOT.peek + rnd(m); }
-    } else if (m.state === 'peek') {
-      m.k += (0.42 - m.k) * Math.min(1, dt * 6);
-      m.dir = Math.sign(b.x - m.x) || m.dir;
-      if (threat && d < MARMOT.see * 0.8) { m.state = 'dive'; if (g.time - m.whistleAt > 3) { m.whistleAt = g.time; rules().onSound(g, 'marmot', m.x, 'short'); } return; }
-      if (m.t <= 0) { m.state = 'sit'; m.pose = 'sit'; m.t = 2.5 + rnd(m) * 2; }
-    }
+  function newPorter(trail) {
+    return {
+      id: 'porter',
+      x: trail.from + (trail.to - trail.from) * START.porterAlongTrail,
+      dir: 1,
+      state: 'up',
+      t: 0,
+      load: true,
+      saidAt: LONG_AGO,
+      met: false,
+    };
   }
 
-  function jump(c, R, to, slow) {
-    const p = R[to], x1 = p[0] + c.off, h1 = p[1];
-    c.leap = { x0: c.x, h0: c.h, x1, h1, t: 0, dur: (slow ? 0.62 : CHAMOIS.leap) * (0.92 + 0.16 * rnd(c)), top: Math.max(c.h, h1) + 14 + Math.abs(x1 - c.x) * 0.14, wait: slow ? 0.5 + rnd(c) * 0.6 : 0.06 + rnd(c) * 0.12, to };
-    c.dir = Math.sign(x1 - c.x) || c.dir;
+  function update(game, dt) {
+    const level = game.level;
+    const zone = level.alpine;
+    if (!zone) return;
+    const alpine = game.alpine || (game.alpine = create(level));
+    const bear = game.bear;
+    if (bear.x > zone.line) announceOnce(game, 'alpine', NEWS.alpine, ZS.QUIPS.alpine);
+    if (bear.x > zone.lake.from) announceOnce(game, 'altitude', NEWS.altitude, ZS.QUIPS.altitude);
+    hideInDwarfPines(game);
+    rattleFootsteps(game);
+    for (const marmot of alpine.marmots) updateMarmot(game, marmot, dt);
+    const route = cragRoute(zone);
+    for (const chamois of alpine.chamois) updateChamois(game, chamois, dt, route);
+    updatePorter(game, alpine.porter, dt);
+    updateTerrace(game, alpine.hut, dt);
   }
 
-  function chamois(g, c, dt, R) {
-    const b = g.bear, d = Math.abs(b.x - c.x), threat = !g.ride && sees(b, d, CHAMOIS.see, CHAMOIS.sneak);
-    c.t -= dt;
-    if (c.leap) {
-      const p = c.leap;
-      if (p.wait > 0) { p.wait -= dt; c.crouch = 1; return; }
-      c.crouch = 0;
-      p.t += dt / p.dur;
-      const u = Math.min(1, p.t);
-      c.x = p.x0 + (p.x1 - p.x0) * u;
-      c.h = (1 - u) * (1 - u) * p.h0 + 2 * u * (1 - u) * p.top + u * u * p.h1;
-      c.air = u < 1 ? 1 : 0;
-      if (u >= 1) { c.at = p.to; c.h = p.h1; c.leap = null; c.land = g.time; scree(g, c.x, 0.6); }
+  function announceOnce(game, flag, news, quip) {
+    if (game.once[flag] || game.ride) return;
+    game.once[flag] = true;
+    rules().say(game, news);
+    rules().quip(game, quip, true);
+  }
+
+  function sayNowAndThen(game, topic, news) {
+    const said = game.alpine.said;
+    if (game.time - said[topic] < NEWS_REPEAT_AFTER) return;
+    said[topic] = game.time;
+    rules().say(game, news);
+  }
+
+  function hideInDwarfPines(game) {
+    const bear = game.bear;
+    const inPines = inThicket(game.level, bear.x) && standsFree(bear);
+    if (inPines && bear.crouch) bear.covered = true;
+    bear.thicket = inPines && !bear.covered;
+    if (inPines && bear.crouch && !game.once.kosodrevina) findCoverInPines(game);
+  }
+
+  function standsFree(bear) {
+    return bear.onGround && !bear.climbing && !bear.act && !(bear.stun > 0);
+  }
+
+  function findCoverInPines(game) {
+    game.once.kosodrevina = true;
+    rules().float(game, game.bear.x, GROUND - LABEL_HEIGHT.cover, LABELS.alpine.cover, COLORS.good);
+    rules().quip(game, ZS.QUIPS.kosodrevina, true);
+    rules().say(game, NEWS.kosodrevina);
+  }
+
+  function rattleFootsteps(game) {
+    const bear = game.bear;
+    const level = game.level;
+    if (game.ride || bear.x < level.alpine.line || !bear.onGround || bear.climbing) return;
+    if (stepsOffSlab(level, bear)) rattleScree(game, bear.x, SCREE.offSlab);
+    else if (bear.moving && bear.running && !inThicket(level, bear.x)) rattleScree(game, bear.x, SCREE.running);
+  }
+
+  function stepsOffSlab(level, bear) {
+    const slab = level.logs.find((log) => log.rock && Math.abs(bear.x - log.x) < log.w / 2 + SLAB.reach);
+    if (!slab) return false;
+    return bear.y < GROUND - SLAB.standsAbove && bear.prevY !== undefined && bear.prevY < bear.y - SLAB.stepsDown;
+  }
+
+  function rattleScree(game, x, loudness) {
+    const alpine = game.alpine;
+    if (game.time - alpine.screeAt < SCREE.quietFor) return;
+    alpine.screeAt = game.time;
+    rules().onSound(game, 'scree', x, loudness);
+  }
+
+  function seesBear(bear, distance, senses) {
+    if (bear.covered) return false;
+    return distance < sightRange(bear, senses);
+  }
+
+  function sightRange(bear, senses) {
+    if (bear.crouch && !bear.running) return senses.sneak;
+    if (bear.running && bear.moving) return senses.see * RUNNING_VISIBILITY;
+    return senses.see;
+  }
+
+  function turnToward(animal, x) {
+    animal.dir = Math.sign(x - animal.x) || animal.dir;
+  }
+
+  function updateMarmot(game, marmot, dt) {
+    const bear = game.bear;
+    const distance = Math.abs(bear.x - marmot.x);
+    const threat = !game.ride && seesBear(bear, distance, MARMOT);
+    marmot.t -= dt;
+    if (isAtEase(marmot)) sitOrGraze(game, marmot, threat, dt);
+    else if (marmot.state === 'alarm') stayAlarmed(marmot, dt);
+    else if (marmot.state === 'dive') diveIntoBurrow(marmot, dt);
+    else if (marmot.state === 'hidden') waitInBurrow(bear, marmot, distance);
+    else if (marmot.state === 'peek') peekOut(game, marmot, distance, threat, dt);
+  }
+
+  function isAtEase(marmot) {
+    return marmot.state === 'sit' || marmot.state === 'graze';
+  }
+
+  function sitOrGraze(game, marmot, threat, dt) {
+    standUp(marmot, dt);
+    if (threat) {
+      whistle(game, marmot);
       return;
     }
-    if (c.state === 'graze' || c.state === 'look') {
-      if (threat && c.state === 'graze') {
-        const lead = !g.alpine.chamois.some((o) => o.state === 'look' || o.state === 'flee');
-        c.state = 'look'; c.t = lead ? 0.35 : 0.3 + rnd(c) * 0.45; c.dir = Math.sign(b.x - c.x) || c.dir;
-        if (lead) {
-          c.snortAt = g.time;
-          rules().onSound(g, 'chamois', c.x);
-          rules().float(g, c.x, GY - c.h - 120, LABELS.alpine.chamois, COLORS.story);
-          if (!(g.time - g.alpine.said.chamois < 45)) { g.alpine.said.chamois = g.time; rules().say(g, NEWS.chamois); }
-          for (const o of g.alpine.chamois) if (o !== c && o.state === 'graze' && !o.leap) { o.state = 'look'; o.t = 0.35 + rnd(o) * 0.5; o.dir = Math.sign(b.x - o.x) || o.dir; }
-        }
-        return;
-      }
-      if (c.state === 'look') { if (c.t <= 0) c.state = 'flee'; return; }
-      if (c.t <= 0) { c.t = 2 + rnd(c) * 3; c.dir *= rnd(c) < 0.5 ? -1 : 1; }
+    if (marmot.t <= 0) switchBetweenSitAndGraze(marmot);
+  }
+
+  function standUp(marmot, dt) {
+    marmot.k = Math.min(1, marmot.k + dt / MARMOT.rise);
+  }
+
+  function switchBetweenSitAndGraze(marmot) {
+    marmot.state = marmot.state === 'sit' ? 'graze' : 'sit';
+    marmot.pose = marmot.state;
+    marmot.t = BASKING.poseShortest + seededRandom(marmot) * BASKING.poseExtra;
+    if (seededRandom(marmot) < BASKING.turnChance) marmot.dir *= -1;
+  }
+
+  function whistle(game, marmot) {
+    sitUpAlarmed(game.bear, marmot, false);
+    marmot.whistleAt = game.time;
+    rules().onSound(game, 'marmot', marmot.x);
+    rules().float(game, marmot.x, GROUND - marmot.h - LABEL_HEIGHT.whistle, LABELS.alpine.whistle, COLORS.story);
+    sayNowAndThen(game, 'marmot', NEWS.marmot);
+    for (const neighbour of game.alpine.marmots) {
+      if (hearsWhistle(neighbour, marmot)) sitUpAlarmed(game.bear, neighbour, true);
+    }
+  }
+
+  function hearsWhistle(neighbour, whistler) {
+    return neighbour !== whistler && Math.abs(neighbour.x - whistler.x) < WHISTLE.heardWithin && isAtEase(neighbour);
+  }
+
+  function sitUpAlarmed(bear, marmot, echoing) {
+    marmot.state = 'alarm';
+    marmot.pose = 'sit';
+    marmot.k = Math.max(marmot.k, WHISTLE.sitUpAtLeast);
+    marmot.t = MARMOT.alarm + (echoing ? WHISTLE.echoShortest + seededRandom(marmot) * WHISTLE.echoExtra : 0);
+    turnToward(marmot, bear.x);
+  }
+
+  function stayAlarmed(marmot, dt) {
+    standUp(marmot, dt);
+    if (marmot.t <= 0) {
+      marmot.state = 'dive';
+      marmot.t = 0;
+    }
+  }
+
+  function diveIntoBurrow(marmot, dt) {
+    marmot.k = Math.max(0, marmot.k - dt / MARMOT.dive);
+    if (marmot.k <= 0) {
+      marmot.state = 'hidden';
+      marmot.t = MARMOT.hide + seededRandom(marmot);
+    }
+  }
+
+  function waitInBurrow(bear, marmot, distance) {
+    const bearInSight = distance < MARMOT.calm && !bear.covered;
+    if (bearInSight) marmot.t = Math.max(marmot.t, MARMOT.hide * BURROW.holdWhileBearNear);
+    if (marmot.t <= 0) {
+      marmot.state = 'peek';
+      marmot.t = MARMOT.peek + seededRandom(marmot);
+    }
+  }
+
+  function peekOut(game, marmot, distance, threat, dt) {
+    marmot.k += (BURROW.peekHeight - marmot.k) * Math.min(1, dt * BURROW.peekEase);
+    turnToward(marmot, game.bear.x);
+    if (threat && distance < MARMOT.see * BURROW.peekSight) {
+      duckBack(game, marmot);
       return;
     }
-    if (c.state === 'flee') {
-      if (c.at >= c.top) { c.state = 'perch'; c.calm = 0; c.dir = Math.sign(b.x - c.x) || -1; return; }
-      jump(c, R, c.at + 1 < c.top ? c.at + 1 + (c.at + 2 < c.top && rnd(c) < 0.3 ? 1 : 0) : c.top, false);
+    if (marmot.t <= 0) comeOut(marmot);
+  }
+
+  function duckBack(game, marmot) {
+    marmot.state = 'dive';
+    if (game.time - marmot.whistleAt > WHISTLE.quietFor) {
+      marmot.whistleAt = game.time;
+      rules().onSound(game, 'marmot', marmot.x, 'short');
+    }
+  }
+
+  function comeOut(marmot) {
+    marmot.state = 'sit';
+    marmot.pose = 'sit';
+    marmot.t = BASKING.afterPeekShortest + seededRandom(marmot) * BASKING.afterPeekExtra;
+  }
+
+  function updateChamois(game, chamois, dt, route) {
+    chamois.t -= dt;
+    if (chamois.leap) {
+      continueLeap(game, chamois, dt);
       return;
     }
-    if (c.state === 'perch') {
-      c.dir = Math.sign(b.x - c.x) || c.dir;
-      c.calm = d > CHAMOIS.far || g.ride ? c.calm + dt : 0;
-      if (c.calm > CHAMOIS.rest) c.state = 'back';
+    const bear = game.bear;
+    const distance = Math.abs(bear.x - chamois.x);
+    const threat = !game.ride && seesBear(bear, distance, CHAMOIS);
+    if (chamois.state === 'graze') graze(game, chamois, threat);
+    else if (chamois.state === 'look') stareThenFlee(chamois);
+    else if (chamois.state === 'flee') climbAway(bear, chamois, route);
+    else if (chamois.state === 'perch') watchFromPerch(game, chamois, distance, dt);
+    else if (chamois.state === 'back') headHome(chamois, route, distance, threat);
+  }
+
+  function graze(game, chamois, threat) {
+    if (threat) {
+      startle(game, chamois);
       return;
     }
-    if (c.state === 'back') {
-      if (threat && d < CHAMOIS.see) { c.state = 'flee'; return; }
-      if (c.at <= c.home) { c.state = 'graze'; c.t = 1 + rnd(c) * 2; return; }
-      jump(c, R, c.at - 1 > c.home ? c.at - 1 : c.home, true);
+    if (chamois.t <= 0) {
+      chamois.t = HERD.grazeShortest + seededRandom(chamois) * HERD.grazeExtra;
+      chamois.dir *= seededRandom(chamois) < 0.5 ? -1 : 1;
     }
   }
 
-  function porter(g, p, dt) {
-    const A = g.level.alpine.porter, b = g.bear;
-    p.t -= dt;
-    if (p.state === 'up') {
-      p.dir = 1; p.x += PORTER.up * dt;
-      if (p.x >= A.to) { p.x = A.to; p.state = 'unload'; p.t = PORTER.unload; p.load = false; }
-    } else if (p.state === 'unload') {
-      if (p.t <= 0) { p.state = 'down'; p.dir = -1; }
-    } else if (p.state === 'down') {
-      p.x -= PORTER.down * dt;
-      if (p.x <= A.from) { p.x = A.from; p.state = 'load'; p.t = PORTER.load; }
-    } else if (p.state === 'load' && p.t <= 0) {
-      p.state = 'up'; p.load = true;
-    }
-    const d = Math.abs(b.x - p.x);
-    if (d < PORTER.near && !b.covered && !g.ride && g.time - p.saidAt > PORTER.said) {
-      p.saidAt = g.time;
-      const lines = p.load ? LABELS.alpine.porter : LABELS.alpine.porterFree;
-      rules().float(g, p.x, GY - 150, lines[Math.floor(Math.random() * lines.length)], COLORS.story);
-      if (!p.met) { p.met = true; rules().say(g, NEWS.porter); rules().quip(g, ZS.QUIPS.porter, true); }
+  function startle(game, chamois) {
+    const firstToNotice = !game.alpine.chamois.some(isOnAlert);
+    chamois.state = 'look';
+    chamois.t = firstToNotice ? HERD.leaderStare : HERD.stareShortest + seededRandom(chamois) * HERD.stareExtra;
+    turnToward(chamois, game.bear.x);
+    if (firstToNotice) snort(game, chamois);
+  }
+
+  function isOnAlert(chamois) {
+    return chamois.state === 'look' || chamois.state === 'flee';
+  }
+
+  function snort(game, chamois) {
+    chamois.snortAt = game.time;
+    rules().onSound(game, 'chamois', chamois.x);
+    rules().float(game, chamois.x, GROUND - chamois.h - LABEL_HEIGHT.snort, LABELS.alpine.chamois, COLORS.story);
+    sayNowAndThen(game, 'chamois', NEWS.chamois);
+    for (const other of game.alpine.chamois) {
+      if (other !== chamois && other.state === 'graze' && !other.leap) lookUp(game.bear, other);
     }
   }
 
-  function scree(g, x, k) {
-    const s = g.alpine;
-    if (g.time - s.screeAt < SCREE) return;
-    s.screeAt = g.time;
-    rules().onSound(g, 'scree', x, k);
+  function lookUp(bear, chamois) {
+    chamois.state = 'look';
+    chamois.t = HERD.followerStare + seededRandom(chamois) * HERD.followerStareExtra;
+    turnToward(chamois, bear.x);
   }
 
-  function steps(g) {
-    const b = g.bear, L = g.level, A = L.alpine;
-    if (g.ride || b.x < A.line || !b.onGround || b.climbing) return;
-    const slab = L.logs.find((l) => l.rock && Math.abs(b.x - l.x) < l.w / 2 + 10);
-    if (slab && b.y < GY - 4 && b.prevY !== undefined && b.prevY < b.y - 0.5) scree(g, b.x, 0.8);
-    else if (b.moving && b.running && !thicket(L, b.x)) scree(g, b.x, 0.5);
+  function stareThenFlee(chamois) {
+    if (chamois.t <= 0) chamois.state = 'flee';
   }
 
-  function hut(g, h, dt) {
-    const H = g.level.alpine.hut, b = g.bear, d = Math.abs(b.x - H.x);
-    h.chat -= dt;
-    if (h.chat <= 0 && d < HUT.hear && !g.ride) { h.chat = 6 + rnd(h) * 4; rules().onSound(g, 'hut', H.x - 210); }
-    const on = !b.covered && d < HUT.see && !g.ride;
-    h.alarm = Math.max(0, Math.min(1, h.alarm + (on ? dt * 2.5 : -dt * 0.4)));
-    if (on && !h.seen) {
-      h.seen = true;
-      rules().spotted(g, H.x - 60, GY - 170, LABELS.alpine.terrace);
-      rules().addPanic(g, HUT.panic, NEWS.hut);
+  function climbAway(bear, chamois, route) {
+    if (chamois.at >= chamois.top) {
+      settleOnPerch(bear, chamois);
+      return;
+    }
+    leapTo(chamois, route, nextSpotUp(chamois), false);
+  }
+
+  function settleOnPerch(bear, chamois) {
+    chamois.state = 'perch';
+    chamois.calm = 0;
+    chamois.dir = Math.sign(bear.x - chamois.x) || -1;
+  }
+
+  function nextSpotUp(chamois) {
+    if (chamois.at + 1 < chamois.top) return chamois.at + 1 + (skipsASpot(chamois) ? 1 : 0);
+    return chamois.top;
+  }
+
+  function skipsASpot(chamois) {
+    return chamois.at + 2 < chamois.top && seededRandom(chamois) < HERD.skipChance;
+  }
+
+  function watchFromPerch(game, chamois, distance, dt) {
+    turnToward(chamois, game.bear.x);
+    const safe = distance > CHAMOIS.far || game.ride;
+    chamois.calm = safe ? chamois.calm + dt : 0;
+    if (chamois.calm > CHAMOIS.rest) chamois.state = 'back';
+  }
+
+  function headHome(chamois, route, distance, threat) {
+    if (threat && distance < CHAMOIS.see) {
+      chamois.state = 'flee';
+      return;
+    }
+    if (chamois.at <= chamois.home) {
+      chamois.state = 'graze';
+      chamois.t = HERD.homeGrazeShortest + seededRandom(chamois) * HERD.homeGrazeExtra;
+      return;
+    }
+    leapTo(chamois, route, nextSpotDown(chamois), true);
+  }
+
+  function nextSpotDown(chamois) {
+    return chamois.at - 1 > chamois.home ? chamois.at - 1 : chamois.home;
+  }
+
+  function leapTo(chamois, route, spotIndex, homeward) {
+    const spot = route[spotIndex];
+    const landingX = spot[0] + chamois.off;
+    const landingHeight = spot[1];
+    chamois.leap = {
+      x0: chamois.x,
+      h0: chamois.h,
+      x1: landingX,
+      h1: landingHeight,
+      t: 0,
+      dur: leapDuration(chamois, homeward),
+      top: peakHeight(chamois, landingX, landingHeight),
+      wait: crouchTime(chamois, homeward),
+      to: spotIndex,
+    };
+    turnToward(chamois, landingX);
+  }
+
+  function leapDuration(chamois, homeward) {
+    const duration = homeward ? LEAP.homewardDuration : CHAMOIS.leap;
+    return duration * (LEAP.paceFrom + LEAP.paceSpread * seededRandom(chamois));
+  }
+
+  function peakHeight(chamois, landingX, landingHeight) {
+    return Math.max(chamois.h, landingHeight) + LEAP.clearance + Math.abs(landingX - chamois.x) * LEAP.risePerWidth;
+  }
+
+  function crouchTime(chamois, homeward) {
+    if (homeward) return LEAP.homewardCrouch + seededRandom(chamois) * LEAP.homewardCrouchExtra;
+    return LEAP.fleeCrouch + seededRandom(chamois) * LEAP.fleeCrouchExtra;
+  }
+
+  function continueLeap(game, chamois, dt) {
+    const leap = chamois.leap;
+    if (leap.wait > 0) {
+      leap.wait -= dt;
+      chamois.crouch = 1;
+      return;
+    }
+    chamois.crouch = 0;
+    leap.t += dt / leap.dur;
+    const progress = Math.min(1, leap.t);
+    chamois.x = leap.x0 + (leap.x1 - leap.x0) * progress;
+    chamois.h = arcHeight(leap, progress);
+    chamois.air = progress < 1 ? 1 : 0;
+    if (progress >= 1) land(game, chamois, leap);
+  }
+
+  function arcHeight(leap, progress) {
+    const remaining = 1 - progress;
+    return remaining * remaining * leap.h0 + 2 * progress * remaining * leap.top + progress * progress * leap.h1;
+  }
+
+  function land(game, chamois, leap) {
+    chamois.at = leap.to;
+    chamois.h = leap.h1;
+    chamois.leap = null;
+    chamois.land = game.time;
+    rattleScree(game, chamois.x, SCREE.hooves);
+  }
+
+  function updatePorter(game, porter, dt) {
+    porter.t -= dt;
+    walkTrail(game.level.alpine.porter, porter, dt);
+    if (canGreetBear(game, porter)) greetBear(game, porter);
+  }
+
+  function walkTrail(trail, porter, dt) {
+    if (porter.state === 'up') carryLoadUp(trail, porter, dt);
+    else if (porter.state === 'unload') finishUnloading(porter);
+    else if (porter.state === 'down') walkDown(trail, porter, dt);
+    else if (porter.state === 'load') finishLoading(porter);
+  }
+
+  function carryLoadUp(trail, porter, dt) {
+    porter.dir = 1;
+    porter.x += PORTER.up * dt;
+    if (porter.x >= trail.to) {
+      porter.x = trail.to;
+      porter.state = 'unload';
+      porter.t = PORTER.unload;
+      porter.load = false;
     }
   }
 
-  function cover(g) {
-    const L = g.level, b = g.bear;
-    const on = thicket(L, b.x) && b.onGround && !b.climbing && !b.act && !(b.stun > 0);
-    if (on && b.crouch) b.covered = true;
-    b.thicket = on && !b.covered;
-    if (on && b.crouch && !g.once.kosodrevina) {
-      g.once.kosodrevina = true;
-      rules().float(g, b.x, GY - 110, LABELS.alpine.cover, COLORS.good);
-      rules().quip(g, ZS.QUIPS.kosodrevina, true);
-      rules().say(g, NEWS.kosodrevina);
+  function finishUnloading(porter) {
+    if (porter.t <= 0) {
+      porter.state = 'down';
+      porter.dir = -1;
     }
   }
 
-  function update(g, dt) {
-    const L = g.level, A = L.alpine;
-    if (!A) return;
-    const s = g.alpine || (g.alpine = create(L)), b = g.bear;
-    if (!g.once.alpine && b.x > A.line && !g.ride) {
-      g.once.alpine = true;
-      rules().say(g, NEWS.alpine);
-      rules().quip(g, ZS.QUIPS.alpine, true);
+  function walkDown(trail, porter, dt) {
+    porter.x -= PORTER.down * dt;
+    if (porter.x <= trail.from) {
+      porter.x = trail.from;
+      porter.state = 'load';
+      porter.t = PORTER.load;
     }
-    if (!g.once.altitude && b.x > A.lake.from && !g.ride) {
-      g.once.altitude = true;
-      rules().say(g, NEWS.altitude);
-      rules().quip(g, ZS.QUIPS.altitude, true);
+  }
+
+  function finishLoading(porter) {
+    if (porter.t <= 0) {
+      porter.state = 'up';
+      porter.load = true;
     }
-    cover(g);
-    steps(g);
-    for (const m of s.marmots) marmot(g, m, dt);
-    const R = route(A);
-    for (const c of s.chamois) chamois(g, c, dt, R);
-    porter(g, s.porter, dt);
-    hut(g, s.hut, dt);
+  }
+
+  function canGreetBear(game, porter) {
+    const bear = game.bear;
+    const near = Math.abs(bear.x - porter.x) < PORTER.near;
+    return near && !bear.covered && !game.ride && game.time - porter.saidAt > PORTER.said;
+  }
+
+  function greetBear(game, porter) {
+    porter.saidAt = game.time;
+    const lines = porter.load ? LABELS.alpine.porter : LABELS.alpine.porterFree;
+    rules().float(game, porter.x, GROUND - LABEL_HEIGHT.porter, pickLine(lines), COLORS.story);
+    if (!porter.met) meetPorter(game, porter);
+  }
+
+  function pickLine(lines) {
+    return lines[Math.floor(Math.random() * lines.length)];
+  }
+
+  function meetPorter(game, porter) {
+    porter.met = true;
+    rules().say(game, NEWS.porter);
+    rules().quip(game, ZS.QUIPS.porter, true);
+  }
+
+  function updateTerrace(game, terrace, dt) {
+    const hut = game.level.alpine.hut;
+    const bear = game.bear;
+    const distance = Math.abs(bear.x - hut.x);
+    terrace.chat -= dt;
+    if (terrace.chat <= 0 && distance < HUT.hear && !game.ride) chatter(game, terrace, hut);
+    const bearInView = !bear.covered && distance < HUT.see && !game.ride;
+    const change = bearInView ? dt * HUT.alarmRise : -dt * HUT.alarmFade;
+    terrace.alarm = Math.max(0, Math.min(1, terrace.alarm + change));
+    if (bearInView && !terrace.seen) filmBear(game, terrace, hut);
+  }
+
+  function chatter(game, terrace, hut) {
+    terrace.chat = HUT.chatShortest + seededRandom(terrace) * HUT.chatExtra;
+    rules().onSound(game, 'hut', hut.x - HUT.terraceOffset);
+  }
+
+  function filmBear(game, terrace, hut) {
+    terrace.seen = true;
+    rules().spotted(game, hut.x - HUT.labelOffset, GROUND - LABEL_HEIGHT.terrace, LABELS.alpine.terrace);
+    rules().addPanic(game, HUT.panic, NEWS.hut);
   }
 
   ZS.sim = ZS.sim || {};
-  ZS.sim.alpine = { update, thicket, create, route, MARMOT, CHAMOIS, PORTER };
+  ZS.sim.alpine = { update, thicket: inThicket, create, route: cragRoute, MARMOT, CHAMOIS, PORTER };
 })();

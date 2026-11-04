@@ -1,6 +1,6 @@
 (function () {
   const { CFG, COLORS, LABELS, NEWS } = ZS;
-  const GY = CFG.GROUND;
+  const GROUND = CFG.GROUND;
   const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
   const pen = () => ZS.sim.pen;
@@ -12,179 +12,437 @@
     poacher: { aim: 0.8,  sweep: 130, range: 400, speed: 70 },
   };
 
-  function create(g, kind, o) {
-    const k = KIND[kind];
-    const s = Object.assign({
-      kind, aimTime: k.aim, sweep: k.sweep, range: k.range, speed: k.speed,
+  const PLACING = {
+    postHeight: 150,
+    shortestBeat: 200,
+    besideFence: 60,
+    crosshairAhead: 200,
+  };
+
+  const PATROL = {
+    meatSpeedUp: 1.25,
+    beatSlack: 2,
+    beatEndReach: 6,
+    fenceNear: 8,
+    waitBeforeHeadingHome: 0.6,
+    waitAfterTurn: 0.35,
+    waitAtBeatEnd: 1.5,
+    waitAtFence: 1.1,
+    waitWhenFenced: 0.9,
+    stopsPerSecond: 0.12,
+    shortestStop: 1,
+    longestStopExtra: 2,
+  };
+
+  const SCARE = {
+    bearWithin: 32,
+    seconds: 4,
+    runSpeedUp: 2.2,
+    keepFromEdge: 40,
+    waitAfterFence: 1.1,
+    panic: 2,
+    labelHeight: 110,
+  };
+
+  const CAR = {
+    givesUpAfter: 14,
+    leaveSpeed: 260,
+    offscreen: 300,
+    stopsWithin: 380,
+  };
+
+  const SWEEP = {
+    nearEdge: 60,
+    alertSpeed: 420,
+    alertDone: 5,
+    shortestRest: 0.8,
+    restExtra: 1.2,
+  };
+
+  const TRACKS = {
+    freshFor: 8,
+    noticedWithin: 22,
+    cooldown: 9,
+    labelHeight: 104,
+  };
+
+  const SHOT = {
+    ignoredBeyond: 1500,
+    tooWobbly: 0.05,
+    seesBehindWithin: 60,
+    blindUnderPost: 70,
+    pointBlank: 90,
+    onCrosshair: 40,
+    crosshairSnap: 8,
+    reload: 3,
+    kickRecovery: 4,
+    aimDecay: 2,
+    treeShotAim: 0.6,
+    treeShotSpread: 60,
+    warnSpread: 200,
+  };
+
+  const ALERT_RADIUS = 1000;
+  const FLEE_ENDS_AT = 3.2;
+
+  function create(game, kind, options) {
+    const stats = KIND[kind];
+    const hunter = Object.assign({
+      kind, aimTime: stats.aim, sweep: stats.sweep, range: stats.range, speed: stats.speed,
       x: 0, dir: -1, from: null, to: null, crossDir: 1, lock: 0, reload: 0, life: Infinity, pause: 0, lost: 0, alertX: null,
       sweepPause: 0, scaredT: 0, react: null, reactT: 0, armed: true, rifle: null, trackCd: 0,
-    }, o);
-    s.y = kind === 'posed' ? GY - 150 : GY;
-    const P = pen(), L = g && g.level;
-    if (kind === 'ztmh' && P.inside(L, s.x, P.KEEP.hunter)) s.x = P.band(L, P.KEEP.hunter)[0] - 60;
-    else if (kind !== 'posed') P.range(L, s, P.KEEP.hunter, 200);
-    if (kind !== 'posed') ZS.sim.corn.range(L, s, undefined, 200);
-    if (kind === 'posed') { s.home = s.x; s.sway = 0; s.wobble = 0; }
-    s.cross = s.x + s.dir * 200;
-    return s;
+    }, options);
+    const level = game && game.level;
+    if (kind === 'posed') {
+      hunter.y = GROUND - PLACING.postHeight;
+      hunter.home = hunter.x;
+      hunter.sway = 0;
+      hunter.wobble = 0;
+    } else {
+      hunter.y = GROUND;
+      placeOutsideFences(level, hunter);
+      ZS.sim.corn.range(level, hunter, undefined, PLACING.shortestBeat);
+    }
+    hunter.cross = hunter.x + hunter.dir * PLACING.crosshairAhead;
+    return hunter;
   }
 
-  function sweepLimits(s) {
-    if (s.kind === 'posed') return [s.x - s.range, s.x + s.range];
-    const a = s.x + s.dir * 60, b = s.x + s.dir * s.range;
-    return a < b ? [a, b] : [b, a];
+  function placeOutsideFences(level, hunter) {
+    const P = pen();
+    if (hunter.kind === 'ztmh' && P.inside(level, hunter.x, P.KEEP.hunter)) {
+      hunter.x = P.band(level, P.KEEP.hunter)[0] - PLACING.besideFence;
+    } else {
+      P.range(level, hunter, P.KEEP.hunter, PLACING.shortestBeat);
+    }
   }
 
-  function alert(g, x) {
-    for (const s of g.shooters) if (Math.abs(s.x - x) < 1000) s.alertX = x;
+  function alert(game, x) {
+    for (const hunter of game.shooters) {
+      if (Math.abs(hunter.x - x) < ALERT_RADIUS) hunter.alertX = x;
+    }
   }
 
-  function move(g, s, dt) {
-    const L = g.level;
-    if (s.scaredT > 0) {
-      s.scaredT -= dt;
-      s.x = clamp(s.x + s.dir * s.speed * 2.2 * dt, 40, L.w - 40);
+  function aimFactor(game) {
+    if (game.flags.cull) return 0.85;
+    if (game.flags.emergency) return 0.92;
+    return 1;
+  }
+
+  function move(game, hunter, dt) {
+    if (hunter.scaredT > 0) runAwayScared(game, hunter, dt);
+    else if (hunter.kind === 'walker' || hunter.kind === 'poacher') patrol(game, hunter, dt);
+    else if (hunter.kind === 'ztmh') drive(game, hunter, dt);
+  }
+
+  function runAwayScared(game, hunter, dt) {
+    hunter.scaredT -= dt;
+    const step = hunter.dir * hunter.speed * SCARE.runSpeedUp * dt;
+    hunter.x = clamp(hunter.x + step, SCARE.keepFromEdge, game.level.w - SCARE.keepFromEdge);
+  }
+
+  function patrol(game, hunter, dt) {
+    if (hunter.pause > 0) {
+      waitThenTurn(hunter, dt);
       return;
     }
-    if (s.kind === 'walker' || s.kind === 'poacher') {
-      if (s.pause > 0) {
-        s.pause -= dt;
-        if (s.pause <= 0 && s.flip) { s.dir = s.flip; s.flip = 0; s.pause = 0.35; }
+    if (strayedFromBeat(hunter)) {
+      const homeward = hunter.x < hunter.from ? 1 : -1;
+      if (hunter.dir !== homeward) {
+        hunter.dir = homeward;
+        hunter.pause = PATROL.waitBeforeHeadingHome;
         return;
       }
-      if (s.from !== null && (s.x < s.from - 2 || s.x > s.to + 2)) {
-        const home = s.x < s.from ? 1 : -1;
-        if (s.dir !== home) { s.dir = home; s.pause = 0.6; return; }
-      }
-      s.x += s.dir * s.speed * (g.flags.meat ? 1.25 : 1) * dt;
-      if (s.from !== null && ((s.x < s.from && s.dir < 0) || (s.x > s.to && s.dir > 0)) && s.x > s.from - 6 && s.x < s.to + 6) {
-        s.x = clamp(s.x, s.from, s.to);
-        const wall = pen().ahead(L, s.x, s.dir);
-        if (wall !== null && Math.abs(wall - s.x) <= pen().KEEP.hunter + 8) { s.pause = 1.1; s.flip = -s.dir; }
-        else { s.dir *= -1; s.pause = 1.5; }
-      } else if (L.rng() < dt * 0.12) {
-        s.pause = 1 + L.rng() * 2;
-        if (L.rng() < 0.5) s.dir *= -1;
-      }
-    } else if (s.kind === 'ztmh') {
-      if (!g.problem || s.lost > 14) {
-        const b = pen().band(L, pen().KEEP.hunter);
-        const out = s.out || (s.out = b && s.x >= b[1] && g.cam - 300 < b[1] ? 1 : -1);
-        s.dir = out; s.x += out * 260 * dt;
-        if (out < 0 ? s.x < g.cam - 300 : s.x > g.cam + g.viewW + 300) s.dead = true;
-        return;
-      }
-      s.out = 0;
-      const tx = g.lastKnown !== null ? g.lastKnown : g.bear.x;
-      if (Math.abs(tx - s.x) > 380) { s.dir = Math.sign(tx - s.x); s.x += s.dir * s.speed * dt; }
-      else s.dir = Math.sign(g.bear.x - s.x) || s.dir;
+    }
+    const speedUp = game.flags.meat ? PATROL.meatSpeedUp : 1;
+    hunter.x += hunter.dir * hunter.speed * speedUp * dt;
+    if (reachedBeatEnd(hunter)) turnAtBeatEnd(game.level, hunter);
+    else if (game.level.rng() < dt * PATROL.stopsPerSecond) stopForAWhile(game.level, hunter);
+  }
+
+  function waitThenTurn(hunter, dt) {
+    hunter.pause -= dt;
+    if (hunter.pause <= 0 && hunter.flip) {
+      hunter.dir = hunter.flip;
+      hunter.flip = 0;
+      hunter.pause = PATROL.waitAfterTurn;
     }
   }
 
-  function fence(g, s, x0) {
-    const P = pen(), C = ZS.sim.corn, L = g.level;
-    let x = P.hold(L, x0, s.x, P.KEEP.hunter), away = P.side(L, x);
-    if (x === s.x) { x = C.hold(L, x0, s.x); away = C.side(L, x); }
-    if (x === s.x) return;
-    s.x = x;
-    if (s.kind === 'ztmh' && s.out) s.out = away;
-    if (s.react === 'gone') s.dir = away;
-    else if (s.react === 'flee') s.reactT = Math.max(s.reactT, 3.2);
-    else if (s.react) return;
-    else if (s.scaredT > 0) { s.scaredT = 0; s.pause = 1.1; s.flip = away; }
-    else if (s.kind !== 'ztmh' && !(s.pause > 0)) { s.pause = 0.9; s.flip = away; }
+  function strayedFromBeat(hunter) {
+    if (hunter.from === null) return false;
+    return hunter.x < hunter.from - PATROL.beatSlack || hunter.x > hunter.to + PATROL.beatSlack;
   }
 
-  function sweep(s, dt) {
-    const [lo, hi] = sweepLimits(s);
-    if (s.alertX !== null) {
-      const t = clamp(s.alertX, lo, hi);
-      s.cross += Math.sign(t - s.cross) * Math.min(Math.abs(t - s.cross), 420 * dt);
-      if (Math.abs(t - s.cross) < 5) s.alertX = null;
-    } else if (s.sweepPause > 0) {
-      s.sweepPause -= dt;
+  function reachedBeatEnd(hunter) {
+    if (hunter.from === null) return false;
+    const pastStart = hunter.x < hunter.from && hunter.dir < 0;
+    const pastEnd = hunter.x > hunter.to && hunter.dir > 0;
+    const nearBeat = hunter.x > hunter.from - PATROL.beatEndReach && hunter.x < hunter.to + PATROL.beatEndReach;
+    return (pastStart || pastEnd) && nearBeat;
+  }
+
+  function turnAtBeatEnd(level, hunter) {
+    hunter.x = clamp(hunter.x, hunter.from, hunter.to);
+    const fence = pen().ahead(level, hunter.x, hunter.dir);
+    const fenceRightThere = fence !== null && Math.abs(fence - hunter.x) <= pen().KEEP.hunter + PATROL.fenceNear;
+    if (fenceRightThere) {
+      hunter.pause = PATROL.waitAtFence;
+      hunter.flip = -hunter.dir;
     } else {
-      s.cross += s.crossDir * s.sweep * dt;
-      if (s.cross > hi || s.cross < lo) {
-        s.cross = clamp(s.cross, lo, hi); s.crossDir *= -1;
-        s.sweepPause = 0.8 + Math.random() * 1.2;
+      hunter.dir *= -1;
+      hunter.pause = PATROL.waitAtBeatEnd;
+    }
+  }
+
+  function stopForAWhile(level, hunter) {
+    hunter.pause = PATROL.shortestStop + level.rng() * PATROL.longestStopExtra;
+    if (level.rng() < 0.5) hunter.dir *= -1;
+  }
+
+  function drive(game, hunter, dt) {
+    if (!game.problem || hunter.lost > CAR.givesUpAfter) {
+      driveAway(game, hunter, dt);
+      return;
+    }
+    hunter.out = 0;
+    const target = game.lastKnown !== null ? game.lastKnown : game.bear.x;
+    if (Math.abs(target - hunter.x) > CAR.stopsWithin) {
+      hunter.dir = Math.sign(target - hunter.x);
+      hunter.x += hunter.dir * hunter.speed * dt;
+    } else {
+      hunter.dir = Math.sign(game.bear.x - hunter.x) || hunter.dir;
+    }
+  }
+
+  function driveAway(game, hunter, dt) {
+    if (!hunter.out) {
+      const fences = pen().band(game.level, pen().KEEP.hunter);
+      const pastFences = fences && hunter.x >= fences[1] && game.cam - CAR.offscreen < fences[1];
+      hunter.out = pastFences ? 1 : -1;
+    }
+    hunter.dir = hunter.out;
+    hunter.x += hunter.out * CAR.leaveSpeed * dt;
+    const gone = hunter.out < 0
+      ? hunter.x < game.cam - CAR.offscreen
+      : hunter.x > game.cam + game.viewW + CAR.offscreen;
+    if (gone) hunter.dead = true;
+  }
+
+  function stopAtFences(game, hunter, previousX) {
+    const P = pen(), corn = ZS.sim.corn, level = game.level;
+    let x = P.hold(level, previousX, hunter.x, P.KEEP.hunter);
+    let away = P.side(level, x);
+    if (x === hunter.x) {
+      x = corn.hold(level, previousX, hunter.x);
+      away = corn.side(level, x);
+    }
+    if (x === hunter.x) return;
+    hunter.x = x;
+    turnAwayFromFence(hunter, away);
+  }
+
+  function turnAwayFromFence(hunter, away) {
+    if (hunter.kind === 'ztmh' && hunter.out) hunter.out = away;
+    if (hunter.react === 'gone') {
+      hunter.dir = away;
+    } else if (hunter.react === 'flee') {
+      hunter.reactT = Math.max(hunter.reactT, FLEE_ENDS_AT);
+    } else if (hunter.react) {
+      return;
+    } else if (hunter.scaredT > 0) {
+      hunter.scaredT = 0;
+      hunter.pause = SCARE.waitAfterFence;
+      hunter.flip = away;
+    } else if (hunter.kind !== 'ztmh' && !(hunter.pause > 0)) {
+      hunter.pause = PATROL.waitWhenFenced;
+      hunter.flip = away;
+    }
+  }
+
+  function sweepLimits(hunter) {
+    if (hunter.kind === 'posed') return [hunter.x - hunter.range, hunter.x + hunter.range];
+    const near = hunter.x + hunter.dir * SWEEP.nearEdge;
+    const far = hunter.x + hunter.dir * hunter.range;
+    return near < far ? [near, far] : [far, near];
+  }
+
+  function sweepCrosshair(hunter, dt) {
+    const [from, to] = sweepLimits(hunter);
+    if (hunter.alertX !== null) {
+      swingToAlert(hunter, from, to, dt);
+    } else if (hunter.sweepPause > 0) {
+      hunter.sweepPause -= dt;
+    } else {
+      hunter.cross += hunter.crossDir * hunter.sweep * dt;
+      if (hunter.cross > to || hunter.cross < from) {
+        hunter.cross = clamp(hunter.cross, from, to);
+        hunter.crossDir *= -1;
+        hunter.sweepPause = SWEEP.shortestRest + Math.random() * SWEEP.restExtra;
       }
     }
   }
 
-  function followTracks(g, s, dt) {
-    if (s.kind !== 'walker' || !g.tracks.length || (s.trackCd -= dt) > 0) return;
-    const fresh = g.tracks.find((t) => g.time - t.t < 8 && Math.abs(t.x - s.x) < 22);
+  function swingToAlert(hunter, from, to, dt) {
+    const target = clamp(hunter.alertX, from, to);
+    const gap = target - hunter.cross;
+    hunter.cross += Math.sign(gap) * Math.min(Math.abs(gap), SWEEP.alertSpeed * dt);
+    if (Math.abs(target - hunter.cross) < SWEEP.alertDone) hunter.alertX = null;
+  }
+
+  function followTracks(game, hunter, dt) {
+    if (hunter.kind !== 'walker' || !game.tracks.length) return;
+    hunter.trackCd -= dt;
+    if (hunter.trackCd > 0) return;
+    const fresh = game.tracks.find((track) => game.time - track.t < TRACKS.freshFor
+      && Math.abs(track.x - hunter.x) < TRACKS.noticedWithin);
     if (!fresh) return;
-    s.trackCd = 9;
-    s.alertX = g.bear.x;
-    s.dir = Math.sign(g.bear.x - s.x) || s.dir;
-    rules().float(g, s.x, GY - 104, LABELS.tracks, COLORS.seen);
-    if (!g.once.tracks) { g.once.tracks = true; rules().say(g, NEWS.tracks); }
-  }
-
-  function aimFactor(g) {
-    return g.flags.cull ? 0.85 : g.flags.emergency ? 0.92 : 1;
-  }
-
-  function update(g, dt) {
-    const b = g.bear;
-    if (g.ride) { b.warn = false; return; }
-    const quick = aimFactor(g);
-    const courtPause = g.time < g.courtUntil, calm = g.time < (g.liftCalm || 0) || ZS.sim.logging.hold(g);
-    let aiming = g.shooters.find((s) => s.lock > 0) || null;
-    for (const s of g.shooters) {
-      s.reload -= dt;
-      if (s.kick > 0) s.kick = Math.max(0, s.kick - dt * 4);
-      if (s.life !== Infinity && (s.life -= dt) <= 0 && !s.react) { s.react = 'gone'; s.reactT = 0; s.dir = Math.sign(s.x - b.x) || 1; }
-      if (s.react) {
-        const x0 = s.x;
-        ZS.sim.encounters.reactShooter(g, s, dt);
-        fence(g, s, x0);
-        s.blocked = true;
-        if (aiming === s) aiming = null;
-        continue;
-      }
-      if (s.kind !== 'ztmh' && Math.abs(s.x - b.x) > 1500) continue;
-      if (s.wobble > 0.05) { s.lock = 0; s.blocked = true; if (aiming === s) aiming = null; continue; }
-      const x0 = s.x;
-      move(g, s, dt);
-      if (s.dead) continue;
-      fence(g, s, x0);
-      followTracks(g, s, dt);
-
-      const d = Math.abs(b.x - s.x);
-      if (b.hiding && d < 32 && s.kind !== 'posed' && s.scaredT <= 0) {
-        s.scaredT = 4; s.dir = Math.sign(s.x - b.x) || 1; s.lock = 0; s.pause = 0;
-        rules().float(g, s.x, GY - 110, LABELS.hunterScared, COLORS.bad);
-        rules().addPanic(g, 2, NEWS.hunterScared);
-      }
-      const facing = s.kind === 'posed' || Math.sign(b.x - s.x) === s.dir || d < 60;
-      const allowed = (s.kind === 'poacher' || !courtPause) && s.scaredT <= 0 && !calm;
-      const free = !aiming || aiming === s;
-      s.blocked = !allowed;
-
-      const blind = s.kind === 'posed' && d < 70 && !ZS.sim.ladder.exposed(g, s);
-      const close = s.kind !== 'posed' && d < 90;
-      if (allowed && free && !blind && !b.covered && facing && d < s.range && b.inv <= 0 && (Math.abs(s.cross - b.x) < 40 || close)) {
-        aiming = s;
-        s.cross += (b.x - s.cross) * Math.min(1, dt * 8);
-        s.lock += dt * ZS.sim.corn.aim(g) * (b.thicket ? ZS.sim.lot.AIM : 1);
-        s.lost = 0;
-        g.lastKnown = b.x;
-        if (s.lock >= s.aimTime * quick && s.reload <= 0) { rules().fire(g, s); s.lock = 0; s.reload = 3; aiming = null; }
-        continue;
-      }
-      if (allowed && b.covered && s.lock > s.aimTime * quick * 0.6 && s.reload <= 0 && Math.abs(s.cross - b.x) < 60) {
-        rules().fire(g, s, 'tree'); s.reload = 3;
-      }
-      s.lock = Math.max(0, s.lock - dt * 2);
-      if (aiming === s && s.lock === 0) aiming = null;
-      if (s.kind === 'ztmh') s.lost += dt;
-      sweep(s, dt);
+    const bear = game.bear;
+    hunter.trackCd = TRACKS.cooldown;
+    hunter.alertX = bear.x;
+    hunter.dir = Math.sign(bear.x - hunter.x) || hunter.dir;
+    rules().float(game, hunter.x, GROUND - TRACKS.labelHeight, LABELS.tracks, COLORS.seen);
+    if (!game.once.tracks) {
+      game.once.tracks = true;
+      rules().say(game, NEWS.tracks);
     }
-    g.shooters = g.shooters.filter((s) => !s.dead);
-    b.warn = !b.covered && g.shooters.some((s) => !s.react && (s.lock > 0 || (Math.abs(s.cross - b.x) < 200 && Math.abs(s.x - b.x) < s.range)));
+  }
+
+  function getScaredByHidingBear(game, hunter) {
+    const bear = game.bear;
+    if (!bear.hiding || hunter.kind === 'posed' || hunter.scaredT > 0) return;
+    if (Math.abs(bear.x - hunter.x) >= SCARE.bearWithin) return;
+    hunter.scaredT = SCARE.seconds;
+    hunter.dir = Math.sign(hunter.x - bear.x) || 1;
+    hunter.lock = 0;
+    hunter.pause = 0;
+    rules().float(game, hunter.x, GROUND - SCARE.labelHeight, LABELS.hunterScared, COLORS.bad);
+    rules().addPanic(game, SCARE.panic, NEWS.hunterScared);
+  }
+
+  function update(game, dt) {
+    const bear = game.bear;
+    if (game.ride) {
+      bear.warn = false;
+      return;
+    }
+    const frame = {
+      aimFactor: aimFactor(game),
+      courtPause: game.time < game.courtUntil,
+      calm: game.time < (game.liftCalm || 0) || ZS.sim.logging.hold(game),
+      aiming: game.shooters.find((hunter) => hunter.lock > 0) || null,
+    };
+    for (const hunter of game.shooters) updateHunter(game, hunter, frame, dt);
+    game.shooters = game.shooters.filter((hunter) => !hunter.dead);
+    bear.warn = !bear.covered && game.shooters.some((hunter) => watchesBear(bear, hunter));
+  }
+
+  function updateHunter(game, hunter, frame, dt) {
+    tickTimers(game, hunter, dt);
+    if (hunter.react) {
+      playReaction(game, hunter, frame, dt);
+      return;
+    }
+    if (hunter.kind !== 'ztmh' && Math.abs(hunter.x - game.bear.x) > SHOT.ignoredBeyond) return;
+    if (hunter.wobble > SHOT.tooWobbly) {
+      hunter.lock = 0;
+      stopAiming(hunter, frame);
+      return;
+    }
+    const previousX = hunter.x;
+    move(game, hunter, dt);
+    if (hunter.dead) return;
+    stopAtFences(game, hunter, previousX);
+    followTracks(game, hunter, dt);
+    getScaredByHidingBear(game, hunter);
+    hunt(game, hunter, frame, dt);
+  }
+
+  function tickTimers(game, hunter, dt) {
+    hunter.reload -= dt;
+    if (hunter.kick > 0) hunter.kick = Math.max(0, hunter.kick - dt * SHOT.kickRecovery);
+    if (hunter.life === Infinity) return;
+    hunter.life -= dt;
+    if (hunter.life <= 0 && !hunter.react) {
+      hunter.react = 'gone';
+      hunter.reactT = 0;
+      hunter.dir = Math.sign(hunter.x - game.bear.x) || 1;
+    }
+  }
+
+  function playReaction(game, hunter, frame, dt) {
+    const previousX = hunter.x;
+    ZS.sim.encounters.reactShooter(game, hunter, dt);
+    stopAtFences(game, hunter, previousX);
+    stopAiming(hunter, frame);
+  }
+
+  function stopAiming(hunter, frame) {
+    hunter.blocked = true;
+    if (frame.aiming === hunter) frame.aiming = null;
+  }
+
+  function hunt(game, hunter, frame, dt) {
+    const mayShoot = (hunter.kind === 'poacher' || !frame.courtPause) && hunter.scaredT <= 0 && !frame.calm;
+    const nobodyElseAiming = !frame.aiming || frame.aiming === hunter;
+    hunter.blocked = !mayShoot;
+    if (mayShoot && nobodyElseAiming && seesBear(game, hunter)) {
+      aimAndFire(game, hunter, frame, dt);
+      return;
+    }
+    if (mayShoot && suspectsBearBehindTree(game, hunter, frame)) {
+      rules().fire(game, hunter, 'tree');
+      hunter.reload = SHOT.reload;
+    }
+    hunter.lock = Math.max(0, hunter.lock - dt * SHOT.aimDecay);
+    if (frame.aiming === hunter && hunter.lock === 0) frame.aiming = null;
+    if (hunter.kind === 'ztmh') hunter.lost += dt;
+    sweepCrosshair(hunter, dt);
+  }
+
+  function seesBear(game, hunter) {
+    const bear = game.bear;
+    const distance = Math.abs(bear.x - hunter.x);
+    const posed = hunter.kind === 'posed';
+    const facing = posed || Math.sign(bear.x - hunter.x) === hunter.dir || distance < SHOT.seesBehindWithin;
+    const blindUnderPost = posed && distance < SHOT.blindUnderPost && !ZS.sim.ladder.exposed(game, hunter);
+    const pointBlank = !posed && distance < SHOT.pointBlank;
+    const onCrosshair = Math.abs(hunter.cross - bear.x) < SHOT.onCrosshair;
+    return !blindUnderPost && !bear.covered && facing && distance < hunter.range && bear.inv <= 0
+      && (onCrosshair || pointBlank);
+  }
+
+  function aimAndFire(game, hunter, frame, dt) {
+    const bear = game.bear;
+    frame.aiming = hunter;
+    hunter.cross += (bear.x - hunter.cross) * Math.min(1, dt * SHOT.crosshairSnap);
+    hunter.lock += dt * aimSpeed(game);
+    hunter.lost = 0;
+    game.lastKnown = bear.x;
+    if (hunter.lock >= hunter.aimTime * frame.aimFactor && hunter.reload <= 0) {
+      rules().fire(game, hunter);
+      hunter.lock = 0;
+      hunter.reload = SHOT.reload;
+      frame.aiming = null;
+    }
+  }
+
+  function aimSpeed(game) {
+    const thicket = game.bear.thicket ? ZS.sim.lot.AIM : 1;
+    return ZS.sim.corn.aim(game) * thicket;
+  }
+
+  function suspectsBearBehindTree(game, hunter, frame) {
+    const bear = game.bear;
+    return bear.covered
+      && hunter.lock > hunter.aimTime * frame.aimFactor * SHOT.treeShotAim
+      && hunter.reload <= 0
+      && Math.abs(hunter.cross - bear.x) < SHOT.treeShotSpread;
+  }
+
+  function watchesBear(bear, hunter) {
+    if (hunter.react) return false;
+    if (hunter.lock > 0) return true;
+    return Math.abs(hunter.cross - bear.x) < SHOT.warnSpread && Math.abs(hunter.x - bear.x) < hunter.range;
   }
 
   ZS.sim = ZS.sim || {};
