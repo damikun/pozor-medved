@@ -216,7 +216,7 @@ test('in the cave a low ceiling stops an upright bear like a wall, a crawling on
   assert.ok(jumps >= 2, jumps + ' jumps');
 });
 
-test('in the cave the tour warns first, a meter over the guide fills while the bear is in sight and stops the tour, hiding or freezing lets it drain and the tour walks on, and a full meter loses the cave and starts it again', () => {
+test('in the cave the tour warns first, a meter over the guide fills while the bear is in sight and stops the tour, hiding (↓ or C) lets it drain and the tour walks on, and a full meter loses the cave and starts it again', () => {
   const env = setup();
   const { ZS, g, b, run, quiet, input } = env;
   quiet();
@@ -255,13 +255,15 @@ test('in the cave the tour warns first, a meter over the guide fills while the b
   run(3);
   input.release('ArrowDown');
   assert.equal(c.seen, seen, 'the tour walks past the column');
-  Object.assign(b, { x: 600, trackX: 600, hiding: null });
+  const col2 = g.level.covers[1];
+  Object.assign(b, { x: col2.x, trackX: col2.x, hiding: null });
   Object.assign(c, { guide: T.gone, alert: null, sus: 0 });
   input.press('KeyC', true);
-  run(0.2);
-  c.guide = 700;
+  run(0.3);
+  assert.ok(b.hiding && b.hiding.hide, 'C hides behind the column too');
+  c.guide = col2.x + 80;
   run(1.5);
-  assert.ok(c.pose && c.sus === 0, 'frozen like a stalagmite, nobody notices');
+  assert.equal(c.sus, 0, 'nobody notices a hidden bear');
   input.release('KeyC');
   c.bats[0].counted = 3; c.lamp = true;
   Object.assign(b, { x: 640, trackX: 640, hiding: null, stun: 0 });

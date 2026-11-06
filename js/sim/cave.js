@@ -58,7 +58,7 @@
 
   function start(g, S, again) {
     const c = {
-      t: 0, guide: TOUR.from, go: null, warn: false, alert: null, suspect: false, sus: 0, lost: null, back: 0, pose: false, lamp: false, flash: 0, seen: 0, said: {}, result: null, count: null, wet: 0, air: false, bonk: 0, safe: 0, sink: null,
+      t: 0, guide: TOUR.from, go: null, warn: false, alert: null, suspect: false, sus: 0, lost: null, back: 0, lamp: false, flash: 0, seen: 0, said: {}, result: null, count: null, wet: 0, air: false, bonk: 0, safe: 0, sink: null,
       bats: S.cave.colonies.map(([x, n], i) => ({ id: i, x, n, counted: 0, state: 'sleep', k: 0, t: 0 })),
     };
     c.total = c.bats.reduce((a, o) => a + o.n, 0);
@@ -89,18 +89,9 @@
 
   function counting(g, S, c, dt) {
     const b = g.bear, keys = g.input.keys;
-    c.pose = false;
     if (!keys.has('KeyC') || !b.onGround || b.hiding || b.crouch || b.stun > 0 || low(S, b.x, 50)) { c.count = null; return false; }
     const o = c.bats.find((q) => q.state === 'sleep' && q.counted < q.n && Math.abs(q.x - b.x) < COUNT.reach);
-    if (!o) {
-      c.count = null;
-      if (wild(S, b.x)) return false;
-      c.pose = true;
-      if (!c.said.pose) { c.said.pose = true; rules().quip(g, ZS.QUIPS.stalag, true); }
-      b.moving = false; b.running = false; b.vx = 0;
-      b.inv = Math.max(0, b.inv - dt); b.quipCd -= dt;
-      return true;
-    }
+    if (!o) { c.count = null; return false; }
     c.count = o;
     o.k += dt / COUNT.per;
     while (o.k >= 1 && o.counted < o.n) { o.k -= 1; o.counted++; rules().onSound(g, 'rub', o.x, 0.3); }
@@ -177,8 +168,10 @@
     g.input.hugPressed = false; g.input.bitePressed = false;
     if (c.sink) { sinking(g, S, c, dt); return; }
     if (counting(g, S, c, dt)) return;
-    const was = b.x;
+    const was = b.x, keys = g.input.keys, asDown = keys.has('KeyC') && !keys.has('ArrowDown') && !wild(S, b.x);
+    if (asDown) keys.add('ArrowDown');
     ZS.sim.bear.update(g, dt);
+    if (asDown) keys.delete('ArrowDown');
     b.x = clamp(b.x, 40, c.lamp ? S.cave.exit : S.cave.gap - 10);
     block(S, c, b, was);
     if (b.hiding && b.hiding.stalag && tourOn(c)) b.peekSide = c.guide > b.x ? -1 : 1;
@@ -197,7 +190,7 @@
   }
 
   function sees(S, c, b) {
-    if (wild(S, b.x) || c.guide + TOUR.len <= b.x || (b.hiding && b.hiding.hide) || c.pose) return false;
+    if (wild(S, b.x) || c.guide + TOUR.len <= b.x || (b.hiding && b.hiding.hide)) return false;
     const reach = TOUR.light + (c.suspect ? ALERT.wider : 0), lit = walking(c) || c.alert;
     return b.x >= c.guide - TOUR.near || (lit && b.x < c.guide && b.x > c.guide - reach);
   }
@@ -249,7 +242,7 @@
       return;
     }
     if (walking(c)) c.guide -= TOUR.speed * (c.suspect ? ALERT.slow : 1) * dt;
-    const hidden = (b.hiding && b.hiding.hide) || c.pose;
+    const hidden = b.hiding && b.hiding.hide;
     const ahead = !wild(S, b.x) && c.guide + TOUR.len > b.x;
     const eta = (c.guide - TOUR.light - b.x) / (TOUR.speed + Math.max(0, b.vx));
     c.warn = ahead && !hidden && (!walking(c) || eta < TOUR.warn);
@@ -258,7 +251,7 @@
   function block(S, c, b, was) {
     const edge = c.guide - ALERT.block, prev = c.edge === undefined ? edge : c.edge;
     c.edge = edge;
-    if (!tourOn(c) || wild(S, b.x) || (b.hiding && b.hiding.hide) || c.pose) return;
+    if (!tourOn(c) || wild(S, b.x) || (b.hiding && b.hiding.hide)) return;
     if (was <= prev + 1 && b.x > edge) { b.x = edge; b.trackX = Math.min(b.trackX, edge); b.vx = 0; }
   }
 
@@ -326,7 +319,6 @@
     if (ledgeAhead(S, b)) return 'climb';
     if (leap(S, b, 25)) return 'jump';
     if (c.bats.some((q) => q.state === 'sleep' && q.counted < q.n && Math.abs(q.x - b.x) < COUNT.reach)) return 'count';
-    if (c.pose) return null;
     if (c.sus > 0.02 || c.alert || c.warn || (!wild(S, b.x) && tourOn(c) && c.guide - b.x < 600 && c.guide + TOUR.len > b.x)) return 'hide';
     return null;
   }

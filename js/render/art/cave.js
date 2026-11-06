@@ -380,7 +380,7 @@
   }
 
   function headlamp(ctx, c, b) {
-    if (!c.lamp || b.hiding || c.pose) return;
+    if (!c.lamp || b.hiding) return;
     const R = SIM().LAMP.range, L = ZS.bearLamp;
     let hx, hy, ux, uy;
     if (L && L.b === b && ctx.getTransform) {
@@ -398,33 +398,6 @@
     ctx.fillStyle = gr;
     ctx.beginPath(); ctx.moveTo(hx + px * 2.5, hy + py * 2.5); ctx.lineTo(ex + px * 95, ey + py * 95); ctx.lineTo(ex - px * 95, ey - py * 95); ctx.lineTo(hx - px * 2.5, hy - py * 2.5); ctx.closePath(); ctx.fill();
   }
-
-  function statue(ctx, g, c, b, withBear) {
-    const s = c.statue || (c.statue = { who: {} }), d = b.dir < 0 ? -1 : 1, t = g.time;
-    const who = Object.assign(s.who, b, { rear: 1, moving: false, running: false, hiding: null, crouch: false, vx: 0, dir: d });
-    withBear(ZS.drawBear, who, 1);
-    const x = b.x - d * 6, base = b.y + 4, top = b.y - 62;
-    const gr = ctx.createLinearGradient(x - 50, 0, x + 50, 0);
-    gr.addColorStop(0, ROCK.calc3); gr.addColorStop(0.35, ROCK.calcite); gr.addColorStop(0.7, ROCK.calc2); gr.addColorStop(1, ROCK.calc3);
-    ctx.fillStyle = gr;
-    ctx.beginPath(); ctx.moveTo(x - 52, base);
-    ctx.bezierCurveTo(x - 44, base - 40, x - 30, top + 40, x - 24, top + 8);
-    for (let i = 0; i <= 6; i++) { const u = i / 6, xx = x - 24 + u * 48; ctx.lineTo(xx, top + 8 + (i % 2 ? 10 : -4) + hash(i * 3.1) * 6); }
-    ctx.bezierCurveTo(x + 30, top + 40, x + 44, base - 40, x + 52, base);
-    ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = 'rgba(110,90,70,0.32)'; ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    for (let i = 1; i < 4; i++) { const y = base - i * 17, w = 50 - i * 7; ctx.moveTo(x - w, y); ctx.quadraticCurveTo(x, y + 6, x + w, y); }
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,248,230,0.6)'; ctx.lineWidth = 3; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(x - 20, base - 8); ctx.quadraticCurveTo(x - 12, top + 40, x - 10, top + 14); ctx.stroke(); ctx.lineCap = 'butt';
-    ctx.fillStyle = 'rgba(217,204,180,0.85)';
-    for (let i = 0; i < 4; i++) { const xx = x - 18 + i * 12, l = 8 + hash(i * 2.7) * 10; poly(ctx, [xx - 3, top + 10, xx + 3, top + 10, xx, top + 10 + l]); }
-    const k = (t * 0.7) % 1;
-    ctx.fillStyle = 'rgba(190,225,245,' + (0.8 * (1 - k)).toFixed(3) + ')'; circle(ctx, x + 6, top + 18 + k * 40, 1.8);
-  }
-
-
 
   function tallyMark(ctx, g, c, b) {
     const o = c.count, t = g.time, top = roofY(o.x) + 8;
@@ -453,7 +426,6 @@
       for (let i = 0; i < 2; i++) { const k = (t * 0.8 + i * 0.5) % 1; circle(ctx, who.x + (who.dir < 0 ? -38 : 38) + i * 6, b.y - 92 + k * 26, 2.2 * (1 - k)); }
       return;
     }
-    if (c.pose) { statue(ctx, g, c, b, withBear); return; }
     const rest = 1 - (b.hideBlend || 0);
     if (rest > 0.01) withBear(ZS.drawBear, b, rest);
     if (c.count) tallyMark(ctx, g, c, b);
@@ -535,8 +507,7 @@
   function hint(ctx, g, c, viewW) {
     const k = SIM().hint(g, c), b = g.bear;
     const one = (key, text, skill) => Object.assign([key, text], { skill, tip: true });
-    const parts = k === 'hide' ? [one('ArrowDown', LABELS.cave.hint.hide, 'cavehide'), one('KeyC', LABELS.cave.hint.statue, 'cavestatue')]
-      : k ? [one(HINT[k][0], LABELS.cave.hint[k], 'cave' + k)] : null;
+    const parts = k ? [one(HINT[k][0], LABELS.cave.hint[k], 'cave' + k)] : null;
     ZS.prompt.show(ctx, g, parts && { parts, x: b.x, y: GY + 6 }, { hang: true, lo: g.cam + 8, hi: g.cam + viewW - 8 });
   }
 
