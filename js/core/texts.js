@@ -237,6 +237,7 @@
     rockHit: 'Poľovník strelil do balvanu. Balvan je v poriadku, poľovník podáva sťažnosť na žulu.',
     caveTour: 'Ministerstvo sčíta netopiere v Demänovskej jaskyni. Na sčítača nemalo, tak to robí medveď.',
     caveSeen: 'Turisti v Jaskyni slobody stretli medveďa. Sprievodkyňa: Patrí k prehliadke, len nemá lístok.',
+    caveCall: 'Sprievodkyňa v Jaskyni slobody volala záchranárov k medveďovi. Medveď sa medzitým tváril ako kvapeľ, záchranári ako minister.',
     caveWoke: 'V jaskyni vyleteli netopiere. Minister Strašiak: Vyplašil ich medveď, netopiere sú nevinné.',
     caveAll: 'Medveď zrátal všetky netopiere v Demänovskej jaskyni. Ministerstvo výsledok odmietlo: Netopier je len lietajúci medveď.',
     caveSome: 'Sčítanie netopierov skončilo. Medveď napočítal menej netopierov ako ministerstvo medveďov.',
@@ -727,7 +728,7 @@
     logging: '🪓',
     chopokStart: '🏔️', chopokAutumn: '🍂', chopokSnow: '🌨️', readyForDumbier: '💤', parkingBear: '🅿️', caveTen: '🦇', caveIce: '🧊',
     funiRide: '🚡', chataServed: '🍲', chataCaught: '🍲', fogRoll: '🌫️', windGust: '🌬️',
-    caveTour: '🦇', caveSeen: '🔦', caveWoke: '🦇', caveAll: '🦇', caveSome: '🦇', caveNone: '🦇', cabinBoard: '🚡', cabinKids: '🎒', cabinAlarm: '⚖️',
+    caveTour: '🦇', caveSeen: '🔦', caveCall: '📞', caveWoke: '🦇', caveAll: '🦇', caveSome: '🦇', caveNone: '🦇', cabinBoard: '🚡', cabinKids: '🎒', cabinAlarm: '⚖️',
     rescuerSeen: '⛑️', tatierSeen: '🤳', tatierFog: '🌫️', summitBook: '📖', rockHit: '🪨', rockHide: '🪨',
   };
 
@@ -896,6 +897,9 @@
       back: 'Čelovku vráťte pri východe',
       warn: 'Ide prehliadka! Skry sa za stalagnát (↓) alebo zamrzni ako kvapeľ (C)',
       warnTouch: 'Ide prehliadka! Skry sa za stalagnát alebo zamrzni ako kvapeľ',
+      call: 'Sprievodkyňa volá záchranárov!',
+      doubt: 'Asi sa mi to zdalo…',
+      film: 'Medveď! Natáčajte!',
       bonk: 'Bum!',
       left: 'Najprv zrátaj netopiere',
       hint: { crawl: 'podlez', climb: 'vyskoč na rímsu', jump: 'skoč na kameň', count: 'rátaj netopiere', hide: 'skry sa, ide prehliadka', statue: 'zamrzni ako kvapeľ' },

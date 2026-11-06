@@ -8,7 +8,8 @@
   const TOUR = { from: 700, speed: 100, len: 220, light: 220, gone: -260, trigger: 260, wait: 8, delay: 2.4, warn: 3, near: 40 };
   const COUNT = { per: 0.22, reach: 48 };
   const NOISE = { run: 240, land: 150, splash: 280 };
-  const SEEN = { panic: 8, big: 25, flash: 0.6, safe: 2 };
+  const SEEN = { panic: 8, big: 25, flash: 0.6 };
+  const ALERT = { panic: 5, call: 3.5, doubt: 2.4, slow: 0.55, wider: 70, block: 34 };
   const SINK = { t: 0.8, depth: 34, safe: 2, panic: 15, bank: 40, stun: 0.6 };
   const LAMP = { reach: 34, range: 280 };
   const STONE = 30, END = 180, REAR = 0.72, LEDGE = 90, LEAP = 118;
@@ -56,7 +57,7 @@
 
   function start(g, S) {
     const c = {
-      t: 0, guide: TOUR.from, go: null, warn: false, grace: false, pose: false, lamp: false, flash: 0, seen: 0, said: {}, result: null, count: null, wet: 0, air: false, bonk: 0, safe: 0, sink: null,
+      t: 0, guide: TOUR.from, go: null, warn: false, alert: null, suspect: false, pose: false, lamp: false, flash: 0, seen: 0, said: {}, result: null, count: null, wet: 0, air: false, bonk: 0, safe: 0, sink: null,
       bats: S.cave.colonies.map(([x, n], i) => ({ id: i, x, n, counted: 0, state: 'sleep', k: 0, t: 0 })),
     };
     c.total = c.bats.reduce((a, o) => a + o.n, 0);
@@ -175,8 +176,10 @@
     g.input.hugPressed = false; g.input.bitePressed = false;
     if (c.sink) { sinking(g, S, c, dt); return; }
     if (counting(g, S, c, dt)) return;
+    const was = b.x;
     ZS.sim.bear.update(g, dt);
     b.x = clamp(b.x, 40, c.lamp ? S.cave.exit : S.cave.gap - 10);
+    block(S, c, b, was);
     if (!c.lamp && b.x >= S.cave.gap - 12 && !c.said.dark) { c.said.dark = true; rules().float(g, b.x, GY - 130, LABELS.cave.dark, COLORS.story); }
     bonk(g, S, c, b, dt);
     river(g, S, c, b);
@@ -191,38 +194,62 @@
     }
   }
 
+  function sees(S, c, b) {
+    if (wild(S, b.x) || c.guide + TOUR.len <= b.x || (b.hiding && b.hiding.hide) || c.pose) return false;
+    const reach = TOUR.light + (c.suspect ? ALERT.wider : 0), lit = walking(c) || c.alert;
+    return b.x >= c.guide - TOUR.near || (lit && b.x < c.guide && b.x > c.guide - reach);
+  }
+
   function tour(g, S, c, dt) {
     const b = g.bear;
     if (c.go === null) {
       if (b.x > TOUR.trigger || c.t > TOUR.wait) c.go = c.t;
       return;
     }
-    if (c.guide <= TOUR.gone) { c.warn = false; return; }
-    if (walking(c)) c.guide -= TOUR.speed * dt;
-    if (c.grace && c.guide + TOUR.len < b.x - 20) c.grace = false;
+    if (c.guide <= TOUR.gone) { c.warn = false; c.alert = null; return; }
+    const see = sees(S, c, b), A = c.alert;
+    if (A) {
+      c.warn = false;
+      if (see) {
+        A.doubt = 0; A.expose += dt;
+        rules().addPanic(g, ALERT.panic * dt);
+        if (A.expose >= ALERT.call) {
+          A.expose = 0;
+          rules().float(g, c.guide + 40, GY - 200, LABELS.cave.call, COLORS.bad);
+          hurt(g, b, SEEN.big);
+          if (!c.said.call) { c.said.call = true; rules().say(g, NEWS.caveCall, true); }
+        }
+      } else {
+        A.expose = Math.max(0, A.expose - dt); A.doubt += dt;
+        if (A.doubt >= ALERT.doubt) {
+          c.alert = null; c.suspect = true;
+          rules().float(g, c.guide + 40, GY - 165, LABELS.cave.doubt, COLORS.story);
+        }
+      }
+      return;
+    }
+    if (walking(c)) c.guide -= TOUR.speed * (c.suspect ? ALERT.slow : 1) * dt;
     const hidden = (b.hiding && b.hiding.hide) || c.pose;
     const ahead = !wild(S, b.x) && c.guide + TOUR.len > b.x;
     const eta = (c.guide - TOUR.light - b.x) / (TOUR.speed + Math.max(0, b.vx));
-    c.warn = ahead && !c.grace && !hidden && (!walking(c) || eta < TOUR.warn);
-    if (!ahead || hidden || c.grace || c.safe > 0) return;
-    const inLight = walking(c) && b.x < c.guide && b.x > c.guide - TOUR.light;
-    const inGroup = b.x >= c.guide - TOUR.near;
-    if (!inLight && !inGroup) return;
-    caught(g, S, c, b);
-  }
-
-  function caught(g, S, c, b) {
-    c.seen++; c.flash = SEEN.flash; c.grace = true; c.warn = false; c.safe = SEEN.safe;
+    c.warn = ahead && !hidden && (!walking(c) || eta < TOUR.warn);
+    if (!see) return;
+    c.alert = { expose: 0, doubt: 0 };
+    c.seen++; c.flash = SEEN.flash; c.warn = false;
     rules().spotted(g, b.x, GY - 130, LABELS.cave.seen);
+    rules().float(g, c.guide + 110, GY - 165, LABELS.cave.film, COLORS.zap);
     rules().onSound(g, 'scream', b.x, 0.7);
     rules().addPanic(g, SEEN.panic);
-    const col = S.covers.filter((s) => s.x < S.cave.gap && s.x < b.x - 10).reduce((p, s) => (!p || s.x > p.x ? s : p), null);
-    const x = col ? col.x : Math.max(S.start, b.x - 60);
-    chopok().quiet(b);
-    Object.assign(b, { x, trackX: x, dir: 1, stun: 0.4 });
-    hurt(g, b, SEEN.big);
     if (!c.said.seen) { c.said.seen = true; rules().say(g, NEWS.caveSeen, true); }
   }
+
+  function block(S, c, b, was) {
+    if (!tourOn(c) || wild(S, b.x) || (b.hiding && b.hiding.hide)) return;
+    const edge = c.guide - ALERT.block;
+    if (was <= edge && b.x > edge) { b.x = edge; b.trackX = Math.min(b.trackX, edge); b.vx = 0; }
+  }
+
+
 
   function bats(c, dt) {
     for (const o of c.bats) if (o.state === 'fly') { o.t += dt; if (o.t > 2.2) o.state = 'gone'; }
@@ -272,7 +299,7 @@
     if (leap(S, b, 25)) return 'jump';
     if (c.bats.some((q) => q.state === 'sleep' && q.counted < q.n && Math.abs(q.x - b.x) < COUNT.reach)) return 'count';
     if (c.pose) return null;
-    if (c.warn || (!wild(S, b.x) && tourOn(c) && !c.grace && c.guide - b.x < 600 && c.guide + TOUR.len > b.x)) return 'hide';
+    if (c.alert || c.warn || (!wild(S, b.x) && tourOn(c) && c.guide - b.x < 600 && c.guide + TOUR.len > b.x)) return 'hide';
     return null;
   }
 
@@ -300,5 +327,5 @@
     if (b.onGround && b.y > GY - 5 && leap(S, b, 0)) { g.input.jumpPressed = true; g.input.jumpKey = 'Space'; }
   }
 
-  ZS.sim.cave = { TOUR, COUNT, LAMP, SINK, LEAP, stage, start, update, idle, low, water, wild, counted, plan, pilot, hint, tourOn, walking, roofY, ceiling };
+  ZS.sim.cave = { TOUR, ALERT, COUNT, LAMP, SINK, LEAP, stage, start, update, idle, low, water, wild, counted, plan, pilot, hint, tourOn, walking, roofY, ceiling };
 })();

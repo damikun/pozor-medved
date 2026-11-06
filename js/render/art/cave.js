@@ -192,16 +192,24 @@
   }
 
   function group(ctx, g, c) {
-    const T = SIM().TOUR, t = g.time, st = SIM().walking(c) ? 'walk' : 'idle';
+    const T = SIM().TOUR, t = g.time, A = c.alert, b = g.bear, st = A ? 'idle' : SIM().walking(c) ? 'walk' : 'idle';
     if (c.guide < T.gone) return;
+    const look = A && !A.doubt, gd = A ? (look ? Math.sign(b.x - c.guide) || -1 : (sin(t * 1.7) > 0 ? -1 : 1)) : st === 'walk' ? -1 : 1;
     for (let i = 9; i >= 0; i--) {
       const x = c.guide + i * 23 + (i % 2) * 5;
       if (i === 0) {
-        person(ctx, 'caveGuide', 'aide', x, st === 'walk' ? -1 : 1, st, t, { scared: c.grace });
-        ctx.fillStyle = '#fff3c4'; circle(ctx, x + (st === 'walk' ? -3 : 3), GY - 82, 2.8);
+        person(ctx, 'caveGuide', 'aide', x, gd, st, t, { scared: !!A });
+        ctx.fillStyle = '#fff3c4'; circle(ctx, x + gd * 3, GY - 82, 2.8);
         continue;
       }
-      person(ctx, 'caveT' + i, 'tourist', x, -1, st, t, { look: i, hiker: true, empty: true, scared: c.grace });
+      const fd = look ? Math.sign(b.x - x) || -1 : A ? (hash(i * 3.7 + Math.floor(t * 0.8)) > 0.5 ? 1 : -1) : -1;
+      person(ctx, 'caveT' + i, 'tourist', x, fd, look && i % 3 !== 1 ? 'film' : st, t, { look: i, hiker: true, empty: !look, scared: !!A });
+    }
+    if (A && A.expose > 0.15) {
+      const k = Math.min(1, A.expose / SIM().ALERT.call), x = c.guide, y = GY - 128;
+      ctx.fillStyle = 'rgba(20,16,26,0.85)'; rr(ctx, x - 30, y - 8, 60, 16, 8);
+      ctx.fillStyle = '#e03131'; rr(ctx, x - 26, y - 4, 52 * k, 8, 4);
+      label(ctx, '📞', x - 42, y + 1, 14, '#fff');
     }
   }
 
@@ -440,16 +448,19 @@
     }
     ctx.fillStyle = gr;
     ctx.fillRect(cam - 2, -offY - 10, viewW + 4, H + 40);
-    const T = SIM().TOUR;
-    if (c.guide > T.gone && c.guide < cam + viewW + 300 && !SIM().walking(c)) {
+    const T = SIM().TOUR, A = c.alert;
+    if (c.guide > T.gone && c.guide < cam + viewW + 300 && SIM().walking(c)) {
+      const x = c.guide + 6, y = GY - 80, len = T.light + (c.suspect ? SIM().ALERT.wider : 0);
+      const ang = A && !A.doubt ? Math.atan2(b.y - 70 - y, b.x - x) : A ? PI - 0.25 + 0.5 * sin(c.t * 2.3) : PI + 0.12;
+      const ux = Math.cos(ang), uy = Math.sin(ang), px = -uy, py = ux, ex = x + ux * len, ey = y + uy * len, w = len * 0.42;
+      const gl = ctx.createLinearGradient(x, y, ex, ey);
+      gl.addColorStop(0, 'rgba(255,244,200,' + (A ? 0.42 : 0.34) + ')'); gl.addColorStop(1, 'rgba(255,244,200,0)');
+      ctx.fillStyle = gl; ctx.beginPath(); ctx.moveTo(x + px * 3, y + py * 3); ctx.lineTo(ex + px * w, ey + py * w); ctx.lineTo(ex - px * w, ey - py * w); ctx.lineTo(x - px * 3, y - py * 3); ctx.closePath(); ctx.fill();
+    } else if (c.guide > T.gone && c.guide < cam + viewW + 300) {
       const x = c.guide + 6, y = GY - 84, top = roofY(x + 140) + 20;
       const gl = ctx.createLinearGradient(x, y, x + 140, top);
       gl.addColorStop(0, 'rgba(255,244,200,0.3)'); gl.addColorStop(1, 'rgba(255,244,200,0)');
       ctx.fillStyle = gl; ctx.beginPath(); ctx.moveTo(x, y - 3); ctx.lineTo(x + 70, top); ctx.lineTo(x + 230, top + 10); ctx.lineTo(x, y + 3); ctx.closePath(); ctx.fill();
-    } else if (c.guide > T.gone && c.guide < cam + viewW + 300) {
-      const gl = ctx.createLinearGradient(c.guide + 10, 0, c.guide - T.light, 0);
-      gl.addColorStop(0, 'rgba(255,244,200,0.34)'); gl.addColorStop(1, 'rgba(255,244,200,0)');
-      ctx.fillStyle = gl; ctx.beginPath(); ctx.moveTo(c.guide + 6, GY - 84); ctx.lineTo(c.guide - T.light, GY - 170); ctx.lineTo(c.guide - T.light, GY); ctx.lineTo(c.guide + 6, GY - 76); ctx.closePath(); ctx.fill();
     }
   }
 
