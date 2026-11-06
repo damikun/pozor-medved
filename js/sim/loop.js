@@ -74,9 +74,11 @@
 
   function passing(g, dt) {
     sim.chopok.stepPass(g, dt);
+    if (g.over) return;
     g.cam = cameraX(g);
-    ZS.fx.update(g, dt, g.viewW);
+    if (!sim.chopok.inside(g)) ZS.fx.update(g, dt, g.viewW);
     updateMeters(g, dt);
+    sim.politics.escalate(g);
     ageEffects(g, dt);
     sim.rules.tickerStep(g, dt);
   }

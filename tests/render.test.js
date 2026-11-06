@@ -225,16 +225,24 @@ for (const c of SCENES) {
     };
     const at = (x, season) => { b.x = x; b.trackX = x; b.dir = 1; b.stun = 0; if (season) g.seasonKey = season; };
     const seen = new Set();
-    input.press('ArrowRight', true);
-    at(L.cave.door - 80);
-    play(2.5, () => { if (g.chopok && g.chopok.pass) seen.add(g.chopok.pass.key + ':' + g.chopok.pass.phase); });
+    const through = (door) => {
+      at(door - 80);
+      g.bot = true;
+      for (let i = 0; i < 60 * 70 && !g.over; i++) {
+        ZS.sim.loop.step(g, 1 / 60);
+        const p = g.chopok && g.chopok.pass;
+        if (p) seen.add(p.key + ':' + p.phase);
+        if (i % 3 === 0) draw();
+        if (i > 60 && !p) break;
+      }
+      g.bot = false;
+    };
+    through(L.cave.door);
     at(L.jasna.bikes[1] - 400);
-    input.release('ArrowRight');
     g.chopok.bikeT = 0;
     play(3);
+    through(L.funi.door);
     input.press('ArrowRight', true);
-    at(L.funi.door - 60);
-    play(2.5, () => { if (g.chopok.pass) seen.add(g.chopok.pass.key + ':' + g.chopok.pass.phase); });
     at(L.chata.door - 20);
     play(2);
     at(L.chata.counter);
@@ -250,7 +258,8 @@ for (const c of SCENES) {
     at(L.dumbier.minister - 300, 'firstSnow');
     play(4);
     input.release('ArrowRight');
-    assert.deepEqual([...seen], ['cave:close', 'cave:open', 'funi:close', 'funi:open']);
+    assert.deepEqual([...seen], ['cave:close', 'cave:open', 'cave:play', 'cave:shut', 'cave:back', 'funi:close', 'funi:open', 'funi:play', 'funi:shut', 'funi:back']);
+    assert.equal(g.once.caveTour, 'dragon');
     assert.equal(g.chopok.chata.served, true);
     assert.ok(g.once.book, 'the summit book');
     assert.deepEqual(problems.slice(0, 5), [], `${problems.length} bad canvas calls`);

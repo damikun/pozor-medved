@@ -148,6 +148,13 @@
     keys.clear();
     if (g.ride) { swingTo(g, dt); return; }
     if (g.cut && g.cut.phase !== 'done') { clearing(g, dt); return; }
+    const cave = ZS.sim.cave.plan(g), cabin = ZS.sim.cabin.plan(g);
+    if (cave || cabin) {
+      if (bot.mode === 'runner') keys.add('ArrowRight');
+      else if (cave) ZS.sim.cave.pilot(g, cave);
+      else ZS.sim.cabin.pilot(g, cabin);
+      return;
+    }
     const pilot = g.pilot || (g.pilot = { t: 0, danger: 0, wait: 0, bold: 0, alarm: -9 });
     pilot.t -= dt || 0;
     if (pilot.t <= 0) { pilot.t = bot.reaction; pilot.danger = threat(g); }

@@ -299,6 +299,7 @@
   ZS.draw = function (g, ctx, viewW, offY) {
     const lift = ZS.render.lift;
     if (g.ride && lift.inside(g)) { lift.draw(g, ctx, viewW, offY); return; }
+    if (ZS.sim.chopok.inside(g)) { (g.level.cabin ? ZS.cabinArt : ZS.caveArt).draw(g, ctx, viewW, offY); ZS.chopokArt.iris(ctx, g, viewW, offY); return; }
     const L = g.level, b = g.bear, cam = g.cam, T = ZS.LEVEL_TEXT[L.id], zoom = g.ride ? lift.zoom(g) : null;
     const vis = (x, m) => x > cam - m && x < cam + viewW + m;
     const span = (a, z, m) => z > cam - m && a < cam + viewW + m;

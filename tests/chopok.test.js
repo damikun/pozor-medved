@@ -42,16 +42,16 @@ test('the Ďumbier level is built from the dolina to the summit, with cover all 
   for (const t of L.trees) {
     for (const p of L.passes) assert.ok(t.x < p.from - 40 || t.x > p.to + 20, 'tree at ' + Math.round(t.x) + ' in the ' + p.key);
     assert.ok(t.x < L.chata.from - 40 || t.x > L.chata.to + 40, 'tree in the hut at ' + Math.round(t.x));
-    assert.ok(t.x < L.concrete.from || t.x > L.concrete.to || [2330, 2980, 3240].includes(t.x), 'tree on the car park at ' + Math.round(t.x));
+    for (const l of L.lots) assert.ok(t.x < l.from || t.x > l.to, 'tree on the car park at ' + Math.round(t.x));
   }
   const gaps = hiders.map((t) => t.x).concat(...L.passes.map((p) => [p.from, p.to])).sort((a, b) => a - b).map((x, i, a) => (i ? x - a[i - 1] : 0));
   assert.ok(Math.max(...gaps) < 1200, 'longest stretch without cover: ' + Math.round(Math.max(...gaps)));
   assert.ok(L.covers.filter((c) => c.rock).length >= 10, 'boulders and cairns on the ridge');
-  assert.ok(L.covers.every((c) => c.x > L.summit.from && c.hide && c.top < 450));
+  assert.ok(L.covers.every((c) => c.hide && c.top < 450 && (c.lime || c.x > L.summit.from)));
   const natural = L.items.filter((it) => ZS.FOOD[it.type].natural);
   assert.ok(natural.length >= 20, natural.length + ' natural food items');
   for (const it of L.items) assert.ok(ZS.FOOD[it.type] && it.x > 40 && it.x < L.w - 40, it.type);
-  for (const kind of ['bin', 'container', 'fish']) assert.ok(L.items.some((it) => it.type === kind), kind);
+  for (const kind of ['bin', 'container']) assert.ok(L.items.some((it) => it.type === kind), kind);
   assert.ok(L.items.some((it) => it.labelKey === 'lingon' && it.x > L.crest.from), 'lingonberries on the ridge');
 });
 
@@ -69,34 +69,128 @@ test('the third level is on the start screen and every new text exists in all fo
   for (const k of Object.keys(ZS.NEWS)) if (!['cp', 'logging', 'tycoon'].includes(k)) assert.ok(ZS.NEWS_ICON[k] || typeof ZS.NEWS[k] === 'object', 'icon for ' + k);
 });
 
-test('the cave entrance closes an iris around the bear and opens it at the exit, and the bear cannot walk back in', () => {
-  const { g, b, L, run, quiet, put, hold, release } = setup();
-  quiet();
-  put(L.cave.door - 60);
+function into(env, door) {
+  const { g, run, put, hold, release } = env;
+  put(door - 60);
   hold('ArrowRight');
-  let closed = false;
-  run(3, () => { if (g.chopok && g.chopok.pass) closed = true; });
+  run(4, () => (g.chopok && g.chopok.pass && g.chopok.pass.phase === 'play' ? false : undefined));
   release('ArrowRight');
-  assert.ok(closed, 'the passage ran');
+  return g.chopok.pass.play;
+}
+
+test('the cave is a sublevel of its own: the valley is put away, the bear follows the tour and comes out by the ice cave', () => {
+  const env = setup();
+  const { ZS, g, b, L, run, quiet, hold, release } = env;
+  quiet();
+  const main = g.level, people = [ZS.sim.people.create(g, 'tourist', { from: 1000, to: 1100 })];
+  g.people = people;
+  const c = into(env, L.cave.door);
+  assert.ok(g.level.stage && g.level.cave && g.level !== main, 'inside the cave stage');
+  assert.equal(g.people.length, 0, 'the valley people wait outside');
+  assert.ok(ZS.sim.chopok.inside(g));
+  g.bot = true;
+  run(60, () => (g.chopok.pass ? undefined : false));
+  g.bot = false;
+  assert.equal(g.level, main);
+  assert.ok(g.people.includes(people[0]), 'the valley people are back');
   assert.equal(g.once.cave, true);
+  assert.equal(c.result, 'dragon', 'the careful bear stands next to the Liptov dragon');
+  assert.equal(c.seen, 0);
   assert.ok(b.x >= L.cave.land, 'out of the cave at ' + Math.round(b.x));
-  assert.equal(g.chopok.pass, null);
   hold('ArrowLeft');
   run(2);
   release('ArrowLeft');
   assert.ok(b.x >= L.passes[0].wall - 1, 'the exit is one way: ' + Math.round(b.x));
 });
 
-test('the cabin to Chopok is a passage too, and lands the bear by the top station with the hunters calm', () => {
-  const { g, b, L, run, quiet, put, hold, release } = setup();
+test('in the cave, bumping into the group gets the bear seen and shooed back, and three sightings end the tour', () => {
+  const env = setup();
+  const { ZS, g, b, quiet } = env;
   quiet();
-  put(L.funi.door - 30);
-  hold('ArrowRight');
-  run(2.4);
-  release('ArrowRight');
+  const c = into(env, env.L.cave.door);
+  const tail = ZS.sim.cave.tail(c);
+  Object.assign(b, { x: tail + 10, trackX: tail + 10 });
+  env.run(0.1);
+  assert.equal(c.seen, 1);
+  assert.ok(b.x < tail - 150, 'shooed back to ' + Math.round(b.x));
+  assert.ok(g.stats.seen > 0 && g.panic > 0);
+  for (let i = 0; i < 2; i++) { env.run(2.6); const t = ZS.sim.cave.tail(c); Object.assign(b, { x: t + 10, trackX: t + 10, stun: 0 }); env.run(0.05); }
+  env.run(0.2);
+  assert.equal(c.result, 'abort');
+});
+
+test('in the lit dome the dripstone pose fools the guide’s look, but not the torch, which only a stalagnate stops', () => {
+  const env = setup();
+  const { ZS, g, b, run, quiet, input } = env;
+  quiet();
+  const c = into(env, env.L.cave.door);
+  const S = g.level, look = ZS.sim.cave.EVENTS[0], cone = ZS.sim.cave.EVENTS[1];
+  const at = (t, x) => { c.t = t; Object.assign(b, { x, trackX: x, stun: 0, hiding: null }); };
+  at(look.at + 0.1, 700);
+  input.press('KeyC', true);
+  run(0.6);
+  assert.ok(ZS.sim.cave.lit(S, c, b.x), 'the bear stands in light');
+  assert.equal(c.seen, 0, 'a dripstone is not a bear');
+  input.release('KeyC');
+  run(0.5);
+  assert.equal(c.seen, 1, 'a dripstone that walks is');
+  at(cone.at + 0.1, 1300);
+  c.seenAt = -99;
+  input.press('KeyC', true);
+  run(0.3);
+  input.release('KeyC');
+  assert.equal(c.seen, 2, 'the torch sees through the pose');
+  at(cone.at + 0.1, 1080);
+  c.seenAt = -99;
+  input.press('ArrowDown', true);
+  run(0.6);
+  input.release('ArrowDown');
+  assert.equal(c.seen, 2, 'the stalagnate hides the bear from the torch');
+});
+
+test('the cabin is a sublevel too: a careful bear rides it hidden behind the rucksacks and gets out by the Rotunda', () => {
+  const env = setup();
+  const { ZS, g, b, L, run, quiet } = env;
+  quiet();
+  const lives = g.lives;
+  const c = into(env, L.funi.door);
+  assert.ok(g.level.cabin, 'inside the cabin');
+  g.bot = true;
+  run(50, () => (g.chopok.pass ? undefined : false));
+  g.bot = false;
   assert.equal(g.once.funi, true);
-  assert.ok(b.x > L.funi.land - 1 && b.x < L.funi.land + 300, Math.round(b.x));
+  assert.equal(c.result, 'clean');
+  assert.equal(g.lives, lives);
+  assert.ok(b.x > L.funi.land - 1 && b.x < L.summit.rotunda, 'by the Rotunda at ' + Math.round(b.x));
   assert.ok(g.liftCalm > 0);
+  void ZS;
+});
+
+test('in the cabin a passenger who sees the bear stops it and a hunter shoots from below; the mascot pose fools a child but not a granny', () => {
+  const env = setup();
+  const { ZS, g, b, run, quiet, input } = env;
+  quiet();
+  const c = into(env, env.L.funi.door);
+  const lives = g.lives;
+  const kid = c.people.find((p) => p.role === 'kid'), granny = c.people.find((p) => p.role === 'granny');
+  for (const p of c.people) p.home = p.x = p === kid ? 400 : 900;
+  c.t = 8; c.side = -1;
+  Object.assign(b, { x: 300, trackX: 300 });
+  c.pose = 1;
+  input.press('KeyC', true);
+  run(0.5);
+  assert.equal(c.fooled, true, 'the child takes a selfie with the mascot');
+  assert.ok(ZS.sim.rules.hugged(g), 'a selfie counts as a hug');
+  assert.equal(c.shot, null);
+  input.release('KeyC');
+  granny.x = granny.home = 400; kid.x = kid.home = 900;
+  c.seenAt = -99;
+  input.press('KeyC', true);
+  run(0.3);
+  input.release('KeyC');
+  assert.ok(c.shot, 'the granny is not fooled and the cabin stops');
+  run(1.6);
+  assert.equal(g.lives, lives - 1);
 });
 
 test('every checkpoint of the Ďumbier level survives packing and resumes on its side of the passages', () => {

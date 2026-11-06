@@ -541,7 +541,7 @@
       rules().say(game, hidingNews(cover));
     }
     if (bear.quipCd <= 0) {
-      showQuip(game, ZS.QUIPS[cover.hide ? bear.pose : 'birch']);
+      showQuip(game, ZS.QUIPS[cover.stalag ? 'stalag' : cover.hide ? bear.pose : 'birch']);
       bear.quipCd = HIDING.quipCooldown;
     }
   }
@@ -549,6 +549,7 @@
   function hidingPose(cover) {
     if (cover.hay) return 'hay';
     if (cover.rock) return 'rock';
+    if (cover.pack) return 'pack';
     if (cover.logs) return 'pile';
     if (!cover.hide) return 'sweat';
     const poses = ZS.POSES;
@@ -650,7 +651,7 @@
   }
 
   function gaitSpeed(bear) {
-    if (bear.crouch) return CFG.CREEP;
+    if (bear.crouch || bear.dark) return CFG.CREEP;
     if (bear.running) return CFG.RUN;
     return CFG.WALK;
   }

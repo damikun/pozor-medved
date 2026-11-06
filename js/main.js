@@ -113,7 +113,7 @@
 
   function pass(run) {
     const b = run.bear;
-    if (run.ride || run.cut || run.over) return;
+    if (run.ride || run.cut || run.over || ZS.sim.chopok.passing(run)) return;
     for (const c of run.level.checkpoints || []) {
       if (reached.has(c.key) || b.x < c.x) continue;
       reached.add(c.key);
