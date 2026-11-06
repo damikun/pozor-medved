@@ -371,14 +371,31 @@
   }
 
   function statue(ctx, g, c, b, withBear) {
-    const s = c.statue || (c.statue = { spot: { x: 0, w: 34, hide: true, shade: 0.01 } });
-    s.spot.x = b.x;
-    const who = Object.assign(s.who || (s.who = {}), b, { hiding: s.spot, pose: 'stiff', hideT: 2, hideBlend: 1 });
-    withBear(ZS.drawBearBehindTree, who, 1);
-    const y = b.y - 150 + sin(g.time * 2) * 0.6;
-    ctx.fillStyle = ROCK.calcite; poly(ctx, [b.x - 9, y + 6, b.x + 9, y + 6, b.x + 1, y - 22]);
-    ctx.fillStyle = 'rgba(255,248,230,0.7)'; poly(ctx, [b.x - 3, y + 4, b.x + 1, y + 4, b.x, y - 14]);
+    const s = c.statue || (c.statue = { who: {} }), d = b.dir < 0 ? -1 : 1, t = g.time;
+    const who = Object.assign(s.who, b, { rear: 1, moving: false, running: false, hiding: null, crouch: false, vx: 0, dir: d });
+    withBear(ZS.drawBear, who, 1);
+    const x = b.x - d * 6, base = b.y + 4, top = b.y - 62;
+    const gr = ctx.createLinearGradient(x - 50, 0, x + 50, 0);
+    gr.addColorStop(0, ROCK.calc3); gr.addColorStop(0.35, ROCK.calcite); gr.addColorStop(0.7, ROCK.calc2); gr.addColorStop(1, ROCK.calc3);
+    ctx.fillStyle = gr;
+    ctx.beginPath(); ctx.moveTo(x - 52, base);
+    ctx.bezierCurveTo(x - 44, base - 40, x - 30, top + 40, x - 24, top + 8);
+    for (let i = 0; i <= 6; i++) { const u = i / 6, xx = x - 24 + u * 48; ctx.lineTo(xx, top + 8 + (i % 2 ? 10 : -4) + hash(i * 3.1) * 6); }
+    ctx.bezierCurveTo(x + 30, top + 40, x + 44, base - 40, x + 52, base);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(110,90,70,0.32)'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 1; i < 4; i++) { const y = base - i * 17, w = 50 - i * 7; ctx.moveTo(x - w, y); ctx.quadraticCurveTo(x, y + 6, x + w, y); }
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,248,230,0.6)'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x - 20, base - 8); ctx.quadraticCurveTo(x - 12, top + 40, x - 10, top + 14); ctx.stroke(); ctx.lineCap = 'butt';
+    ctx.fillStyle = 'rgba(217,204,180,0.85)';
+    for (let i = 0; i < 4; i++) { const xx = x - 18 + i * 12, l = 8 + hash(i * 2.7) * 10; poly(ctx, [xx - 3, top + 10, xx + 3, top + 10, xx, top + 10 + l]); }
+    const k = (t * 0.7) % 1;
+    ctx.fillStyle = 'rgba(190,225,245,' + (0.8 * (1 - k)).toFixed(3) + ')'; circle(ctx, x + 6, top + 18 + k * 40, 1.8);
   }
+
+
 
   function tallyMark(ctx, g, c, b) {
     const o = c.count, t = g.time, top = roofY(o.x) + 8;

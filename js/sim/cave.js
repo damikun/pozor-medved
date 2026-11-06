@@ -180,6 +180,7 @@
     ZS.sim.bear.update(g, dt);
     b.x = clamp(b.x, 40, c.lamp ? S.cave.exit : S.cave.gap - 10);
     block(S, c, b, was);
+    if (b.hiding && b.hiding.stalag && tourOn(c)) b.peekSide = c.guide > b.x ? -1 : 1;
     if (!c.lamp && b.x >= S.cave.gap - 12 && !c.said.dark) { c.said.dark = true; rules().float(g, b.x, GY - 130, LABELS.cave.dark, COLORS.story); }
     bonk(g, S, c, b, dt);
     river(g, S, c, b);

@@ -26,6 +26,7 @@
   ];
   const KIDS = [{ x: 690, look: 5 }, { x: 728, look: 3 }, { x: 766, look: 1 }, { x: 804, look: 4 }];
   const BEAR = 6, SPREAD = 200, SCALE = 4200, LIMIT = 0.11, ALARM = 1.1, STOPS = 3, SIGHT = 300, COOL = 3;
+  const RAMP = 3;
   const FAIL = { shake: 1.3, dark: 1.9, back: 2.6 };
   const POINTA = { flash: 0.3, end: 1 };
 
@@ -38,7 +39,7 @@
   function fresh(c) {
     Object.assign(c, {
       climb: 0, ride: 0, leg: 0, legT: 0, legAt: 0, wait: 0, arrived: 0, speed: 0, door: 0, side: 1, shift: null, warn: null,
-      tilt: 0, spin: 0, over: 0, kids: false, kidSide: 0, adultSide: 0, fail: null,
+      tilt: 0, spin: 0, steady: 0, over: 0, kids: false, kidSide: 0, adultSide: 0, fail: null,
       people: PEOPLE.map((p, i) => Object.assign({ id: 'cabin' + i, kind: 'tourist', home: p.x, want: p.x, dir: 1, gone: false, size: 1, look: 0, go: 0, v: 90 }, p)),
     });
     c.said.warn = null;
@@ -114,8 +115,10 @@
   }
 
   function swing(c, b, dt) {
-    const want = clamp(torque(c, b) / SCALE, -0.32, 0.32);
-    c.spin += ((want - c.tilt) * 6 - c.spin * 4.2) * dt;
+    const docked = (c.leg === 0 && c.wait > 0) || c.arrived > 0;
+    c.steady = docked ? Math.max(0, c.steady - dt * 2.5) : Math.min(1, c.steady + dt / RAMP);
+    const want = clamp(torque(c, b) / SCALE, -0.32, 0.32) * c.steady * c.steady;
+    c.spin += ((want - c.tilt) * 6 - c.spin * (docked ? 9 : 4.2)) * dt;
     c.tilt += c.spin * dt;
   }
 
