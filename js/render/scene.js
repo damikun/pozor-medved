@@ -319,6 +319,7 @@
       B.backForest(ctx, g, viewW, offY);
       if (L.summit) ZS.chopokArt.backdrop(ctx, g, viewW, offY);
     }
+    if (L.profile) ZS.chopokArt.tilt(ctx, g, viewW);
     ctx.translate(-Math.round(cam), 0);
     B.ground(ctx, cam, viewW, g);
     if (L.alpine) ZS.alpineArt.ground(ctx, g, cam, viewW);

@@ -546,7 +546,15 @@
     bank(ctx, lg.x - lg.w / 2 - 4, lg.x + lg.w / 2 + 2, 5 + W.drift * 2, sd, W);
   }
 
+  function taught(s, g) {
+    if (!s.teach || !g) return false;
+    const T = g.taught || (g.taught = {});
+    if (!(s.teach in T)) T[s.teach] = ZS.prompt.known(s.teach);
+    return T[s.teach];
+  }
+
   function sign(ctx, s, g) {
+    if (taught(s, g)) return;
     const W = cold(g) ? B.look(g) : null;
     ctx.fillStyle = '#5a3d22';
     if (s.billboard) {

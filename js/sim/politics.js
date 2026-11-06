@@ -21,7 +21,7 @@
     if (!f.drones && g.panic >= 65) { f.drones = true; g.drones.push(sim.drones.create(g, 0), sim.drones.create(g, 3)); say(g, NEWS.drones, true); }
     if (!f.cull && g.panic >= 85) { f.cull = true; spawnAhead(g, 'walker'); spawnAhead(g, 'walker'); say(g, NEWS.cull, true); }
     if (!f.hugBan && g.hugBanAt && g.time >= g.hugBanAt) { f.hugBan = true; say(g, NEWS.hugBan, true); }
-    const team = g.shooters.some((s) => s.kind === 'ztmh');
+    const team = g.shooters.some((s) => s.kind === 'ztmh' && !s.patrol);
     if (team) g.ztmhAt = g.time;
     if (!g.problem && g.syn >= CFG.PROBLEM) {
       g.problem = true;

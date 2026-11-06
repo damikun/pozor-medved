@@ -651,7 +651,7 @@
   }
 
   function gaitSpeed(bear) {
-    if (bear.crouch || bear.dark) return CFG.CREEP;
+    if (bear.crouch) return CFG.CREEP;
     if (bear.running) return CFG.RUN;
     return CFG.WALK;
   }

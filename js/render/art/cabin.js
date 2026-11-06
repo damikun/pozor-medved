@@ -8,7 +8,6 @@
   const API = (ZS.cabinArt = {});
   const SIM = () => ZS.sim.cabin;
   const BOX = { left: 110, right: 870, top: GY - 262, bot: GY + 34, win: [GY - 214, GY - 92] };
-  const PACKS = ['#c0392b', '#2f6db0', '#e1a33a'];
   const figures = new Map();
 
   function poly(ctx, pts) {
@@ -112,67 +111,28 @@
     }
   }
 
-  function pack(ctx, s, i, g, withBear) {
-    const b = g.bear;
-    if (b.hideTree === s && b.hideBlend > 0) {
-      const who = b.hiding ? b : (b.fadeBear = Object.assign(b.fadeBear || {}, b, { hiding: s }));
-      withBear(ZS.drawBearInHay, who, b.hideBlend);
-      withBear(ZS.drawBearHayFront, who, b.hideBlend);
-    }
-    const x = s.x, w = s.w, h = s.h, col = PACKS[i % PACKS.length];
-    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ell(ctx, x, GY + 2, w * 0.6, 4);
-    ctx.fillStyle = col; rr(ctx, x - w / 2, GY - h, w, h + 2, 10);
-    ctx.fillStyle = 'rgba(0,0,0,0.18)'; rr(ctx, x - w / 2 + 6, GY - h * 0.55, w - 12, h * 0.4, 6);
-    ctx.fillStyle = 'rgba(255,255,255,0.25)'; rr(ctx, x - w / 2 + 4, GY - h + 4, w * 0.35, 6, 3);
-    ctx.strokeStyle = '#2b2d31'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(x - w * 0.3, GY - h + 2); ctx.quadraticCurveTo(x, GY - h - 10, x + w * 0.3, GY - h + 2); ctx.stroke();
-    ctx.fillStyle = '#6b4a2b'; ctx.fillRect(x - w / 2 - 4, GY - h * 0.35, w + 8, 6);
-  }
-
   function crowd(ctx, g, c) {
     const t = g.time, pt = c.pointa;
-    for (const p of c.people) {
-      if (p.gone) continue;
-      if (p.role === 'mascot') { ZS.chopokArt.mascotFigure(ctx, p.x, p.dir, t, !!pt && pt.t > 0.2 && !p.faint, p.faint || 0, 0.92); continue; }
-      const film = p.role === 'phone' && c.fooled && g.time - c.seenAt > 0;
-      person(ctx, p.id, p.kind, p.x, p.dir, pt ? 'walk' : film && hash(p.home) > 0.5 ? 'film' : 'idle', t, { look: p.look, size: p.size, aimAt: [p.x + p.dir * 200, GY - 160] });
-      if (c.warn && c.warn.call !== 'guide' && p === SIM().watchers(c)[1]) { ctx.strokeStyle = '#f2d3b0'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p.x, GY - 60); ctx.lineTo(p.x + c.warn.side * 26, GY - 82); ctx.stroke(); }
+    for (const p of SIM().riders(c)) {
+      person(ctx, p.id, p.kind, p.x, p.dir, p.walking || pt ? 'walk' : 'idle', t, { look: p.look, size: p.size || 1, empty: p.kind === 'porter' });
     }
-    if (c.guide && !c.guide.gone) person(ctx, 'cabinGuide', 'porter', c.guide.x, c.guide.dir, 'idle', t, { empty: true });
-  }
-
-  function eyes(ctx, c, b, t) {
-    for (const p of SIM().watchers(c)) {
-      const toward = Math.sign(b.x - p.x) === p.dir;
-      if (!c.warn && !toward) continue;
-      const lvl = toward && abs(b.x - p.x) < SIM().SIGHT ? 2 : 1;
-      label(ctx, lvl > 1 ? '👀' : '!', p.x, GY - 128 - abs(sin(t * 7)) * 3, lvl > 1 ? 14 : 18, lvl > 1 ? '#e03131' : '#e8a400');
+    const w = c.warn;
+    if (w) {
+      const list = SIM().riders(c), who = list[w.call.startsWith('kids') ? list.length - 1 : 1];
+      if (who) { ctx.strokeStyle = '#f2d3b0'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(who.x, GY - 60 * (who.size || 1)); ctx.lineTo(who.x + w.side * 26, GY - 84 * (who.size || 1)); ctx.stroke(); }
     }
   }
 
-  function statue(ctx, c, b, withBear, t) {
-    const s = c.statue || (c.statue = { spot: { x: 0, w: 34, hide: true, shade: 0.01 } });
-    s.spot.x = b.x;
-    const who = Object.assign(s.who || (s.who = {}), b, { hiding: s.spot, pose: 'stiff', hideT: 2, hideBlend: 1 });
-    withBear(ZS.drawBearBehindTree, who, c.pose);
-    ctx.globalAlpha = c.pose;
-    ctx.save(); ctx.translate(b.x + 18, GY - 112); ctx.rotate(-0.6 + sin(t * 9) * 0.35);
-    ctx.fillStyle = '#7a4f2d'; rr(ctx, -5, -26, 10, 28, 5);
-    ctx.fillStyle = '#5a3a1f'; circle(ctx, 0, -27, 6);
-    ctx.restore();
-    ctx.globalAlpha = 1;
-  }
-
-  function aim(ctx, c, t) {
-    const s = c.shot;
-    if (!s) return;
-    const k = clamp(s.t / 1.25, 0, 1), x = s.x, y = GY - 60;
-    ctx.strokeStyle = 'rgba(224,49,49,' + (0.4 + 0.5 * k).toFixed(3) + ')'; ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.arc(x, y, 30 - 12 * k, 0, TAU);
-    ctx.moveTo(x - 40, y); ctx.lineTo(x - 14, y); ctx.moveTo(x + 14, y); ctx.lineTo(x + 40, y);
-    ctx.moveTo(x, y - 40); ctx.lineTo(x, y - 14); ctx.moveTo(x, y + 14); ctx.lineTo(x, y + 40); ctx.stroke();
-    label(ctx, LABELS.cabin.stop, (BOX.left + BOX.right) / 2, BOX.top + 52, 15, '#e03131');
-    void t;
+  function level(ctx, c, t) {
+    const x = (BOX.left + BOX.right) / 2, y = BOX.win[1] + 22, w = 200, k = clamp(c.tilt / 0.3, -1, 1), bad = abs(c.tilt) > SIM().LIMIT;
+    ctx.fillStyle = '#2b2d31'; rr(ctx, x - w / 2 - 4, y - 10, w + 8, 20, 10);
+    ctx.fillStyle = '#d8efe0'; rr(ctx, x - w / 2, y - 7, w, 14, 7);
+    const zone = w * (SIM().LIMIT / 0.3);
+    ctx.fillStyle = 'rgba(47,125,79,0.35)'; ctx.fillRect(x - zone / 2, y - 7, zone, 14);
+    ctx.fillStyle = bad ? (sin(t * 16) > 0 ? '#e03131' : '#ff8a80') : '#f0c030';
+    circle(ctx, x + k * (w / 2 - 8), y, 6);
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - zone / 2, y - 7); ctx.lineTo(x - zone / 2, y + 7); ctx.moveTo(x + zone / 2, y - 7); ctx.lineTo(x + zone / 2, y + 7); ctx.stroke();
+    if (bad || c.stop > 0) { ctx.fillStyle = sin(t * 14) > 0 ? '#ff3b30' : '#7a1f1a'; circle(ctx, BOX.left + 30, BOX.top + 24, 7); circle(ctx, BOX.right - 30, BOX.top + 24, 7); }
   }
 
   function overlays(ctx, g, c, lo, hi, offY) {
@@ -202,21 +162,20 @@
     const hurt = b.inv > 0 ? 0.45 + 0.35 * cos(t * 14) : 1;
     const withBear = (fn, who = b, alpha = 1) => { ctx.globalAlpha = hurt * alpha; fn(ctx, who, t); ctx.globalAlpha = 1; };
     const sc = min(1, (viewW - 16) / (BOX.right - BOX.left + 40)), mid = (BOX.left + BOX.right) / 2;
-    const shake = c.speed * 1.2 * sin(t * 13) + (c.shot ? 2 * sin(t * 40) : 0);
+    const shake = c.speed * 1.2 * sin(t * 13) + (c.stop > 0 ? 2 * sin(t * 40) : 0);
     const inHall = c.t > SIM().STATION[0] - 0.4 && c.t < SIM().STATION[1] + 0.4 ? 1 : c.t > SIM().ARRIVE - 0.4 ? 1 : 0;
     ctx.save();
     ctx.translate(0, offY);
     if (inHall) hall(ctx, c, viewW, H, offY, c.climb); else view(ctx, g, c, viewW, H, offY);
     cables(ctx, viewW, offY, shake);
     ctx.translate(viewW / 2, GY); ctx.scale(sc, sc); ctx.translate(-mid, -GY + shake);
+    const hx = mid, hy = BOX.top - 74;
+    ctx.save(); ctx.translate(hx, hy); ctx.rotate(c.tilt); ctx.translate(-hx, -hy);
     shell(ctx, c, g);
-    S.covers.forEach((s, i) => pack(ctx, s, i, g, withBear));
+    level(ctx, c, t);
     crowd(ctx, g, c);
-    if (c.pose > 0.02) statue(ctx, c, b, withBear, t);
-    const rest = (1 - (b.hideBlend || 0)) * (1 - c.pose);
-    if (rest > 0.01) withBear(ZS.drawBear, b, rest);
-    eyes(ctx, c, b, t);
-    aim(ctx, c, t);
+    withBear(ZS.drawBear, b, 1);
+    ctx.restore();
     overlays(ctx, g, c, mid - viewW / (2 * sc) + 8, mid + viewW / (2 * sc) - 8, offY);
     ctx.restore();
     ctx.save(); ctx.translate(0, offY);

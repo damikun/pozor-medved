@@ -130,7 +130,7 @@
 
   function move(game, hunter, dt) {
     if (hunter.scaredT > 0) runAwayScared(game, hunter, dt);
-    else if (hunter.kind === 'walker' || hunter.kind === 'poacher') patrol(game, hunter, dt);
+    else if (hunter.kind === 'walker' || hunter.kind === 'poacher' || hunter.patrol) patrol(game, hunter, dt);
     else if (hunter.kind === 'ztmh') drive(game, hunter, dt);
   }
 
@@ -395,7 +395,7 @@
     }
     hunter.lock = Math.max(0, hunter.lock - dt * SHOT.aimDecay);
     if (frame.aiming === hunter && hunter.lock === 0) frame.aiming = null;
-    if (hunter.kind === 'ztmh') hunter.lost += dt;
+    if (hunter.kind === 'ztmh' && !hunter.patrol) hunter.lost += dt;
     sweepCrosshair(hunter, dt);
   }
 

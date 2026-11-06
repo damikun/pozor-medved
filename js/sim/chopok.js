@@ -8,7 +8,6 @@
   const FOG = { clear: [7, 10], near: [3, 5], coming: 3, thick: [5, 8], thinning: 2.5, dense: 0.7, sees: 90 };
   const WIND = { calm: [7, 11], warn: 1.6, gust: 2.2, push: 130 };
   const BIKE = { every: [6, 9], speed: 330, warn: 2.1, reach: 30, hop: 0.55, stun: 0.9, kick: -240, said: 25 };
-  const MASCOT = { speed: 32, near: 150, wave: [5, 9], waving: 1.6, said: 30 };
   const COOK = { pot: [2.2, 3.6], turn: 1.1, look: [1.5, 2.4] };
   const GUEST = { calm: [4.5, 8], zip: 1.2, look: [1, 1.6] };
   const CHAMOIS = { near: 260, leap: 0.6, hop: 110, leaps: 5 };
@@ -29,7 +28,6 @@
       fog: { phase: 'clear', t: between(FOG.clear), k: 0 },
       wind: { phase: 'calm', t: between(WIND.calm), k: 0 },
       bikes: [], bikeT: 2,
-      mascot: { x: (L.jasna.mascot[0] + L.jasna.mascot[1]) / 2, dir: 1, wave: 0, waveT: between(MASCOT.wave), pause: 0 },
       chata: {
         cook: { state: 'pot', t: between(COOK.pot) },
         guests: L.chata.queue.map((x, i) => ({ x, look: i % 4, state: 'calm', t: between(GUEST.calm) + i })),
@@ -81,7 +79,7 @@
   }
 
   function quiet(b) {
-    Object.assign(b, { act: null, hiding: null, crouch: false, running: false, moving: false, eating: false, eatT: 0, vx: 0, slide: 0, covered: false, warn: false, danger: false, reach: null, push: 0, kx: 0, crawl: false, vy: 0, dark: false });
+    Object.assign(b, { act: null, hiding: null, crouch: false, running: false, moving: false, eating: false, eatT: 0, vx: 0, slide: 0, covered: false, warn: false, danger: false, reach: null, push: 0, kx: 0, crawl: false, vy: 0 });
   }
 
   function clearPresses(g) {
@@ -286,23 +284,6 @@
     return c.bikes.find((k) => !k.done && k.x > b.x && k.x - b.x < BIKE.speed * BIKE.warn + 10) || null;
   }
 
-  function mascot(g, c, dt) {
-    const m = c.mascot, [from, to] = g.level.jasna.mascot, b = g.bear;
-    m.wave = Math.max(0, m.wave - dt);
-    if (m.pause > 0) m.pause -= dt;
-    else {
-      m.x += m.dir * MASCOT.speed * dt;
-      if (m.x < from || m.x > to) { m.dir *= -1; m.x = Math.max(from, Math.min(to, m.x)); m.pause = 1.5; }
-    }
-    if ((m.waveT -= dt) <= 0) { m.waveT = between(MASCOT.wave); m.wave = MASCOT.waving; m.pause = Math.max(m.pause, MASCOT.waving); }
-    if (Math.abs(b.x - m.x) < 90 && !g.once.mascotMet) { g.once.mascotMet = true; rules().quip(g, QUIPS().mascot, true); }
-  }
-
-  function nearMascot(g) {
-    const c = on(g) && g.chopok;
-    return !!c && Math.abs(g.bear.x - c.mascot.x) < MASCOT.near;
-  }
-
   function spotted(g, person) {
     if (!on(g)) return false;
     const c = state(g);
@@ -314,12 +295,7 @@
       sayEvery(g, c, 'rescuer', 40, NEWS.rescuerSeen);
       return true;
     }
-    if (person.kind !== 'tourist' || !nearMascot(g)) return false;
-    person.filmCd = 14;
-    person.texting = false;
-    rules().float(g, person.x, GY - 100, LABELS.chopok.mascot, COLORS.good);
-    sayEvery(g, c, 'mascot', MASCOT.said, NEWS.mascotMix);
-    return true;
+    return false;
   }
 
   function inQueue(L, x) {
@@ -443,7 +419,6 @@
     fog(g, c, dt);
     wind(g, c, dt);
     bikes(g, c, dt);
-    mascot(g, c, dt);
     chata(g, c, dt);
     minister(g, c);
     wildlife(g, c, dt);
@@ -466,5 +441,5 @@
     return risky ? 'wait' : 'go';
   }
 
-  ZS.sim.chopok = { PASS, FOG, WIND, BIKE, KEEP, update, passing, stepPass, inside, trip, quiet, clearPresses, between, walls, inDwarf, spotted, nearMascot, atCounter, act, bell, duck, queue, state };
+  ZS.sim.chopok = { PASS, FOG, WIND, BIKE, KEEP, update, passing, stepPass, inside, trip, quiet, clearPresses, between, walls, inDwarf, spotted, atCounter, act, bell, duck, queue, state };
 })();

@@ -31,10 +31,10 @@
 
   function levelCard(id, i, done) {
     const T = ZS.LEVEL_TEXT[id];
-    const tag = done[id] ? `<span class="tag done">${UI.levelDone}</span>` : id === FRESH ? `<span class="tag">${UI.levelNew}</span>` : '';
+    const tag = done[id] ? `<span class="tag done" title="${UI.levelDone}">✓</span>` : id === FRESH ? `<span class="tag">${UI.levelNew}</span>` : '';
     return `<button class="level ${id}" data-level="${id}">
       <span class="num">${i + 1}</span>
-      <span class="body"><b>${T.name}</b>${tag}<small>${T.pick(ZS.LEVELS[id].fatGoal)}</small></span>
+      <span class="body"><b>${T.name}</b><small>${T.blurb}</small></span>${tag}
     </button>`;
   }
 

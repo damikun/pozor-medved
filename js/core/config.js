@@ -23,7 +23,7 @@ ZS.LEVELS = {
     seasons: [{ key: 'advent', end: 90 }, { key: 'snow', end: 180 }, { key: 'frost', end: 270 }],
   },
   chopok: {
-    w: 15250, year: 330, fatGoal: 75, startFat: 35, metabolism: 0.1,
+    w: 14450, year: 330, fatGoal: 75, startFat: 35, metabolism: 0.1,
     seasons: [{ key: 'lateSummer', end: 90 }, { key: 'autumn', end: 170 }, { key: 'firstSnow', end: 330 }],
   },
 };

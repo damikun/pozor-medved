@@ -29,6 +29,7 @@
     for (const sp of level.spawns) {
       if (sp.kind === 'posed') g.shooters.push(sim.hunters.create(g, 'posed', { x: sp.x, range: sp.range }));
       else if (sp.kind === 'walker') g.shooters.push(sim.hunters.create(g, 'walker', { x: sp.to, from: sp.from, to: sp.to, dir: -1 }));
+      else if (sp.kind === 'patrol') g.shooters.push(sim.hunters.create(g, 'ztmh', { x: sp.to, from: sp.from, to: sp.to, dir: -1, patrol: true, speed: 58 }));
       else if (sp.kind === 'dog') g.dogs.push(sim.wildlife.createDog(sp, level));
       else if (sp.kind === 'sheep') g.sheep.push(sim.wildlife.createSheep(sp, g.sheep.length));
       else if (sp.kind === 'deer') g.deer.push(sim.wildlife.createDeer(sp));
@@ -130,7 +131,7 @@
     rules.onSound(g, 'hit', b.x);
     g.lives -= 1;
     if (g.lives <= 0) {
-      end(g, shooter.kind === 'poacher' ? 'poacher' : shooter.kind === 'ztmh' ? 'problem' : g.flags.cull ? 'cull' : 'hunted');
+      end(g, shooter.kind === 'poacher' ? 'poacher' : shooter.kind === 'ztmh' && !shooter.patrol ? 'problem' : g.flags.cull ? 'cull' : 'hunted');
       return;
     }
     b.inv = 3;

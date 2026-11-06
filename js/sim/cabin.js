@@ -1,162 +1,158 @@
 (function () {
   const { CFG, COLORS, LABELS, NEWS } = ZS;
   const GY = CFG.GROUND;
-  const { clamp, lerp } = ZS.util;
+  const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
   const chopok = () => ZS.sim.chopok;
 
-  const RIDE = 33, STATION = [21.5, 25.5], ARRIVE = 31;
+  const STATION = [19.5, 23.5], ARRIVE = 32;
   const SHIFTS = [
-    { warn: 4.6, at: 6.7, side: -1, call: 'chamois' },
-    { warn: 11.2, at: 13.3, side: 1, call: 'krivan' },
-    { warn: 17.2, at: 19.3, side: -1, call: 'marmot' },
-    { warn: 24.3, at: 26.4, side: -1, call: 'guide' },
+    { warn: 3.4, at: 5.5, side: -1, call: 'chamois' },
+    { warn: 9.4, at: 11.5, side: 1, call: 'krivan' },
+    { warn: 14.6, at: 16.7, side: -1, call: 'marmot' },
+    { warn: 24.4, at: 25.8, side: 1, call: 'kids' },
+    { warn: 27.4, at: 28.8, side: -1, call: 'kids2' },
+    { warn: 29.6, at: 31, side: 1, call: 'kids3' },
   ];
   const PEOPLE = [
-    { kind: 'tourist', x: 250, role: 'phone', look: 0 },
-    { kind: 'tourist', x: 330, role: 'kid', size: 0.72, look: 1 },
-    { kind: 'guest', x: 395, role: 'plain', look: 1 },
-    { kind: 'picker', x: 455, role: 'granny' },
-    { kind: 'tourist', x: 560, role: 'phone', look: 2, off: true },
-    { kind: 'guest', x: 615, role: 'plain', look: 3, off: true },
-    { kind: 'tourist', x: 665, role: 'kid', size: 0.72, look: 3, off: true },
-    { kind: 'guest', x: 720, role: 'plain', look: 0, off: true },
-    { kind: 'tourist', x: 760, role: 'phone', look: 1 },
-    { kind: 'mascot', x: 805, role: 'mascot' },
+    { kind: 'tourist', x: 260, mass: 1, look: 0 },
+    { kind: 'guest', x: 330, mass: 1.6, look: 0 },
+    { kind: 'picker', x: 400, mass: 0.9 },
+    { kind: 'tourist', x: 470, mass: 1, look: 2, off: true },
+    { kind: 'guest', x: 540, mass: 1.2, look: 1, off: true },
+    { kind: 'guest', x: 610, mass: 1, look: 3 },
+    { kind: 'tourist', x: 680, mass: 1, look: 1, off: true },
+    { kind: 'porter', x: 750, mass: 1.4 },
   ];
-  const SIGHT = 330, SHOVE = 90, COOL = 3, STOP = 3, AIM = 1.25;
-  const POINTA = { turn: 0.6, faint: 1.4, flash: 2.1, end: 4.2 };
+  const KIDS = [{ x: 700 }, { x: 735 }, { x: 765 }, { x: 790 }, { x: 670 }];
+  const BEAR = 6, SPREAD = 200, SCALE = 4200, LIMIT = 0.11, ALARM = 1.1, STOP = 2.4, SIGHT = 300, COOL = 3;
+  const POINTA = { stop: 0.6, flash: 1.8, end: 3.6 };
 
   function stage() {
     const S = ZS.levelKit.cabinStage();
-    S.start = S.cabin.left + 20;
+    S.start = (S.cabin.left + S.cabin.right) / 2 - 20;
     return S;
   }
 
   function start(g, S) {
+    const mid = (S.cabin.left + S.cabin.right) / 2;
     const c = {
-      t: 0, climb: 0, speed: 0, stop: 0, door: 0, side: 1, shift: null, warn: null, seenAt: -99, hits: 0, fooled: false,
-      people: PEOPLE.map((p, i) => Object.assign({ id: 'cabin' + i, home: p.x, dir: 1, gone: false, size: 1, look: 0 }, p)),
-      guide: null, shot: null, pointa: null, pose: 0, said: {}, result: null,
+      t: 0, mid, climb: 0, speed: 0, stop: 0, door: 0, side: 1, shift: null, warn: null,
+      tilt: 0, spin: 0, over: 0, alarms: 0, seenAt: -99, seen: 0, kids: false,
+      people: PEOPLE.map((p, i) => Object.assign({ id: 'cabin' + i, home: p.x, want: p.x, dir: 1, gone: false, size: 1, look: 0 }, p)),
+      pointa: null, said: {}, result: null,
     };
     rules().say(g, NEWS.cabinBoard, true);
     return c;
   }
 
-  function watchers(c) {
-    return c.people.filter((p) => !p.gone && p.role !== 'mascot').concat(c.guide && !c.guide.gone ? [c.guide] : []);
+  const riders = (c) => c.people.filter((p) => !p.gone);
+
+  function torque(c, b) {
+    let m = BEAR * (b.x - c.mid);
+    for (const p of riders(c)) m += p.mass * (p.x - c.mid);
+    return m;
   }
 
-  function sees(c, p, b) {
-    const d = b.x - p.x;
-    return Math.sign(d) === p.dir && Math.abs(d) < SIGHT;
-  }
-
-  function hidden(b) {
-    return !!b.hiding && !!b.hiding.hide;
-  }
-
-  function shuffle(S, c, side, dt) {
-    const lo = S.cabin.left + 30, hi = S.cabin.right - 30;
-    for (const p of watchers(c)) {
-      const want = clamp(p.home + side * SHOVE * (p.role === 'granny' ? 0.5 : 1), lo, hi);
-      p.x += clamp(want - p.x, -70 * dt, 70 * dt);
-    }
+  function balance(c) {
+    let m = 0;
+    for (const p of riders(c)) m += p.mass * (p.x - c.mid);
+    return c.mid - m / BEAR;
   }
 
   function station(g, S, c) {
+    const open = c.t >= STATION[0] + 0.6 && c.t < STATION[1] - 0.5;
     const was = c.door;
-    const open = c.t >= STATION[0] + 0.8 && c.t < STATION[1] - 0.6;
     c.door = clamp(c.door + (open ? 0.05 : -0.05), 0, 1);
-    if (was < 1 && c.door >= 1 && !c.guide) {
+    if (was < 1 && c.door >= 1 && !c.kids) {
+      c.kids = true;
       for (const p of c.people) if (p.off) p.gone = true;
-      c.guide = { id: 'cabinGuide', kind: 'porter', x: S.cabin.right - 40, home: S.cabin.right - 60, dir: -1, role: 'guide', size: 1, look: 0 };
-      rules().float(g, c.guide.x, GY - 150, LABELS.cabin.guideIn, COLORS.story);
-      rules().say(g, NEWS.cabinGuide);
+      KIDS.forEach((k, i) => c.people.push({ id: 'cabinKid' + i, kind: 'tourist', x: k.x, home: k.x, want: k.x, mass: 0.6, size: 0.7, look: i, dir: 1, kid: true }));
+      rules().float(g, S.cabin.right - 80, GY - 160, LABELS.cabin.kidsIn, COLORS.story);
+      rules().say(g, NEWS.cabinKids);
     }
   }
 
-  function shifts(g, S, c, dt) {
-    c.warn = SHIFTS.find((s) => c.t >= s.warn && c.t < s.at) || null;
-    const now = SHIFTS.filter((s) => c.t >= s.at).pop();
+  function shifts(g, S, c) {
+    c.warn = SHIFTS.find((s) => c.t >= s.warn && c.t < s.at && (!s.call.startsWith('kids') || c.kids)) || null;
+    const now = SHIFTS.filter((s) => c.t >= s.at && (!s.call.startsWith('kids') || c.kids)).pop();
     if (c.warn && c.said.warn !== c.warn) {
       c.said.warn = c.warn;
-      const who = c.warn.call === 'guide' && c.guide ? c.guide : watchers(c)[1];
+      const list = riders(c), who = list[c.warn.call.startsWith('kids') ? list.length - 1 : 1];
       if (who) rules().float(g, who.x, GY - 150, LABELS.cabin.call[c.warn.call], COLORS.zap);
     }
-    if (now && c.shift !== now) { c.shift = now; c.side = now.side; rules().onSound(g, 'creak', S.cabin.left, 0.5); }
-    for (const p of watchers(c)) p.dir = p.role === 'guide' && c.t < 26.4 ? -1 : c.side;
-    shuffle(S, c, c.side, dt);
+    if (now && c.shift !== now) {
+      c.shift = now; c.side = now.side;
+      if (now.call.startsWith('kids')) c.kidSide = now.side; else c.adultSide = now.side;
+      const lo = S.cabin.left + 40, hi = S.cabin.right - 40, kids = now.call.startsWith('kids');
+      const list = riders(c).filter((p) => !kids || p.kid).sort((a, z) => (a.x - z.x) * now.side);
+      list.forEach((p, i) => { p.want = clamp(now.side > 0 ? hi - (list.length - 1 - i) * (SPREAD / list.length) : lo + i * (SPREAD / list.length), lo, hi); });
+      rules().onSound(g, 'creak', S.cabin.left, 0.5);
+    }
   }
 
-  function spotted(g, S, c, p) {
+  function walk(c, dt) {
+    for (const p of riders(c)) {
+      const d = p.want - p.x;
+      p.walking = Math.abs(d) > 2;
+      if (p.walking) p.x += Math.sign(d) * Math.min(Math.abs(d), (p.kid ? 150 : 90) * dt);
+      const side = p.kid ? c.kidSide : c.adultSide;
+      if (side) p.dir = side;
+    }
+  }
+
+  function swing(c, b, dt) {
+    const want = clamp(torque(c, b) / SCALE, -0.32, 0.32);
+    c.spin += ((want - c.tilt) * 9 - c.spin * 3.2) * dt;
+    c.tilt += c.spin * dt;
+  }
+
+  function alarm(g, S, c) {
+    c.alarms++; c.over = 0; c.stop = STOP; c.seen++;
+    for (const p of riders(c)) p.dir = Math.sign(g.bear.x - p.x) || 1;
+    rules().spotted(g, g.bear.x, GY - 150, LABELS.cabin.alarm);
+    rules().addPanic(g, 8);
+    rules().onSound(g, 'thud', c.mid, 1);
+    rules().quip(g, ZS.QUIPS.funi, true);
+    if (!c.said.alarm) { c.said.alarm = true; rules().say(g, NEWS.cabinAlarm, true); }
+  }
+
+  function looks(g, c) {
     const b = g.bear;
-    if (c.pose > 0.6 && (p.role === 'phone' || p.role === 'kid' || p.role === 'plain')) {
-      if (c.fooled) return;
-      c.fooled = true;
-      g.stats.selfies++;
-      rules().float(g, p.x, GY - 140, LABELS.cabin.selfie, COLORS.good);
-      rules().onSound(g, 'shutter', p.x);
-      rules().quip(g, ZS.QUIPS.funi, true);
-      rules().say(g, NEWS.cabinSelfie, true);
-      return;
-    }
-    if (g.time - c.seenAt < COOL) return;
-    if (c.hits >= 2) { c.seenAt = g.time; rules().spotted(g, p.x, GY - 150, LABELS.cabin.shout); rules().addPanic(g, 4); return; }
-    c.seenAt = g.time;
-    rules().spotted(g, p.x, GY - 150, p.role === 'granny' ? LABELS.cabin.granny : p.role === 'guide' ? LABELS.cabin.guideSees : LABELS.cabin.shout);
-    rules().addPanic(g, 6);
-    rules().onSound(g, 'scream', p.x, 0.8);
-    c.stop = STOP;
-    c.shot = { t: 0, x: b.x };
-  }
-
-  function shot(g, c, dt) {
-    const s = c.shot, b = g.bear;
-    s.t += dt;
-    s.x += (b.x - s.x) * Math.min(1, dt * 3);
-    if (s.t < AIM) return;
-    c.shot = null;
-    rules().onSound(g, 'shot', b.x);
-    if (hidden(b) || b.inv > 0) {
-      rules().float(g, b.x, GY - 120, LABELS.miss, COLORS.good);
-      rules().say(g, NEWS.cabinMiss);
-      return;
-    }
-    c.hits++;
-    g.lives -= 1;
-    if (g.lives <= 0) { rules().end(g, g.flags.cull ? 'cull' : 'hunted'); return; }
-    b.inv = 2.5;
-    rules().float(g, b.x, GY - 125, LABELS.hit(g.lives), COLORS.shot);
-    rules().say(g, NEWS.cabinShot, true);
+    if (!c.shift || g.time - c.seenAt < COOL || c.stop > 0) return;
+    const p = riders(c).find((o) => !o.walking && Math.sign(b.x - o.x) === o.dir && Math.abs(b.x - o.x) < SIGHT && Math.abs(b.x - o.x) > 12);
+    if (!p) return;
+    c.seenAt = g.time; c.seen++;
+    rules().spotted(g, p.x, GY - 150, LABELS.cabin.shout);
+    rules().addPanic(g, 4);
+    rules().onSound(g, 'scream', p.x, 0.6);
   }
 
   function control(g, S, c, dt) {
-    const b = g.bear, keys = g.input.keys;
+    const b = g.bear;
     chopok().clearPresses(g);
-    const pose = keys.has('KeyC') && b.onGround && !b.hiding && !(b.stun > 0) && !c.pointa;
-    c.pose = clamp(c.pose + (pose ? 5 : -4) * dt, 0, 1);
-    if (pose) {
-      b.moving = false; b.running = false; b.crouch = false; b.vx = 0;
-      b.inv = Math.max(0, b.inv - dt); b.quipCd -= dt;
-      return;
-    }
+    if (c.stop > 0) { b.moving = false; b.vx = 0; b.inv = Math.max(0, b.inv - dt); b.quipCd -= dt; return; }
     ZS.sim.bear.update(g, dt);
     b.x = clamp(b.x, S.cabin.left, S.cabin.right);
-    b.y = Math.max(b.y, GY - 40);
+    if (b.y < GY - 40) { b.y = GY - 40; b.vy = Math.max(0, b.vy); }
   }
 
   function pointa(g, S, c, dt) {
-    const p = c.pointa, was = p.t, b = g.bear, m = c.people.find((o) => o.role === 'mascot');
+    const p = c.pointa, was = p.t, b = g.bear;
     p.t += dt;
     b.moving = false;
-    for (const o of watchers(c)) { o.dir = 1; o.x += 60 * dt; if (o.x > S.cabin.right + 40) o.gone = true; }
-    if (was < POINTA.turn && p.t >= POINTA.turn) { m.dir = -1; rules().float(g, m.x, GY - 160, LABELS.cabin.twin, COLORS.story); }
-    if (was < POINTA.faint && p.t >= POINTA.faint) { m.faint = 0.001; rules().quip(g, ZS.QUIPS.funi, true); }
-    if (m.faint) m.faint = Math.min(1, m.faint + dt * 2.5);
-    if (was < POINTA.flash && p.t >= POINTA.flash) { p.flash = 1; rules().onSound(g, 'shutter', b.x); rules().say(g, c.hits ? NEWS.funiRide[0] : NEWS.funiRide[1], true); }
+    for (const o of riders(c)) { o.dir = 1; o.x += 70 * dt; o.walking = true; if (o.x > S.cabin.right + 40) o.gone = true; }
+    if (was < POINTA.stop && p.t >= POINTA.stop) rules().float(g, c.mid, GY - 200, c.alarms ? LABELS.cabin.wobbly : LABELS.cabin.level, c.alarms ? COLORS.bad : COLORS.good);
+    if (was < POINTA.flash && p.t >= POINTA.flash) { p.flash = 1; rules().onSound(g, 'shutter', b.x); rules().say(g, c.alarms ? NEWS.funiRide[0] : NEWS.funiRide[1], true); }
     p.flash = Math.max(0, (p.flash || 0) - dt * 2.5);
     return p.t >= POINTA.end;
+  }
+
+  function finish(g, c) {
+    c.result = c.alarms ? 'wobbly' : 'level';
+    g.once.cabinRide = { alarms: c.alarms, seen: c.seen };
+    if (!c.alarms) g.panic = Math.max(0, g.panic - 6);
+    return true;
   }
 
   function update(g, c, dt) {
@@ -166,28 +162,23 @@
     const halt = c.stop > 0 || (c.t > STATION[0] && c.t < STATION[1]) || c.t > ARRIVE;
     c.speed = clamp(c.speed + (halt ? -dt * 1.2 : dt * 0.6), 0, 1);
     c.climb += c.speed * dt;
+    swing(c, b, dt);
     if (c.pointa) return pointa(g, S, c, dt) && finish(g, c);
     station(g, S, c);
-    shifts(g, S, c, dt);
+    shifts(g, S, c);
+    walk(c, dt);
     control(g, S, c, dt);
-    if (c.shot) { shot(g, c, dt); if (g.over) return false; }
-    else if (!hidden(b)) {
-      const p = watchers(c).find((o) => sees(c, o, b));
-      if (p) spotted(g, S, c, p);
-    }
-    if (c.t >= ARRIVE + 0.6 && !c.shot) { c.pointa = { t: 0, flash: 0 }; chopok().quiet(b); c.door = 1; }
+    c.over = Math.abs(c.tilt) > LIMIT ? c.over + dt : Math.max(0, c.over - dt * 2);
+    if (c.over > ALARM && c.stop <= 0) alarm(g, S, c);
+    looks(g, c);
+    if (c.t >= ARRIVE + 0.8) { c.pointa = { t: 0, flash: 0 }; chopok().quiet(b); c.door = 1; }
     return false;
-  }
-
-  function finish(g, c) {
-    c.result = c.hits ? 'hit' : 'clean';
-    g.once.cabinRide = c.result;
-    return true;
   }
 
   function idle(g, c, dt) {
     c.t += dt;
     c.speed = Math.max(0, c.speed - dt);
+    swing(c, g.bear, dt);
   }
 
   function plan(g) {
@@ -198,12 +189,10 @@
   function pilot(g, c) {
     const b = g.bear, keys = g.input.keys, S = g.level;
     if (c.pointa) return;
-    const pack = S.covers.reduce((a, s) => (!a || Math.abs(s.x - b.x) < Math.abs(a.x - b.x) ? s : a), null);
-    const risky = c.warn || c.shot || watchers(c).some((o) => sees(c, o, b));
-    if (!risky && !hidden(b)) return;
-    if (Math.abs(pack.x - b.x) < pack.w / 2 + 18) { keys.add('ArrowDown'); return; }
-    keys.add(pack.x > b.x ? 'ArrowRight' : 'ArrowLeft');
+    const x = clamp(balance(c), S.cabin.left + 4, S.cabin.right - 4);
+    if (b.x < x - 14) keys.add('ArrowRight');
+    else if (b.x > x + 14) keys.add('ArrowLeft');
   }
 
-  ZS.sim.cabin = { RIDE, SHIFTS, STATION, ARRIVE, POINTA, SIGHT, stage, start, update, idle, watchers, sees, plan, pilot };
+  ZS.sim.cabin = { SHIFTS, STATION, ARRIVE, BEAR, LIMIT, ALARM, stage, start, update, idle, riders, torque, balance, plan, pilot };
 })();

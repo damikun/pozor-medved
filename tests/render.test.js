@@ -259,7 +259,7 @@ for (const c of SCENES) {
     play(4);
     input.release('ArrowRight');
     assert.deepEqual([...seen], ['cave:close', 'cave:open', 'cave:play', 'cave:shut', 'cave:back', 'funi:close', 'funi:open', 'funi:play', 'funi:shut', 'funi:back']);
-    assert.equal(g.once.caveTour, 'dragon');
+    assert.ok(g.once.caveTour && g.once.caveTour.counted > 0, 'bats counted');
     assert.equal(g.chopok.chata.served, true);
     assert.ok(g.once.book, 'the summit book');
     assert.deepEqual(problems.slice(0, 5), [], `${problems.length} bad canvas calls`);
