@@ -38,7 +38,7 @@
       profile: PROFILE,
       road: { from: -200, to: 4450, bridge: 1880, climb: [4000, 4900] },
       trail: { from: 4450, to: 7180 },
-      lots: [{ from: 30, to: 1250, lines: true, slots: [665, 800] }, { from: 3150, to: 3420, lines: true, slots: [3365] }],
+      lots: [{ from: 30, to: 1250, lines: true }, { from: 3150, to: 3420, lines: true }],
       concrete: { from: 30, to: 1250, machine: 610, bus: 1060, cars: [150, 290, 470, 880, 1170] },
       cave: { booth: 3460, group: 3505, door: 3630, from: 3580, to: 4000, exit: 3970, land: 4040 },
       jasna: { from: 4900, to: 7150, hotels: [[5330, 300, 3, 'hotel', 1.3], [5820, 230, 2, 'apart', 2.1]] },

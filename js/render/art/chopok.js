@@ -247,87 +247,6 @@
     ctx.fillStyle = '#b9b5ab'; ell(ctx, x - 70, GY + 70, 9, 4); ell(ctx, x + 50, GY + 74, 11, 4);
   }
 
-  const FLOW = { level: null, t: 0, cars: [], slots: [], n: 0, next: 0 };
-  const LANE = { near: GY + 41, far: GY + 26, lot: GY, turn: 90, gap: 130, wait: 2, stay: 6 };
-
-  function traffic(ctx, g, cam, viewW) {
-    const F = FLOW, L = g.level, R = L.road;
-    const seen = (x) => x > cam - 160 && x < cam + viewW + 160;
-    if (F.level !== L || g.time < F.t) startFlow(F, L, g.time, seen);
-    const dt = clamp(g.time - F.t, 0, 0.1);
-    F.t = g.time;
-    if (g.time >= F.next) launch(F, R, g.time, seen);
-    for (const c of F.cars) drive(F, R, c, dt);
-    F.cars = F.cars.filter((c) => {
-      const done = c.x < R.from - 150 || (c.phase === 'park' && c.t > LANE.stay && !seen(c.x));
-      if (done && c.slot && c.slot.car === c) c.slot.car = null;
-      return !done;
-    });
-    const list = F.cars.slice().sort((p, q) => p.y - q.y);
-    for (const c of list) {
-      if (!seen(c.x)) continue;
-      ctx.save(); ctx.translate(c.x, c.y + rise(c.x)); ctx.scale(c.dir, 1);
-      car(ctx, 0, c.col, c.sd, true);
-      ctx.restore();
-    }
-  }
-
-  function startFlow(F, L, time, seen) {
-    Object.assign(F, { level: L, t: time, cars: [], n: 0, next: time + 1 });
-    F.slots = [];
-    for (const l of L.lots) for (const x of l.slots || []) F.slots.push({ x, car: null });
-    const last = F.slots[F.slots.length - 1];
-    [[600, 1], [1500, -1], [2350, -1], [2700, 1]].forEach(([x, dir], i) => {
-      if (seen(x) || (dir > 0 && (!last || last.car || last.x < x + LANE.turn))) return;
-      const c = { x, y: dir > 0 ? LANE.near : LANE.far, dir, v: 0, top: 150 + hash(i * 3.3) * 50, slot: dir > 0 ? last : null, phase: 'road', t: 0, col: CARS[(i * 2 + 1) % CARS.length], sd: hash(i * 5.1) };
-      if (c.slot) c.slot.car = c;
-      F.cars.push(c);
-    });
-  }
-
-  function launch(F, R, time, seen) {
-    F.n++;
-    F.next = time + 3 + hash(F.n * 1.37) * 6;
-    const free = F.slots.filter((s) => !s.car), hidden = free.filter((s) => !seen(s.x));
-    const out = hidden.length > 0 && hash(F.n * 0.91) < 0.5, list = out ? hidden : free;
-    if (!list.length) return;
-    if (!out && F.cars.some((c) => c.dir > 0 && c.x < R.from - 120 + LANE.gap)) return;
-    const s = list[Math.floor(hash(F.n * 2.71) * list.length) % list.length];
-    const c = { x: out ? s.x : R.from - 120, y: out ? LANE.lot : LANE.near, dir: out ? -1 : 1, v: 0, top: 140 + hash(F.n * 3.3) * 60, slot: s, phase: out ? 'wait' : 'road', t: 0, col: CARS[F.n % CARS.length], sd: hash(F.n * 5.1) };
-    s.car = c;
-    F.cars.push(c);
-  }
-
-  function drive(F, R, c, dt) {
-    c.t += dt;
-    if (c.phase === 'park') return;
-    if (c.phase === 'wait') {
-      if (c.t > LANE.wait && !F.cars.some((o) => o !== c && o.dir < 0 && o.phase === 'road' && o.x > c.x - 40 && o.x < c.x + 320)) c.phase = 'out';
-      return;
-    }
-    let v = c.top;
-    for (const o of F.cars) {
-      if (o === c || o.dir !== c.dir || o.phase === 'park' || o.phase === 'wait') continue;
-      const gap = (o.x - c.x) * c.dir;
-      if (gap > 0 && gap < LANE.gap + 80) v = min(v, max(0, gap - LANE.gap) * 2.5 + o.v * 0.5);
-    }
-    const s = c.slot;
-    if (c.dir > 0 && s && s.x - c.x < LANE.turn) {
-      const k = 1 - (s.x - c.x) / LANE.turn;
-      v = min(v, max(16, c.top * (1 - k)));
-      c.y = lerp(LANE.near, LANE.lot, smooth(k));
-      c.phase = 'in';
-    } else if (c.dir < 0 && c.phase === 'out') {
-      const k = clamp((s.x - c.x) / LANE.turn, 0, 1);
-      v = min(v, 24 + c.top * k);
-      c.y = lerp(LANE.lot, LANE.far, smooth(k));
-      if (k >= 1) { c.phase = 'road'; s.car = null; c.slot = null; }
-    }
-    c.v = v;
-    c.x += c.dir * v * dt;
-    if (c.dir > 0 && s && c.x >= s.x) { c.x = s.x; c.y = LANE.lot; c.v = 0; c.phase = 'park'; c.t = 0; }
-  }
-
   function turf(ctx, g, x0, x1) {
     const L = g.level, h0 = L.funi.land - 60;
     if (x1 <= h0) return;
@@ -376,7 +295,6 @@
       turf(ctx, g, a, z);
       ctx.restore();
     }
-    traffic(ctx, g, cam, viewW);
   }
 
   function under(ctx, g, viewW) {
@@ -389,8 +307,7 @@
 
   function ellipse(ctx, x, y, rx, ry) { ell(ctx, x, y, rx, ry); }
 
-  function car(ctx, x, col, sd, moving) {
-    if (moving) { ctx.translate(0, -GY); }
+  function car(ctx, x, col, sd) {
     ctx.fillStyle = 'rgba(0,0,0,0.2)'; ell(ctx, x, GY + 3, 40, 4);
     ctx.fillStyle = col; rr(ctx, x - 38, GY - 26, 76, 18, 6);
     ctx.beginPath(); ctx.moveTo(x - 24, GY - 25); ctx.lineTo(x - 14, GY - 42); ctx.lineTo(x + 16, GY - 42); ctx.lineTo(x + 28, GY - 25); ctx.closePath(); ctx.fill();
@@ -399,7 +316,6 @@
     ctx.fillStyle = '#9a9ca0'; circle(ctx, x - 22, GY - 7, 3.4); circle(ctx, x + 22, GY - 7, 3.4);
     ctx.fillStyle = sd > 0.5 ? '#ffe08a' : '#f6f2e6'; ctx.fillRect(x + 33, GY - 22, 5, 4);
     ctx.fillStyle = '#c0392b'; ctx.fillRect(x - 38, GY - 22, 3, 4);
-    if (moving) ctx.translate(0, GY);
   }
 
   function bus(ctx, x, time) {
