@@ -864,6 +864,7 @@
         resumed: 'Wieder am Kontrollpunkt' },
       cave: {
         woke: 'Die Fledermäuse sind weg!',
+        home: 'Die Fledermäuse sind zurück',
         done: 'Kolonie gezählt!',
         seen: 'Touristen! Ein Bär!',
         tally: (n, of) => '🦇 ' + n + '\u00a0/ ' + of,

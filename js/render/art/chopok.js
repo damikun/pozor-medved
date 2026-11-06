@@ -837,9 +837,28 @@
     fog(ctx, g, viewW);
   }
 
+  const blend = { img: null };
+
+  function crossfade(ctx, p, P) {
+    const cv = ctx.canvas;
+    if (typeof document === 'undefined' || !cv || !cv.width) return;
+    if (p.phase === 'close' || p.phase === 'shut') {
+      if (!blend.img) blend.img = document.createElement('canvas');
+      if (blend.img.width !== cv.width || blend.img.height !== cv.height) { blend.img.width = cv.width; blend.img.height = cv.height; }
+      blend.img.getContext('2d').drawImage(cv, 0, 0);
+      return;
+    }
+    const k = clamp(p.t / P.open, 0, 1);
+    if (!blend.img || k >= 1) return;
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1 - smooth(k);
+    ctx.drawImage(blend.img, 0, 0);
+    ctx.restore();
+  }
+
   function iris(ctx, g, viewW, offY) {
     const p = g.chopok && g.chopok.pass, P = SIM().PASS;
     if (!p || p.phase === 'play') return;
+    if (p.key === 'funi') { crossfade(ctx, p, P); return; }
     const H = g.viewH || 540 + offY / 0.45, far = hypot(viewW, H), k = clamp(p.t / (p.phase === 'close' || p.phase === 'shut' ? P.close : P.open), 0, 1);
     const r = p.phase === 'close' || p.phase === 'shut' ? 1 - smooth(k) : smooth(k);
     if (r >= 1) return;

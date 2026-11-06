@@ -893,6 +893,7 @@
       resumed: 'Znova od kontrolného bodu' },
     cave: {
       woke: 'Netopiere uleteli!',
+      home: 'Netopiere sa vrátili',
       done: 'Kolónia zrátaná!',
       seen: 'Turisti! Medveď!',
       tally: (n, of) => '🦇 ' + n + '\u00a0/ ' + of,

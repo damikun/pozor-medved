@@ -864,6 +864,7 @@
         resumed: 'Back at the checkpoint' },
       cave: {
         woke: 'The bats flew off!',
+        home: 'The bats are back',
         done: 'Colony counted!',
         seen: 'Tourists! A bear!',
         tally: (n, of) => '🦇 ' + n + ' / ' + of,

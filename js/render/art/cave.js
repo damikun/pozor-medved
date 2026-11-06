@@ -331,14 +331,27 @@
     circle(ctx, x, y + 1, 2.4);
   }
 
+  function pendant(ctx, o, roof, top) {
+    const x = o.x, w = o.n * 9 + 26;
+    ctx.fillStyle = '#3a3043';
+    ctx.beginPath(); ctx.moveTo(x - w, roof - 6); ctx.quadraticCurveTo(x - w * 0.7, (roof + top) / 2, x - w * 0.62, top - 2);
+    ctx.quadraticCurveTo(x, top + 12, x + w * 0.62, top - 2); ctx.quadraticCurveTo(x + w * 0.7, (roof + top) / 2, x + w, roof - 6); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(169,156,180,0.55)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x - w * 0.62, top - 2); ctx.quadraticCurveTo(x, top + 12, x + w * 0.62, top - 2); ctx.stroke();
+    ctx.fillStyle = ROCK.calc3;
+    for (let i = 0; i < 3; i++) { const px = x - w * 0.4 + i * w * 0.4, l = 8 + hash(o.id * 5 + i) * 10; poly(ctx, [px - 3, top + 2, px + 3, top + 2, px, top + 2 + l]); }
+  }
+
   function colonies(ctx, c, g) {
     const t = g.time;
     for (const o of c.bats) {
-      const top = roofY(o.x) + 8;
-      if (o.state === 'gone') continue;
-      if (o.state === 'fly') {
-        for (let i = 0; i < o.n - o.counted; i++) {
-          const u = o.t + i * 0.08, sd = hash(o.id * 9 + i);
+      const roof = roofY(o.x), top = Math.max(roof + 8, GY - SIM().FLOCK.hang);
+      if (top - roof > 24) pendant(ctx, o, roof, top);
+      if (o.state === 'gone' || o.state === 'away') continue;
+      if (o.state === 'fly' || o.state === 'back') {
+        const F = SIM().FLOCK, n = o.state === 'back' ? o.n : o.n - o.counted;
+        for (let i = 0; i < n; i++) {
+          const u = (o.state === 'back' ? Math.max(0, F.back - o.t) : o.t) + i * 0.08, sd = hash(o.id * 9 + i);
           flyer(ctx, o.x + (i - o.n / 2) * 10 + u * (160 + sd * 160) * (sd > 0.5 ? 1 : -1), top + 20 + sin(u * 4 + i) * 30 - u * 60, 9 + sd * 4, t, sd);
         }
         continue;

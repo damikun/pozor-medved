@@ -864,6 +864,7 @@
         resumed: 'De nuevo en el punto de control' },
       cave: {
         woke: '¡Los murciélagos se fueron!',
+        home: 'Los murciélagos han vuelto',
         done: '¡Colonia contada!',
         seen: '¡Turistas! ¡Un oso!',
         tally: (n, of) => '🦇 ' + n + '\u00a0/ ' + of,

@@ -12,6 +12,7 @@
   const ALERT = { panic: 5, call: 3.5, doubt: 2.4, slow: 0.55, wider: 70, block: 34 };
   const SINK = { t: 0.8, depth: 34, safe: 2, panic: 15, bank: 40, stun: 0.6 };
   const LAMP = { reach: 34, range: 280 };
+  const FLOCK = { fly: 2.2, away: 7, back: 1.6, hang: 290 };
   const STONE = 30, END = 180, REAR = 0.72, LEDGE = 90, LEAP = 118;
   const ROOF = GY - 330, HEAD = 90, LOW = GY - 70, SLOPE = 50;
 
@@ -20,7 +21,7 @@
     return ROOF - 120 * k + 26 * Math.sin(x * 0.006) + 18 * Math.sin(x * 0.017 + 1.3) + 10 * Math.sin(x * 0.043);
   }
 
-  const asleep = (c) => c.bats.some((o) => o.state === 'sleep' && o.counted < o.n);
+  const asleep = (c) => c.bats.some((o) => o.state === 'sleep' && o.counted < o.n && !o.woke);
 
   function ledgeAhead(S, b) {
     const d = b.dir < 0 ? -1 : 1;
@@ -76,7 +77,7 @@
 
   function wake(g, c, o) {
     if (o.state !== 'sleep') return;
-    o.state = 'fly'; o.t = 0;
+    o.state = 'fly'; o.t = 0; o.woke = true;
     rules().onSound(g, 'marmot', o.x, 0.6);
     if (o.counted < o.n) rules().float(g, o.x, GY - 190, LABELS.cave.woke, COLORS.bad);
     if (!c.said.woke) { c.said.woke = true; rules().say(g, NEWS.caveWoke); }
@@ -252,8 +253,17 @@
 
 
 
-  function bats(c, dt) {
-    for (const o of c.bats) if (o.state === 'fly') { o.t += dt; if (o.t > 2.2) o.state = 'gone'; }
+  function bats(g, c, dt) {
+    for (const o of c.bats) {
+      if (o.state !== 'fly' && o.state !== 'away' && o.state !== 'back') continue;
+      o.t += dt;
+      if (o.state === 'fly' && o.t > FLOCK.fly) { o.state = 'away'; o.t = 0; }
+      else if (o.state === 'away' && o.t > FLOCK.away) { o.state = 'back'; o.t = 0; }
+      else if (o.state === 'back' && o.t > FLOCK.back) {
+        Object.assign(o, { state: 'sleep', t: 0, counted: 0, k: 0 });
+        rules().float(g, o.x, GY - 210, LABELS.cave.home, COLORS.story);
+      }
+    }
   }
 
   function finish(g, c) {
@@ -273,7 +283,7 @@
     c.safe = Math.max(0, c.safe - dt);
     b.rear = (b.rear || 0) + ((c.count ? REAR : 0) - (b.rear || 0)) * Math.min(1, dt * 7);
     c.flash = Math.max(0, c.flash - dt * 2.5);
-    bats(c, dt);
+    bats(g, c, dt);
     tour(g, S, c, dt);
     control(g, S, c, dt);
     if (c.safe > 0) b.inv = Math.max(b.inv, c.safe);
@@ -284,7 +294,7 @@
   function idle(g, c, dt) {
     c.t += dt;
     c.flash = Math.max(0, c.flash - dt * 2.5);
-    bats(c, dt);
+    bats(g, c, dt);
   }
 
   function plan(g) {
@@ -328,5 +338,5 @@
     if (b.onGround && b.y > GY - 5 && leap(S, b, 0)) { g.input.jumpPressed = true; g.input.jumpKey = 'Space'; }
   }
 
-  ZS.sim.cave = { TOUR, ALERT, COUNT, LAMP, SINK, LEAP, stage, start, update, idle, low, water, wild, counted, plan, pilot, hint, tourOn, walking, roofY, ceiling };
+  ZS.sim.cave = { TOUR, ALERT, FLOCK, COUNT, LAMP, SINK, LEAP, stage, start, update, idle, low, water, wild, counted, plan, pilot, hint, tourOn, walking, roofY, ceiling };
 })();

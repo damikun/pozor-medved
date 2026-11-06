@@ -138,6 +138,10 @@ test('in the cave the closed part needs the headlamp, holding C under a colony c
   input.release('ArrowRight');
   assert.equal(last.state, 'fly', 'a running bear wakes the colony');
   assert.equal(last.counted, 0);
+  const F = ZS.sim.cave.FLOCK;
+  run(F.fly + F.away + F.back + 0.3);
+  assert.equal(last.state, 'sleep', 'the colony comes back after a while');
+
 });
 
 test('in the cave a low ceiling stops an upright bear like a wall, a crawling one passes, the rock stops a jump, and the wide river is crossed stone by stone or sinks the bear', () => {
