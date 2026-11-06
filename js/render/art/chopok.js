@@ -205,15 +205,17 @@
     }
   }
 
-  const SLICE = 8;
+  const SLICE = 25;
 
   function ground(ctx, g, cam, viewW) {
     const x0 = Math.floor((cam - 20) / SLICE) * SLICE, x1 = cam + viewW + 20, B = ZS.render.backdrop, H = (g.viewH || 540) + 400;
+    const m = ctx.getTransform ? ctx.getTransform() : null;
+    const snap = m && m.a ? (x) => (Math.round(m.a * x + m.e) - m.e) / m.a : (x) => x;
     for (let a = x0; a < x1; a += SLICE) {
-      const z = a + SLICE, d = rise(a + SLICE / 2);
+      const z = a + SLICE, d = rise(a), k = (rise(z) - d) / SLICE, l = snap(a);
       ctx.save();
-      ctx.beginPath(); ctx.rect(a - 0.25, GY - 700, SLICE + 0.5, H + 700); ctx.clip();
-      ctx.translate(0, d);
+      ctx.beginPath(); ctx.rect(l, GY - 700, snap(z) - l, H + 700); ctx.clip();
+      ctx.transform(1, k, 0, 1, 0, d - k * a);
       hillside(ctx, g, a, SLICE);
       B.ground(ctx, a, SLICE, g);
       road(ctx, g, a, z);

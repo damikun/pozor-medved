@@ -330,7 +330,7 @@
       if (L.summit) ZS.chopokArt.backdrop(ctx, g, viewW, offY);
     }
     const hb = L.profile ? ZS.levelKit.height(L, b.x) : 0;
-    rise = L.profile ? (x) => Math.round(ZS.levelKit.height(L, x) - hb) * -1 : null;
+    rise = L.profile ? (x) => hb - ZS.levelKit.height(L, x) : null;
     if (L.profile) ZS.chopokArt.under(ctx, g, viewW);
     ctx.translate(-Math.round(cam), 0);
     if (!L.profile) B.ground(ctx, cam, viewW, g);
