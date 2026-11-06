@@ -8,7 +8,7 @@
   const CAIRNS = [10490, 11610];
   const DWARF = [[6530, 6670], [6840, 6970], [9120, 9250], [10030, 10180], [11180, 11320], [11880, 12000], [13040, 13170], [13300, 13430], [13590, 13730]];
   const LIMESTONE = [[2780, 54, 36], [3020, 70, 46], [3330, 60, 40], [4140, 66, 42], [4520, 52, 34]];
-  const PROFILE = [[0, 0], [1250, 0], [1500, -0.03], [2950, -0.03], [3150, 0], [3420, 0], [3620, -0.02], [4040, -0.02], [4250, -0.07], [4750, -0.07], [5050, -0.03], [7050, -0.03], [7200, 0], [7950, 0], [8030, 0.13], [8170, 0.13], [8250, 0], [8650, 0], [8850, 0.03], [9200, 0.03], [9450, -0.05], [10850, -0.05], [11000, 0.02], [11550, 0.02], [11800, -0.09], [12650, -0.09], [12720, 0], [12880, 0], [13000, 0.1], [13800, 0.1], [14000, 0.02], [14450, 0]];
+  const PROFILE = [[0, 0], [900, -0.035], [7150, -0.035], [7650, -0.015], [7900, -0.015], [7980, 0.3], [8190, 0.3], [8290, 0], [8560, 0], [8900, -0.045], [12550, -0.045], [12760, 0], [12860, 0], [13060, 0.09], [13750, 0.09], [14100, 0.02], [14450, 0]];
 
   function rock(x, w, h, cairn) {
     return { x, w, h, top: GY - h + 3, hide: true, logs: true, rock: true, cairn: !!cairn, shade: hash(x * 0.013) };
@@ -37,7 +37,7 @@
       lots: [{ from: 30, to: 1250, lines: true }, { from: 3150, to: 3420, lines: true }],
       concrete: { from: 30, to: 1250, machine: 610, bus: 1060, cars: [150, 290, 470, 880, 1170] },
       cave: { booth: 3460, group: 3505, door: 3630, from: 3580, to: 4000, exit: 3970, land: 4040 },
-      jasna: { from: 4900, to: 7150, hotel: { x: 5450, w: 420 }, bikes: [6180, 7000], slide: 5890 },
+      jasna: { from: 4900, to: 7150, hotels: [[5330, 300, 3, 'hotel', 1.3], [5820, 230, 2, 'apart', 2.1], [6330, 210, 2, 'pension', 3.7], [6760, 270, 3, 'hotel', 5.2]] },
       funi: { station: 7200, door: 7255, from: 7290, to: 7570, top: 7510, land: 7610 },
       summit: { rotunda: 7820, from: 7570, to: 8850 },
       chata: { x: 8450, from: 8250, to: 8630, door: 8290, queue: [8336, 8374, 8412], counter: 8454, cook: 8500, exit: 8570 },
@@ -72,7 +72,6 @@
       K.sign(2440, () => C.cave),
       K.sign(4640, () => C.jasna),
       K.sign(5080, () => ZS.LEVEL_TEXT.chopok.village),
-      K.sign(6130, () => C.bikes, { key: 'ArrowDown' }),
       K.sign(7030, () => C.funi),
       K.sign(8080, () => C.chata),
       K.sign(8810, () => C.fog, { key: 'ArrowDown' }),
@@ -84,11 +83,11 @@
 
     [380, 720, 930].forEach((x) => K.add(L, 'bin', x));
     K.add(L, 'bin', 3290);
-    K.add(L, 'container', L.jasna.hotel.x + L.jasna.hotel.w / 2 + 70);
+    K.add(L, 'container', L.jasna.hotels[0][0] + L.jasna.hotels[0][1] / 2 + 60);
 
     const open = (x, m) => L.lots.some((l) => x > l.from - m && x < l.to + m)
       || (x > L.cave.booth - 80 - m && x < L.cave.land + 40 + m)
-      || (x > L.jasna.hotel.x - L.jasna.hotel.w / 2 - 40 - m && x < L.jasna.hotel.x + L.jasna.hotel.w / 2 + 120 + m)
+      || L.jasna.hotels.some(([hx, hw]) => x > hx - hw / 2 - 40 - m && x < hx + hw / 2 + 100 + m)
       || (x > L.funi.station - 110 - m && x < L.summit.to + m)
       || Math.abs(x - L.road.bridge) < 110 + m;
     const blocked = (x) => x > 6480 || open(x, 30)
@@ -96,8 +95,7 @@
       || L.logs.some((l) => Math.abs(l.x - x) < l.w / 2 + 80)
       || L.covers.some((c) => Math.abs(c.x - x) < c.w / 2 + 50)
       || L.signs.some((s) => Math.abs(s.x - x) < (s.billboard ? 150 : 95))
-      || DWARF.some(([a, b]) => x > a - 50 && x < b + 50)
-      || Math.abs(x - L.jasna.slide) < 90;
+      || DWARF.some(([a, b]) => x > a - 50 && x < b + 50);
     const spruce = (x) => 0.3 + 0.6 * sstep(4000, 5300, x);
     K.forest(L, blocked, (x) => {
       const r = rng(), s = spruce(x);
@@ -152,12 +150,26 @@
     return P[P.length - 1][1];
   }
 
+  function height(L, x) {
+    if (!L.profile) return 0;
+    let T = L.hmap;
+    if (!T) {
+      T = L.hmap = [];
+      let h = 0;
+      for (let u = 0; u <= L.w + 600; u += 25) { T.push(h); h -= slope(L, u + 12.5) * 25; }
+    }
+    const u = Math.max(0, x) / 25, i = Math.min(T.length - 2, Math.floor(u));
+    return T[i] + (T[i + 1] - T[i]) * Math.min(1, u - i);
+  }
+
   const CAVE = {
-    w: 2900, start: 110, domes: [[200, 640], [860, 1330], [1520, 2120], [2300, 2840]], bridge: [1560, 2040], bones: 2600, exit: 2840,
-    low: [[640, 860], [1330, 1520], [2120, 2300]],
-    colonies: [[430, 6], [1000, 8], [1210, 5], [1700, 9], [1930, 7], [2460, 6]],
+    w: 2960, start: 90, gap: 940, lamp: 860, bones: 2720, exit: 2900,
+    walk: [0, 940], vault: [2620, 2960],
+    low: [[1080, 1260], [2140, 2300]],
+    water: [1800, 1990], stones: [1880],
+    colonies: [[1400, 7], [1640, 8], [2440, 6]],
   };
-  const STALAG = [[300, 50, 132], [500, 44, 110], [960, 56, 150], [1150, 48, 124], [2400, 46, 118], [2740, 50, 128]];
+  const STALAG = [[300, 50, 132], [520, 46, 118], [720, 54, 140], [1540, 48, 124], [2560, 50, 128]];
 
   function caveStage() {
     const L = K.base('chopok', mulberry32(3011));
@@ -175,6 +187,7 @@
   }
 
   K.slope = slope;
+  K.height = height;
   K.caveStage = caveStage;
   K.cabinStage = cabinStage;
   K.CAVE = CAVE;

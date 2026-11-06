@@ -104,12 +104,23 @@ test('the cave is a sublevel of its own: the valley is put away, the bear counts
   assert.ok(b.x >= L.passes[0].wall - 1, 'the exit is one way: ' + Math.round(b.x));
 });
 
-test('in the cave, holding C under a colony counts the bats one by one, and running wakes them up', () => {
+test('in the cave the closed part needs the headlamp, holding C under a colony counts the bats one by one, and running there wakes them up', () => {
   const env = setup();
   const { ZS, g, b, run, quiet, input } = env;
   quiet();
   const c = into(env, env.L.cave.door);
-  const [first, , second] = c.bats;
+  const S = g.level.cave;
+  c.guide = ZS.sim.cave.TOUR.gone;
+  Object.assign(b, { x: S.lamp + 40, trackX: S.lamp + 40 });
+  input.press('ArrowRight', true);
+  run(1);
+  input.release('ArrowRight');
+  assert.equal(c.lamp, false);
+  assert.ok(b.x <= S.gap - 10, 'no further without light: ' + Math.round(b.x));
+  Object.assign(b, { x: S.lamp, trackX: S.lamp });
+  run(0.1);
+  assert.equal(c.lamp, true, 'the headlamp is picked up on the way');
+  const [first, , last] = c.bats;
   Object.assign(b, { x: first.x, trackX: first.x });
   input.press('KeyC', true);
   run(0.5);
@@ -118,40 +129,59 @@ test('in the cave, holding C under a colony counts the bats one by one, and runn
   input.release('KeyC');
   assert.equal(first.state, 'done');
   assert.equal(ZS.sim.cave.counted(c), first.n);
-  Object.assign(b, { x: second.x - 300, trackX: second.x - 300 });
+  const after = S.low[1][1] + 30;
+  Object.assign(b, { x: after, trackX: after });
   input.press('ArrowRight', true);
   input.press('ShiftLeft', true);
   run(0.6);
   input.release('ShiftLeft');
   input.release('ArrowRight');
-  assert.equal(second.state, 'fly', 'a running bear wakes the colony');
-  assert.equal(second.counted, 0);
+  assert.equal(last.state, 'fly', 'a running bear wakes the colony');
+  assert.equal(last.counted, 0);
 });
 
-test('in the cave a low ceiling stops an upright bear with a bump, but a crawling one passes, and the tour behind sees a bear in its light', () => {
+test('in the cave a low ceiling stops an upright bear without knocking it down, a crawling one passes, the river throws it back, and the tour sees a bear in its light unless it hides', () => {
   const env = setup();
   const { ZS, g, b, run, quiet, input } = env;
   quiet();
   const c = into(env, env.L.cave.door);
-  const [a, z] = g.level.cave.low[0];
+  const S = g.level.cave, T = ZS.sim.cave.TOUR;
+  c.guide = T.gone;
+  c.lamp = true;
+  const [a, z] = S.low[0];
   Object.assign(b, { x: a - 60, trackX: a - 60 });
   input.press('ArrowRight', true);
   run(1);
-  assert.ok(b.x < a + 20, 'bumped at the low ceiling: ' + Math.round(b.x));
-  b.stun = 0;
+  assert.ok(b.x < a + 10, 'stopped at the low ceiling: ' + Math.round(b.x));
+  assert.equal(b.stun, 0, 'no bump');
+  assert.ok(c.bats.every((o) => o.state === 'sleep'), 'the bats sleep on');
+  assert.equal(ZS.sim.cave.hint(g, c), 'crawl');
   input.press('ArrowDown', true);
   run((z - a + 120) / 85 + 0.5);
   input.release('ArrowDown');
   input.release('ArrowRight');
   assert.ok(b.x > z, 'crawled through: ' + Math.round(b.x));
-  const seen = c.seen;
-  c.t = 30;
-  run(0.05);
-  Object.assign(b, { x: c.front - 100, trackX: c.front - 100, stun: 0, hiding: null });
-  run(0.1);
-  assert.equal(c.seen, seen + 1);
-  assert.ok(b.x > c.front, 'the bear runs ahead of the tour');
-  void ZS;
+  const wet = S.water[0] + 30;
+  Object.assign(b, { x: wet, trackX: wet, stun: 0 });
+  run(DT * 2);
+  assert.equal(c.wet, 1, 'splash');
+  assert.ok(b.x < S.water[0], 'back on the bank: ' + Math.round(b.x));
+  assert.ok(!ZS.sim.cave.water(g.level, S.stones[0]), 'the stone is dry');
+  Object.assign(b, { x: 500, trackX: 500, stun: 0, hiding: null });
+  Object.assign(c, { t: T.start + 1, guide: 600, seenAt: -99 });
+  run(DT);
+  assert.equal(c.seen, 1, 'seen in the light');
+  assert.ok(b.x < 600 - T.light, 'pushed back from the tour: ' + Math.round(b.x));
+  const col = g.level.covers.find((o) => o.stalag && o.x < S.gap);
+  Object.assign(b, { x: col.x, trackX: col.x, stun: 0, hiding: null });
+  Object.assign(c, { guide: T.gone, seenAt: -99 });
+  input.press('ArrowDown', true);
+  run(0.5);
+  assert.ok(b.hiding && b.hiding.hide, 'hiding behind the column');
+  c.guide = col.x + 80;
+  run(1);
+  input.release('ArrowDown');
+  assert.equal(c.seen, 1, 'the tour walks past');
 });
 
 test('the cabin is a sublevel too: a careful bear balances it from the other side and gets out by the Rotunda', () => {
@@ -266,29 +296,6 @@ test('a gust pushes a standing bear back along the ridge, and a crouching one st
   run(1);
   release('ArrowDown');
   assert.ok(Math.abs(b.x - y) < 1, 'crouched');
-});
-
-test('a biker knocks over a standing bear, rings first, and hops over a crouching one', () => {
-  const { ZS, g, b, L, run, quiet, put, hold, release } = setup();
-  quiet();
-  put(L.jasna.bikes[1] - 300);
-  run(0.1);
-  const c = g.chopok;
-  c.bikeT = 0;
-  run(DT * 2);
-  assert.equal(c.bikes.length, 1);
-  assert.ok(ZS.sim.chopok.bell(g), 'the bell rings before the biker arrives');
-  assert.ok(c.bikes[0].x - b.x > 500, 'a warning of about two seconds');
-  run(2.4);
-  assert.ok(b.stun > 0 || g.floaters.some((f) => f.text === ZS.LABELS.chopok.bikeHit), 'knocked over');
-  run(2);
-  c.bikes = []; c.bikeT = 0;
-  put(L.jasna.bikes[1] - 300);
-  b.stun = 0;
-  hold('ArrowDown');
-  run(2.6);
-  release('ArrowDown');
-  assert.ok(g.floaters.some((f) => f.text === ZS.LABELS.chopok.bikeHop), 'hopped over');
 });
 
 test('the rescuer on the ridge only asks if the bear is lost', () => {

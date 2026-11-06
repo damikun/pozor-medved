@@ -6,6 +6,13 @@
   const B = ZS.render.backdrop;
   const OWN_ART = { feeder: 1, punch: 1, lokse: 1, sausage: 1, cheese: 1, carrot: 1, cob: 1, catch: 1 };
   const CORN = 3, LOG = 0.3;
+  let rise = null;
+
+  function on(ctx, x, fn) {
+    const d = rise ? rise(x) : 0;
+    if (!d) { fn(); return; }
+    ctx.save(); ctx.translate(0, d); fn(); ctx.restore();
+  }
 
   function eatenAt(L, type, x) {
     return L.items.some((it) => it.type === type && it.x === x && it.eaten);
@@ -71,18 +78,20 @@
     const b = g.bear, season = g.seasonIdx;
     for (const t of g.level.trees) {
       if (!vis(t.x, 170)) continue;
-      if (t === b.climbing) {
-        P.trunk(ctx, t, g);
-        withBear(ZS.drawBearClimbing);
-        P.crown(ctx, t, season, g);
-      } else if (t === b.hideTree && b.hideBlend > 0) {
-        const who = b.hiding ? b : (b.fadeBear = Object.assign(b.fadeBear || {}, b, { hiding: t }));
-        withBear(ZS.drawBearBehindTree, who, b.hideBlend);
-        P.tree(ctx, t, season, g);
-        withBear(ZS.drawBearInFront, who, b.hideBlend);
-      } else {
-        P.tree(ctx, t, season, g);
-      }
+      on(ctx, t.x, () => {
+        if (t === b.climbing) {
+          P.trunk(ctx, t, g);
+          withBear(ZS.drawBearClimbing);
+          P.crown(ctx, t, season, g);
+        } else if (t === b.hideTree && b.hideBlend > 0) {
+          const who = b.hiding ? b : (b.fadeBear = Object.assign(b.fadeBear || {}, b, { hiding: t }));
+          withBear(ZS.drawBearBehindTree, who, b.hideBlend);
+          P.tree(ctx, t, season, g);
+          withBear(ZS.drawBearInFront, who, b.hideBlend);
+        } else {
+          P.tree(ctx, t, season, g);
+        }
+      });
     }
   }
 
@@ -125,13 +134,13 @@
     const ph = g.photographer;
     if (ph && ph !== held && vis(ph.x, 120)) ZS.drawPhotographer(ctx, ph, g.time);
     for (const p of g.people) if (p.aide && vis(p.aide.x, 40)) ZS.drawAide(ctx, p, g);
-    for (const p of g.people) if (p !== held && vis(p.x, 40)) ZS.drawHuman(ctx, view(g, p, false), g.time);
+    for (const p of g.people) if (p !== held && vis(p.x, 40)) on(ctx, p.x, () => ZS.drawHuman(ctx, view(g, p, false), g.time));
     for (const d of g.dogs) if (vis(d.x, 60)) ZS.scenery.dog(ctx, d, g.time);
     for (const d of g.deer) if (vis(d.x, 70)) ZS.winterArt.deer(ctx, d, g.time);
     for (const s of g.shooters) {
       if (s === held || !vis(s.x, 60)) continue;
-      if (s.kind === 'posed' && !s.react) { s.outfit = g.level.theme; s.cold = g.bear.cold; ZS.drawPostHunter(ctx, s, g.time); continue; }
-      ZS.drawHuman(ctx, view(g, s, true), g.time);
+      if (s.kind === 'posed' && !s.react) { s.outfit = g.level.theme; s.cold = g.bear.cold; on(ctx, s.x, () => ZS.drawPostHunter(ctx, s, g.time)); continue; }
+      on(ctx, s.x, () => ZS.drawHuman(ctx, view(g, s, true), g.time));
     }
   }
 
@@ -273,7 +282,7 @@
     const b = g.bear;
     for (const d of g.drones) P.drone(ctx, d, g.time);
     const aim = ZS.sim.hunters.aimFactor(g);
-    if (!g.cut) for (const s of g.shooters) if (!s.react && vis(s.cross, 60) && Math.abs(s.x - b.x) < 1500) P.crosshair(ctx, s, aim, g);
+    if (!g.cut) for (const s of g.shooters) if (!s.react && vis(s.cross, 60) && Math.abs(s.x - b.x) < 1500) on(ctx, s.cross, () => P.crosshair(ctx, s, aim, g));
     if (g.level.logging) ZS.loggingArt.over(ctx, g, viewW, top);
     for (const sh of g.shots) {
       const a = sh.t / 0.3;
@@ -283,14 +292,15 @@
     }
     for (const p of g.particles) {
       ctx.fillStyle = p.color;
-      if (p.heart) heart(ctx, p.x, p.y, 5 + Math.min(1, p.t) * 2, Math.min(1, p.t * 1.5));
-      else if (p.round) circle(ctx, p.x, p.y, 2.6); else ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+      const d = rise ? rise(p.x) : 0;
+      if (p.heart) heart(ctx, p.x, p.y + d, 5 + Math.min(1, p.t) * 2, Math.min(1, p.t * 1.5));
+      else if (p.round) circle(ctx, p.x, p.y + d, 2.6); else ctx.fillRect(p.x - 2, p.y - 2 + d, 4, 4);
     }
     ZS.fx.drawFront(ctx, g, viewW);
     for (const f of g.floaters) {
       if (f.ride) continue;
       ctx.globalAlpha = Math.min(1, f.t);
-      label(ctx, f.text, f.x, Math.max(top + 12, f.y - (1.6 - f.t) * 30), 16, f.color);
+      label(ctx, f.text, f.x, Math.max(top + 12, f.y - (1.6 - f.t) * 30 + (rise ? rise(f.x) : 0)), 16, f.color);
       ctx.globalAlpha = 1;
     }
     if (g.bubble) P.bubble(ctx, b.x, Math.max(top + 34, b.climbing || b.offTree ? Math.min(b.y - 128, GY - 180) : GY - 180), g.bubble.text, g.bubble.t, g.cam + 8, g.cam + viewW - 8);
@@ -319,9 +329,11 @@
       B.backForest(ctx, g, viewW, offY);
       if (L.summit) ZS.chopokArt.backdrop(ctx, g, viewW, offY);
     }
-    if (L.profile) ZS.chopokArt.tilt(ctx, g, viewW);
+    const hb = L.profile ? ZS.levelKit.height(L, b.x) : 0;
+    rise = L.profile ? (x) => Math.round(ZS.levelKit.height(L, x) - hb) * -1 : null;
+    if (L.profile) ZS.chopokArt.under(ctx, g, viewW);
     ctx.translate(-Math.round(cam), 0);
-    B.ground(ctx, cam, viewW, g);
+    if (!L.profile) B.ground(ctx, cam, viewW, g);
     if (L.alpine) ZS.alpineArt.ground(ctx, g, cam, viewW);
     if (L.summit) ZS.chopokArt.ground(ctx, g, cam, viewW);
     if (g.tracks.length) B.tracks(ctx, g, viewW);
@@ -331,24 +343,24 @@
     }
     if (L.ice && span(L.ice.from, L.ice.to, 80)) ZS.winterArt.ice(ctx, L.ice.from, L.ice.to, g.time);
     for (const h of L.holes) if (vis(h.x, 60)) ZS.winterArt.hole(ctx, h.x, g.time);
-    if (vis(L.startDen, 240)) P.den(ctx, L.startDen, false, T.startDen, g.time, g);
+    if (vis(L.startDen, 240)) on(ctx, L.startDen, () => P.den(ctx, L.startDen, false, T.startDen, g.time, g));
     const hugged = ZS.sim.rules.hugged(g), fed = g.fat >= g.def.fatGoal;
-    if (vis(L.goalDen, 240)) (L.alpine || L.summit ? ZS.alpineArt.den : P.den)(ctx, L.goalDen, hugged && fed, T.goalDen, g.time, g);
-    if (!(hugged && fed) && vis(L.goalDen, 120)) denStamp(ctx, g, hugged);
-    for (const h of L.houses) if (vis(h.x, 220)) P.house(ctx, h, g);
+    if (vis(L.goalDen, 240)) on(ctx, L.goalDen, () => (L.alpine || L.summit ? ZS.alpineArt.den : P.den)(ctx, L.goalDen, hugged && fed, T.goalDen, g.time, g));
+    if (!(hugged && fed) && vis(L.goalDen, 120)) on(ctx, L.goalDen, () => denStamp(ctx, g, hugged));
+    for (const h of L.houses) if (vis(h.x, 220)) on(ctx, h.x, () => P.house(ctx, h, g));
     landmarks(ctx, g, vis, span, withBear);
     treesWithBear(ctx, g, vis, withBear);
-    for (const s of L.signs) if (vis(s.x, 160)) P.sign(ctx, s, g);
-    for (const p of L.posts) if (vis(p.x, 80)) P.post(ctx, p, g);
+    for (const s of L.signs) if (vis(s.x, 160)) on(ctx, s.x, () => P.sign(ctx, s, g));
+    for (const p of L.posts) if (vis(p.x, 80)) on(ctx, p.x, () => P.post(ctx, p, g));
     if (b.climbing && b.climbing.ladder) withBear(ZS.drawBearOnLadder);
-    for (const lg of L.logs) if (vis(lg.x, 80)) (lg.rock ? ZS.alpineArt.slab : P.log)(ctx, lg, g);
-    for (const it of L.items) if ((!it.eaten || P.left(it)) && !OWN_ART[it.type] && vis(it.x, 60)) P.item(ctx, it, g.time, g);
-    for (const p of g.props) if (vis(p.x, 60)) ZS.drawDropped(ctx, p, g.time);
+    for (const lg of L.logs) if (vis(lg.x, 80)) on(ctx, lg.x, () => (lg.rock ? ZS.alpineArt.slab : P.log)(ctx, lg, g));
+    for (const it of L.items) if ((!it.eaten || P.left(it)) && !OWN_ART[it.type] && vis(it.x, 60)) on(ctx, it.x, () => P.item(ctx, it, g.time, g));
+    for (const p of g.props) if (vis(p.x, 60)) on(ctx, p.x, () => ZS.drawDropped(ctx, p, g.time));
     ZS.fx.drawBack(ctx, g, viewW);
     figures(ctx, g, vis, held);
     if (!b.climbing && (b.hideBlend || 0) < 1) withBear(ZS.drawBear, b, 1 - (b.hideBlend || 0));
     if (held && held === g.photographer) ZS.drawPhotographer(ctx, held, g.time);
-    else if (held) ZS.drawHuman(ctx, view(g, held, g.shooters.includes(held)), g.time);
+    else if (held) on(ctx, held.x, () => ZS.drawHuman(ctx, view(g, held, g.shooters.includes(held)), g.time));
     if (!b.climbing) withBear(ZS.drawBearHugFront);
     if (L.logging || L.clearing) ZS.loggingArt.front(ctx, g, vis);
     penFront(ctx, g, span);
@@ -369,4 +381,6 @@
   };
 
   ZS.render.cue = cue;
+  ZS.render.on = on;
+  ZS.render.rise = (x) => (rise ? rise(x) : 0);
 })();

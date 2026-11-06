@@ -208,7 +208,7 @@ const SCENES = [
 ];
 
 for (const c of SCENES) {
-  test(`the cave, the cabin, the hut queue, the bikers, the fog, the wind and the minister draw cleanly frame by frame on the way to Ďumbier, ${c.name}`, () => {
+  test(`the cave, the cabin, the hut queue, the fog, the wind and the minister draw cleanly frame by frame on the way to Ďumbier, ${c.name}`, () => {
     const { ZS, g, problems, draw } = stage(Object.assign({ level: 'chopok' }, c));
     const { input } = ZS.ui;
     const L = g.level, b = g.bear;
@@ -238,8 +238,7 @@ for (const c of SCENES) {
       g.bot = false;
     };
     through(L.cave.door);
-    at(L.jasna.bikes[1] - 400);
-    g.chopok.bikeT = 0;
+    at(L.jasna.from + 400);
     play(3);
     through(L.funi.door);
     input.press('ArrowRight', true);

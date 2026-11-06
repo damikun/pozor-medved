@@ -15,14 +15,14 @@
     { warn: 29.6, at: 31, side: 1, call: 'kids3' },
   ];
   const PEOPLE = [
-    { kind: 'tourist', x: 260, mass: 1, look: 0 },
-    { kind: 'guest', x: 330, mass: 1.6, look: 0 },
-    { kind: 'picker', x: 400, mass: 0.9 },
-    { kind: 'tourist', x: 470, mass: 1, look: 2, off: true },
-    { kind: 'guest', x: 540, mass: 1.2, look: 1, off: true },
-    { kind: 'guest', x: 610, mass: 1, look: 3 },
-    { kind: 'tourist', x: 680, mass: 1, look: 1, off: true },
-    { kind: 'porter', x: 750, mass: 1.4 },
+    { x: 260, mass: 1, look: 0 },
+    { x: 330, mass: 1.5, look: 3 },
+    { x: 400, mass: 0.9, look: 2 },
+    { x: 470, mass: 1, look: 1, off: true },
+    { x: 540, mass: 1.2, look: 4, off: true },
+    { x: 610, mass: 1, look: 0 },
+    { x: 680, mass: 1, look: 2, off: true },
+    { x: 750, mass: 1.3, look: 1 },
   ];
   const KIDS = [{ x: 700 }, { x: 735 }, { x: 765 }, { x: 790 }, { x: 670 }];
   const BEAR = 6, SPREAD = 200, SCALE = 4200, LIMIT = 0.11, ALARM = 1.1, STOP = 2.4, SIGHT = 300, COOL = 3;
@@ -39,7 +39,7 @@
     const c = {
       t: 0, mid, climb: 0, speed: 0, stop: 0, door: 0, side: 1, shift: null, warn: null,
       tilt: 0, spin: 0, over: 0, alarms: 0, seenAt: -99, seen: 0, kids: false,
-      people: PEOPLE.map((p, i) => Object.assign({ id: 'cabin' + i, home: p.x, want: p.x, dir: 1, gone: false, size: 1, look: 0 }, p)),
+      people: PEOPLE.map((p, i) => Object.assign({ id: 'cabin' + i, kind: 'tourist', home: p.x, want: p.x, dir: 1, gone: false, size: 1, look: 0 }, p)),
       pointa: null, said: {}, result: null,
     };
     rules().say(g, NEWS.cabinBoard, true);
@@ -67,7 +67,7 @@
     if (was < 1 && c.door >= 1 && !c.kids) {
       c.kids = true;
       for (const p of c.people) if (p.off) p.gone = true;
-      KIDS.forEach((k, i) => c.people.push({ id: 'cabinKid' + i, kind: 'tourist', x: k.x, home: k.x, want: k.x, mass: 0.6, size: 0.7, look: i, dir: 1, kid: true }));
+      KIDS.forEach((k, i) => c.people.push({ id: 'cabinKid' + i, kind: 'tourist', x: k.x, home: k.x, want: k.x, mass: 0.6, size: 0.72, look: i, dir: 1, kid: true }));
       rules().float(g, S.cabin.right - 80, GY - 160, LABELS.cabin.kidsIn, COLORS.story);
       rules().say(g, NEWS.cabinKids);
     }
@@ -103,7 +103,7 @@
 
   function swing(c, b, dt) {
     const want = clamp(torque(c, b) / SCALE, -0.32, 0.32);
-    c.spin += ((want - c.tilt) * 9 - c.spin * 3.2) * dt;
+    c.spin += ((want - c.tilt) * 6 - c.spin * 4.2) * dt;
     c.tilt += c.spin * dt;
   }
 

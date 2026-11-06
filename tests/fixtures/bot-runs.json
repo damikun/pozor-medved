@@ -542,14 +542,14 @@
     "mode": null,
     "expected": {
       "ending": "win",
-      "time": 205.5333,
-      "fat": 98.8667,
+      "time": 228.15,
+      "fat": 98.8967,
       "lives": 5,
-      "x": 14132.25,
-      "syn": 12.7333,
-      "panic": 75.705,
+      "x": 14132.403,
+      "syn": 8.21,
+      "panic": 73.92,
       "stats": {
-        "natural": 27,
+        "natural": 25,
         "human": 2,
         "seen": 13,
         "hugs": 0,
@@ -560,14 +560,16 @@
       "flags": [
         "press",
         "emergency",
-        "drones"
+        "drones",
+        "meat"
       ],
       "events": [
         "poacher",
-        "census",
-        "constitution"
+        "meat",
+        "drive",
+        "court"
       ],
-      "eaten": 28
+      "eaten": 26
     }
   },
   {
@@ -577,31 +579,35 @@
     "mode": null,
     "expected": {
       "ending": "win",
-      "time": 225.4667,
-      "fat": 99.3617,
+      "time": 238.9,
+      "fat": 98.3683,
       "lives": 5,
-      "x": 14132.25,
-      "syn": 8.7467,
-      "panic": 38.04,
+      "x": 14130.824,
+      "syn": 6.06,
+      "panic": 98.695,
       "stats": {
-        "natural": 27,
+        "natural": 25,
         "human": 2,
-        "seen": 11,
+        "seen": 17,
         "hugs": 0,
         "bites": 0,
-        "stomps": 3,
+        "stomps": 5,
         "selfies": 2
       },
       "flags": [
-        "press"
+        "press",
+        "emergency",
+        "drones",
+        "cull",
+        "meat"
       ],
       "events": [
         "drive",
-        "census",
-        "wrongbear",
-        "poacher"
+        "meat",
+        "poacher",
+        "constitution"
       ],
-      "eaten": 28
+      "eaten": 26
     }
   },
   {
@@ -611,31 +617,34 @@
     "mode": null,
     "expected": {
       "ending": "win",
-      "time": 188.45,
-      "fat": 99.7467,
-      "lives": 5,
-      "x": 14132.327,
-      "syn": 16.15,
-      "panic": 52.475,
+      "time": 211.95,
+      "fat": 98.4117,
+      "lives": 4,
+      "x": 14132.25,
+      "syn": 11.45,
+      "panic": 69.78,
       "stats": {
-        "natural": 28,
+        "natural": 24,
         "human": 2,
-        "seen": 11,
+        "seen": 13,
         "hugs": 0,
         "bites": 0,
-        "stomps": 2,
+        "stomps": 4,
         "selfies": 2
       },
       "flags": [
         "press",
-        "emergency"
+        "emergency",
+        "drones",
+        "meat",
+        "binsLocked"
       ],
       "events": [
-        "wrongbear",
-        "court",
-        "poacher"
+        "census",
+        "bins",
+        "meat"
       ],
-      "eaten": 29
+      "eaten": 25
     }
   },
   {
@@ -646,15 +655,15 @@
     "expected": {
       "ending": "starve",
       "time": 330,
-      "fat": 62.8233,
-      "lives": 3,
+      "fat": 61.5817,
+      "lives": 4,
       "x": 14128,
       "syn": 0,
-      "panic": 96.5,
+      "panic": 96.275,
       "stats": {
-        "natural": 26,
+        "natural": 23,
         "human": 0,
-        "seen": 55,
+        "seen": 43,
         "hugs": 0,
         "bites": 0,
         "stomps": 0,
@@ -665,18 +674,15 @@
         "emergency",
         "drones",
         "cull",
-        "meat",
-        "binsLocked"
+        "meat"
       ],
       "events": [
-        "wrongbear",
-        "bins",
-        "constitution",
         "poacher",
-        "meat",
-        "drive"
+        "drive",
+        "census",
+        "meat"
       ],
-      "eaten": 26
+      "eaten": 23
     }
   },
   {
@@ -686,34 +692,34 @@
     "mode": null,
     "expected": {
       "ending": "win",
-      "time": 203.5167,
-      "fat": 99.7283,
-      "lives": 5,
-      "x": 14130.835,
-      "syn": 13.1367,
-      "panic": 58.42,
+      "time": 259.2167,
+      "fat": 98.65,
+      "lives": 4,
+      "x": 14132.25,
+      "syn": 1.9967,
+      "panic": 32.6,
       "stats": {
-        "natural": 28,
+        "natural": 24,
         "human": 2,
         "seen": 11,
         "hugs": 0,
         "bites": 0,
-        "stomps": 2,
+        "stomps": 4,
         "selfies": 2
       },
       "flags": [
         "press",
         "emergency",
-        "meat",
-        "binsLocked"
+        "meat"
       ],
       "events": [
-        "bins",
-        "meat",
-        "court",
-        "census"
+        "drive",
+        "poacher",
+        "census",
+        "wrongbear",
+        "meat"
       ],
-      "eaten": 29
+      "eaten": 25
     }
   }
 ]

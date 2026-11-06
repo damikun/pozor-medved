@@ -7,6 +7,8 @@
   const { hash, smooth, sstep, clamp, lerp } = ZS.util;
   const API = (ZS.chopokArt = {});
   const SIM = () => ZS.sim.chopok;
+  const on = (ctx, x, fn) => ZS.render.on(ctx, x, fn);
+  const rise = (x) => ZS.render.rise(x);
   const A = () => ZS.alpineArt;
 
   const SKY = { summer: ['#6fb3e6', '#e2f1fa'], autumn: ['#86b4d8', '#f4e6cf'], snow: ['#9aaab8', '#e6ebee'] };
@@ -168,78 +170,71 @@
       for (let k = 0; k < 2; k++) {
         const x = base + k * span + ((dir > 0 ? t * speed : -t * speed) % span + span) % span + i * 610;
         if (x < x0 - 80 || x > x1 + 80 || x < R.from + 60 || x > R.to - 80 || abs(x - R.bridge) < 1) continue;
-        ctx.save(); ctx.translate(x, dir > 0 ? GY + 40 : GY + 28); ctx.scale(0.62 * dir, 0.62);
+        ctx.save(); ctx.translate(x, (dir > 0 ? GY + 40 : GY + 28) + rise(x)); ctx.scale(0.62 * dir, 0.62);
         car(ctx, 0, CARS[(i * 2 + k) % CARS.length], hash(i + k), true);
         ctx.restore();
       }
     }
   }
 
+  function turf(ctx, g, x0, x1) {
+    const L = g.level, h0 = L.funi.land - 60;
+    if (x1 <= h0) return;
+    const a = max(x0, h0), T = A().TURF[ZS.seasonLook(g.seasonKey)] || A().TURF.summer;
+    const gr = ctx.createLinearGradient(h0, 0, h0 + 300, 0);
+    gr.addColorStop(0, T.top + '00'); gr.addColorStop(1, T.top);
+    ctx.fillStyle = gr; ctx.fillRect(a, GY - 2, x1 - a, 16);
+    if (x1 > h0 + 200) { ctx.fillStyle = '#7a7266'; ctx.fillRect(max(a, h0 + 200), GY + 14, x1 - max(a, h0 + 200), 30); }
+    ctx.fillStyle = 'rgba(214,200,170,0.75)';
+    ctx.beginPath(); ctx.moveTo(a - 20, GY + 4);
+    for (let x = Math.floor((a - 20) / 20) * 20; x <= x1 + 20; x += 20) ctx.lineTo(x, GY + 4 + 1.5 * sin(x * 0.03));
+    for (let x = Math.ceil((x1 + 20) / 20) * 20; x >= a - 20; x -= 20) ctx.lineTo(x, GY + 9 + 1.5 * sin(x * 0.03));
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#a19b8f';
+    for (let c = Math.floor((a - 20) / 41); c * 41 < x1 + 20; c++) {
+      if (c * 41 < h0 + 200 || hash(c * 1.3) < 0.45) continue;
+      const x = c * 41 + hash(c) * 30, w = 4 + hash(c * 5) * 7;
+      ell(ctx, x, GY + 18 + hash(c * 2) * 20, w, w * 0.6);
+    }
+    if (snowy(g)) {
+      ctx.fillStyle = 'rgba(250,252,253,0.92)';
+      for (let c = Math.floor((a - 40) / 53); c * 53 < x1 + 40; c++) {
+        if (hash(c * 2.7) < 0.35 || c * 53 < L.crest.from - 400) continue;
+        ell(ctx, c * 53 + hash(c) * 20, GY - 1, 14 + hash(c * 3) * 22, 3 + hash(c * 4) * 2);
+      }
+    }
+  }
+
+  const SLICE = 8;
+
   function ground(ctx, g, cam, viewW) {
-    const L = g.level, x0 = cam - 20, x1 = cam + viewW + 20;
-    road(ctx, g, x0, x1);
-    trail(ctx, g, x0, x1);
-    bridgeDeck(ctx, g, x0, x1);
-    traffic(ctx, g, x0, x1);
-    lots(ctx, g, x0, x1);
-    const [b0, b1] = L.jasna.bikes;
-    if (x1 > b0 && x0 < b1) {
-      const a = max(x0, b0), b = min(x1, b1);
-      ctx.fillStyle = '#8a6a44'; ctx.fillRect(a, GY - 1, b - a, 14);
-      ctx.strokeStyle = 'rgba(60,40,22,0.5)'; ctx.lineWidth = 1.4;
-      ctx.beginPath(); ctx.moveTo(a, GY + 4); ctx.lineTo(b, GY + 4); ctx.moveTo(a, GY + 8); ctx.lineTo(b, GY + 8); ctx.stroke();
+    const x0 = Math.floor((cam - 20) / SLICE) * SLICE, x1 = cam + viewW + 20, B = ZS.render.backdrop, H = (g.viewH || 540) + 400;
+    for (let a = x0; a < x1; a += SLICE) {
+      const z = a + SLICE, d = rise(a + SLICE / 2);
+      ctx.save();
+      ctx.beginPath(); ctx.rect(a - 0.25, GY - 700, SLICE + 0.5, H + 700); ctx.clip();
+      ctx.translate(0, d);
+      hillside(ctx, g, a, SLICE);
+      B.ground(ctx, a, SLICE, g);
+      road(ctx, g, a, z);
+      trail(ctx, g, a, z);
+      lots(ctx, g, a, z);
+      bridgeDeck(ctx, g, a, z);
+      turf(ctx, g, a, z);
+      ctx.restore();
     }
-    const h0 = L.funi.land - 60;
-    if (x1 > h0) {
-      const a = max(x0, h0), T = A().TURF[ZS.seasonLook(g.seasonKey)] || A().TURF.summer;
-      const gr = ctx.createLinearGradient(h0, 0, h0 + 300, 0);
-      gr.addColorStop(0, T.top + '00'); gr.addColorStop(1, T.top);
-      ctx.fillStyle = gr; ctx.fillRect(a, GY - 2, x1 - a, 16);
-      ctx.fillStyle = '#7a7266'; ctx.fillRect(max(a, h0 + 200), GY + 14, x1 - max(a, h0 + 200), 30);
-      ctx.fillStyle = 'rgba(214,200,170,0.75)';
-      ctx.beginPath(); ctx.moveTo(a, GY + 4);
-      for (let x = Math.floor(a / 20) * 20; x <= x1; x += 20) ctx.lineTo(x, GY + 4 + 1.5 * sin(x * 0.03));
-      for (let x = Math.ceil(x1 / 20) * 20; x >= a; x -= 20) ctx.lineTo(x, GY + 9 + 1.5 * sin(x * 0.03));
-      ctx.closePath(); ctx.fill();
-      const st = new Path2D();
-      for (let c = Math.floor(a / 41); c * 41 < x1; c++) {
-        if (c * 41 < h0 + 200 || hash(c * 1.3) < 0.45) continue;
-        const x = c * 41 + hash(c) * 30, y = GY + 18 + hash(c * 2) * 20, w = 4 + hash(c * 5) * 7;
-        st.moveTo(x + w, y); st.ellipse(x, y, w, w * 0.6, 0, 0, TAU);
-      }
-      ctx.fillStyle = '#a19b8f'; ctx.fill(st);
-      if (snowy(g)) {
-        ctx.fillStyle = 'rgba(250,252,253,0.92)';
-        for (let c = Math.floor(a / 53); c * 53 < x1; c++) {
-          if (hash(c * 2.7) < 0.35 || c * 53 < L.crest.from - 400) continue;
-          ellipse(ctx, c * 53 + hash(c) * 20, GY - 1, 14 + hash(c * 3) * 22, 3 + hash(c * 4) * 2);
-        }
-      }
-    }
+    traffic(ctx, g, cam - 20, x1);
+  }
+
+  function under(ctx, g, viewW) {
+    const hi = g.cam + viewW / 2 > g.level.funi.station, H = (g.viewH || 540) + 300;
+    const gr = ctx.createLinearGradient(0, GY - 10, 0, GY + 200);
+    gr.addColorStop(0, hi ? '#9aa487' : '#6f9660'); gr.addColorStop(1, hi ? '#7f8a6c' : '#557a4a');
+    ctx.fillStyle = gr;
+    ctx.fillRect(0, GY - 6, viewW, H);
   }
 
   function ellipse(ctx, x, y, rx, ry) { ell(ctx, x, y, rx, ry); }
-
-  function block(ctx, x, w, h, floors, tone, sign) {
-    const left = x - w / 2, top = GY - h;
-    ctx.fillStyle = tone; ctx.fillRect(left, top, w, h);
-    ctx.fillStyle = 'rgba(0,0,0,0.1)'; ctx.fillRect(left + w - 14, top, 14, h);
-    const fh = (h - 30) / floors;
-    for (let f = 0; f < floors; f++) {
-      const y = top + 18 + f * fh;
-      ctx.fillStyle = '#4f6272';
-      for (let wx = left + 12; wx < left + w - 22; wx += 26) ctx.fillRect(wx, y, 16, fh * 0.5);
-      ctx.fillStyle = 'rgba(240,240,236,0.9)'; ctx.fillRect(left + 6, y + fh * 0.58, w - 12, 3);
-      ctx.fillStyle = 'rgba(80,80,80,0.35)';
-      for (let wx = left + 8; wx < left + w - 8; wx += 9) ctx.fillRect(wx, y + fh * 0.58 + 3, 1.4, fh * 0.2);
-    }
-    ctx.fillStyle = '#5c5f63'; ctx.fillRect(left - 6, top - 8, w + 12, 9);
-    if (sign) {
-      ctx.fillStyle = '#18284a'; ctx.fillRect(x - 70, top - 30, 140, 22);
-      ctx.fillStyle = '#d6ab42'; ctx.font = '800 13px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(sign, x, top - 19);
-    }
-  }
 
   function car(ctx, x, col, sd, moving) {
     if (moving) { ctx.translate(0, -GY); }
@@ -292,11 +287,11 @@
 
   function parking(ctx, g, vis) {
     const C = g.level.concrete, t = g.time;
-    C.cars.forEach((x, i) => { if (vis(x, 60)) car(ctx, x, CARS[i % CARS.length], hash(i)); });
-    if (vis(C.machine, 30)) machine(ctx, C.machine);
-    if (vis(C.bus, 140)) bus(ctx, C.bus, t);
-    if (vis(C.from + 560, 80)) kiosk(ctx, C.from + 520, t);
-    if (vis(3200, 60)) car(ctx, 3200, CARS[1], hash(3));
+    C.cars.forEach((x, i) => { if (vis(x, 60)) on(ctx, x, () => car(ctx, x, CARS[i % CARS.length], hash(i))); });
+    if (vis(C.machine, 30)) on(ctx, C.machine, () => machine(ctx, C.machine));
+    if (vis(C.bus, 140)) on(ctx, C.bus, () => bus(ctx, C.bus, t));
+    if (vis(C.from + 560, 80)) on(ctx, C.from + 520, () => kiosk(ctx, C.from + 520, t));
+    if (vis(3200, 60)) on(ctx, 3200, () => car(ctx, 3200, CARS[1], hash(3)));
   }
 
   function hill(x, H) {
@@ -382,7 +377,7 @@
 
   function cave(ctx, g, vis, span) {
     const C = g.level.cave, B = LABELS.chopok.board;
-    if (vis(C.booth, 60)) {
+    if (vis(C.booth, 60)) on(ctx, C.booth, () => {
       ctx.fillStyle = '#8a5a34'; ctx.fillRect(C.booth - 30, GY - 70, 60, 70);
       ctx.fillStyle = '#5a3d22'; poly(ctx, [C.booth - 38, GY - 68, C.booth, GY - 92, C.booth + 38, GY - 68]);
       ctx.fillStyle = '#f3e6c8'; ctx.fillRect(C.booth - 20, GY - 56, 40, 22);
@@ -390,39 +385,62 @@
       ctx.fillStyle = '#fff'; ctx.font = '800 8px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(B.ticket, C.booth, GY - 24);
       board(ctx, C.booth + 44, GY - 104, 118, B.tour, '#f6f1e3', '#2a2a2a', 9);
-    }
+    });
     if (span(C.from - 60, C.to + 80, 60)) {
-      portal(ctx, C.door, '#1a1714');
-      portal(ctx, C.exit, '#232a33');
-      board(ctx, C.door, GY - 150, 150, B.cave, '#2f5d3a', '#fff', 10);
-      ctx.fillStyle = '#f4f7f9'; ell(ctx, C.exit + 46, GY - 6, 30, 12); ell(ctx, C.exit + 26, GY - 2, 22, 7);
-      ctx.fillStyle = '#d8e2ea'; ell(ctx, C.exit + 52, GY - 10, 14, 5);
-      board(ctx, C.exit + 70, GY - 104, 170, B.ice, '#e9f2f8', '#2f4f6a', 9);
+      on(ctx, C.door, () => { portal(ctx, C.door, '#1a1714'); board(ctx, C.door, GY - 150, 150, B.cave, '#2f5d3a', '#fff', 10); });
+      on(ctx, C.exit, () => {
+        portal(ctx, C.exit, '#232a33');
+        ctx.fillStyle = '#f4f7f9'; ell(ctx, C.exit + 46, GY - 6, 30, 12); ell(ctx, C.exit + 26, GY - 2, 22, 7);
+        ctx.fillStyle = '#d8e2ea'; ell(ctx, C.exit + 52, GY - 10, 14, 5);
+        board(ctx, C.exit + 70, GY - 104, 170, B.ice, '#e9f2f8', '#2f4f6a', 9);
+      });
     }
     if (span(C.group - 50, C.door, 40)) {
       for (let i = 0; i < 9; i++) {
         const x = C.group + i * 12 - (i % 2) * 4, idle = sin(g.time * 0.9 + i) > 0.6;
-        person(ctx, 'caveGuest' + i, i % 3 === 2 ? 'tourist' : 'guest', x, idle ? -1 : 1, 'idle', g.time, { look: i, size: 0.86 + (i % 3) * 0.05 });
+        on(ctx, x, () => person(ctx, 'caveGuest' + i, 'tourist', x, idle ? -1 : 1, 'idle', g.time, { look: i, hiker: true, empty: true, size: 0.86 + (i % 3) * 0.05 }));
       }
     }
   }
 
-  function hotel(ctx, g, vis) {
-    const H = g.level.jasna.hotel;
-    if (!vis(H.x, H.w)) return;
-    block(ctx, H.x, H.w, 250, 6, '#d4cfc3', LABELS.chopok.board.hotel);
-    ctx.fillStyle = '#6b4a2b'; ctx.fillRect(H.x - 40, GY - 46, 80, 46);
-    ctx.fillStyle = '#9fc0d4'; ctx.fillRect(H.x - 34, GY - 40, 30, 40); ctx.fillRect(H.x + 4, GY - 40, 30, 40);
+  function chalet(ctx, x, w, floors, sign, sd, t) {
+    const left = x - w / 2, base = 46, fh = 44, top = GY - base - floors * fh;
+    ctx.fillStyle = 'rgba(30,24,16,0.2)'; ell(ctx, x, GY + 2, w / 2 + 16, 6);
+    stoneWall(ctx, left, GY - base, w, base, sd);
+    ctx.fillStyle = '#8a5a34'; ctx.fillRect(left + 4, top, w - 8, floors * fh);
+    ctx.strokeStyle = 'rgba(60,36,18,0.35)'; ctx.lineWidth = 1;
+    ctx.beginPath(); for (let px = left + 12; px < left + w - 8; px += 9) { ctx.moveTo(px, top); ctx.lineTo(px, GY - base); } ctx.stroke();
+    for (let f = 0; f < floors; f++) {
+      const y = top + f * fh;
+      for (let wx = left + 22; wx < left + w - 30; wx += 46) {
+        ctx.fillStyle = '#5a3a1f'; ctx.fillRect(wx - 3, y + 8, 28, 24);
+        ctx.fillStyle = hash(sd + f * 7 + wx) > 0.7 ? '#ffe7a6' : '#9fc0d4'; ctx.fillRect(wx, y + 11, 22, 18);
+        ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(wx + 2, y + 13, 5, 14);
+        ctx.fillStyle = '#5a3a1f'; ctx.fillRect(wx + 10, y + 11, 2, 18);
+      }
+      ctx.fillStyle = '#6b4626'; ctx.fillRect(left - 2, y + fh - 8, w + 4, 4);
+      ctx.strokeStyle = '#6b4626'; ctx.lineWidth = 2;
+      ctx.beginPath(); for (let px = left; px <= left + w; px += 8) { ctx.moveTo(px, y + fh - 8); ctx.lineTo(px, y + fh - 20); } ctx.moveTo(left, y + fh - 20); ctx.lineTo(left + w, y + fh - 20); ctx.stroke();
+      if (hash(sd + f) > 0.4) { ctx.fillStyle = '#c92a2a'; for (let px = left + 14; px < left + w - 10; px += 22) circle(ctx, px, y + fh - 22, 3); }
+    }
+    ctx.fillStyle = '#4b3a2e';
+    ctx.beginPath(); ctx.moveTo(left - 26, top + 6); ctx.lineTo(x, top - w * 0.36); ctx.lineTo(left + w + 26, top + 6); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.18)'; ctx.lineWidth = 1;
+    ctx.beginPath(); for (let i = 1; i < 6; i++) { const k = i / 6; ctx.moveTo(lerp(left - 26, x, k), lerp(top + 6, top - w * 0.36, k)); ctx.lineTo(lerp(left + w + 26, x, k), lerp(top + 6, top - w * 0.36, k)); } ctx.stroke();
+    ctx.fillStyle = '#7d766a'; ctx.fillRect(x + w * 0.2, top - w * 0.3, 14, 34);
+    ctx.fillStyle = 'rgba(255,255,255,' + (0.2 + 0.08 * sin(t + sd)).toFixed(3) + ')'; ell(ctx, x + w * 0.2 + 7, top - w * 0.3 - 12 - ((t * 10 + sd * 9) % 20), 7, 10);
+    if (sign) {
+      ctx.fillStyle = '#2b2b2b'; ctx.fillRect(x - 54, top - 2 - fh * 0.15, 108, 20);
+      ctx.fillStyle = '#f2e8d0'; ctx.font = '800 11px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(sign, x, top + 8 - fh * 0.15, 100);
+    }
+    ctx.fillStyle = '#5a3a1f'; ctx.fillRect(x - 16, GY - 40, 32, 40);
+    ctx.fillStyle = '#ffe7a6'; ctx.fillRect(x - 12, GY - 36, 10, 14); ctx.fillRect(x + 2, GY - 36, 10, 14);
   }
 
-  function slide(ctx, x) {
-    ctx.strokeStyle = '#3c6fb0'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(x - 40, GY); ctx.lineTo(x - 40, GY - 70); ctx.moveTo(x - 20, GY); ctx.lineTo(x - 20, GY - 70); ctx.stroke();
-    ctx.lineWidth = 2;
-    for (let i = 1; i < 6; i++) { ctx.beginPath(); ctx.moveTo(x - 40, GY - i * 12); ctx.lineTo(x - 20, GY - i * 12); ctx.stroke(); }
-    ctx.fillStyle = '#e8590c'; ctx.fillRect(x - 44, GY - 74, 28, 6);
-    ctx.strokeStyle = '#f0b429'; ctx.lineWidth = 7;
-    ctx.beginPath(); ctx.moveTo(x - 18, GY - 70); ctx.quadraticCurveTo(x + 20, GY - 60, x + 42, GY - 4); ctx.stroke();
+  function resort(ctx, g, vis) {
+    const J = g.level.jasna, B = LABELS.chopok.board, t = g.time;
+    for (const [x, w, n, sign, sd] of J.hotels) if (vis(x, w)) on(ctx, x, () => chalet(ctx, x, w, n, sign ? B[sign] : '', sd, t));
   }
 
   function station(ctx, x, w, h, name, time, up) {
@@ -600,6 +618,12 @@
     const b = g.bear, R = A();
     for (const s of g.level.covers) {
       if (!s.rock || !vis(s.x, 90)) continue;
+      on(ctx, s.x, () => rock(ctx, g, s, b, R, withBear));
+    }
+  }
+
+  function rock(ctx, g, s, b, R, withBear) {
+    {
       if (withBear && b.hideTree === s && b.hideBlend > 0) {
         const who = b.hiding ? b : (b.fadeBear = Object.assign(b.fadeBear || {}, b, { hiding: s }));
         withBear(ZS.drawBearInHay, who, b.hideBlend);
@@ -642,66 +666,30 @@
     if (talk && !m.passed && abs(g.bear.x - D.minister) < 600) label(ctx, '…', D.minister - 10, GY - 116, 16, '#2a2f22');
   }
 
-  function biker(ctx, k, t) {
-    const y = GY - (k.hop > 0 ? sin((1 - k.hop / SIM().BIKE.hop) * PI) * 70 : 0), d = k.dir, spin = t * 18;
-    ctx.save(); ctx.translate(k.x, y); ctx.scale(d, 1);
-    if (k.crash > 0) ctx.rotate(sin(k.crash * 20) * 0.15);
-    ctx.strokeStyle = '#1b1c1f'; ctx.lineWidth = 3;
-    for (const wx of [-22, 22]) {
-      ctx.beginPath(); ctx.arc(wx, -14, 14, 0, TAU); ctx.stroke();
-      ctx.save(); ctx.translate(wx, -14); ctx.rotate(spin); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-13, 0); ctx.lineTo(13, 0); ctx.moveTo(0, -13); ctx.lineTo(0, 13); ctx.stroke(); ctx.restore();
-    }
-    ctx.strokeStyle = JERSEY[k.look % JERSEY.length]; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(-22, -14); ctx.lineTo(-4, -16); ctx.lineTo(16, -36); ctx.lineTo(22, -14); ctx.moveTo(-4, -16); ctx.lineTo(-10, -38); ctx.lineTo(16, -36); ctx.stroke();
-    ctx.strokeStyle = '#2b2f3a'; ctx.lineWidth = 6; ctx.lineCap = 'round';
-    const p = sin(spin * 0.5) * 6;
-    ctx.beginPath(); ctx.moveTo(-10, -48); ctx.lineTo(-2 + p, -30); ctx.lineTo(-4 + p, -16); ctx.stroke();
-    ctx.strokeStyle = JERSEY[k.look % JERSEY.length]; ctx.lineWidth = 9;
-    ctx.beginPath(); ctx.moveTo(-10, -50); ctx.lineTo(8, -70); ctx.stroke();
-    ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(6, -66); ctx.lineTo(16, -42); ctx.stroke();
-    ctx.lineCap = 'butt';
-    ctx.fillStyle = '#e8c09a'; circle(ctx, 14, -80, 7);
-    ctx.fillStyle = '#f0b429'; ctx.beginPath(); ctx.arc(13, -82, 9, PI, TAU); ctx.fill(); ctx.fillRect(12, -84, 12, 3);
-    ctx.restore();
-  }
-
-  function bikeTrail(ctx, g, vis) {
-    const [a, b] = g.level.jasna.bikes, kx = (a + b) / 2;
-    if (vis(kx, 60)) {
-      ctx.fillStyle = '#7a5a34';
-      poly(ctx, [kx - 40, GY, kx + 20, GY - 22, kx + 26, GY - 22, kx + 26, GY]);
-      ctx.fillStyle = '#9a7040'; ctx.fillRect(kx - 10, GY - 12, 36, 3);
-    }
-  }
-
   function back(ctx, g, vis, span, withBear) {
     const L = g.level;
-    hillside(ctx, g, g.cam, g.viewW || 960);
     if (span(L.concrete.from, L.concrete.to, 260) || span(3150, 3420, 200)) parking(ctx, g, vis);
-    rail(ctx, g, vis);
-    if (vis(L.road.climb[0] + 250, 40)) grade(ctx, L.road.climb[0] + 250);
+    on(ctx, L.road.bridge, () => rail(ctx, g, vis));
+    if (vis(L.road.climb[0] + 250, 40)) on(ctx, L.road.climb[0] + 250, () => grade(ctx, L.road.climb[0] + 250));
     if (span(L.cave.booth - 60, L.cave.to + 200, 120)) cave(ctx, g, vis, span);
-    hotel(ctx, g, vis);
-    if (vis(L.jasna.slide, 60)) slide(ctx, L.jasna.slide);
-    bikeTrail(ctx, g, vis);
-    funitel(ctx, g, vis, span);
-    if (vis(L.summit.rotunda, 200)) rotunda(ctx, L.summit.rotunda, g.time);
-    chataBack(ctx, g, vis);
-    for (const t of L.dwarf) if (span(t[0], t[1], 60)) A().thicketBack(ctx, t, g);
+    resort(ctx, g, vis);
+    on(ctx, L.funi.station, () => funitel(ctx, g, vis, span));
+    if (vis(L.summit.rotunda, 200)) on(ctx, L.summit.rotunda, () => rotunda(ctx, L.summit.rotunda, g.time));
+    on(ctx, L.chata.x, () => chataBack(ctx, g, vis));
+    for (const t of L.dwarf) if (span(t[0], t[1], 60)) on(ctx, (t[0] + t[1]) / 2, () => A().thicketBack(ctx, t, g));
     rocks(ctx, g, vis, withBear);
     if (g.chopok) {
-      for (const m of g.chopok.marmots) if (vis(m.x, 80)) A().marmotRock(ctx, m, g);
-      for (const k of g.chopok.chamois) if (vis(k.x, 60)) A().chamois(ctx, k, g);
+      for (const m of g.chopok.marmots) if (vis(m.x, 80)) on(ctx, m.x, () => A().marmotRock(ctx, m, g));
+      for (const k of g.chopok.chamois) if (vis(k.x, 60)) on(ctx, k.x, () => A().chamois(ctx, k, g));
     }
-    if (vis(L.dumbier.x, 120)) cross(ctx, L.dumbier, g);
-    minister(ctx, g, vis);
+    if (vis(L.dumbier.x, 120)) on(ctx, L.dumbier.x, () => cross(ctx, L.dumbier, g));
+    on(ctx, L.dumbier.minister, () => minister(ctx, g, vis));
   }
 
   function front(ctx, g, vis, span) {
-    const L = g.level, c = g.chopok;
-    chataFront(ctx, g, vis);
-    for (const t of L.dwarf) if (span(t[0], t[1], 60)) A().thicketFront(ctx, t, g);
-    if (c) for (const k of c.bikes) if (vis(k.x, 60)) biker(ctx, k, g.time);
+    const L = g.level;
+    on(ctx, L.chata.x, () => chataFront(ctx, g, vis));
+    for (const t of L.dwarf) if (span(t[0], t[1], 60)) on(ctx, (t[0] + t[1]) / 2, () => A().thicketFront(ctx, t, g));
   }
 
   function fog(ctx, g, viewW) {
@@ -733,17 +721,9 @@
     }
   }
 
-  function bell(ctx, g, viewW) {
-    const k = SIM().bell(g);
-    if (!k) return;
-    const x = min(k.x - 30, g.cam + viewW - 70), y = GY - 70 - abs(sin(g.time * 10)) * 4;
-    label(ctx, '🔔 ' + LABELS.chopok.bell, x, y, 15, '#e8a400');
-  }
-
   function over(ctx, g, viewW) {
     if (!g.chopok) return;
     fog(ctx, g, viewW);
-    bell(ctx, g, viewW);
   }
 
   function iris(ctx, g, viewW, offY) {
@@ -762,18 +742,5 @@
     ctx.fill();
   }
 
-  function tilt(ctx, g, viewW) {
-    const k = ZS.levelKit.slope(g.level, g.cam + viewW / 2);
-    if (abs(k) < 0.0005) return;
-    const hi = g.cam + viewW / 2 > g.level.funi.station;
-    const gr = ctx.createLinearGradient(0, GY - 10, 0, GY + abs(k) * viewW * 0.6 + 20);
-    gr.addColorStop(0, hi ? '#9aa487' : '#6f9660'); gr.addColorStop(1, hi ? '#7f8a6c' : '#557a4a');
-    ctx.fillStyle = gr;
-    ctx.fillRect(0, GY - 6, viewW, abs(k) * viewW * 0.6 + 400);
-    ctx.translate(viewW / 2, GY);
-    ctx.transform(1, k, 0, 1, 0, 0);
-    ctx.translate(-viewW / 2, -GY);
-  }
-
-  Object.assign(API, { backdrop, ground, back, front, over, iris, hillside, tilt });
+  Object.assign(API, { backdrop, ground, back, front, over, iris, hillside, under });
 })();

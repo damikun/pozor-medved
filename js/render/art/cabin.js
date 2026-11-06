@@ -114,7 +114,7 @@
   function crowd(ctx, g, c) {
     const t = g.time, pt = c.pointa;
     for (const p of SIM().riders(c)) {
-      person(ctx, p.id, p.kind, p.x, p.dir, p.walking || pt ? 'walk' : 'idle', t, { look: p.look, size: p.size || 1, empty: p.kind === 'porter' });
+      person(ctx, p.id, 'tourist', p.x, p.dir, p.walking || pt ? 'walk' : 'idle', t, { look: p.look, size: p.size || 1, hiker: true, empty: true });
     }
     const w = c.warn;
     if (w) {
@@ -162,7 +162,7 @@
     const hurt = b.inv > 0 ? 0.45 + 0.35 * cos(t * 14) : 1;
     const withBear = (fn, who = b, alpha = 1) => { ctx.globalAlpha = hurt * alpha; fn(ctx, who, t); ctx.globalAlpha = 1; };
     const sc = min(1, (viewW - 16) / (BOX.right - BOX.left + 40)), mid = (BOX.left + BOX.right) / 2;
-    const shake = c.speed * 1.2 * sin(t * 13) + (c.stop > 0 ? 2 * sin(t * 40) : 0);
+    const shake = c.speed * 0.6 * sin(t * 2.2);
     const inHall = c.t > SIM().STATION[0] - 0.4 && c.t < SIM().STATION[1] + 0.4 ? 1 : c.t > SIM().ARRIVE - 0.4 ? 1 : 0;
     ctx.save();
     ctx.translate(0, offY);

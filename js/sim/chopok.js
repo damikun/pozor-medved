@@ -7,7 +7,6 @@
   const PASS = { close: 0.8, open: 0.8, calm: 1.8 };
   const FOG = { clear: [7, 10], near: [3, 5], coming: 3, thick: [5, 8], thinning: 2.5, dense: 0.7, sees: 90 };
   const WIND = { calm: [7, 11], warn: 1.6, gust: 2.2, push: 130 };
-  const BIKE = { every: [6, 9], speed: 330, warn: 2.1, reach: 30, hop: 0.55, stun: 0.9, kick: -240, said: 25 };
   const COOK = { pot: [2.2, 3.6], turn: 1.1, look: [1.5, 2.4] };
   const GUEST = { calm: [4.5, 8], zip: 1.2, look: [1, 1.6] };
   const CHAMOIS = { near: 260, leap: 0.6, hop: 110, leaps: 5 };
@@ -27,7 +26,6 @@
       pass: null,
       fog: { phase: 'clear', t: between(FOG.clear), k: 0 },
       wind: { phase: 'calm', t: between(WIND.calm), k: 0 },
-      bikes: [], bikeT: 2,
       chata: {
         cook: { state: 'pot', t: between(COOK.pot) },
         guests: L.chata.queue.map((x, i) => ({ x, look: i % 4, state: 'calm', t: between(GUEST.calm) + i })),
@@ -245,45 +243,6 @@
     rules().quip(g, QUIPS().wind, true);
   }
 
-  function bikes(g, c, dt) {
-    const L = g.level, b = g.bear, [from, to] = L.jasna.bikes;
-    const near = b.x > from - 100 && b.x < to;
-    c.bikeT -= dt;
-    if (near && c.bikeT <= 0 && !c.bikes.length) {
-      c.bikeT = between(BIKE.every);
-      c.bikes.push({ x: b.x + BIKE.speed * BIKE.warn, dir: -1, hop: 0, done: false, crash: 0, look: Math.floor(Math.random() * 4) });
-      rules().onSound(g, 'knock', b.x + 300, 0.4);
-    }
-    for (const k of c.bikes) {
-      k.x += k.dir * BIKE.speed * dt * (k.crash > 0 ? 0.4 : 1);
-      k.hop = Math.max(0, k.hop - dt);
-      k.crash = Math.max(0, k.crash - dt);
-      if (k.done || Math.abs(k.x - b.x) > BIKE.reach || !b.onGround || b.climbing) continue;
-      k.done = true;
-      if (b.hiding) continue;
-      if (b.crouch) {
-        k.hop = BIKE.hop;
-        rules().float(g, b.x, GY - 120, LABELS.chopok.bikeHop, COLORS.good);
-        if (g.time - (c.said.hop || -99) > BIKE.said) { c.said.hop = g.time; rules().say(g, NEWS.bikeHop); }
-        continue;
-      }
-      k.crash = 0.8;
-      b.stun = BIKE.stun; b.kx = BIKE.kick; b.act = null; b.eating = false;
-      rules().onSound(g, 'hit', b.x, 0.5);
-      rules().float(g, b.x, GY - 120, LABELS.chopok.bikeHit, COLORS.bad);
-      rules().quip(g, QUIPS().bike, true);
-      if (g.time - (c.said.bike || -99) > BIKE.said) { c.said.bike = g.time; rules().say(g, NEWS.bikeHit); }
-    }
-    c.bikes = c.bikes.filter((k) => k.x > from - 400);
-  }
-
-  function bell(g) {
-    const c = on(g) && g.chopok;
-    if (!c) return null;
-    const b = g.bear;
-    return c.bikes.find((k) => !k.done && k.x > b.x && k.x - b.x < BIKE.speed * BIKE.warn + 10) || null;
-  }
-
   function spotted(g, person) {
     if (!on(g)) return false;
     const c = state(g);
@@ -418,7 +377,6 @@
     pines(g);
     fog(g, c, dt);
     wind(g, c, dt);
-    bikes(g, c, dt);
     chata(g, c, dt);
     minister(g, c);
     wildlife(g, c, dt);
@@ -428,8 +386,7 @@
   function duck(g) {
     if (!on(g) || !g.chopok) return false;
     const c = g.chopok, b = g.bear;
-    if (c.wind.phase !== 'calm' && b.x > g.level.wind.from) return true;
-    return c.bikes.some((k) => !k.done && k.x > b.x && k.x - b.x < 140);
+    return c.wind.phase !== 'calm' && b.x > g.level.wind.from;
   }
 
   function queue(g) {
@@ -441,5 +398,5 @@
     return risky ? 'wait' : 'go';
   }
 
-  ZS.sim.chopok = { PASS, FOG, WIND, BIKE, KEEP, update, passing, stepPass, inside, trip, quiet, clearPresses, between, walls, inDwarf, spotted, atCounter, act, bell, duck, queue, state };
+  ZS.sim.chopok = { PASS, FOG, WIND, KEEP, update, passing, stepPass, inside, trip, quiet, clearPresses, between, walls, inDwarf, spotted, atCounter, act, duck, queue, state };
 })();

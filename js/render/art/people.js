@@ -59,6 +59,14 @@
       scale: 1, walkS: 48, runS: 98, stoop: 0, carry: 'mug', belly: 0, top: 'hoodie', hairdo: 'cap', glasses: 1, bootF: 0.14 },
   ];
   LOOK.guest = GUESTS[0];
+  const HIKERS = [
+    Object.assign({}, LOOK.tourist, { coat: '#d9480f', pants: '#2f3b52', hat: '#2b8a3e', beanie: 1, pack: '#1f78d1', long: 1, poles: '#adb5bd', boots: '#5c4033', sole: '#2b2118' }),
+    Object.assign({}, LOOK.tourist, { skin: '#e8b894', hair: '#2a201a', coat: '#2f9e44', pants: '#495057', hat: '#f08c00', cap: 1, pack: '#c92a2a', long: 1, poles: '#495057', boots: '#343a40', sole: '#111' }),
+    Object.assign({}, LOOK.tourist, { skin: '#f3cfb3', hair: '#8a4a26', coat: '#7048e8', pants: '#212529', hat: '#e64980', beanie: 1, pack: '#fab005', long: 1, poles: '#868e96', scale: 0.95 }),
+    Object.assign({}, LOOK.tourist, { skin: '#eac2a0', hair: '#c9c6c0', coat: '#1c7ed6', pants: '#5c4033', hat: '#868e96', cap: 1, pack: '#2b8a3e', long: 1, poles: '#ced4da', belly: 2.4, stoop: 0.06 }),
+    Object.assign({}, LOOK.tourist, { skin: '#f0c8a6', hair: '#5a3a22', coat: '#e03131', pants: '#cbb98d', hat: '#f8f9fa', pack: '#495057', poles: '#adb5bd', scale: 1.04 }),
+    Object.assign({}, LOOK.tourist, { skin: '#f6d2b6', hair: '#c9873a', coat: '#fcc419', pants: '#364fc7', hat: '#1971c2', beanie: 1, pack: '#e8590c', long: 1, scale: 0.72, belly: 0.4 }),
+  ];
   LOOK.waiter = {
     skin: '#efc7a3', hair: '#2e2018', coat: '#f6f3ec', vest: '#1e1b19', trim: '#b8322a', pants: '#24211f', boots: '#161210', sole: '#050403',
     scale: 1, walkS: 48, runS: 96, stoop: 0, carry: 'tray', belly: 1.6, top: 'vest', hairdo: 'slick', stache: 1, bootF: 0.16,
@@ -743,7 +751,7 @@
     const L = K.L, kind = K.kind, f = far ? 0.76 : 1, ski = !!L.ski;
     let thigh = L.pants, shin = L.pants, boot = L.boots, bootF = 0.45, sock = null, blen = 7.6, bw = 5.8;
     if (kind === 'picker') { thigh = L.skirt; shin = L.pants; bootF = 0.72; blen = 7; bw = 6.2; }
-    else if (kind === 'tourist' && !ski) { thigh = L.pants; shin = L.skin; bootF = 0.12; sock = '#f4f4f4'; }
+    else if (kind === 'tourist' && !ski) { thigh = L.pants; shin = L.long ? L.pants : L.skin; bootF = L.long ? 0.5 : 0.12; sock = L.long ? null : '#f4f4f4'; }
     else if (ski) { bootF = 0.5; blen = 8.4; bw = 6.6; }
     else if (kind === 'ztmh') bootF = 0.52;
     else if (kind === 'poacher') bootF = L.win ? 0.5 : 0.4;
@@ -1051,6 +1059,19 @@
     ctx.stroke();
   }
 
+  function drawPoles(ctx, K, tm) {
+    const L = K.L;
+    ctx.lineCap = 'round';
+    for (const a of [R.armF, R.armN]) {
+      const sw = sin(tm * 3 + (a === R.armF ? 0 : PI)) * (K.state === 'walk' ? 5 : 0);
+      ctx.strokeStyle = L.poles; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(a.wx, a.wy - 3); ctx.lineTo(a.wx + 9 + sw, -0.5); ctx.stroke();
+      ctx.strokeStyle = '#212529'; ctx.lineWidth = 2.6;
+      ctx.beginPath(); ctx.moveTo(a.wx - 0.4, a.wy - 4); ctx.lineTo(a.wx + 0.6, a.wy + 2); ctx.stroke();
+    }
+    ctx.lineCap = 'butt';
+  }
+
   function drawPack(ctx, K) {
     const L = K.L;
     ctx.save();
@@ -1303,6 +1324,15 @@
       ctx.fillStyle = '#2b2f36'; rr(ctx, -7.7, -8.3, 12, 2.2, 1);
       ctx.fillStyle = '#ff9f1c'; rr(ctx, 2.4, -9.6, 5.8, 3.8, 1.7);
       ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillRect(3.6, -9, 2.2, 0.8);
+    } else if (kind === 'tourist' && L.beanie) {
+      ctx.fillStyle = L.hat;
+      ctx.beginPath(); ctx.moveTo(-6.8, -3.6); ctx.quadraticCurveTo(-7.2, -12.2, 0, -12.4); ctx.quadraticCurveTo(7.2, -12.2, 6.9, -3.6); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = dk(L.hat, 0.8); rr(ctx, -7.2, -5.6, 14.4, 2.8, 1.2);
+      ctx.fillStyle = '#f8f9fa'; circle(ctx, -0.6, -13.4, 2.4);
+    } else if (kind === 'tourist' && L.cap) {
+      ctx.fillStyle = L.hat;
+      ctx.beginPath(); ctx.moveTo(-6.4, -4.4); ctx.quadraticCurveTo(-6.6, -11.4, 0, -11.4); ctx.quadraticCurveTo(6.4, -11.2, 6.6, -4.4); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = dk(L.hat, 0.8); rr(ctx, 4.4, -5.6, 7.6, 2, 1);
     } else if (kind === 'tourist') {
       ctx.fillStyle = L.hat; ell(ctx, 0.4, -4.6, 10.4, 2.6);
       ctx.beginPath(); ctx.moveTo(-6, -4.8); ctx.quadraticCurveTo(-6.4, -10.8, 0, -10.8); ctx.quadraticCurveTo(6.4, -10.8, 6.6, -4.8); ctx.closePath(); ctx.fill();
@@ -1629,6 +1659,7 @@
     drawArm(ctx, K, R.armN, false);
     if (kind === 'picker' && K.has) drawBasket(ctx, K, tm);
     if (kind === 'tourist' && K.has) drawPhone(ctx, K, tm, K.state === 'film' && st.aimK > 0.5);
+    if (kind === 'tourist' && L.poles) drawPoles(ctx, K, tm);
     if (K.film) drawPhone(ctx, K, tm, true);
     if ((kind === 'guest' || kind === 'waiter') && K.has && !INN[K.sp]) drawCarry(ctx, K);
     if (kind === 'tycoon' && K.sp === 'selfie') drawPhone(ctx, K, tm, false);
@@ -1785,7 +1816,7 @@
   ZS.drawHuman = function (ctx, h, time) {
     if (!(time >= 0)) time = 0;
     const kind = LOOK[h.kind] ? h.kind : 'walker';
-    let L = kind === 'guest' ? lookOf(kind, h.look) : (h.outfit === 'winter' && WLOOK[kind]) || LOOK[kind];
+    let L = kind === 'guest' ? lookOf(kind, h.look) : kind === 'tourist' && h.hiker ? HIKERS[Math.abs(h.look | 0) % HIKERS.length] : (h.outfit === 'winter' && WLOOK[kind]) || LOOK[kind];
     if (h.size > 0 && h.size !== 1) L = sizedLook(L, h.size);
     let sp = SPECIAL[h.state] ? h.state : '';
     if ((sp === 'pickup' || sp === 'drop' || sp === 'climbStand') && !CAN_AIM[kind]) sp = '';
