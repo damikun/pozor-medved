@@ -126,7 +126,6 @@
       { kind: 'posed', x: L.posts[0].x, range: 440 },
       { kind: 'patrol', from: 2260, to: 2720 },
       { kind: 'patrol', from: 4700, to: 5600 },
-      { kind: 'picker', from: 1500, to: 2150 },
       { kind: 'tourist', from: 420, to: 1150 },
       { kind: 'tourist', from: 1450, to: 2250 },
       { kind: 'tourist', from: 2600, to: 3300 },
