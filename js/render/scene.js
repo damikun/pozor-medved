@@ -381,7 +381,29 @@
     if (L.summit) ZS.chopokArt.iris(ctx, g, viewW, offY);
   }
 
-  ZS.draw = scene;
+  const SEASON_FADE = 3;
+  const season = { level: null, key: null, from: null, t: -99, layer: null };
+
+  ZS.draw = function (g, ctx, viewW, offY) {
+    const S = season, L = g.level;
+    if (S.level === L && S.key && S.key !== g.seasonKey && !L.stage) { S.from = S.key; S.t = g.time; }
+    if (S.level !== L) S.from = null;
+    S.level = L; S.key = g.seasonKey;
+    scene(g, ctx, viewW, offY);
+    const k = (g.time - S.t) / SEASON_FADE, cv = ctx.canvas;
+    if (!S.from || k >= 1 || k < 0 || L.stage || typeof document === 'undefined' || !cv || !cv.width || !ctx.getTransform) return;
+    if (!S.layer) S.layer = document.createElement('canvas');
+    if (S.layer.width !== cv.width || S.layer.height !== cv.height) { S.layer.width = cv.width; S.layer.height = cv.height; }
+    const o = S.layer.getContext('2d'), now = g.seasonKey;
+    o.setTransform(1, 0, 0, 1, 0, 0); o.clearRect(0, 0, cv.width, cv.height);
+    o.setTransform(ctx.getTransform());
+    g.seasonKey = S.from;
+    scene(g, o, viewW, offY);
+    g.seasonKey = now;
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1 - k * k * (3 - 2 * k);
+    ctx.drawImage(S.layer, 0, 0);
+    ctx.restore();
+  };
 
 
   ZS.render.cue = cue;
