@@ -19,8 +19,11 @@ The game runs right in the browser, nothing to install. Offline, just open `inde
   open-air museum, a sheepfold and a hotel, then by chairlift up to Zelené pleso in the High Tatras and the winter den.
 - **Winter on the Slopes**: a warm Advent and the snow cannons woke you up. Cross the ski resort and the Christmas
   market of Liptovský Mikuláš to reach a quiet den.
+- **Up to Ďumbier**: from Demänovská dolina past the car parks, through a cave, Jasná and the cabin to Chopok,
+  a queue for cabbage soup at Kamenná chata, then along the Low Tatras ridge in fog and wind to Ďumbier and down
+  to a den below it.
 
-**Goal:** reach the den with enough fat (85% in summer, 65% in winter) and hug someone at least once; a selfie
+**Goal:** reach the den with enough fat (85% in summer, 65% in winter, 75% on Ďumbier) and hug someone at least once; a selfie
 with a tourist counts too. Without a hug the den won't let you in.
 
 ## How to play

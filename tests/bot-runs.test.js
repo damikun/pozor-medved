@@ -16,7 +16,7 @@ function play({ seed, reaction, mode, level = 'summer' }) {
   Object.assign(ZS.dev.bot, { reaction, mode });
   const g = rules.create(ZS.ui.input.state, { viewW: VIEW_W, bot: true, level });
   g.running = true;
-  rules.say(g, level === 'winter' ? ZS.NEWS.winterStart : ZS.NEWS.springStart);
+  rules.say(g, level === 'winter' ? ZS.NEWS.winterStart : level === 'chopok' ? ZS.NEWS.chopokStart : ZS.NEWS.springStart);
   for (let i = 0; i < 1500 && !g.over; i++) loop.advance(g, 0.5);
   return {
     ending: g.ending,

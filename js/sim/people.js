@@ -5,7 +5,7 @@
   const rules = () => ZS.sim.rules;
   const pen = () => ZS.sim.pen;
 
-  const SPEED = { tourist: 25, santa: 22, picker: 35 };
+  const SPEED = { tourist: 25, santa: 22, picker: 35, rescuer: 30 };
   const SHY = { picker: 'pickerSeen', santa: 'santaSeen' };
 
   const WALK = {
@@ -175,6 +175,7 @@
   }
 
   function startFilming(game, person) {
+    if (ZS.sim.chopok.spotted(game, person)) return;
     person.filmCd = Infinity;
     rules().addPanic(game, ALARM.filmPanic, NEWS.touristSeen);
     rules().spotted(game, person.x, GROUND - ALARM.labelHeight, LABELS.touristFilm);

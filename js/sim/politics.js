@@ -6,10 +6,11 @@
   const RETURN = 20;
 
   function spawnAhead(g, kind, extra) {
-    const A = g.level.alpine, edge = A ? A.hut.x - 360 : g.level.goalDen - 450;
+    const A = g.level.alpine, edge = A ? A.hut.x - 360 : g.level.goalDen - 450, calm = g.level.calm || [];
+    const busy = (x) => g.shooters.some((s) => Math.abs(s.x - x) < 500) || calm.some(([a, b]) => x + 200 > a && x - 500 < b);
     let x = Math.min(edge, g.bear.x + g.viewW * 0.75 + Math.random() * 500);
-    for (let i = 0; i < 12 && x < edge && g.shooters.some((s) => Math.abs(s.x - x) < 500); i++) x = Math.min(edge, x + 450);
-    if (x < g.bear.x + 300 || g.shooters.some((s) => Math.abs(s.x - x) < 500)) return;
+    for (let i = 0; i < 12 && x < edge && busy(x); i++) x = Math.min(edge, x + 450);
+    if (x < g.bear.x + 300 || busy(x)) return;
     g.shooters.push(sim.hunters.create(g, kind, Object.assign({ x, from: x - 500, to: x + 200, dir: -1 }, extra)));
   }
 
@@ -68,6 +69,7 @@
   const POOL = {
     summer: ['wrongbear', 'court', 'meat', 'poacher', 'bins', 'census', 'constitution', 'feeding'],
     winter: ['wrongbear', 'court', 'meat', 'poacher', 'stalls', 'census', 'decree', 'drive'],
+    chopok: ['wrongbear', 'court', 'meat', 'poacher', 'bins', 'census', 'constitution', 'drive'],
   };
 
   function randomEvents(g, dt) {

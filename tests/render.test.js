@@ -41,6 +41,10 @@ const CASES = [
   { name: 'winter, portrait, sprinting autopilot', width: 390, height: 844, dpr: 2, seed: 8, mode: 'runner', level: 'winter' },
   { name: 'summer, phone landscape 932x410 on touch', width: 932, height: 410, dpr: 3, seed: 10, level: 'summer', touch: true },
   { name: 'winter, phone landscape 844x390 on touch', width: 844, height: 390, dpr: 3, seed: 11, level: 'winter', touch: true },
+  { name: 'Ďumbier, landscape 1280x720', width: 1280, height: 720, dpr: 1, seed: 12, level: 'chopok' },
+  { name: 'Ďumbier, portrait 390x844', width: 390, height: 844, dpr: 3, seed: 13, level: 'chopok' },
+  { name: 'Ďumbier, portrait, sprinting autopilot', width: 390, height: 844, dpr: 2, seed: 14, mode: 'runner', level: 'chopok' },
+  { name: 'Ďumbier, phone landscape 932x410 on touch', width: 932, height: 410, dpr: 3, seed: 15, level: 'chopok', touch: true },
 ];
 
 for (const c of CASES) {
@@ -194,6 +198,61 @@ for (const c of CLEARINGS) {
     assert.deepEqual([...seen], ['in', 'open', 'play', 'out', 'back']);
     if (c.idle) assert.ok(results.has('hit'), [...results].join(','));
     assert.ok(frames > 1000, frames + ' frames');
+    assert.deepEqual(problems.slice(0, 5), [], `${problems.length} bad canvas calls`);
+  });
+}
+
+const SCENES = [
+  { name: 'landscape 1280x720', width: 1280, height: 720, dpr: 1, seed: 16 },
+  { name: 'portrait 390x844', width: 390, height: 844, dpr: 3, seed: 17 },
+];
+
+for (const c of SCENES) {
+  test(`the cave, the cabin, the hut queue, the bikers, the fog, the wind and the minister draw cleanly frame by frame on the way to Ďumbier, ${c.name}`, () => {
+    const { ZS, g, problems, draw } = stage(Object.assign({ level: 'chopok' }, c));
+    const { input } = ZS.ui;
+    const L = g.level, b = g.bear;
+    g.nextEvent = 1e9;
+    g.lives = 99;
+    b.waking = false;
+    g.shooters = []; g.people = [];
+    const play = (seconds, each) => {
+      for (let i = 0; i < seconds * 60 && !g.over; i++) {
+        if (each) each(i);
+        ZS.sim.loop.step(g, 1 / 60);
+        if (i % 2 === 0) draw();
+      }
+    };
+    const at = (x, season) => { b.x = x; b.trackX = x; b.dir = 1; b.stun = 0; if (season) g.seasonKey = season; };
+    const seen = new Set();
+    input.press('ArrowRight', true);
+    at(L.cave.door - 80);
+    play(2.5, () => { if (g.chopok && g.chopok.pass) seen.add(g.chopok.pass.key + ':' + g.chopok.pass.phase); });
+    at(L.jasna.bikes[1] - 400);
+    input.release('ArrowRight');
+    g.chopok.bikeT = 0;
+    play(3);
+    input.press('ArrowRight', true);
+    at(L.funi.door - 60);
+    play(2.5, () => { if (g.chopok.pass) seen.add(g.chopok.pass.key + ':' + g.chopok.pass.phase); });
+    at(L.chata.door - 20);
+    play(2);
+    at(L.chata.counter);
+    input.release('ArrowRight');
+    g.chopok.chata.cook.state = 'pot'; g.chopok.chata.cook.t = 9;
+    input.press('KeyC', false);
+    play(1.5);
+    at(L.crest.from + 800, 'autumn');
+    Object.assign(g.chopok.fog, { phase: 'coming', t: 1 });
+    Object.assign(g.chopok.wind, { phase: 'warn', t: 0.5 });
+    play(4);
+    input.press('ArrowRight', true);
+    at(L.dumbier.minister - 300, 'firstSnow');
+    play(4);
+    input.release('ArrowRight');
+    assert.deepEqual([...seen], ['cave:close', 'cave:open', 'funi:close', 'funi:open']);
+    assert.equal(g.chopok.chata.served, true);
+    assert.ok(g.once.book, 'the summit book');
     assert.deepEqual(problems.slice(0, 5), [], `${problems.length} bad canvas calls`);
   });
 }

@@ -12,7 +12,7 @@
   const BULB = ['#ffe7a0', '#ffad42', '#ff5e4d', '#ffd54f', '#ffc9e0'];
   const CANDY = ['#e63946', '#2a9d8f', '#f4a261', '#7b5ea7', '#3a86ff', '#e9c46a'];
   const { frac, hash, sstep } = ZS.util;
-  const keyOf = (g, season) => (g && g.seasonKey) || KEYS[season | 0] || KEYS[0];
+  const keyOf = (g, season) => (g && ZS.seasonLook(g.seasonKey)) || KEYS[season | 0] || KEYS[0];
   let chill = false;
   const cold = (g) => (g ? (chill = B.cold(g)) : chill);
   const shades = {};
@@ -550,14 +550,14 @@
     const W = cold(g) ? B.look(g) : null;
     ctx.fillStyle = '#5a3d22';
     if (s.billboard) {
-      const L = W && LABELS.billboardWinter ? LABELS.billboardWinter : LABELS.billboard;
+      const L = s.poster ? s.poster() : W && LABELS.billboardWinter ? LABELS.billboardWinter : LABELS.billboard;
       ctx.fillRect(s.x - 72, GY - 72, 8, 72); ctx.fillRect(s.x + 64, GY - 72, 8, 72);
       ctx.fillStyle = '#fff8e6'; ctx.fillRect(s.x - 100, GY - 176, 200, 106);
       ctx.strokeStyle = '#3b3b3b'; ctx.lineWidth = 3; ctx.strokeRect(s.x - 100, GY - 176, 200, 106);
       ctx.fillStyle = '#c0392b'; ctx.fillRect(s.x - 100, GY - 176, 200, 8);
       label(ctx, L[0], s.x, GY - 146, 18, '#1d1d1d', 700, 184);
       label(ctx, L[1], s.x, GY - 122, 18, '#1d1d1d', 700, 184);
-      label(ctx, LABELS.signs.by, s.x, GY - 92, 12, '#555', 500, 184);
+      label(ctx, s.by ? s.by() : LABELS.signs.by, s.x, GY - 92, 12, '#555', 500, 184);
       if (!W) return;
       const sd = s.x * 0.01;
       ctx.fillStyle = W.snowShade; rrect(ctx, s.x - 103, GY - 181, 207, 8, 4);

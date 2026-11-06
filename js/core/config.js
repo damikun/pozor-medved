@@ -22,7 +22,14 @@ ZS.LEVELS = {
     w: 10800, year: 270, fatGoal: 65, startFat: 38, metabolism: 0.11,
     seasons: [{ key: 'advent', end: 90 }, { key: 'snow', end: 180 }, { key: 'frost', end: 270 }],
   },
+  chopok: {
+    w: 13600, year: 300, fatGoal: 75, startFat: 35, metabolism: 0.1,
+    seasons: [{ key: 'lateSummer', end: 60 }, { key: 'autumn', end: 130 }, { key: 'firstSnow', end: 300 }],
+  },
 };
+
+ZS.SEASON_LOOK = { lateSummer: 'summer', firstSnow: 'autumn' };
+ZS.seasonLook = (key) => ZS.SEASON_LOOK[key] || key;
 
 ZS.COLORS = {
   good: '#2f7d4f',
@@ -66,5 +73,6 @@ ZS.FOOD = {
   candy:       { emoji: '🍬', fat: 5,  syn: 8,  panic: 4 },
   chatabin:    { emoji: '🗑️', fat: 13, syn: 16, panic: 10 },
   halusky:     { emoji: '🥟', fat: 6,  syn: 10, panic: 4 },
+  kapustnica:  { emoji: '🍲', fat: 12, syn: 10, panic: 4 },
   catch:       { emoji: '🐟', fat: 7,  syn: 10, panic: 4 },
 };

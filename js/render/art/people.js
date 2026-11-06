@@ -103,7 +103,15 @@
     skin: '#e9be97', hair: '#5a4030', coat: '#4d6a3d', vest: '#ff7a1a', trim: '#eef1e8', pants: '#3e4b33', boots: '#4a3424', sole: '#1e140c', hat: '#3f5a33',
     scale: 1, walkS: 46, runS: 96, stoop: 0.05, carry: 'spray', gun: 'hunt', slung: true, belly: 1.4, top: 'forester', hairdo: 'cap', stache: 1, bootF: 0.55,
   };
-  const GENERIC = { guest: 1, waiter: 1, tycoon: 1, aide: 1, forester: 1 };
+  LOOK.rescuer = {
+    skin: '#e8bc96', hair: '#3a2a20', coat: '#d0312b', pants: '#2b2f3a', boots: '#3a2c22', sole: '#14100c', hat: '#d0312b',
+    scale: 1.02, walkS: 50, runS: 100, stoop: 0.04, carry: 'tablet', belly: 0.8, top: 'fleece', hairdo: 'cap', bootF: 0.5,
+  };
+  LOOK.minister = {
+    skin: '#ecbd98', hair: '#b9b4ab', coat: '#2b3245', trim: '#c0392b', pants: '#262b34', boots: '#1c1a18', sole: '#0c0b0a',
+    scale: 1.04, walkS: 44, runS: 90, stoop: -0.03, carry: 'tablet', belly: 3.2, top: 'resort', hairdo: 'silver', grin: 1, bootF: 0.2,
+  };
+  const GENERIC = { guest: 1, waiter: 1, tycoon: 1, aide: 1, forester: 1, rescuer: 1, minister: 1 };
   const CAN_FILM = { tourist: 1, aide: 1, forester: 1 };
   const CAN_AIM = { walker: 1, ztmh: 1, poacher: 1, forester: 1 };
   const slung = (L) => L.carry === 'sling' || !!L.slung;

@@ -438,7 +438,7 @@
   }
 
   function knockOnDoor(game, bear) {
-    return ZS.sim.vendors.act(game, bear) || ZS.sim.knock.act(game, bear);
+    return ZS.sim.chopok.act(game, bear) || ZS.sim.vendors.act(game, bear) || ZS.sim.knock.act(game, bear);
   }
 
   function encounterAct(bear, kind, target) {
@@ -548,6 +548,7 @@
 
   function hidingPose(cover) {
     if (cover.hay) return 'hay';
+    if (cover.rock) return 'rock';
     if (cover.logs) return 'pile';
     if (!cover.hide) return 'sweat';
     const poses = ZS.POSES;
@@ -562,6 +563,7 @@
 
   function hidingNews(cover) {
     if (cover.hay) return NEWS.hay;
+    if (cover.rock) return NEWS.rockHide;
     if (cover.logs) return NEWS.pile;
     return NEWS.hide;
   }

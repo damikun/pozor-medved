@@ -911,7 +911,7 @@
   }
 
   function natureSounds(g, b, dt) {
-    const winter = g.level.theme === 'winter', t = g.time, season = winter ? 'winter' : g.seasonKey;
+    const winter = g.level.theme === 'winter', t = g.time, season = winter ? 'winter' : ZS.seasonLook(g.seasonKey);
     if ((w.gustT -= dt) <= 0) { w.gustT = rr(1.5, 4.5); w.gust = rr(0.25, 1); }
     const wind = winter ? (g.seasonKey === 'frost' ? LEVEL.windFrost : LEVEL.windWinter) : LEVEL.wind;
     const A = g.level.alpine, high = A ? sstep(A.from - 250, A.from + 250, b.x) * (1 - sstep(A.to, A.to + 400, b.x)) : 0;

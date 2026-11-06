@@ -72,7 +72,7 @@
     if (document.activeElement) document.activeElement.blur();
     if (from) for (const c of g.level.checkpoints || []) if (c.x <= from.x) reached.add(c.key);
     if (from) note(g, from.key === 'lift' ? LABELS.lift.resumed : LABELS.cp.resumed, from.key === 'lift' ? NEWS.liftResume : NEWS.cpResume);
-    else rules.say(g, current === 'winter' ? NEWS.winterStart : NEWS.springStart);
+    else rules.say(g, current === 'winter' ? NEWS.winterStart : current === 'chopok' ? NEWS.chopokStart : NEWS.springStart);
   }
 
   function preview(level) {
@@ -91,7 +91,7 @@
     if (g) g.running = false;
     audio.pause(false);
     hud.hidePlaying();
-    const saved = { summer: stored('summer'), winter: stored('winter') };
+    const saved = { summer: stored('summer'), winter: stored('winter'), chopok: stored('chopok') };
     screens.showStart(done(), (id, cont) => start(id, cont ? saved[id] : null), preview, touchy(), (code) => { setLang(code); menu(); }, saved);
   }
 
@@ -128,7 +128,7 @@
     hud.update(run);
     hud.setTouch(false);
     if (run.ending === 'win') { markDone(run.level.id); forget(run.level.id); }
-    screens.showEnd(run, { onAgain: () => start(run.level.id), onNext: () => start('winter'), onMenu: menu,
+    screens.showEnd(run, { onAgain: () => start(run.level.id), onNext: () => start(screens.next(run.level.id)), onMenu: menu,
       onRetry: checkpoint.offer(mark, run) ? () => start(run.level.id, mark) : null, retryKey: mark && mark.key });
   };
 

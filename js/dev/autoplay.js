@@ -168,6 +168,10 @@
       keys.add(honey || danger ? 'ArrowUp' : 'ArrowDown');
       return;
     }
+    const queue = runner || danger ? null : ZS.sim.chopok.queue(g);
+    if (queue === 'order') { g.input.hugPressed = true; return; }
+    if (queue === 'wait') return;
+    if (!runner && b.onGround && ZS.sim.chopok.duck(g)) { keys.add('ArrowDown'); return; }
     if (!runner && wantsHug(g, danger)) { g.input.hugPressed = true; return; }
     const st = b.reach && b.reach.post ? b.reach : null;
     if (!runner && st && st.shooter && !st.shooter.react && g.time - pilot.alarm < 3) { g.input.hugPressed = true; return; }

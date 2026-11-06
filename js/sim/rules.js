@@ -9,6 +9,8 @@
     onSound: () => {},
   };
 
+  const headlinesOf = (id) => (id === 'winter' ? ZS.WINTER_HEADLINES : id === 'chopok' ? ZS.CHOPOK_HEADLINES : ZS.HEADLINES);
+
   rules.create = function (input, { viewW = CFG.MIN_VIEW_W, bot = false, level: id = 'summer' } = {}) {
     const def = ZS.LEVELS[id];
     const level = ZS.makeLevel(id, 11);
@@ -21,7 +23,7 @@
       courtUntil: 0, viralUntil: 0, hugBanAt: 0, ztmhAt: -99, lastKnown: null, lastHuman: -99, problem: false, nextEvent: 30, usedEvents: new Set(),
       stats: { natural: 0, human: 0, seen: 0, hugs: 0, bites: 0, stomps: 0, selfies: 0 }, falls: 0, refusals: 0, refusedAt: -99, running: false, over: false, paused: false, ending: null,
       bot, once: {}, ride: null, cut: null, liftCalm: 0,
-      headlines: (id === 'winter' ? ZS.WINTER_HEADLINES : ZS.HEADLINES).map((_, i) => i).sort(() => Math.random() - 0.5), headlineIdx: 0,
+      headlines: headlinesOf(id).map((_, i) => i).sort(() => Math.random() - 0.5), headlineIdx: 0,
       tickerT: 0, tickerQueue: [], tickerHot: false, cycle: new Map(), saidAt: {},
     };
     for (const sp of level.spawns) {
@@ -54,7 +56,7 @@
   function tickerStep(g, dt) {
     g.tickerT -= dt;
     if (g.tickerT > 0) return;
-    const list = g.level.id === 'winter' ? ZS.WINTER_HEADLINES : ZS.HEADLINES;
+    const list = headlinesOf(g.level.id);
     const item = g.tickerQueue.shift() || { text: list[g.headlines[g.headlineIdx++ % g.headlines.length]], hot: false, filler: true };
     g.tickerHot = item.hot;
     g.tickerT = item.hot ? 7 : 6;
@@ -88,7 +90,7 @@
     if (news && !(g.time - g.saidAt[it.type] < 30)) { g.saidAt[it.type] = g.time; rules.say(g, news); }
     if (g.fat >= g.def.fatGoal && !g.readySaid) {
       g.readySaid = true;
-      rules.say(g, !rules.hugged(g) ? NEWS.readyNoHug : g.level.theme === 'winter' ? NEWS.readyForSleep : NEWS.readyForWinter, true);
+      rules.say(g, !rules.hugged(g) ? NEWS.readyNoHug : g.level.theme === 'winter' ? NEWS.readyForSleep : g.level.id === 'chopok' ? NEWS.readyForDumbier : NEWS.readyForWinter, true);
     }
   };
 
@@ -104,14 +106,14 @@
     rules.float(g, shooter.x, fromY - 26, LABELS.bang, COLORS.shot);
     for (const o of g.shooters) { o.lock = 0; o.reload = Math.max(o.reload, 1.5); }
     if (at === 'tree') {
-      const hay = !!(b.hiding && b.hiding.hay), logs = !!(b.hiding && b.hiding.logs), corn = !b.hiding && !!b.inCorn, soft = hay || corn, y = logs ? b.hiding.top + 10 : GY - (hay ? 48 : corn ? 40 : 60);
+      const hay = !!(b.hiding && b.hiding.hay), logs = !!(b.hiding && b.hiding.logs), rock = logs && !!b.hiding.rock, corn = !b.hiding && !!b.inCorn, soft = hay || corn, y = logs ? b.hiding.top + 10 : GY - (hay ? 48 : corn ? 40 : 60);
       g.shots.push({ x1: fromX, y1: fromY, x2: shooter.cross, y2: y, t: 0.3 });
       for (let i = 0; i < 12; i++) {
-        g.particles.push({ x: shooter.cross, y, vx: (Math.random() - 0.5) * 200, vy: -Math.random() * 220, t: 0.9, color: hay ? '#d8b55b' : logs ? (i % 3 ? '#c9a26a' : '#e7cd9b') : corn ? (i % 3 ? '#6f9a3c' : '#e2c35a') : '#8a6a48' });
+        g.particles.push({ x: shooter.cross, y, vx: (Math.random() - 0.5) * 200, vy: -Math.random() * 220, t: 0.9, color: hay ? '#d8b55b' : rock ? (i % 3 ? '#a29f95' : '#d3d0c7') : logs ? (i % 3 ? '#c9a26a' : '#e7cd9b') : corn ? (i % 3 ? '#6f9a3c' : '#e2c35a') : '#8a6a48' });
       }
       rules.onSound(g, soft ? 'hayHit' : 'tree', shooter.cross);
-      rules.float(g, b.x, GY - (soft || logs ? 108 : 125), hay ? LABELS.hayHit : logs ? LABELS.logging.pileHit : corn ? LABELS.cornHit : LABELS.treeHit, COLORS.good);
-      rules.say(g, hay ? NEWS.hayHit : logs ? NEWS.pileHit : corn ? NEWS.cornHit : NEWS.treeHit);
+      rules.float(g, b.x, GY - (soft || logs ? 108 : 125), hay ? LABELS.hayHit : rock ? LABELS.chopok.rockHit : logs ? LABELS.logging.pileHit : corn ? LABELS.cornHit : LABELS.treeHit, COLORS.good);
+      rules.say(g, hay ? NEWS.hayHit : rock ? NEWS.rockHit : logs ? NEWS.pileHit : corn ? NEWS.cornHit : NEWS.treeHit);
       return;
     }
     const sprinting = b.running && b.moving;

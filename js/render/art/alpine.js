@@ -37,7 +37,7 @@
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = col; ctx.fillText(s, x, y);
   }
-  const seasonOf = (g) => (g && g.seasonKey) || 'summer';
+  const seasonOf = (g) => (g && ZS.seasonLook(g.seasonKey)) || 'summer';
 
   const ROCK = { lit: '#d3d0c7', face: '#b9b6ac', mid: '#a29f95', shade: '#86837b', dark: '#69665f', crack: '#4f4d48', lichen: '#c7c08e', lichen2: '#9fae7a' };
   const TURF = {
@@ -633,7 +633,7 @@
   function marmotRock(ctx, m, g) {
     const w = 60 + m.h * 0.6, sd = m.x * 0.0071;
     boulder(ctx, m.x + 22, GY + 2, w * 0.55, m.h * 0.7, sd + 0.3, 1);
-    marmot(ctx, g.alpine && g.alpine.marmots.find((o) => o.x === m.x) || { id: 'mrm' + m.x, x: m.x, k: 1, state: 'sit', dir: 1, whistleAt: -99 }, m, g);
+    marmot(ctx, ((g.alpine || g.chopok) && (g.alpine || g.chopok).marmots.find((o) => o.x === m.x)) || { id: 'mrm' + m.x, x: m.x, k: 1, state: 'sit', dir: 1, whistleAt: -99 }, m, g);
     boulder(ctx, m.x - 2, GY + 3, w, m.h + 4, sd, 0);
     ctx.fillStyle = 'rgba(40,30,22,0.75)'; ell(ctx, m.x - w * 0.42, GY - 2, 6, 3.4);
     grassAt(ctx, m.x - w * 0.5, GY + 1, 16, sd * 9, TURF[seasonOf(g)] || TURF.summer);
@@ -1041,5 +1041,5 @@
     ctx.restore();
   }
 
-  Object.assign(API, { backdrop, ground, back, front, den, slab, limbaTrunk, limbaCrown, coneItem, load, boulder });
+  Object.assign(API, { backdrop, ground, back, front, den, slab, limbaTrunk, limbaCrown, coneItem, load, boulder, chamois, marmotRock, thicketBack, thicketFront, grassAt, ROCK, TURF });
 })();

@@ -534,5 +534,187 @@
       ],
       "eaten": 12
     }
+  },
+  {
+    "level": "chopok",
+    "seed": 1,
+    "reaction": 0.6,
+    "mode": null,
+    "expected": {
+      "ending": "win",
+      "time": 122.95,
+      "fat": 99.3633,
+      "lives": 5,
+      "x": 13281.5,
+      "syn": 18.8833,
+      "panic": 50.615,
+      "stats": {
+        "natural": 23,
+        "human": 1,
+        "seen": 10,
+        "hugs": 0,
+        "bites": 0,
+        "stomps": 1,
+        "selfies": 2
+      },
+      "flags": [
+        "press",
+        "emergency",
+        "binsLocked"
+      ],
+      "events": [
+        "bins",
+        "constitution",
+        "wrongbear"
+      ],
+      "eaten": 23
+    }
+  },
+  {
+    "level": "chopok",
+    "seed": 2,
+    "reaction": 0.25,
+    "mode": null,
+    "expected": {
+      "ending": "win",
+      "time": 140.5833,
+      "fat": 97.8267,
+      "lives": 5,
+      "x": 13282.25,
+      "syn": 15.0767,
+      "panic": 62.325,
+      "stats": {
+        "natural": 20,
+        "human": 1,
+        "seen": 13,
+        "hugs": 0,
+        "bites": 0,
+        "stomps": 3,
+        "selfies": 2
+      },
+      "flags": [
+        "press",
+        "emergency",
+        "drones"
+      ],
+      "events": [
+        "court",
+        "constitution",
+        "wrongbear",
+        "drive"
+      ],
+      "eaten": 20
+    }
+  },
+  {
+    "level": "chopok",
+    "seed": 3,
+    "reaction": 0.6,
+    "mode": null,
+    "expected": {
+      "ending": "win",
+      "time": 135.7833,
+      "fat": 99.42,
+      "lives": 5,
+      "x": 13284.167,
+      "syn": 16.3167,
+      "panic": 35.765,
+      "stats": {
+        "natural": 23,
+        "human": 1,
+        "seen": 9,
+        "hugs": 0,
+        "bites": 0,
+        "stomps": 2,
+        "selfies": 2
+      },
+      "flags": [
+        "press",
+        "meat"
+      ],
+      "events": [
+        "meat",
+        "court",
+        "wrongbear"
+      ],
+      "eaten": 23
+    }
+  },
+  {
+    "level": "chopok",
+    "seed": 4,
+    "reaction": 0.25,
+    "mode": "runner",
+    "expected": {
+      "ending": "cull",
+      "time": 107.6167,
+      "fat": 85.38,
+      "lives": 0,
+      "x": 13280.75,
+      "syn": 0,
+      "panic": 98.565,
+      "stats": {
+        "natural": 20,
+        "human": 0,
+        "seen": 18,
+        "hugs": 0,
+        "bites": 0,
+        "stomps": 0,
+        "selfies": 0
+      },
+      "flags": [
+        "press",
+        "emergency",
+        "drones",
+        "cull",
+        "binsLocked"
+      ],
+      "events": [
+        "census",
+        "bins",
+        "constitution"
+      ],
+      "eaten": 20
+    }
+  },
+  {
+    "level": "chopok",
+    "seed": 5,
+    "reaction": 0.25,
+    "mode": null,
+    "expected": {
+      "ending": "win",
+      "time": 177.05,
+      "fat": 99.3283,
+      "lives": 5,
+      "x": 13283.597,
+      "syn": 7.7833,
+      "panic": 96.45,
+      "stats": {
+        "natural": 20,
+        "human": 1,
+        "seen": 20,
+        "hugs": 0,
+        "bites": 0,
+        "stomps": 5,
+        "selfies": 2
+      },
+      "flags": [
+        "press",
+        "emergency",
+        "drones",
+        "cull",
+        "meat",
+        "binsLocked"
+      ],
+      "events": [
+        "census",
+        "poacher",
+        "constitution",
+        "bins",
+        "meat"
+      ],
+      "eaten": 20
+    }
   }
 ]

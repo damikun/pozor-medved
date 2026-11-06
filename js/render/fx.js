@@ -8,7 +8,7 @@
   const MAX = { ambient: 26, shaken: 5, birds: 9, dust: 16, total: 58, fall: 190, clumps: 10 };
   const BACK = 0.94, FRONT = 1.18;
   const KEYS = ['spring', 'summer', 'autumn'];
-  const keyOf = (g) => g.seasonKey || KEYS[g.seasonIdx | 0] || KEYS[0];
+  const keyOf = (g) => ZS.seasonLook(g.seasonKey) || KEYS[g.seasonIdx | 0] || KEYS[0];
   const cold = (g) => !!(g.level && g.level.theme === 'winter');
 
   const TARGET = {

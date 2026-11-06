@@ -7,7 +7,7 @@
   const SKY = { spring: ['#a7d8f5', '#eaf7ff'], summer: ['#7cc4ef', '#d8f1ff'], autumn: ['#efb57c', '#fbe6c8'] };
   const LEAF = { spring: '#4f8a45', summer: '#3d7238', autumn: '#a8692c' };
   const { hash, smooth } = ZS.util;
-  const seasonOf = (g) => g.seasonKey || KEYS[g.seasonIdx | 0] || KEYS[0];
+  const seasonOf = (g) => ZS.seasonLook(g.seasonKey) || KEYS[g.seasonIdx | 0] || KEYS[0];
   const cold = (g) => !!(g && g.level && g.level.theme === 'winter');
 
   const PAL = {

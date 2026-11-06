@@ -339,7 +339,7 @@
     return { L, stems, body, dark, shine, fall, mass };
   }
   function berry(ctx, it, time, g, W) {
-    const G = geo(it, makeBush), sd = hash(it.x * 0.019) * 20, C = BUSH[(g && g.seasonKey) || 'summer'] || BUSH.summer;
+    const G = geo(it, makeBush), sd = hash(it.x * 0.019) * 20, C = BUSH[(g && ZS.seasonLook(g.seasonKey)) || 'summer'] || BUSH.summer;
     const sw = sin(time * 1.1 + sd * 5) * 0.02 + sin(time * 2.7 + sd) * 0.006;
     ctx.save(); ctx.translate(it.x, GY);
     shadow(ctx, W, 0, 31, 3);

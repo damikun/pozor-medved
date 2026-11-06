@@ -433,7 +433,7 @@
 
   function suspectsBearBehindTree(game, hunter, frame) {
     const bear = game.bear;
-    return bear.covered
+    return bear.covered && !bear.fogged
       && hunter.lock > hunter.aimTime * frame.aimFactor * SHOT.treeShotAim
       && hunter.reload <= 0
       && Math.abs(hunter.cross - bear.x) < SHOT.treeShotSpread;

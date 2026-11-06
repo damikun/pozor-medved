@@ -124,7 +124,7 @@
 
   function inThicket(level, x) {
     const zone = level && level.alpine;
-    if (!zone) return false;
+    if (!zone) return !!level && ZS.sim.chopok.inDwarf(level, x);
     return zone.thickets.some((thicket) => x > thicket[0] - THICKET_MARGIN && x < thicket[1] + THICKET_MARGIN);
   }
 

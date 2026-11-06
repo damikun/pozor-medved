@@ -50,7 +50,7 @@ for (const code of OTHERS) {
 
     await t.test('texts built from values return words', () => {
       const L = lang.LABELS, U = lang.UI, T = lang.LEVEL_TEXT;
-      for (const text of [T.summer.pick(85), T.winter.pick(65), L.hit(3), L.eaten(4, L.food.berry), U.hugGoal(0), U.hugGoal(1), U.badges.court(4)]) {
+      for (const text of [T.summer.pick(85), T.winter.pick(65), T.chopok.pick(75), L.hit(3), L.eaten(4, L.food.berry), U.hugGoal(0), U.hugGoal(1), U.badges.court(4)]) {
         assert.equal(typeof text, 'string');
         assert.ok(text.trim().length > 0);
       }
