@@ -5,14 +5,14 @@
   const rules = () => ZS.sim.rules;
   const chopok = () => ZS.sim.chopok;
 
-  const STATION = [19.5, 23.5], ARRIVE = 32;
+  const RIDE = { px: 360, mid: 4900, top: 8300, wait: 3.6, brake: 1.2, go: 1.2, pylons: [1500, 3300, 6400] };
   const SHIFTS = [
-    { warn: 3.4, at: 5.5, side: -1, call: 'chamois' },
-    { warn: 9.4, at: 11.5, side: 1, call: 'krivan' },
-    { warn: 14.6, at: 16.7, side: -1, call: 'marmot' },
-    { warn: 24.4, at: 25.8, side: 1, call: 'kids' },
-    { warn: 27.4, at: 28.8, side: -1, call: 'kids2' },
-    { warn: 29.6, at: 31, side: 1, call: 'kids3' },
+    { warn: 1.4, at: 3, side: -1, call: 'chamois', leg: 0 },
+    { warn: 6, at: 7.8, side: 1, call: 'krivan', leg: 0 },
+    { warn: 10.6, at: 12.4, side: -1, call: 'marmot', leg: 0 },
+    { warn: 0.6, at: 2, side: 1, call: 'kids', leg: 1 },
+    { warn: 3.6, at: 5, side: -1, call: 'kids2', leg: 1 },
+    { warn: 6.4, at: 7.8, side: 1, call: 'kids3', leg: 1 },
   ];
   const PEOPLE = [
     { x: 260, mass: 1, look: 0 },
@@ -24,8 +24,8 @@
     { x: 680, mass: 1, look: 2, off: true },
     { x: 750, mass: 1.3, look: 1 },
   ];
-  const KIDS = [{ x: 700 }, { x: 735 }, { x: 765 }, { x: 790 }, { x: 670 }];
-  const BEAR = 6, SPREAD = 200, SCALE = 4200, LIMIT = 0.11, ALARM = 1.1, STOP = 2.4, SIGHT = 300, COOL = 3;
+  const KIDS = [{ x: 690, look: 5 }, { x: 728, look: 3 }, { x: 766, look: 1 }, { x: 804, look: 4 }];
+  const BEAR = 6, SPREAD = 200, SCALE = 4200, LIMIT = 0.11, ALARM = 1.1, STOP = 1.8, STOPS = 3, SIGHT = 300, COOL = 3;
   const POINTA = { stop: 0.6, flash: 1.8, end: 3.6 };
 
   function stage() {
@@ -37,7 +37,7 @@
   function start(g, S) {
     const mid = (S.cabin.left + S.cabin.right) / 2;
     const c = {
-      t: 0, mid, climb: 0, speed: 0, stop: 0, door: 0, side: 1, shift: null, warn: null,
+      t: 0, mid, climb: 0, ride: 0, leg: 0, legT: 0, wait: 0, arrived: 0, speed: 0, stop: 0, door: 0, side: 1, shift: null, warn: null,
       tilt: 0, spin: 0, over: 0, alarms: 0, seenAt: -99, seen: 0, kids: false,
       people: PEOPLE.map((p, i) => Object.assign({ id: 'cabin' + i, kind: 'tourist', home: p.x, want: p.x, dir: 1, gone: false, size: 1, look: 0 }, p)),
       pointa: null, said: {}, result: null,
@@ -61,21 +61,22 @@
   }
 
   function station(g, S, c) {
-    const open = c.t >= STATION[0] + 0.6 && c.t < STATION[1] - 0.5;
+    const open = c.leg === 0 && c.wait > 0.6 && c.wait < RIDE.wait - 0.5;
     const was = c.door;
     c.door = clamp(c.door + (open ? 0.05 : -0.05), 0, 1);
     if (was < 1 && c.door >= 1 && !c.kids) {
       c.kids = true;
       for (const p of c.people) if (p.off) p.gone = true;
-      KIDS.forEach((k, i) => c.people.push({ id: 'cabinKid' + i, kind: 'tourist', x: k.x, home: k.x, want: k.x, mass: 0.6, size: 0.72, look: i, dir: 1, kid: true }));
+      KIDS.forEach((k, i) => c.people.push({ id: 'cabinKid' + i, kind: 'tourist', x: k.x, home: k.x, want: k.x, mass: 0.8, size: 1, look: k.look, dir: 1, kid: true }));
       rules().float(g, S.cabin.right - 80, GY - 160, LABELS.cabin.kidsIn, COLORS.story);
       rules().say(g, NEWS.cabinKids);
     }
   }
 
   function shifts(g, S, c) {
-    c.warn = SHIFTS.find((s) => c.t >= s.warn && c.t < s.at && (!s.call.startsWith('kids') || c.kids)) || null;
-    const now = SHIFTS.filter((s) => c.t >= s.at && (!s.call.startsWith('kids') || c.kids)).pop();
+    const T = c.legT;
+    c.warn = SHIFTS.find((s) => s.leg === c.leg && T >= s.warn && T < s.at) || null;
+    const now = SHIFTS.filter((s) => s.leg === c.leg && T >= s.at).pop();
     if (c.warn && c.said.warn !== c.warn) {
       c.said.warn = c.warn;
       const list = riders(c), who = list[c.warn.call.startsWith('kids') ? list.length - 1 : 1];
@@ -95,7 +96,7 @@
     for (const p of riders(c)) {
       const d = p.want - p.x;
       p.walking = Math.abs(d) > 2;
-      if (p.walking) p.x += Math.sign(d) * Math.min(Math.abs(d), (p.kid ? 150 : 90) * dt);
+      if (p.walking) p.x += Math.sign(d) * Math.min(Math.abs(d), (p.kid ? 110 : 90) * dt);
       const side = p.kid ? c.kidSide : c.adultSide;
       if (side) p.dir = side;
     }
@@ -155,13 +156,27 @@
     return true;
   }
 
+  function travel(c, dt) {
+    const target = c.leg === 0 ? RIDE.mid : RIDE.top, left = target - c.ride;
+    const brake = (RIDE.px * c.speed * c.speed) / (2 * RIDE.brake);
+    const halt = c.stop > 0 || left <= brake + 1;
+    c.speed = clamp(c.speed + (halt ? -RIDE.brake : RIDE.go) * dt, 0, 1);
+    c.ride = Math.min(target, c.ride + c.speed * RIDE.px * dt);
+    c.climb += c.speed * dt;
+    c.legT += dt;
+    if (left > 3 || c.speed > 0) return;
+    c.ride = target;
+    if (c.leg === 0) {
+      c.wait += dt;
+      if (c.wait >= RIDE.wait) { c.leg = 1; c.legT = 0; c.shift = null; }
+    } else c.arrived += dt;
+  }
+
   function update(g, c, dt) {
     const S = g.level, b = g.bear;
     c.t += dt;
     c.stop = Math.max(0, c.stop - dt);
-    const halt = c.stop > 0 || (c.t > STATION[0] && c.t < STATION[1]) || c.t > ARRIVE;
-    c.speed = clamp(c.speed + (halt ? -dt * 1.2 : dt * 0.6), 0, 1);
-    c.climb += c.speed * dt;
+    travel(c, dt);
     swing(c, b, dt);
     if (c.pointa) return pointa(g, S, c, dt) && finish(g, c);
     station(g, S, c);
@@ -169,9 +184,9 @@
     walk(c, dt);
     control(g, S, c, dt);
     c.over = Math.abs(c.tilt) > LIMIT ? c.over + dt : Math.max(0, c.over - dt * 2);
-    if (c.over > ALARM && c.stop <= 0) alarm(g, S, c);
+    if (c.over > ALARM && c.stop <= 0 && c.alarms < STOPS) alarm(g, S, c);
     looks(g, c);
-    if (c.t >= ARRIVE + 0.8) { c.pointa = { t: 0, flash: 0 }; chopok().quiet(b); c.door = 1; }
+    if (c.arrived >= 0.6) { c.pointa = { t: 0, flash: 0 }; chopok().quiet(b); c.door = 1; }
     return false;
   }
 
@@ -194,5 +209,5 @@
     else if (b.x > x + 14) keys.add('ArrowLeft');
   }
 
-  ZS.sim.cabin = { SHIFTS, STATION, ARRIVE, BEAR, LIMIT, ALARM, stage, start, update, idle, riders, torque, balance, plan, pilot };
+  ZS.sim.cabin = { SHIFTS, RIDE, BEAR, LIMIT, ALARM, stage, start, update, idle, riders, torque, balance, plan, pilot };
 })();

@@ -23,92 +23,197 @@
     ZS.drawHuman(ctx, h, time);
   }
 
-  function season(g) {
-    return g.seasonKey === 'firstSnow' ? 'snow' : ZS.seasonLook(g.seasonKey) === 'autumn' ? 'autumn' : 'summer';
+  const CABLE = 0.13;
+  const SPRUCE = { summer: ['#2f5a3a', '#3f7148'], autumn: ['#3a5a3a', '#4c6c45'], snow: ['#3a5546', '#4e6a58'] };
+  const SLOPE = { summer: ['#6f9a50', '#5b8742'], autumn: ['#a08a4c', '#86753e'], snow: ['#c9d1d6', '#b3bdc4'] };
+
+  function stops() {
+    const R = SIM().RIDE;
+    return [{ at: 0, a: -1500, z: 560, kind: 'start' }, { at: R.mid, a: -700, z: 700, kind: 'mid' }, { at: R.top, a: -560, z: 1500, kind: 'top' }];
   }
 
-  const SLOPE = { summer: ['#5f8f4a', '#4d7a3c', '#3c6534'], autumn: ['#9a8a4a', '#7d7a3e', '#5f6534'], snow: ['#8a8f6a', '#6f7a58', '#58654a'] };
+  function nearest(c) {
+    let best = null;
+    for (const s of stops()) { const off = s.at - c.ride; if (!best || abs(off) < abs(best.off)) best = Object.assign({ off }, s); }
+    return best;
+  }
+
+  function stationName(kind) {
+    const B = LABELS.chopok.board;
+    return kind === 'start' ? B.bus + ' · ' + B.station : kind === 'mid' ? LABELS.cabin.station : B.top;
+  }
+
+  function spruce(ctx, x, y, h, P, snow) {
+    ctx.fillStyle = '#4a3526'; ctx.fillRect(x - h * 0.04, y - h * 0.18, h * 0.08, h * 0.2);
+    for (let i = 0; i < 3; i++) {
+      const by = y - h * (0.12 + i * 0.26), w = h * (0.34 - i * 0.08), ty = by - h * 0.42;
+      ctx.fillStyle = P[0]; poly(ctx, [x - w, by, x, ty, x + w, by]);
+      ctx.fillStyle = P[1]; poly(ctx, [x - w, by, x, ty, x - w * 0.1, by]);
+      if (snow) { ctx.fillStyle = 'rgba(245,248,250,0.9)'; poly(ctx, [x - w * 0.45, ty + h * 0.2, x, ty, x + w * 0.4, ty + h * 0.18]); }
+    }
+  }
 
   function view(ctx, g, c, vw, H, offY) {
-    const k = season(g), up = c.climb, P = SLOPE[k];
-    const gr = ctx.createLinearGradient(0, -offY, 0, GY + 60);
-    gr.addColorStop(0, k === 'snow' ? '#93a5b6' : '#6fb3e6'); gr.addColorStop(1, k === 'autumn' ? '#f4e6cf' : '#e2f1fa');
-    ctx.fillStyle = gr; ctx.fillRect(0, -offY - 10, vw, H + 40);
-    const far = GY - 150 + up * 3.2;
-    ctx.fillStyle = '#9fb3c6';
-    ctx.beginPath(); ctx.moveTo(0, GY + 200);
-    for (let x = -40; x <= vw + 40; x += 40) { const i = Math.floor((x + up * 2) / 40); ctx.lineTo(x, far - (i % 2 ? 50 + hash(i) * 60 : hash(i * 3) * 25)); }
-    ctx.lineTo(vw + 40, GY + 200); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    for (let x = -40; x <= vw + 40; x += 80) { const i = Math.floor((x + up * 2) / 40) | 1, y = far - 50 - hash(i) * 60; poly(ctx, [x - 8, y + 14, x, y, x + 10, y + 16]); }
-    ctx.fillStyle = '#7fb0c8'; ell(ctx, vw * 0.35, GY - 40 + up * 4.6, vw * 0.3, 10);
-    for (let l = 0; l < 3; l++) {
-      const y0 = GY - 60 + l * 70 + up * (6 + l * 5), off = up * (20 + l * 14);
-      ctx.fillStyle = P[l];
-      ctx.beginPath(); ctx.moveTo(-20, GY + 400);
-      for (let x = -20; x <= vw + 40; x += 30) ctx.lineTo(x, y0 - 30 * sin((x + off) * 0.008 + l) - 14 * sin((x + off) * 0.02));
-      ctx.lineTo(vw + 40, GY + 400); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = l === 2 ? '#2e5639' : '#3c6a45';
-      for (let x = -((off * 0.9) % 46); x < vw + 46; x += 46) {
-        const i = Math.round((x + off * 0.9) / 46), y = y0 - 30 * sin((x + off) * 0.008 + l) - 14 * sin((x + off) * 0.02) + 8;
-        if (hash(i * 1.3 + l) < 0.35) continue;
-        const h = 22 + l * 10;
-        poly(ctx, [x - h * 0.3, y, x, y - h, x + h * 0.3, y]);
+    const key = ZS.chopokArt.look(g), u = clamp(c.ride / SIM().RIDE.top, 0, 1), snow = key === 'snow';
+    ZS.chopokArt.skyline(ctx, key, c.ride * 0.6 + 2400, vw, offY, 40 + u * 220);
+    for (let l = 0; l < 2; l++) {
+      const base = GY + 70 + l * 120 + u * (110 + l * 150), off = c.ride * (0.55 + l * 0.4);
+      const yAt = (x) => base - 30 * sin((x + off) * 0.005 + l * 2) - 12 * sin((x + off) * 0.017);
+      ctx.fillStyle = SLOPE[key][l];
+      ctx.beginPath(); ctx.moveTo(-20, GY + H + 400);
+      for (let x = -20; x <= vw + 40; x += 24) ctx.lineTo(x, yAt(x));
+      ctx.lineTo(vw + 40, GY + H + 400); ctx.closePath(); ctx.fill();
+      const step = 34 + l * 12, dense = 1 - smooth((u - 0.55) / 0.3);
+      for (let x = -((off % step) + step); x < vw + step; x += step) {
+        const i = Math.round((x + off) / step), hsh = hash(i * 1.7 + l * 9.1);
+        if (hsh > 0.25 + 0.7 * dense) {
+          if (dense < 0.6 && hsh < 0.9) { ctx.fillStyle = l ? '#3d5c3a' : '#4b6b44'; ell(ctx, x, yAt(x) + 4, 16 + 6 * l, 7 + 2 * l); }
+          continue;
+        }
+        spruce(ctx, x + hash(i * 3.3) * 12, yAt(x) + 10, (34 + l * 22) * (0.75 + 0.5 * hash(i * 5.1)), SPRUCE[key], snow);
       }
     }
-    const pyl = ((up * 60) % 900) - 200, px = vw - pyl;
-    ctx.fillStyle = '#5b6168';
-    poly(ctx, [px - 14, GY + 400, px - 4, GY - 300 + up * 10 % 30, px + 4, GY - 300 + up * 10 % 30, px + 14, GY + 400]);
-    ctx.fillRect(px - 40, GY - 310 + up * 10 % 30, 80, 8);
   }
 
-  function hall(ctx, c, vw, H, offY, at) {
-    ctx.fillStyle = '#c9ccd0'; ctx.fillRect(0, -offY - 10, vw, H + 40);
-    ctx.fillStyle = '#9aa0a6'; for (let x = -((at * 40) % 120); x < vw; x += 120) ctx.fillRect(x, -offY, 10, H + 40);
-    ctx.fillStyle = '#e8590c'; ctx.fillRect(0, GY - 380, vw, 30);
-    ctx.fillStyle = '#fff'; ctx.font = '900 16px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(c.t > SIM().ARRIVE ? LABELS.chopok.board.top : LABELS.cabin.station, vw / 2, GY - 365);
-    ctx.fillStyle = '#8d8f92'; ctx.fillRect(0, GY + 30, vw, H);
+  function hall(ctx, c, s, hx, hy, t) {
+    const x0 = hx + s.off + s.a, x1 = hx + s.off + s.z, top = -3000, bot = GY + 1200;
+    const gr = ctx.createLinearGradient(0, BOX.top - 200, 0, GY + 60);
+    gr.addColorStop(0, '#c4c9cd'); gr.addColorStop(1, '#dde0e2');
+    ctx.fillStyle = gr; ctx.fillRect(x0, top, x1 - x0, bot - top);
+    for (let x = x0 + 90; x < x1 - 40; x += 180) {
+      ctx.fillStyle = '#9aa0a6'; ctx.fillRect(x, top, 16, bot - top);
+      ctx.fillStyle = '#b3b8bd'; ctx.fillRect(x, top, 5, bot - top);
+    }
+    ctx.fillStyle = '#e8590c'; ctx.fillRect(x0, GY - 206, x1 - x0, 44);
+    ctx.fillStyle = '#c4490a'; ctx.fillRect(x0, GY - 166, x1 - x0, 4);
+    ctx.fillStyle = '#fff'; ctx.font = '900 22px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const name = stationName(s.kind);
+    for (let x = x0 + 260; x < x1 - 120; x += 520) ctx.fillText(name, x, GY - 184);
+    for (let x = x0 + 60; x < x1 - 30; x += 150) {
+      ctx.fillStyle = 'rgba(255,250,215,0.35)'; ell(ctx, x, BOX.top - 30, 34, 10);
+      ctx.fillStyle = '#fffbe6'; ctx.fillRect(x - 22, BOX.top - 34, 44, 6);
+    }
+    ctx.fillStyle = '#4a4e55'; ctx.fillRect(x0, hy - 8, x1 - x0, 12);
+    ctx.fillStyle = '#6d727a'; ctx.fillRect(x0, hy - 8, x1 - x0, 3);
+    for (let x = x0 + 40; x < x1; x += 120) { ctx.fillStyle = '#3c4048'; ctx.fillRect(x, hy - 60, 8, 54); }
+    ctx.fillStyle = '#8f9499'; ctx.fillRect(x0, BOX.bot + 6, x1 - x0, bot - BOX.bot);
+    ctx.fillStyle = '#f0c030'; ctx.fillRect(x0, BOX.bot + 6, x1 - x0, 6);
+    ctx.fillStyle = '#2b2d31'; for (let x = x0; x < x1; x += 40) poly(ctx, [x, BOX.bot + 6, x + 14, BOX.bot + 6, x + 6, BOX.bot + 12, x - 8, BOX.bot + 12]);
+    ctx.fillStyle = '#5b6168'; ctx.fillRect(x0 - 30, top, 30, bot - top); ctx.fillRect(x1, top, 30, bot - top);
+    ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.fillRect(x0, top, 24, bot - top); ctx.fillRect(x1 - 24, top, 24, bot - top);
+    void t;
   }
 
-  function cables(ctx, vw, offY, sway) {
-    ctx.strokeStyle = '#2b2d31'; ctx.lineWidth = 2;
-    for (const d of [-7, 7]) { ctx.beginPath(); ctx.moveTo(-20, BOX.top - 90 + d + 60); ctx.lineTo(vw + 20, BOX.top - 150 + d - 60); ctx.stroke(); }
-    void offY; void sway;
+  function pylons(ctx, c, hx, hy, k) {
+    for (const p of SIM().RIDE.pylons) {
+      const x = hx + p - c.ride;
+      if (abs(x - hx) > 1600) continue;
+      const cy = hy - (x - hx) * k, bot = GY + 1200, top = cy + 46;
+      ctx.fillStyle = '#6b7178';
+      poly(ctx, [x - 90, bot, x - 22, top, x - 12, top, x - 72, bot]);
+      poly(ctx, [x + 90, bot, x + 22, top, x + 12, top, x + 72, bot]);
+      ctx.strokeStyle = '#6b7178'; ctx.lineWidth = 4;
+      ctx.beginPath();
+      for (let y = top + 30, i = 0; y < GY + 700; y += 70, i++) {
+        const w0 = 17 + (y - top) * 0.2, w1 = 17 + (y + 70 - top) * 0.2;
+        if (i % 2) { ctx.moveTo(x - w0, y); ctx.lineTo(x + w1, y + 70); } else { ctx.moveTo(x + w0, y); ctx.lineTo(x - w1, y + 70); }
+      }
+      ctx.stroke();
+      ctx.fillStyle = '#585e66'; ctx.fillRect(x - 70, top - 8, 140, 12);
+      ctx.save(); ctx.translate(x, cy); ctx.rotate(-Math.atan(k));
+      ctx.fillStyle = '#4a4e55'; rr(ctx, -64, 6, 128, 10, 4);
+      ctx.fillStyle = '#2b2d31'; for (let i = -3; i <= 3; i++) circle(ctx, i * 18, 5, 6);
+      ctx.fillStyle = '#9aa0a6'; for (let i = -3; i <= 3; i++) circle(ctx, i * 18, 5, 2);
+      ctx.fillStyle = '#e8590c'; ctx.fillRect(-4, 16, 8, 30);
+      ctx.restore();
+    }
+  }
+
+  function cables(ctx, hx, hy, k, lo, hi) {
+    ctx.lineCap = 'round';
+    for (const [d, col, w] of [[-3, '#3a3d42', 2.4], [3, '#22242a', 2.8]]) {
+      ctx.strokeStyle = col; ctx.lineWidth = w;
+      ctx.beginPath(); ctx.moveTo(lo, hy + d - (lo - hx) * k); ctx.lineTo(hi, hy + d - (hi - hx) * k); ctx.stroke();
+    }
+    ctx.lineCap = 'butt';
+  }
+
+  function carriage(ctx, hx, hy, k, c, t) {
+    ctx.save(); ctx.translate(hx, hy); ctx.rotate(-Math.atan(k));
+    ctx.fillStyle = '#5b6168'; rr(ctx, -86, -2, 172, 20, 7);
+    ctx.fillStyle = '#6d737b'; ctx.fillRect(-80, 0, 160, 4);
+    const spin = c.climb * 9;
+    for (const x of [-62, -22, 22, 62]) {
+      ctx.fillStyle = '#2b2d31'; circle(ctx, x, -2, 8);
+      ctx.strokeStyle = '#8d939a'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x + cos(spin) * 5, -2 + sin(spin) * 5); ctx.lineTo(x - cos(spin) * 5, -2 - sin(spin) * 5); ctx.stroke();
+    }
+    ctx.fillStyle = '#e8590c'; ctx.fillRect(-30, 6, 60, 8);
+    ctx.fillStyle = '#fff'; ctx.font = '800 7px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('VRCHOLY', 0, 10.5);
+    ctx.restore();
+    void t;
+  }
+
+  function hanger(ctx, hx, hy) {
+    const T = BOX.top;
+    ctx.fillStyle = '#3c4048'; rr(ctx, hx - 9, hy + 10, 18, 40, 4);
+    ctx.strokeStyle = '#4a4e55'; ctx.lineWidth = 10; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(hx - 190, T + 4); ctx.quadraticCurveTo(hx - 170, hy + 52, hx, hy + 46); ctx.quadraticCurveTo(hx + 170, hy + 52, hx + 190, T + 4); ctx.stroke();
+    ctx.strokeStyle = '#6d737b'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(hx - 186, T + 1); ctx.quadraticCurveTo(hx - 168, hy + 48, hx, hy + 42); ctx.quadraticCurveTo(hx + 168, hy + 48, hx + 186, T + 1); ctx.stroke();
+    ctx.lineCap = 'butt';
+    ctx.fillStyle = '#2b2d31'; rr(ctx, hx - 204, T - 6, 30, 12, 4); rr(ctx, hx + 174, T - 6, 30, 12, 4);
   }
 
   function shell(ctx, c, g) {
     const L = BOX.left, R = BOX.right, T = BOX.top, B = BOX.bot, [w0, w1] = BOX.win, t = g.time;
-    ctx.fillStyle = '#3c4048'; ctx.fillRect((L + R) / 2 - 8, T - 70, 16, 72);
-    ctx.fillStyle = '#5b6168'; rr(ctx, (L + R) / 2 - 70, T - 84, 140, 20, 6);
-    ctx.fillStyle = '#2b2d31'; circle(ctx, (L + R) / 2 - 46, T - 74, 10); circle(ctx, (L + R) / 2 + 46, T - 74, 10);
     ctx.fillStyle = '#e8590c';
     rr(ctx, L, T, R - L, w0 - T + 4, 22);
     ctx.fillRect(L, w1 - 2, R - L, B - w1 + 2);
+    ctx.fillStyle = '#ff7a2e'; ctx.fillRect(L + 18, T + 3, R - L - 36, 3);
     ctx.fillStyle = '#c4490a'; ctx.fillRect(L, w1 + 26, R - L, 6);
     ctx.fillStyle = '#d4520a';
     const n = 5, pw = 14;
     for (let i = 0; i <= n; i++) { const x = L + (i * (R - L)) / n - (i === n ? pw : i === 0 ? 0 : pw / 2); ctx.fillRect(x, w0, pw, w1 - w0); }
-    ctx.fillStyle = 'rgba(180,220,240,0.12)';
+    ctx.fillStyle = 'rgba(180,220,240,0.14)';
     for (let i = 0; i < n; i++) { const x = L + (i * (R - L)) / n + pw; ctx.fillRect(x, w0, (R - L) / n - pw * 1.5, w1 - w0); }
     ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 2;
-    for (let i = 0; i < n; i++) { const x = L + (i * (R - L)) / n + pw + 10; ctx.beginPath(); ctx.moveTo(x, w0 + 12); ctx.lineTo(x + 26, w0 + 2); ctx.stroke(); }
+    for (let i = 0; i < n; i++) { const x = L + (i * (R - L)) / n + pw + 10; ctx.beginPath(); ctx.moveTo(x, w0 + 12); ctx.lineTo(x + 26, w0 + 2); ctx.moveTo(x + 8, w0 + 22); ctx.lineTo(x + 46, w0 + 4); ctx.stroke(); }
     ctx.fillStyle = '#fff'; ctx.font = '900 14px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('FUNITEL · VrcholPass', (L + R) / 2, T + 24);
+    const R2 = SIM().RIDE, u = clamp(c.ride / R2.top, 0, 1), alt = Math.round(1110 + u * 894);
+    ctx.fillStyle = '#1b1d21'; rr(ctx, L + 34, T + 12, 92, 24, 5);
+    ctx.fillStyle = '#7cfc9a'; ctx.font = '700 13px ui-monospace, monospace'; ctx.fillText(String(alt).replace(/(\d)(\d{3})$/, '$1 $2') + ' m', L + 80, T + 24);
+    const m0 = R - 240, m1 = R - 60, my = T + 24;
+    ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(m0, my); ctx.lineTo(m1, my); ctx.stroke();
+    for (const [f, on] of [[0, 1], [R2.mid / R2.top, c.leg > 0 || c.wait > 0 ? 1 : 0], [1, c.arrived > 0 ? 1 : 0]]) {
+      ctx.fillStyle = on ? '#fff' : '#e8590c'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(m0 + f * (m1 - m0), my, 4.5, 0, TAU); ctx.fill(); ctx.stroke();
+    }
+    ctx.fillStyle = '#ffe066'; circle(ctx, m0 + u * (m1 - m0), my, 3 + 0.8 * sin(t * 5));
     ctx.fillStyle = '#d7d9dc'; ctx.fillRect(L + 14, w1 + 2, R - L - 28, GY - w1 - 2);
-    ctx.fillStyle = '#c3c6ca'; for (let x = L + 30; x < R - 30; x += 70) ctx.fillRect(x, w1 + 6, 2, GY - w1 - 10);
+    ctx.fillStyle = '#c3c6ca'; for (let x = L + 134; x < R - 30; x += 122) ctx.fillRect(x, w1 + 6, 2, GY - w1 - 10);
+    ctx.fillStyle = '#5c6068';
+    rr(ctx, L + 22, GY - 58, 104, 9, 4); rr(ctx, L + 22, GY - 34, 104, 8, 3);
+    rr(ctx, R - 230, GY - 58, 104, 9, 4); rr(ctx, R - 230, GY - 34, 104, 8, 3);
+    ctx.fillStyle = '#2f6db0'; rr(ctx, L + 160, w1 + 10, 70, 46, 4);
+    ctx.fillStyle = '#fff'; ctx.font = '800 8px system-ui, sans-serif'; ctx.fillText('VrcholPass', L + 195, w1 + 22); ctx.fillText('★ ★ ★', L + 195, w1 + 40);
     ctx.fillStyle = '#4a4e55'; ctx.fillRect(L + 14, GY, R - L - 28, 14);
+    ctx.fillStyle = 'rgba(255,255,255,0.07)'; for (let x = L + 18; x < R - 18; x += 9) ctx.fillRect(x, GY + 3, 4, 8);
     ctx.fillStyle = '#5c6068'; ctx.fillRect(L + 14, w0 - 20, R - L - 28, 4);
+    ctx.fillStyle = 'rgba(255,250,220,0.9)'; ctx.fillRect(L + 40, w0 - 27, R - L - 80, 3);
     for (let x = L + 50; x < R - 40; x += 46) {
-      const sw = sin(t * 2 + x) * 2 * (0.3 + c.speed);
-      ctx.strokeStyle = '#3c4048'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, w0 - 16); ctx.lineTo(x + sw, w0 + 6); ctx.stroke();
-      ctx.strokeStyle = '#f0b429'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x + sw, w0 + 11, 5, 0, TAU); ctx.stroke();
+      const sw = sin(t * 2 + x) * 2 * (0.3 + c.speed) + c.tilt * 40;
+      ctx.strokeStyle = '#3c4048'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, w0 - 16); ctx.lineTo(x - sw, w0 + 6); ctx.stroke();
+      ctx.strokeStyle = '#f0b429'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x - sw, w0 + 11, 5, 0, TAU); ctx.stroke();
     }
-    const d = c.door, dx = R - 70;
-    ctx.fillStyle = '#c4490a'; ctx.fillRect(dx - 2, w0 - 2, 4, GY - w0 + 2);
-    if (d > 0.01) {
-      ctx.fillStyle = 'rgba(30,30,30,0.25)'; ctx.fillRect(dx, w0, 60 * d, GY - w0);
+    const d = c.door, dc = R - 75;
+    ctx.strokeStyle = '#a63d08'; ctx.lineWidth = 3;
+    for (const [x, w] of [[dc - 54 - 46 * d, 54], [dc + 46 * d, 54]]) {
+      ctx.fillStyle = 'rgba(170,205,225,0.22)'; ctx.fillRect(x, w0 + 4, w, GY - w0 - 4);
+      ctx.strokeRect(x, w0 + 4, w, GY - w0 - 4);
     }
+    if (d > 0.01) { ctx.fillStyle = 'rgba(30,30,30,0.18)'; ctx.fillRect(dc - 46 * d, w0 + 4, 92 * d, GY - w0 - 4); }
   }
 
   function crowd(ctx, g, c) {
@@ -158,19 +263,24 @@
   }
 
   function draw(g, ctx, viewW, offY) {
-    const S = g.level, c = g.chopok.pass.play, H = g.viewH || 540, b = g.bear, t = g.time;
+    const c = g.chopok.pass.play, H = g.viewH || 540, b = g.bear, t = g.time;
     const hurt = b.inv > 0 ? 0.45 + 0.35 * cos(t * 14) : 1;
     const withBear = (fn, who = b, alpha = 1) => { ctx.globalAlpha = hurt * alpha; fn(ctx, who, t); ctx.globalAlpha = 1; };
     const sc = min(1, (viewW - 16) / (BOX.right - BOX.left + 40)), mid = (BOX.left + BOX.right) / 2;
     const shake = c.speed * 0.6 * sin(t * 2.2);
-    const inHall = c.t > SIM().STATION[0] - 0.4 && c.t < SIM().STATION[1] + 0.4 ? 1 : c.t > SIM().ARRIVE - 0.4 ? 1 : 0;
+    const st = nearest(c), k = CABLE * sstep(300, 1100, abs(st.off));
+    const lo = mid - viewW / (2 * sc) - 40, hi = mid + viewW / (2 * sc) + 40;
     ctx.save();
     ctx.translate(0, offY);
-    if (inHall) hall(ctx, c, viewW, H, offY, c.climb); else view(ctx, g, c, viewW, H, offY);
-    cables(ctx, viewW, offY, shake);
+    view(ctx, g, c, viewW, H, offY);
     ctx.translate(viewW / 2, GY); ctx.scale(sc, sc); ctx.translate(-mid, -GY + shake);
     const hx = mid, hy = BOX.top - 74;
+    if (st.off + st.z > lo - hx && st.off + st.a < hi - hx) hall(ctx, c, st, hx, hy, t);
+    pylons(ctx, c, hx, hy, k);
+    cables(ctx, hx, hy, k, lo, hi);
+    carriage(ctx, hx, hy, k, c, t);
     ctx.save(); ctx.translate(hx, hy); ctx.rotate(c.tilt); ctx.translate(-hx, -hy);
+    hanger(ctx, hx, hy);
     shell(ctx, c, g);
     level(ctx, c, t);
     crowd(ctx, g, c);

@@ -117,7 +117,15 @@
   }
 
   const fencesOf = (level) => (level.salas && level.salas.fences) || NO_FENCES;
-  const shedOf = (level) => (level.salas && level.salas.strunga) || null;
+  const shedOf = (level, x) => (level.salas && level.salas.strunga) || caveRoof(level, x);
+
+  function caveRoof(level, x) {
+    if (!level.cave || !level.cave.low) return null;
+    if (!level.caveRoofs) level.caveRoofs = level.cave.low.map(([a, z]) => ({ x: (a + z) / 2, w: z - a }));
+    let best = null;
+    for (const r of level.caveRoofs) if (!best || Math.abs(r.x - x) < Math.abs(best.x - x)) best = r;
+    return best;
+  }
 
   function hayOf(level) {
     if (!level.hayCover) level.hayCover = level.haystacks.map(haystackCover);
@@ -152,12 +160,12 @@
   }
 
   function underRoof(level, bear) {
-    const shed = shedOf(level);
+    const shed = shedOf(level, bear.x);
     return !!shed && bear.onGround && Math.abs(bear.x - shed.x) < shed.w / 2 + ROOF;
   }
 
   function crawlsUnderRoof(level, bear) {
-    const shed = shedOf(level);
+    const shed = shedOf(level, bear.x);
     return !!shed && bear.crouch && bear.onGround && Math.abs(bear.x - shed.x) < shed.w / 2 + ROOF + SHED.crawlMargin;
   }
 
@@ -778,7 +786,7 @@
   }
 
   function stopAtShed(level, bear, wantedX) {
-    const shed = shedOf(level);
+    const shed = shedOf(level, bear.x);
     if (!shed || (bear.crouch && bear.onGround)) return wantedX;
     const stop = wallStop(bear.x, wantedX, shed.x, shed.w / 2 + ROOF);
     if (stop === null) return wantedX;

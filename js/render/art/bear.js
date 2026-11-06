@@ -122,7 +122,10 @@
     s.asw = Number.isFinite(a.sway) ? a.sway * d : null;
   }
 
+  let helmetOn = false;
+
   function track(b, time) {
+    helmetOn = !!b.helmet;
     let s = anim.get(b);
     const head = b.dir < 0 ? Math.PI : 0;
     if (!s) {
@@ -818,8 +821,24 @@
       drop(ctx, p[0], p[1], o.cry[1]);
     }
     for (const e of ears) if (e.near >= 0.5) drawEar(e);
+    if (helmetOn) helmet(ctx, pt, cy, sy, t);
     o.mouth = pt(19.5, 4.4, 0);
     return n;
+  }
+
+  function helmet(ctx, pt, cy, sy, t) {
+    const c = pt(-1.5, -9.5, 0), w = Math.hypot(11.5 * cy, 9.5 * sy), f = cy < 0 ? -1 : 1;
+    ctx.save();
+    ctx.translate(c[0], c[1]); ctx.rotate(t * cy);
+    ctx.fillStyle = '#f2c230';
+    ctx.beginPath(); ctx.ellipse(0, 1.5, w, 8.5, 0, Math.PI, 0); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#d9a514'; ctx.fillRect(-w - 2.2, 0.6, 2 * w + 4.4, 2.6);
+    ctx.strokeStyle = 'rgba(255,240,180,0.8)'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.ellipse(-2 * f * Math.abs(cy), -1, w * 0.55, 5.5, 0, Math.PI * 1.15, Math.PI * 1.55); ctx.stroke();
+    const lx = f * Math.abs(cy) * (w - 1.5);
+    ctx.fillStyle = '#3a3a3a'; ell(ctx, lx, -2.5, 3.4, 3.2);
+    ctx.fillStyle = '#fff6c8'; ell(ctx, lx + f * 0.8 * Math.abs(cy), -2.5, 2.3, 2.2);
+    ctx.restore();
   }
 
   const HINGE = [10, 2.8];

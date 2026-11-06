@@ -39,7 +39,7 @@
       cave: { booth: 3460, group: 3505, door: 3630, from: 3580, to: 4000, exit: 3970, land: 4040 },
       jasna: { from: 4900, to: 7150, hotels: [[5330, 300, 3, 'hotel', 1.3], [5820, 230, 2, 'apart', 2.1], [6330, 210, 2, 'pension', 3.7], [6760, 270, 3, 'hotel', 5.2]] },
       funi: { station: 7200, door: 7255, from: 7290, to: 7570, top: 7510, land: 7610 },
-      summit: { rotunda: 7820, from: 7570, to: 8850 },
+      summit: { rotunda: 7790, from: 7570, to: 8850 },
       chata: { x: 8450, from: 8250, to: 8630, door: 8290, queue: [8336, 8374, 8412], counter: 8454, cook: 8500, exit: 8570 },
       fog: { from: 8800, to: W },
       wind: { from: 7590, to: W },
@@ -169,7 +169,7 @@
     water: [1800, 1990], stones: [1880],
     colonies: [[1400, 7], [1640, 8], [2440, 6]],
   };
-  const STALAG = [[300, 50, 132], [520, 46, 118], [720, 54, 140], [1540, 48, 124], [2560, 50, 128]];
+  const STALAG = [[300, 84, 132], [520, 78, 118], [720, 88, 140], [1540, 56, 124], [2560, 58, 128]];
 
   function caveStage() {
     const L = K.base('chopok', mulberry32(3011));

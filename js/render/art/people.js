@@ -65,7 +65,7 @@
     Object.assign({}, LOOK.tourist, { skin: '#f3cfb3', hair: '#8a4a26', coat: '#7048e8', pants: '#212529', hat: '#e64980', beanie: 1, pack: '#fab005', long: 1, poles: '#868e96', scale: 0.95 }),
     Object.assign({}, LOOK.tourist, { skin: '#eac2a0', hair: '#c9c6c0', coat: '#1c7ed6', pants: '#5c4033', hat: '#868e96', cap: 1, pack: '#2b8a3e', long: 1, poles: '#ced4da', belly: 2.4, stoop: 0.06 }),
     Object.assign({}, LOOK.tourist, { skin: '#f0c8a6', hair: '#5a3a22', coat: '#e03131', pants: '#cbb98d', hat: '#f8f9fa', pack: '#495057', poles: '#adb5bd', scale: 1.04 }),
-    Object.assign({}, LOOK.tourist, { skin: '#f6d2b6', hair: '#c9873a', coat: '#fcc419', pants: '#364fc7', hat: '#1971c2', beanie: 1, pack: '#e8590c', long: 1, scale: 0.72, belly: 0.4 }),
+    Object.assign({}, LOOK.tourist, { skin: '#f6d2b6', hair: '#c9873a', coat: '#fcc419', pants: '#364fc7', hat: '#1971c2', beanie: 1, pack: '#e8590c', long: 1, scale: 0.98, belly: 0.8 }),
   ];
   LOOK.waiter = {
     skin: '#efc7a3', hair: '#2e2018', coat: '#f6f3ec', vest: '#1e1b19', trim: '#b8322a', pants: '#24211f', boots: '#161210', sole: '#050403',

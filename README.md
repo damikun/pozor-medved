@@ -20,8 +20,8 @@ The game runs right in the browser, nothing to install. Offline, just open `inde
 - **Winter on the Slopes**: a warm Advent and the snow cannons woke you up. Cross the ski resort and the Christmas
   market of Liptovský Mikuláš to reach a quiet den.
 - **Up to Ďumbier**: from a car park in Demänovská dolina along the road to the Cave of Liberty, where you count
-  the bats: hide from the tour coming the other way, take a headlamp into the closed part, crawl under the low
-  ceilings, jump the river and don't run. Then up through the forest to the hotels of Jasná, a packed cable car
+  the bats: hide behind a column or freeze like a stalagmite when the tour turns your way, put on a miner's helmet
+  for the closed part, crawl under the low ceilings, jump the river and don't run. Then up through the forest to the hotels of Jasná, a packed cable car
   cabin you keep balanced from the far side, down a steep slope to a queue for cabbage soup at Kamenná chata, and
   along the Low Tatras ridge in fog and wind up to Ďumbier and down to a den below it.
 

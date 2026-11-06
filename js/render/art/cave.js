@@ -4,10 +4,9 @@
   const PI = Math.PI, TAU = PI * 2;
   const sin = Math.sin, abs = Math.abs, min = Math.min, max = Math.max;
   const { circle, ellipse: ell, rrect: rr, label } = ZS.gfx;
-  const { hash, smooth, sstep, lerp } = ZS.util;
+  const { hash, smooth, sstep, lerp, clamp } = ZS.util;
   const API = (ZS.caveArt = {});
   const SIM = () => ZS.sim.cave;
-  const ROOF = GY - 330;
   const ROCK = { deep: '#17121f', wall: '#2a2236', wall2: '#33293f', floor: '#3f3443', floorTop: '#6b5a66', calcite: '#d9ccb4', calc2: '#bfae94', calc3: '#a08e78' };
   const figures = new Map();
   const geo = new Map();
@@ -25,9 +24,7 @@
     ZS.drawHuman(ctx, h, time);
   }
 
-  function roofY(x) {
-    return ROOF + 26 * sin(x * 0.006) + 18 * sin(x * 0.017 + 1.3) + 10 * sin(x * 0.043);
-  }
+  const roofY = (x) => SIM().roofY(x);
 
   function back(ctx, g, viewW, offY) {
     const cam = g.cam, H = g.viewH || 540;
@@ -178,11 +175,11 @@
     if (!G) {
       const body = new Path2D(), shine = new Path2D(), rings = new Path2D();
       body.moveTo(x - w / 2 - 8, GY + 4);
-      body.bezierCurveTo(x - w / 2, GY - 40, x - w * 0.22, GY - s.h * 0.75, x - w * 0.18, GY - s.h);
-      body.bezierCurveTo(x - w * 0.16, top + 80, x - w * 0.45, top + 30, x - w * 0.55, top - 6);
+      body.bezierCurveTo(x - w / 2, GY - 40, x - w * 0.36, GY - s.h * 0.75, x - w * 0.33, GY - s.h);
+      body.bezierCurveTo(x - w * 0.3, top + 80, x - w * 0.45, top + 30, x - w * 0.55, top - 6);
       body.lineTo(x + w * 0.55, top - 6);
-      body.bezierCurveTo(x + w * 0.45, top + 30, x + w * 0.16, top + 80, x + w * 0.18, GY - s.h);
-      body.bezierCurveTo(x + w * 0.22, GY - s.h * 0.75, x + w / 2, GY - 40, x + w / 2 + 8, GY + 4);
+      body.bezierCurveTo(x + w * 0.45, top + 30, x + w * 0.3, top + 80, x + w * 0.33, GY - s.h);
+      body.bezierCurveTo(x + w * 0.36, GY - s.h * 0.75, x + w / 2, GY - 40, x + w / 2 + 8, GY + 4);
       body.closePath();
       shine.moveTo(x - w * 0.3, GY - 6); shine.quadraticCurveTo(x - w * 0.12, GY - s.h * 0.6, x - w * 0.08, top + 40);
       for (let i = 1; i < 6; i++) { const y = GY - i * (s.h / 6); rings.moveTo(x - w * (0.5 - i * 0.05), y); rings.quadraticCurveTo(x, y + 5, x + w * (0.5 - i * 0.05), y); }
@@ -195,17 +192,32 @@
   }
 
   function group(ctx, g, c) {
-    const T = SIM().TOUR, t = g.time;
-    if (c.t < T.start || c.guide < T.gone) return;
+    const T = SIM().TOUR, t = g.time, st = SIM().walking(c) ? 'walk' : 'idle';
+    if (c.guide < T.gone) return;
     for (let i = 9; i >= 0; i--) {
       const x = c.guide + i * 23 + (i % 2) * 5;
       if (i === 0) {
-        person(ctx, 'caveGuide', 'aide', x, -1, 'walk', t);
-        ctx.fillStyle = '#fff3c4'; circle(ctx, x - 3, GY - 82, 2.8);
+        person(ctx, 'caveGuide', 'aide', x, st === 'walk' ? -1 : 1, st, t, { scared: c.grace });
+        ctx.fillStyle = '#fff3c4'; circle(ctx, x + (st === 'walk' ? -3 : 3), GY - 82, 2.8);
         continue;
       }
-      person(ctx, 'caveT' + i, 'tourist', x, -1, 'walk', t, { look: i, hiker: true, empty: true });
+      person(ctx, 'caveT' + i, 'tourist', x, -1, st, t, { look: i, hiker: true, empty: true, scared: c.grace });
     }
+  }
+
+  function cover(ctx, g, c, S) {
+    if (!c.warn) return;
+    const b = g.bear, t = g.time;
+    let best = null;
+    for (const s of S.covers) if (s.x < S.cave.gap && (!best || abs(s.x - b.x) < abs(best.x - b.x))) best = s;
+    if (!best) return;
+    const p = 0.5 + 0.5 * sin(t * 7);
+    ctx.fillStyle = 'rgba(255,226,140,' + (0.1 + 0.12 * p).toFixed(3) + ')';
+    ell(ctx, best.x, GY - best.h * 0.6, best.w * 0.75, best.h * 0.75);
+    ctx.fillStyle = 'rgba(255,226,140,' + (0.7 + 0.3 * p).toFixed(3) + ')';
+    const y = GY - best.h - 34 - 6 * p;
+    poly(ctx, [best.x - 11, y, best.x + 11, y, best.x, y + 14]);
+    ctx.fillRect(best.x - 4, y - 14, 8, 14);
   }
 
   function passages(ctx, S, cam, viewW, offY) {
@@ -278,15 +290,12 @@
   }
 
   function headlamp(ctx, c, b) {
-    if (!c.lamp || b.hiding || c.count) return;
+    if (!c.lamp || b.hiding || c.count || c.pose) return;
     const [hx, hy] = head(b), d = b.dir < 0 ? -1 : 1, R = SIM().LAMP.range;
     const gr = ctx.createLinearGradient(hx, 0, hx + d * R, 0);
     gr.addColorStop(0, 'rgba(255,246,200,0.34)'); gr.addColorStop(1, 'rgba(255,246,200,0)');
     ctx.fillStyle = gr;
     ctx.beginPath(); ctx.moveTo(hx, hy - 3); ctx.lineTo(hx + d * R, hy - 110); ctx.lineTo(hx + d * R, hy + 70); ctx.lineTo(hx, hy + 3); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#2b2d31'; ctx.fillRect(hx - d * 18 - 3, hy - 6, 22, 4);
-    ctx.fillStyle = '#f08c00'; rr(ctx, hx - 4, hy - 8, 9, 8, 2);
-    ctx.fillStyle = '#fff8d6'; circle(ctx, hx + d * 4, hy - 4, 3);
   }
 
   function counting(ctx, g, c, b, withBear) {
@@ -294,12 +303,17 @@
     s.spot.x = b.x;
     const who = Object.assign(s.who || (s.who = {}), b, { hiding: s.spot, pose: 'stiff', hideT: 2, hideBlend: 1 });
     withBear(ZS.drawBearBehindTree, who, 1);
+    if (!c.count) {
+      const y = GY - 150 + sin(g.time * 2) * 0.6;
+      ctx.fillStyle = ROCK.calcite; poly(ctx, [b.x - 9, y + 6, b.x + 9, y + 6, b.x + 1, y - 22]);
+      ctx.fillStyle = 'rgba(255,248,230,0.7)'; poly(ctx, [b.x - 3, y + 4, b.x + 1, y + 4, b.x, y - 14]);
+      return;
+    }
     const t = g.time, k = c.count.k;
     ctx.save(); ctx.translate(b.x + 12, GY - 116); ctx.rotate(-0.35 + sin(k * PI) * 0.25);
     ctx.fillStyle = '#6b4626'; rr(ctx, -5, -30, 10, 32, 5);
     ctx.fillStyle = '#3a2614'; for (let j = -1; j <= 1; j++) poly(ctx, [j * 3 - 1.2, -30, j * 3 + 1.2, -30, j * 3, -35]);
     ctx.restore();
-    if (c.lamp) { ctx.fillStyle = '#f08c00'; rr(ctx, b.x - 5, GY - 140, 10, 8, 2); ctx.fillStyle = '#fff8d6'; circle(ctx, b.x, GY - 136, 3); }
     label(ctx, String(c.count.counted + 1), b.x + 26, GY - 172 - sin(t * 9) * 2, 15, '#f6e7c4');
   }
 
@@ -311,7 +325,7 @@
         withBear(ZS.drawBearBehindTree, who, b.hideBlend);
       }
     }
-    if (c.count) { counting(ctx, g, c, b, withBear); return; }
+    if (c.count || c.pose) { counting(ctx, g, c, b, withBear); return; }
     const rest = 1 - (b.hideBlend || 0);
     if (rest > 0.01) withBear(ZS.drawBear, b, rest);
   }
@@ -336,7 +350,12 @@
     ctx.fillStyle = gr;
     ctx.fillRect(cam - 2, -offY - 10, viewW + 4, H + 40);
     const T = SIM().TOUR;
-    if (c.t >= T.start && c.guide > T.gone && c.guide < cam + viewW + 300) {
+    if (c.guide > T.gone && c.guide < cam + viewW + 300 && !SIM().walking(c)) {
+      const x = c.guide + 6, y = GY - 84, top = roofY(x + 140) + 20;
+      const gl = ctx.createLinearGradient(x, y, x + 140, top);
+      gl.addColorStop(0, 'rgba(255,244,200,0.3)'); gl.addColorStop(1, 'rgba(255,244,200,0)');
+      ctx.fillStyle = gl; ctx.beginPath(); ctx.moveTo(x, y - 3); ctx.lineTo(x + 70, top); ctx.lineTo(x + 230, top + 10); ctx.lineTo(x, y + 3); ctx.closePath(); ctx.fill();
+    } else if (c.guide > T.gone && c.guide < cam + viewW + 300) {
       const gl = ctx.createLinearGradient(c.guide + 10, 0, c.guide - T.light, 0);
       gl.addColorStop(0, 'rgba(255,244,200,0.34)'); gl.addColorStop(1, 'rgba(255,244,200,0)');
       ctx.fillStyle = gl; ctx.beginPath(); ctx.moveTo(c.guide + 6, GY - 84); ctx.lineTo(c.guide - T.light, GY - 170); ctx.lineTo(c.guide - T.light, GY); ctx.lineTo(c.guide + 6, GY - 76); ctx.closePath(); ctx.fill();
@@ -357,7 +376,9 @@
 
   function hint(ctx, g, c, viewW) {
     const k = SIM().hint(g, c), b = g.bear;
-    const parts = k ? [Object.assign([HINT[k][0], LABELS.cave.hint[k]], { skill: 'cave' + k, tip: true })] : null;
+    const one = (key, text, skill) => Object.assign([key, text], { skill, tip: true });
+    const parts = k === 'hide' ? [one('ArrowDown', LABELS.cave.hint.hide, 'cavehide'), one('KeyC', LABELS.cave.hint.statue, 'cavestatue')]
+      : k ? [one(HINT[k][0], LABELS.cave.hint[k], 'cave' + k)] : null;
     ZS.prompt.show(ctx, g, parts && { parts, x: b.x, y: GY + 6 }, { hang: true, lo: g.cam + 8, hi: g.cam + viewW - 8 });
   }
 
@@ -372,13 +393,14 @@
   }
 
   function banner(ctx, g, c, viewW, offY) {
-    const show = c.t < 9 ? 1 - smooth((c.t - 7.5) / 1.5) : 0;
+    c.warnA = clamp((c.warnA || 0) + (c.warn ? 0.08 : -0.05), 0, 1);
+    const show = max(c.t < 9 ? 1 - smooth((c.t - 7.5) / 1.5) : 0, c.warnA);
     if (show <= 0.01) return;
-    const text = g.touch ? LABELS.cave.bannerTouch : LABELS.cave.banner;
+    const text = c.warnA > 0.01 ? (g.touch ? LABELS.cave.warnTouch : LABELS.cave.warn) : g.touch ? LABELS.cave.bannerTouch : LABELS.cave.banner;
     ctx.globalAlpha = show;
     ctx.font = '700 15px system-ui, sans-serif';
     const w = min(viewW - 24, ctx.measureText(text).width + 32);
-    ctx.fillStyle = 'rgba(20,16,26,0.82)'; rr(ctx, viewW / 2 - w / 2, -offY + 70, w, 34, 17);
+    ctx.fillStyle = c.warnA > 0.01 ? 'rgba(150,40,30,' + (0.82 + 0.12 * sin(g.time * 8)).toFixed(3) + ')' : 'rgba(20,16,26,0.82)'; rr(ctx, viewW / 2 - w / 2, -offY + 70, w, 34, 17);
     ctx.fillStyle = '#f6e7c4'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, viewW / 2, -offY + 87, w - 20);
     ctx.globalAlpha = 1;
   }
@@ -412,6 +434,7 @@
     group(ctx, g, c);
     bear(ctx, g, c, S, withBear);
     for (const s of S.covers) if (vis(s.x, 80)) column(ctx, s);
+    cover(ctx, g, c, S);
     passages(ctx, S, cam, viewW, offY);
     darkness(ctx, S, c, cam, viewW, offY, H, b);
     headlamp(ctx, c, b);

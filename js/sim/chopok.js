@@ -11,7 +11,7 @@
   const GUEST = { calm: [4.5, 8], zip: 1.2, look: [1, 1.6] };
   const CHAMOIS = { near: 260, leap: 0.6, hop: 110, leaps: 5 };
   const MARMOT = { near: 300, hide: 1.2 };
-  const CHATA = { counter: 26, bill: 2.8, said: 20 };
+  const CHATA = { counter: 26, bill: 2.8, said: 20, back: 70, grace: 0.8, waive: 3 };
   const MINISTER = { range: 320, close: 80, every: 12, panic: 12 };
   const RESCUER = { panic: 6 };
 
@@ -118,6 +118,7 @@
     g.level = M.level;
     for (const k of KEEP) g[k] = M[k];
     g.particles = []; g.floaters = []; g.shots = []; g.bubble = null;
+    g.bear.helmet = false;
     p.main = null;
     land(g, p);
     p.phase = 'back'; p.t = 0;
@@ -285,6 +286,7 @@
     for (const p of k.guests) cycle(p, GUEST, dt);
     if (!inQueue(L, b.x) || (k.served && b.x > L.chata.counter - 40)) return;
     if (!g.once.queue) { g.once.queue = true; rules().float(g, b.x, GY - 140, LABELS.chopok.queue, COLORS.story); }
+    if (k.waved || g.time < k.graceT) return;
     const who = b.moving ? watchers(g, c) : null;
     if (who) caught(g, c, who);
   }
@@ -292,8 +294,15 @@
   function caught(g, c, who) {
     const L = g.level, b = g.bear, k = c.chata;
     rules().spotted(g, who === 'cook' ? L.chata.cook : b.x + 30, GY - 120, who === 'cook' ? LABELS.chopok.caught : LABELS.chopok.next);
-    Object.assign(b, { x: L.chata.door - 16, trackX: L.chata.door - 16, vx: 0, moving: false, dir: 1 });
+    const x = Math.max(L.chata.door - 16, b.x - CHATA.back);
+    Object.assign(b, { x, trackX: x, vx: 0, moving: false, dir: 1 });
     k.caughtAt = g.time;
+    k.graceT = g.time + CHATA.grace;
+    k.caught = (k.caught || 0) + 1;
+    if (k.caught >= CHATA.waive && !k.waved) {
+      k.waved = true;
+      rules().float(g, L.chata.cook, GY - 150, LABELS.chopok.waved, COLORS.story);
+    }
     rules().quip(g, QUIPS().chata, true);
     if (g.time - k.saidAt > CHATA.said) { k.saidAt = g.time; rules().say(g, NEWS.chataCaught); }
   }

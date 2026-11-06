@@ -140,7 +140,7 @@ test('in the cave the closed part needs the headlamp, holding C under a colony c
   assert.equal(last.counted, 0);
 });
 
-test('in the cave a low ceiling stops an upright bear without knocking it down, a crawling one passes, the river throws it back, and the tour sees a bear in its light unless it hides', () => {
+test('in the cave a low ceiling stops an upright bear like a wall, a crawling one passes, the rock stops a jump, and the river throws it back', () => {
   const env = setup();
   const { ZS, g, b, run, quiet, input } = env;
   quiet();
@@ -149,39 +149,86 @@ test('in the cave a low ceiling stops an upright bear without knocking it down, 
   c.guide = T.gone;
   c.lamp = true;
   const [a, z] = S.low[0];
-  Object.assign(b, { x: a - 60, trackX: a - 60 });
+  Object.assign(b, { x: a - 120, trackX: a - 120 });
   input.press('ArrowRight', true);
   run(1);
-  assert.ok(b.x < a + 10, 'stopped at the low ceiling: ' + Math.round(b.x));
+  const xs = [];
+  run(1, () => { xs.push(b.x); });
+  assert.ok(b.x < a, 'stopped before the low ceiling: ' + Math.round(b.x));
+  assert.ok(Math.max(...xs) - Math.min(...xs) < 0.5, 'no jitter at the edge');
   assert.equal(b.stun, 0, 'no bump');
   assert.ok(c.bats.every((o) => o.state === 'sleep'), 'the bats sleep on');
   assert.equal(ZS.sim.cave.hint(g, c), 'crawl');
   input.press('ArrowDown', true);
-  run((z - a + 120) / 85 + 0.5);
+  run(1);
   input.release('ArrowDown');
+  assert.ok(b.x > a && b.crouch, 'crawling under: ' + Math.round(b.x));
+  input.press('Space', false);
+  run(0.5);
+  input.release('Space');
+  assert.ok(b.onGround && b.crouch, 'no jumping under the rock');
+  run((z - b.x + 80) / 85 + 0.5);
   input.release('ArrowRight');
   assert.ok(b.x > z, 'crawled through: ' + Math.round(b.x));
+  Object.assign(b, { x: a - 70, trackX: a - 70, dir: 1 });
+  run(0.3);
+  const GY0 = b.y;
+  let top = b.y;
+  input.press('Space', false);
+  run(0.8, () => { top = Math.min(top, b.y); });
+  input.release('Space');
+  assert.ok(top < GY0 - 20, 'a real jump: ' + Math.round(top));
+  assert.ok(top - 90 >= ZS.sim.cave.ceiling(g.level, a - 30) - 1, 'the head stays under the rock: ' + Math.round(top));
   const wet = S.water[0] + 30;
-  Object.assign(b, { x: wet, trackX: wet, stun: 0 });
+  Object.assign(b, { x: wet, trackX: wet, stun: 0, y: g.bear.y });
   run(DT * 2);
   assert.equal(c.wet, 1, 'splash');
   assert.ok(b.x < S.water[0], 'back on the bank: ' + Math.round(b.x));
   assert.ok(!ZS.sim.cave.water(g.level, S.stones[0]), 'the stone is dry');
-  Object.assign(b, { x: 500, trackX: 500, stun: 0, hiding: null });
-  Object.assign(c, { t: T.start + 1, guide: 600, seenAt: -99 });
+});
+
+test('in the cave the tour warns first, sees a bear in its light without sending it back, and walks past a bear behind a column or frozen like a stalagmite', () => {
+  const env = setup();
+  const { ZS, g, b, run, quiet, input } = env;
+  quiet();
+  const c = into(env, env.L.cave.door);
+  const S = g.level.cave, T = ZS.sim.cave.TOUR;
+  Object.assign(b, { x: T.trigger + 10, trackX: T.trigger + 10 });
+  run(DT * 2);
+  assert.ok(c.go !== null && c.warn, 'the warning comes first');
+  run(T.delay - 0.2);
+  assert.equal(c.guide, T.from, 'the guide still talks at the gate');
+  assert.equal(c.seen, 0);
+  Object.assign(b, { x: 400, trackX: 400 });
+  Object.assign(c, { go: c.t - T.delay - 1, guide: 520 });
   run(DT);
   assert.equal(c.seen, 1, 'seen in the light');
-  assert.ok(b.x < 600 - T.light, 'pushed back from the tour: ' + Math.round(b.x));
+  assert.ok(Math.abs(b.x - 400) < 5 && b.stun === 0, 'no push back and no restart: ' + Math.round(b.x));
+  run(1);
+  assert.equal(c.seen, 1, 'the tour walks past after a scare');
   const col = g.level.covers.find((o) => o.stalag && o.x < S.gap);
   Object.assign(b, { x: col.x, trackX: col.x, stun: 0, hiding: null });
-  Object.assign(c, { guide: T.gone, seenAt: -99 });
+  Object.assign(c, { guide: T.gone, grace: false });
   input.press('ArrowDown', true);
   run(0.5);
   assert.ok(b.hiding && b.hiding.hide, 'hiding behind the column');
   c.guide = col.x + 80;
-  run(1);
+  run(1.5);
   input.release('ArrowDown');
-  assert.equal(c.seen, 1, 'the tour walks past');
+  assert.equal(c.seen, 1, 'the tour walks past the column');
+  Object.assign(b, { x: 600, trackX: 600, hiding: null });
+  Object.assign(c, { guide: T.gone, grace: false });
+  input.press('KeyC', true);
+  run(0.2);
+  c.guide = 700;
+  run(1.5);
+  assert.ok(c.pose, 'frozen like a stalagmite');
+  input.release('KeyC');
+  assert.equal(c.seen, 1, 'the tour takes the bear for a stalagmite');
+  c.lamp = true;
+  Object.assign(b, { x: S.exit - 2, trackX: S.exit - 2 });
+  run(DT * 2);
+  assert.equal(b.helmet, false, 'the headlamp stays in the cave');
 });
 
 test('the cabin is a sublevel too: a careful bear balances it from the other side and gets out by the Rotunda', () => {
@@ -206,8 +253,8 @@ test('in the cabin a crowd at one window tips it, and a bear on the same side se
   quiet();
   const c = into(env, env.L.funi.door);
   const S = g.level, panic = g.panic;
-  c.t = 6.5;
-  run(2.5);
+  c.legT = 1;
+  run(4);
   assert.equal(c.side, -1);
   assert.ok(ZS.sim.cabin.balance(c) > c.mid + 100, 'the counterweight belongs on the right');
   Object.assign(b, { x: S.cabin.left + 20, trackX: S.cabin.left + 20 });
@@ -234,7 +281,7 @@ test('every checkpoint of the Ďumbier level survives packing and resumes on its
   }
 });
 
-test('in the hut queue, moving while the hut keeper looks sends the bear back to the door, and ordering behind his back serves cabbage soup', () => {
+test('in the hut queue, moving while the hut keeper looks sends the bear a step back, three catches wave it through, and ordering behind his back serves cabbage soup', () => {
   const { ZS, g, b, L, run, quiet, put, input } = setup();
   quiet();
   run(0.1);
@@ -246,8 +293,21 @@ test('in the hut queue, moving while the hut keeper looks sends the bear back to
   input.press('ArrowRight', true);
   run(0.2);
   input.release('ArrowRight');
-  assert.ok(b.x < L.chata.door, 'back at the door: ' + Math.round(b.x));
+  assert.ok(b.x < L.chata.queue[1] && b.x >= L.chata.door - 16, 'a step back: ' + Math.round(b.x));
   assert.ok(g.stats.seen > 0);
+  for (let i = 0; i < 2; i++) {
+    g.time += 2;
+    put(L.chata.queue[1]);
+    input.press('ArrowRight', true);
+    run(0.1);
+    input.release('ArrowRight');
+  }
+  assert.equal(k.waved, true, 'the hut keeper gives up');
+  put(L.chata.queue[0]);
+  input.press('ArrowRight', true);
+  run(2);
+  input.release('ArrowRight');
+  assert.ok(b.x > L.chata.counter, 'through the hut: ' + Math.round(b.x));
   put(L.chata.counter);
   freeze();
   k.cook.state = 'pot';
