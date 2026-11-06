@@ -367,6 +367,10 @@
         'Ein Bär leckte einen Teller Halušky blank. Die Hütte bietet ihm einen Job als Tellerwäscher an.',
       ],
       hug: {
+        rescuer: [
+          'Ein Bär auf dem Kamm umarmte einen Bergretter. Bericht: Einsatz ohne Verletzte, mit einer Umarmung.',
+          'Ein Bergretter suchte einen verirrten Wanderer und fand eine Umarmung. Der Bär war nicht verirrt.',
+        ],
         photographer: [
           'Bär umarmt Naturfotografen. Der fotografiert weiter: Das schärfste Porträt meiner Karriere, leider aus zwei Zentimetern.',
           'Fotograf in Tarnkleidung bekommt eine Bärenumarmung. Die Tarnung habe funktioniert, der Bär fand ihn erst beim dritten Versuch.',
@@ -437,6 +441,9 @@
         'Polizei nimmt illegale Umarmung fest. Der Bär ist geflohen, die Umarmung sitzt in der Zelle.',
       ],
       bite: {
+        rescuer: [
+          'Ein Bär biss einen Bergretter. Der Retter leistete sich selbst Erste Hilfe und schrieb sie in den Bericht.',
+        ],
         photographer: [
           'Bär beißt Naturfotografen. Der lässt den Auslöser nicht los: Wenigstens habe ich die Zähne drauf.',
           'Bär beißt Fotografen an der Belá. Das Ministerium beschlagnahmt die Fotos als Beweis, der Fotograf hat ein Backup in der Cloud.',
@@ -793,8 +800,8 @@
       fenceHint: 'drüberspringen',
       logHint: 'drüberspringen',
       shout: {
-        hug: { walker: 'Lass mich, ich hab einen Waffenschein!', ztmh: 'Das steht nicht im Protokoll!', poacher: 'Ich weiß von nix!', picker: 'Jessas Maria!', tourist: 'Mama, film das!', santa: 'Ho-ho… hooo!', guest: 'Ich wollte nur Nocken essen!', waiter: 'Haben Sie reserviert?!', photographer: 'Noch ein Bild!', seller: 'Nimm irgendeinen, nur lass mich los!', fisher: 'Der war SOO groß!', tycoon: 'Umarmung im Skipass inklusive!' },
-        bite: { walker: 'Au, meine Ehre!', ztmh: 'Au! Treffer!', poacher: 'Au! Kein Wort zu niemandem!', picker: 'Hilfe!', tourist: 'Auuu!', santa: 'Au, mein Bischofsstab!', guest: 'Au, ich hab noch nicht bezahlt!', waiter: 'Au! Das steht nicht auf der Karte!', photographer: 'Au! Aber gestochen scharf!', seller: 'Au! Ohne Quittung!', fisher: 'Au! Bin ich der Köder?!', tycoon: 'Au! Die Jacke ist Premium!' },
+        hug: { walker: 'Lass mich, ich hab einen Waffenschein!', ztmh: 'Das steht nicht im Protokoll!', poacher: 'Ich weiß von nix!', picker: 'Jessas Maria!', tourist: 'Mama, film das!', santa: 'Ho-ho… hooo!', guest: 'Ich wollte nur Nocken essen!', waiter: 'Haben Sie reserviert?!', photographer: 'Noch ein Bild!', seller: 'Nimm irgendeinen, nur lass mich los!', fisher: 'Der war SOO groß!', tycoon: 'Umarmung im Skipass inklusive!', rescuer: 'Das kommt in den Bericht!' },
+        bite: { walker: 'Au, meine Ehre!', ztmh: 'Au! Treffer!', poacher: 'Au! Kein Wort zu niemandem!', picker: 'Hilfe!', tourist: 'Auuu!', santa: 'Au, mein Bischofsstab!', guest: 'Au, ich hab noch nicht bezahlt!', waiter: 'Au! Das steht nicht auf der Karte!', photographer: 'Au! Aber gestochen scharf!', seller: 'Au! Ohne Quittung!', fisher: 'Au! Bin ich der Köder?!', tycoon: 'Au! Die Jacke ist Premium!', rescuer: 'Au! Das kommt auch in den Bericht!' },
         selfie: 'Lächeln!',
         fall: 'Uaaah!',
         ladder: ['Mamaaa!', 'Ich wollte nur Vögel beobachten!', 'Er gehört Ihnen!'],

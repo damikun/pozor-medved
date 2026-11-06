@@ -386,11 +386,13 @@
     rules().quip(game, act.kind === 'hug' ? ZS.QUIPS.hugAir : ZS.QUIPS.biteAir);
   }
 
+  const said = (map, human) => map[human.as || human.kind] || map.tourist;
+
   function hugHuman(game, human) {
     game.stats.hugs++;
     rules().onSound(game, 'hug', human.x);
     drop(game, human, -human.dir * HUG.throwSpeed, HUG.throwLift);
-    rules().float(game, human.x, GROUND - SHOUT_HEIGHT, LABELS.shout.hug[human.as || human.kind], COLORS.story);
+    rules().float(game, human.x, GROUND - SHOUT_HEIGHT, said(LABELS.shout.hug, human), COLORS.story);
     if (game.flags.hugBan) {
       reportBannedHug(game);
       return;
@@ -410,7 +412,7 @@
   function calmPanicWithHug(game, human) {
     const hugs = game.stats.hugs;
     const calming = Math.max(HUG.leastCalming, HUG.firstCalming - HUG.calmingFade * (hugs - 1));
-    const news = hugs > HUG.tiredAfter ? NEWS.hugTired : NEWS.hug[human.as || human.kind];
+    const news = hugs > HUG.tiredAfter ? NEWS.hugTired : said(NEWS.hug, human);
     rules().addPanic(game, -calming, news, hugs <= HUG.tiredAfter);
   }
 
@@ -436,8 +438,8 @@
     rules().onSound(game, 'bite', human.x);
     game.lastHuman = game.time;
     game.syn = Math.min(100, Math.max(game.syn + BITE.synanthropy, CFG.PROBLEM + BITE.pastProblem));
-    rules().float(game, human.x, GROUND - SHOUT_HEIGHT, LABELS.shout.bite[human.as || human.kind], COLORS.bad);
-    rules().addPanic(game, BITE.panic, NEWS.bite[human.as || human.kind], true);
+    rules().float(game, human.x, GROUND - SHOUT_HEIGHT, said(LABELS.shout.bite, human), COLORS.bad);
+    rules().addPanic(game, BITE.panic, said(NEWS.bite, human), true);
     rules().quip(game, ZS.QUIPS.bitePerson, true);
   }
 

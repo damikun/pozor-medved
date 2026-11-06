@@ -191,6 +191,17 @@
     ctx.strokeStyle = 'rgba(255,248,230,0.55)'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.stroke(G.shine); ctx.lineCap = 'butt';
   }
 
+  const LAMP_Y = GY - 71;
+
+  function guideHelmet(ctx, x, d) {
+    const y = LAMP_Y + 3;
+    ctx.fillStyle = '#e8590c';
+    ctx.beginPath(); ctx.ellipse(x - d * 1, y, 10, 8, 0, PI, 0); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#c4490a'; ctx.fillRect(x - 12 - d, y - 1, 24, 3);
+    ctx.fillStyle = '#2b2d31'; circle(ctx, x + d * 8, y - 4, 3.4);
+    ctx.fillStyle = '#fff6c8'; circle(ctx, x + d * 8.6, y - 4, 2.2);
+  }
+
   function group(ctx, g, c) {
     const T = SIM().TOUR, t = g.time, A = c.alert, b = g.bear, st = A ? 'idle' : SIM().walking(c) ? 'walk' : 'idle';
     if (c.guide < T.gone) return;
@@ -199,7 +210,7 @@
       const x = c.guide + i * 23 + (i % 2) * 5;
       if (i === 0) {
         person(ctx, 'caveGuide', 'aide', x, gd, st, t, { scared: !!A });
-        ctx.fillStyle = '#fff3c4'; circle(ctx, x + gd * 3, GY - 82, 2.8);
+        guideHelmet(ctx, x, gd);
         continue;
       }
       const fd = look ? Math.sign(b.x - x) || -1 : A ? (hash(i * 3.7 + Math.floor(t * 0.8)) > 0.5 ? 1 : -1) : -1;
@@ -407,13 +418,21 @@
     label(ctx, String(o.counted + 1), b.x + 34 * (b.dir < 0 ? -1 : 1), b.y - 178 - sin(t * 9) * 2, 15, '#f6e7c4');
   }
 
+  function front(b) {
+    return b.hiding && b.hiding.stalag ? b.hiding : null;
+  }
+
   function bear(ctx, g, c, S, withBear) {
     const b = g.bear;
-    for (const s of S.covers) {
-      if (b.hideTree === s && b.hideBlend > 0) {
-        const who = b.hiding ? b : (b.fadeBear = Object.assign(b.fadeBear || {}, b, { hiding: s }));
-        withBear(ZS.drawBearBehindTree, who, b.hideBlend);
-      }
+    const at = front(b);
+    if (at) {
+      column(ctx, at);
+      const who = (b.frontBear = Object.assign(b.frontBear || {}, b, { hiding: null, moving: false, running: false, crouch: false, vx: 0, x: at.x + (b.peekSide < 0 ? -8 : 8) }));
+      withBear(ZS.drawBear, who, 1);
+      const t = g.time;
+      ctx.fillStyle = 'rgba(190,225,245,0.85)';
+      for (let i = 0; i < 2; i++) { const k = (t * 0.8 + i * 0.5) % 1; circle(ctx, who.x + (who.dir < 0 ? -38 : 38) + i * 6, b.y - 92 + k * 26, 2.2 * (1 - k)); }
+      return;
     }
     if (c.pose) { statue(ctx, g, c, b, withBear); return; }
     const rest = 1 - (b.hideBlend || 0);
@@ -457,7 +476,7 @@
     return min(a, lerp(0.45, a, sstep(40, 140, abs(x - b.x))));
   }
 
-  function darkness(ctx, S, c, cam, viewW, offY, H, b) {
+  function darkness(ctx, S, c, cam, viewW, offY, H, b, g0) {
     const n = 60, gr = ctx.createLinearGradient(cam, 0, cam + viewW, 0);
     for (let i = 0; i <= n; i++) {
       const u = i / n;
@@ -467,14 +486,15 @@
     ctx.fillRect(cam - 2, -offY - 10, viewW + 4, H + 40);
     const T = SIM().TOUR, A = c.alert;
     if (c.guide > T.gone && c.guide < cam + viewW + 300 && SIM().walking(c)) {
-      const x = c.guide + 6, y = GY - 80, len = T.light + (c.suspect ? SIM().ALERT.wider : 0);
+      const gd = A && !A.doubt ? Math.sign(b.x - c.guide) || -1 : A ? (sin(g0 * 1.7) > 0 ? -1 : 1) : -1;
+      const x = c.guide + gd * 8.6, y = LAMP_Y - 1, len = T.light + (c.suspect ? SIM().ALERT.wider : 0);
       const ang = A && !A.doubt ? Math.atan2(b.y - 70 - y, b.x - x) : A ? PI - 0.25 + 0.5 * sin(c.t * 2.3) : PI + 0.12;
       const ux = Math.cos(ang), uy = Math.sin(ang), px = -uy, py = ux, ex = x + ux * len, ey = y + uy * len, w = len * 0.42;
       const gl = ctx.createLinearGradient(x, y, ex, ey);
       gl.addColorStop(0, 'rgba(255,244,200,' + (A ? 0.42 : 0.34) + ')'); gl.addColorStop(1, 'rgba(255,244,200,0)');
       ctx.fillStyle = gl; ctx.beginPath(); ctx.moveTo(x + px * 3, y + py * 3); ctx.lineTo(ex + px * w, ey + py * w); ctx.lineTo(ex - px * w, ey - py * w); ctx.lineTo(x - px * 3, y - py * 3); ctx.closePath(); ctx.fill();
     } else if (c.guide > T.gone && c.guide < cam + viewW + 300) {
-      const x = c.guide + 6, y = GY - 84, top = roofY(x + 140) + 20;
+      const x = c.guide + 8.6, y = LAMP_Y - 1, top = roofY(x + 140) + 20;
       const gl = ctx.createLinearGradient(x, y, x + 140, top);
       gl.addColorStop(0, 'rgba(255,244,200,0.3)'); gl.addColorStop(1, 'rgba(255,244,200,0)');
       ctx.fillStyle = gl; ctx.beginPath(); ctx.moveTo(x, y - 3); ctx.lineTo(x + 70, top); ctx.lineTo(x + 230, top + 10); ctx.lineTo(x, y + 3); ctx.closePath(); ctx.fill();
@@ -556,10 +576,10 @@
     group(ctx, g, c);
     bear(ctx, g, c, S, withBear);
     sink(ctx, S, c, b);
-    for (const s of S.covers) if (vis(s.x, 80)) column(ctx, s);
+    for (const s of S.covers) if (vis(s.x, 80) && s !== front(b)) column(ctx, s);
     cover(ctx, g, c, S);
     passages(ctx, S, cam, viewW, offY);
-    darkness(ctx, S, c, cam, viewW, offY, H, b);
+    darkness(ctx, S, c, cam, viewW, offY, H, b, t);
     headlamp(ctx, c, b);
     colonies(ctx, c, g);
     eyes(ctx, g, cam, viewW);

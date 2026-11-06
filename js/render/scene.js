@@ -307,7 +307,7 @@
     if (g.bubble) P.bubble(ctx, b.x, Math.max(top + 34, b.climbing || b.offTree ? Math.min(b.y - 128, GY - 180) : GY - 180), g.bubble.text, g.bubble.t, g.cam + 8, g.cam + viewW - 8);
   }
 
-  ZS.draw = function (g, ctx, viewW, offY) {
+  function scene(g, ctx, viewW, offY) {
     const lift = ZS.render.lift;
     if (g.ride && lift.inside(g)) { lift.draw(g, ctx, viewW, offY); return; }
     if (ZS.sim.chopok.inside(g)) { (g.level.cabin ? ZS.cabinArt : ZS.caveArt).draw(g, ctx, viewW, offY); ZS.chopokArt.iris(ctx, g, viewW, offY); return; }
@@ -379,6 +379,27 @@
     if (zoom) lift.cover(g, ctx, viewW, offY);
     if (g.cut) ZS.loggingArt.iris(ctx, g, viewW, offY);
     if (L.summit) ZS.chopokArt.iris(ctx, g, viewW, offY);
+  }
+
+  const SEASON_FADE = 2.5;
+  const fade = { key: null, level: null, img: null, t: -99 };
+
+  ZS.draw = function (g, ctx, viewW, offY) {
+    const cv = ctx.canvas, live = typeof document !== 'undefined' && cv && cv.width > 0;
+    if (fade.level === g.level && fade.key && fade.key !== g.seasonKey && live) {
+      if (!fade.img) fade.img = document.createElement('canvas');
+      fade.img.width = cv.width; fade.img.height = cv.height;
+      fade.img.getContext('2d').drawImage(cv, 0, 0);
+      fade.t = g.time;
+    }
+    fade.key = g.seasonKey; fade.level = g.level;
+    scene(g, ctx, viewW, offY);
+    const k = 1 - (g.time - fade.t) / SEASON_FADE;
+    if (k > 0 && k <= 1 && fade.img && live) {
+      ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = k * k;
+      ctx.drawImage(fade.img, 0, 0);
+      ctx.restore();
+    }
   };
 
   ZS.render.cue = cue;

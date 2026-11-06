@@ -367,6 +367,10 @@
         'Un oso dejó reluciente un plato de halušky. El mesón le ofrece trabajo de friegaplatos.',
       ],
       hug: {
+        rescuer: [
+          'Un oso en la cresta abrazó a un socorrista. Informe: intervención sin heridos y con un abrazo.',
+          'Un socorrista buscaba a un excursionista perdido y encontró un abrazo. El oso no estaba perdido.',
+        ],
         photographer: [
           'Un oso abrazó a un fotógrafo de naturaleza. Él siguió disparando: El retrato más nítido de mi carrera, lástima que a dos centímetros.',
           'Un fotógrafo camuflado recibió un abrazo de oso. El camuflaje funcionó: el oso no lo encontró hasta el tercer intento.',
@@ -437,6 +441,9 @@
         'La policía detiene un abrazo ilegal. El oso huyó; el abrazo está en el calabozo.',
       ],
       bite: {
+        rescuer: [
+          'Un oso mordió a un socorrista. El socorrista se hizo los primeros auxilios y lo anotó en el informe.',
+        ],
         photographer: [
           'Un oso mordió a un fotógrafo de naturaleza. No soltó el disparador ni un segundo: Al menos tengo los dientes.',
           'Un oso mordió a un fotógrafo junto al Belá. El ministerio requisó las fotos como prueba; el fotógrafo tiene copia en la nube.',
@@ -793,8 +800,8 @@
       fenceHint: 'sáltala',
       logHint: 'sáltalo',
       shout: {
-        hug: { walker: '¡Suéltame, tengo licencia de armas!', ztmh: '¡Esto no está en el protocolo!', poacher: '¡Yo solo pasaba por aquí!', picker: '¡Jesús, María y José!', tourist: '¡Mamá, graba!', santa: '¡Jo, jo… jooo!', guest: '¡Solo vine por los ñoquis!', waiter: '¿Tiene reserva?', photographer: '¡Una foto más!', seller: '¡Llévate el que quieras, pero suéltame!', fisher: '¡Era ASÍ de grande!', tycoon: '¡El abrazo va incluido en el forfait!' },
-        bite: { walker: '¡Ay, mi honor!', ztmh: '¡Ay! ¡Me dieron!', poacher: '¡Ay! ¡Ni una palabra a nadie!', picker: '¡Socorro!', tourist: '¡Auuu!', santa: '¡Ay, mi báculo!', guest: '¡Ay, que aún no he pagado!', waiter: '¡Ay! ¡Eso no está en la carta!', photographer: '¡Ay! ¡Pero qué nítida!', seller: '¡Ay! ¡Sin factura!', fisher: '¡Ay! ¿Soy yo el cebo?', tycoon: '¡Ay! ¡Que la chaqueta es premium!' },
+        hug: { walker: '¡Suéltame, tengo licencia de armas!', ztmh: '¡Esto no está en el protocolo!', poacher: '¡Yo solo pasaba por aquí!', picker: '¡Jesús, María y José!', tourist: '¡Mamá, graba!', santa: '¡Jo, jo… jooo!', guest: '¡Solo vine por los ñoquis!', waiter: '¿Tiene reserva?', photographer: '¡Una foto más!', seller: '¡Llévate el que quieras, pero suéltame!', fisher: '¡Era ASÍ de grande!', tycoon: '¡El abrazo va incluido en el forfait!', rescuer: '¡Esto va al informe!' },
+        bite: { walker: '¡Ay, mi honor!', ztmh: '¡Ay! ¡Me dieron!', poacher: '¡Ay! ¡Ni una palabra a nadie!', picker: '¡Socorro!', tourist: '¡Auuu!', santa: '¡Ay, mi báculo!', guest: '¡Ay, que aún no he pagado!', waiter: '¡Ay! ¡Eso no está en la carta!', photographer: '¡Ay! ¡Pero qué nítida!', seller: '¡Ay! ¡Sin factura!', fisher: '¡Ay! ¿Soy yo el cebo?', tycoon: '¡Ay! ¡Que la chaqueta es premium!', rescuer: '¡Ay! ¡Esto también va al informe!' },
         selfie: '¡Sonríe!',
         fall: '¡Aaay!',
         ladder: ['¡Mamááá!', '¡Solo miraba pajaritos!', '¡Todo suyo!'],

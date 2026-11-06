@@ -369,6 +369,10 @@
       'Medveď vylízal tanier halušiek. Koliba mu ponúka miesto umývača riadu.',
     ],
     hug: {
+      rescuer: [
+        'Medveď na hrebeni objal záchranára HZS. Hlásenie: zásah bez zranených, s jedným objatím.',
+        'Záchranár HZS hľadal strateného turistu, našiel objatie. Medveď stratený nebol.',
+      ],
       photographer: [
         'Medveď objal fotografa prírody. Ten fotil ďalej: Najostrejší portrét mojej kariéry, škoda, že z dvoch centimetrov.',
         'Fotograf v maskáčoch dostal medvedie objatie. Maskovanie vraj fungovalo, medveď ho našiel až na tretí pokus.',
@@ -439,6 +443,9 @@
       'Polícia zadržala nelegálne objatie. Medveď ušiel, objatie sedí v cele.',
     ],
     bite: {
+      rescuer: [
+        'Medveď hryzol záchranára HZS. Záchranár si sám poskytol prvú pomoc a zapísal ju do hlásenia.',
+      ],
       photographer: [
         'Medveď kusol fotografa prírody. Fotograf nepustil spúšť ani na sekundu: Aspoň mám zábery zubov.',
         'Medveď kusol fotografa pri Belej. Ministerstvo zabavilo fotky ako dôkaz, fotograf má zálohu v cloude.',
@@ -822,8 +829,8 @@
     fenceHint: 'preskoč',
     logHint: 'preskoč',
     shout: {
-      hug: { walker: 'Pusti ma, mám zbrojný pas!', ztmh: 'Toto nie je v protokole!', poacher: 'Ja nič, ja muzikant!', picker: 'Ježišmária!', tourist: 'Mami, natáčaj!', santa: 'Hó-hó… hóóó!', guest: 'Ja som len na halušky!', waiter: 'Máte rezerváciu?!', photographer: 'Ešte jeden záber!', seller: 'Vyber si hocijakú, len ma pusť!', fisher: 'Bol takýto veľký!', tycoon: 'Objatie je v cene skipasu!' },
-      bite: { walker: 'Au, moja česť!', ztmh: 'Au! Zásah!', poacher: 'Au! Nikomu ani slovo!', picker: 'Pomóc!', tourist: 'Auuu!', santa: 'Au, moja berla!', guest: 'Au, ešte som nezaplatil!', waiter: 'Au! To nie je na menu!', photographer: 'Au! Ale je ostrá!', seller: 'Au! Bez bločku!', fisher: 'Au! Ja som návnada?!', tycoon: 'Au! Bunda je prémiová!' },
+      hug: { walker: 'Pusti ma, mám zbrojný pas!', ztmh: 'Toto nie je v protokole!', poacher: 'Ja nič, ja muzikant!', picker: 'Ježišmária!', tourist: 'Mami, natáčaj!', santa: 'Hó-hó… hóóó!', guest: 'Ja som len na halušky!', waiter: 'Máte rezerváciu?!', photographer: 'Ešte jeden záber!', seller: 'Vyber si hocijakú, len ma pusť!', fisher: 'Bol takýto veľký!', tycoon: 'Objatie je v cene skipasu!', rescuer: 'Zapisujem to do hlásenia!' },
+      bite: { walker: 'Au, moja česť!', ztmh: 'Au! Zásah!', poacher: 'Au! Nikomu ani slovo!', picker: 'Pomóc!', tourist: 'Auuu!', santa: 'Au, moja berla!', guest: 'Au, ešte som nezaplatil!', waiter: 'Au! To nie je na menu!', photographer: 'Au! Ale je ostrá!', seller: 'Au! Bez bločku!', fisher: 'Au! Ja som návnada?!', tycoon: 'Au! Bunda je prémiová!', rescuer: 'Au! Aj toto do hlásenia!' },
       selfie: 'Úsmev!',
       fall: 'Jéééj!',
       ladder: ['Mamííí!', 'Ja som tu len na vtáčikoch!', 'Posed je váš!'],

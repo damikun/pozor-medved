@@ -83,6 +83,7 @@
   const STONE = { height: 10, reach: 8 };
   const LANDING = { tolerance: 6, hard: 250, puffs: 6 };
   const SHED = { bump: 1.6, crawlMargin: 18 };
+  const HOP = { after: 0.12, clear: 18 };
   const PUSH_OFF = { speed: 260, done: 0.01 };
   const WAKE_UP = { takes: 2.6, quipAfter: 0.9 };
 
@@ -645,6 +646,7 @@
     if (bear.moving || (ice && Math.abs(bear.vx) > ICE.drifting)) walk(game, bear, direction, ice, dt);
     else bear.vx = 0;
     bear.logT = bear.moving && pushingAgainstLog(game.level, bear) ? bear.logT + dt : 0;
+    if (bear.logT > HOP.after && bear.onGround && !bear.crouch) hopOverRock(game, bear);
     bear.slide = slideOnIce(bear, ice, direction);
     if (ice && !game.once.ice) firstTimeOnIce(game, bear);
     climbOrJump(game, bear, controls);
@@ -783,6 +785,17 @@
   function pushingAgainstLog(level, bear) {
     return level.logs.some((log) => bear.y > GROUND - log.h + LOG.topSlack
       && Math.abs(bear.x - log.x + bear.dir * blockingDistance(log)) < LOG.pressedWithin);
+  }
+
+  function hopOverRock(game, bear) {
+    const rock = game.level.logs.find((log) => log.of && bear.y > GROUND - log.h + LOG.topSlack
+      && Math.abs(bear.x - log.x + bear.dir * blockingDistance(log)) < LOG.pressedWithin);
+    if (!rock) return;
+    bear.vy = -Math.sqrt(2 * CFG.GRAVITY * (rock.h + HOP.clear));
+    bear.onGround = false;
+    bear.coyote = 0;
+    bear.logT = 0;
+    rules().onSound(game, 'jump', bear.x);
   }
 
   function stopAtShed(level, bear, wantedX) {

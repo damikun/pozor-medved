@@ -367,6 +367,10 @@
         'A bear licked a plate of halušky clean. The inn has offered him a job washing up.',
       ],
       hug: {
+        rescuer: [
+          'A bear on the ridge hugged a mountain rescuer. Report: an operation with no injuries and one hug.',
+          'A mountain rescuer was looking for a lost hiker and found a hug. The bear was not lost.',
+        ],
         photographer: [
           'A bear hugged a wildlife photographer. He kept shooting: The sharpest portrait of my career, shame it was from two centimetres.',
           'A photographer in camouflage got a bear hug. The camouflage worked, apparently: the bear only found him on the third try.',
@@ -437,6 +441,9 @@
         'Police detained an illegal hug. The bear got away; the hug is in a cell.',
       ],
       bite: {
+        rescuer: [
+          'A bear bit a mountain rescuer. The rescuer gave himself first aid and put it in the report.',
+        ],
         photographer: [
           'A bear bit a wildlife photographer. He never let go of the shutter: At least I got the teeth.',
           'A bear bit a photographer by the Belá. The ministry seized the photos as evidence; the photographer has a cloud backup.',
@@ -793,8 +800,8 @@
       fenceHint: 'jump it',
       logHint: 'jump over',
       shout: {
-        hug: { walker: 'Let go, I have a gun licence!', ztmh: 'This isn’t in the protocol!', poacher: 'I’m just picking mushrooms!', picker: 'Jesus, Mary and Joseph!', tourist: 'Mum, film this!', santa: 'Ho ho… HOOO!', guest: 'I only came for the dumplings!', waiter: 'Do you have a booking?!', photographer: 'One more frame!', seller: 'Take any tree, just let me go!', fisher: 'It was THIS big!', tycoon: 'The hug is included in the pass!' },
-        bite: { walker: 'Ow, my honour!', ztmh: 'Ow! I’m hit!', poacher: 'Ow! Not a word to anyone!', picker: 'Help!', tourist: 'Owww!', santa: 'Ow, my staff!', guest: 'Ow, I haven’t paid yet!', waiter: 'Ow! That’s not on the menu!', photographer: 'Ow! But it’s tack sharp!', seller: 'Ow! No receipt!', fisher: 'Ow! Am I the bait?!', tycoon: 'Ow! This jacket is premium!' },
+        hug: { walker: 'Let go, I have a gun licence!', ztmh: 'This isn’t in the protocol!', poacher: 'I’m just picking mushrooms!', picker: 'Jesus, Mary and Joseph!', tourist: 'Mum, film this!', santa: 'Ho ho… HOOO!', guest: 'I only came for the dumplings!', waiter: 'Do you have a booking?!', photographer: 'One more frame!', seller: 'Take any tree, just let me go!', fisher: 'It was THIS big!', tycoon: 'The hug is included in the pass!', rescuer: 'Putting this in the report!' },
+        bite: { walker: 'Ow, my honour!', ztmh: 'Ow! I’m hit!', poacher: 'Ow! Not a word to anyone!', picker: 'Help!', tourist: 'Owww!', santa: 'Ow, my staff!', guest: 'Ow, I haven’t paid yet!', waiter: 'Ow! That’s not on the menu!', photographer: 'Ow! But it’s tack sharp!', seller: 'Ow! No receipt!', fisher: 'Ow! Am I the bait?!', tycoon: 'Ow! This jacket is premium!', rescuer: 'Ow! That goes in the report too!' },
         selfie: 'Smile!',
         fall: 'Whoaaa!',
         ladder: ['Mummy!', 'I was only birdwatching!', 'It’s all yours!'],
