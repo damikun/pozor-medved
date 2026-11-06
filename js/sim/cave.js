@@ -9,7 +9,7 @@
   const COUNT = { per: 0.22, reach: 48 };
   const NOISE = { run: 240, land: 150, splash: 280 };
   const SEEN = { panic: 8, big: 25, flash: 0.6 };
-  const ALERT = { panic: 5, call: 3.5, doubt: 2.4, slow: 0.55, wider: 70, block: 34 };
+  const ALERT = { panic: 4, fill: 3, near: 2, fall: 0.3, stop: 0.25, calm: 0.04, slow: 0.55, wider: 70, block: 34, lost: 1.6 };
   const SINK = { t: 0.8, depth: 34, safe: 2, panic: 15, bank: 40, stun: 0.6 };
   const LAMP = { reach: 34, range: 280 };
   const FLOCK = { fly: 2.2, away: 7, back: 1.6, hang: 290 };
@@ -56,13 +56,13 @@
     return S;
   }
 
-  function start(g, S) {
+  function start(g, S, again) {
     const c = {
-      t: 0, guide: TOUR.from, go: null, warn: false, alert: null, suspect: false, pose: false, lamp: false, flash: 0, seen: 0, said: {}, result: null, count: null, wet: 0, air: false, bonk: 0, safe: 0, sink: null,
+      t: 0, guide: TOUR.from, go: null, warn: false, alert: null, suspect: false, sus: 0, lost: null, back: 0, pose: false, lamp: false, flash: 0, seen: 0, said: {}, result: null, count: null, wet: 0, air: false, bonk: 0, safe: 0, sink: null,
       bats: S.cave.colonies.map(([x, n], i) => ({ id: i, x, n, counted: 0, state: 'sleep', k: 0, t: 0 })),
     };
     c.total = c.bats.reduce((a, o) => a + o.n, 0);
-    rules().say(g, NEWS.caveTour, true);
+    if (!again) rules().say(g, NEWS.caveTour, true);
     return c;
   }
 
@@ -202,31 +202,50 @@
     return b.x >= c.guide - TOUR.near || (lit && b.x < c.guide && b.x > c.guide - reach);
   }
 
+  function lose(g, c, b) {
+    c.lost = { t: 0 }; c.alert = null; c.warn = false;
+    chopok().quiet(b);
+    rules().float(g, b.x, GY - 170, LABELS.cave.lost, COLORS.bad);
+    rules().onSound(g, 'scream', b.x, 0.8);
+    rules().addPanic(g, SEEN.big);
+    rules().say(g, NEWS.caveLost, true);
+  }
+
+  function restart(g, S, c) {
+    const b = g.bear, again = (c.restarts || 0) + 1;
+    Object.assign(c, start(g, S, true), { restarts: again, back: 1 });
+    chopok().quiet(b);
+    Object.assign(b, { x: S.start, trackX: S.start, dir: 1, stun: 0, hiding: null, helmet: false, rear: 0, inv: 1 });
+  }
+
   function tour(g, S, c, dt) {
     const b = g.bear;
     if (c.go === null) {
       if (b.x > TOUR.trigger || c.t > TOUR.wait) c.go = c.t;
       return;
     }
-    if (c.guide <= TOUR.gone) { c.warn = false; c.alert = null; return; }
-    const see = sees(S, c, b), A = c.alert;
-    if (A) {
+    if (c.guide <= TOUR.gone) { c.warn = false; c.alert = null; c.sus = Math.max(0, c.sus - ALERT.fall * dt); return; }
+    const see = sees(S, c, b);
+    if (see) {
+      c.sus = Math.min(1, c.sus + (dt * (b.x >= c.guide - TOUR.near - 60 ? ALERT.near : 1)) / ALERT.fill);
+      rules().addPanic(g, ALERT.panic * dt);
+    } else c.sus = Math.max(0, c.sus - ALERT.fall * dt);
+    if (c.sus >= 1) { lose(g, c, b); return; }
+    if (!c.alert && see && c.sus >= ALERT.stop) {
+      c.alert = { doubt: 0 };
+      c.seen++; c.flash = SEEN.flash;
+      rules().spotted(g, b.x, GY - 130, LABELS.cave.seen);
+      rules().float(g, c.guide + 110, GY - 165, LABELS.cave.film, COLORS.zap);
+      rules().onSound(g, 'scream', b.x, 0.7);
+      rules().addPanic(g, SEEN.panic);
+      if (!c.said.seen) { c.said.seen = true; rules().say(g, NEWS.caveSeen, true); }
+    }
+    if (c.alert) {
       c.warn = false;
-      if (see) {
-        A.doubt = 0; A.expose += dt;
-        rules().addPanic(g, ALERT.panic * dt);
-        if (A.expose >= ALERT.call) {
-          A.expose = 0;
-          rules().float(g, c.guide + 40, GY - 200, LABELS.cave.call, COLORS.bad);
-          hurt(g, b, SEEN.big);
-          if (!c.said.call) { c.said.call = true; rules().say(g, NEWS.caveCall, true); }
-        }
-      } else {
-        A.expose = Math.max(0, A.expose - dt); A.doubt += dt;
-        if (A.doubt >= ALERT.doubt) {
-          c.alert = null; c.suspect = true;
-          rules().float(g, c.guide + 40, GY - 165, LABELS.cave.doubt, COLORS.story);
-        }
+      c.alert.doubt = see ? 0 : c.alert.doubt + dt;
+      if (!see && c.sus <= ALERT.calm) {
+        c.alert = null; c.suspect = true;
+        rules().float(g, c.guide + 40, GY - 165, LABELS.cave.doubt, COLORS.story);
       }
       return;
     }
@@ -235,20 +254,13 @@
     const ahead = !wild(S, b.x) && c.guide + TOUR.len > b.x;
     const eta = (c.guide - TOUR.light - b.x) / (TOUR.speed + Math.max(0, b.vx));
     c.warn = ahead && !hidden && (!walking(c) || eta < TOUR.warn);
-    if (!see) return;
-    c.alert = { expose: 0, doubt: 0 };
-    c.seen++; c.flash = SEEN.flash; c.warn = false;
-    rules().spotted(g, b.x, GY - 130, LABELS.cave.seen);
-    rules().float(g, c.guide + 110, GY - 165, LABELS.cave.film, COLORS.zap);
-    rules().onSound(g, 'scream', b.x, 0.7);
-    rules().addPanic(g, SEEN.panic);
-    if (!c.said.seen) { c.said.seen = true; rules().say(g, NEWS.caveSeen, true); }
   }
 
   function block(S, c, b, was) {
-    if (!tourOn(c) || wild(S, b.x) || (b.hiding && b.hiding.hide)) return;
-    const edge = c.guide - ALERT.block;
-    if (was <= edge && b.x > edge) { b.x = edge; b.trackX = Math.min(b.trackX, edge); b.vx = 0; }
+    const edge = c.guide - ALERT.block, prev = c.edge === undefined ? edge : c.edge;
+    c.edge = edge;
+    if (!tourOn(c) || wild(S, b.x) || (b.hiding && b.hiding.hide) || c.pose) return;
+    if (was <= prev + 1 && b.x > edge) { b.x = edge; b.trackX = Math.min(b.trackX, edge); b.vx = 0; }
   }
 
 
@@ -280,6 +292,12 @@
   function update(g, c, dt) {
     const S = g.level, b = g.bear;
     c.t += dt;
+    c.back = Math.max(0, c.back - dt * 1.5);
+    if (c.lost) {
+      c.lost.t += dt; b.moving = false; b.vx = 0;
+      if (c.lost.t >= ALERT.lost) restart(g, S, c);
+      return false;
+    }
     c.safe = Math.max(0, c.safe - dt);
     b.rear = (b.rear || 0) + ((c.count ? REAR : 0) - (b.rear || 0)) * Math.min(1, dt * 7);
     c.flash = Math.max(0, c.flash - dt * 2.5);
@@ -310,7 +328,7 @@
     if (leap(S, b, 25)) return 'jump';
     if (c.bats.some((q) => q.state === 'sleep' && q.counted < q.n && Math.abs(q.x - b.x) < COUNT.reach)) return 'count';
     if (c.pose) return null;
-    if (c.alert || c.warn || (!wild(S, b.x) && tourOn(c) && c.guide - b.x < 600 && c.guide + TOUR.len > b.x)) return 'hide';
+    if (c.sus > 0.02 || c.alert || c.warn || (!wild(S, b.x) && tourOn(c) && c.guide - b.x < 600 && c.guide + TOUR.len > b.x)) return 'hide';
     return null;
   }
 

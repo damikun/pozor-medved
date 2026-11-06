@@ -179,7 +179,9 @@
   function caveStage() {
     const L = K.base('chopok', mulberry32(3011));
     Object.assign(L, { w: CAVE.w, startDen: -9999, goalDen: Infinity, stage: true, cave: Object.assign({}, CAVE) });
-    L.covers = STALAG.map(([x, w, h], i) => ({ x, w, h, hide: true, stalag: true, shade: hash(i * 3.7 + 0.2), id: i }));
+    const cols = STALAG.map(([x, w, h], i) => ({ x, w, h, hide: true, stalag: true, shade: hash(i * 3.7 + 0.2), id: i }));
+    L.covers = cols.filter((o) => o.x < CAVE.gap);
+    L.cave.pillars = cols.filter((o) => o.x >= CAVE.gap);
     L.logs = CAVE.ledges.map(([x, w, h]) => ({ x, w, h, ledge: true }));
     return L;
   }

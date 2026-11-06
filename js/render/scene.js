@@ -386,7 +386,7 @@
 
   ZS.draw = function (g, ctx, viewW, offY) {
     const cv = ctx.canvas, live = typeof document !== 'undefined' && cv && cv.width > 0;
-    if (fade.level === g.level && fade.key && fade.key !== g.seasonKey && live) {
+    if (fade.level === g.level && fade.key && fade.key !== g.seasonKey && live && !g.level.stage) {
       if (!fade.img) fade.img = document.createElement('canvas');
       fade.img.width = cv.width; fade.img.height = cv.height;
       fade.img.getContext('2d').drawImage(cv, 0, 0);

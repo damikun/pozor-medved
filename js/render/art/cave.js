@@ -193,6 +193,16 @@
 
   const LAMP_Y = GY - 71;
 
+  function eye(ctx, x, y, k, t) {
+    const hot = k > 0.66, col = hot ? (sin(t * 14) > 0 ? '#ff3b30' : '#b3261e') : k > 0.33 ? '#f08c00' : '#f0c030';
+    ctx.fillStyle = 'rgba(20,16,26,0.88)'; rr(ctx, x - 44, y - 13, 88, 26, 13);
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(x - 26, y, 11, 7, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = col; circle(ctx, x - 26, y, 4.2);
+    ctx.fillStyle = '#111'; circle(ctx, x - 26, y, 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.18)'; rr(ctx, x - 10, y - 4, 48, 8, 4);
+    ctx.fillStyle = col; rr(ctx, x - 10, y - 4, 48 * Math.min(1, k), 8, 4);
+  }
+
   function guideHelmet(ctx, x, d) {
     const y = LAMP_Y + 3;
     ctx.fillStyle = '#e8590c';
@@ -216,12 +226,7 @@
       const fd = look ? Math.sign(b.x - x) || -1 : A ? (hash(i * 3.7 + Math.floor(t * 0.8)) > 0.5 ? 1 : -1) : -1;
       person(ctx, 'caveT' + i, 'tourist', x, fd, look && i % 3 !== 1 ? 'film' : st, t, { look: i, hiker: true, empty: !look, scared: !!A });
     }
-    if (A && A.expose > 0.15) {
-      const k = Math.min(1, A.expose / SIM().ALERT.call), x = c.guide, y = GY - 128;
-      ctx.fillStyle = 'rgba(20,16,26,0.85)'; rr(ctx, x - 30, y - 8, 60, 16, 8);
-      ctx.fillStyle = '#e03131'; rr(ctx, x - 26, y - 4, 52 * k, 8, 4);
-      label(ctx, '📞', x - 42, y + 1, 14, '#fff');
-    }
+    if (c.sus > 0.01) eye(ctx, c.guide, GY - 132, c.sus, t);
   }
 
   function cover(ctx, g, c, S) {
@@ -440,7 +445,8 @@
     const at = front(b);
     if (at) {
       column(ctx, at);
-      const who = (b.frontBear = Object.assign(b.frontBear || {}, b, { hiding: null, moving: false, running: false, crouch: false, vx: 0, x: at.x + (b.peekSide < 0 ? -8 : 8) }));
+      const d = b.peekSide < 0 ? -1 : 1;
+      const who = (b.frontBear = Object.assign(b.frontBear || {}, b, { hiding: null, moving: false, running: false, crouch: false, vx: 0, rear: 1, dir: d, x: at.x - d * 10 }));
       withBear(ZS.drawBear, who, 1);
       const t = g.time;
       ctx.fillStyle = 'rgba(190,225,245,0.85)';
@@ -545,10 +551,11 @@
   }
 
   function banner(ctx, g, c, viewW, offY) {
-    c.warnA = clamp((c.warnA || 0) + (c.warn ? 0.08 : -0.05), 0, 1);
+    const seen = c.sus > 0.05 && !c.lost;
+    c.warnA = clamp((c.warnA || 0) + (c.warn || seen ? 0.08 : -0.05), 0, 1);
     const show = max(c.t < 9 ? 1 - smooth((c.t - 7.5) / 1.5) : 0, c.warnA);
     if (show <= 0.01) return;
-    const text = c.warnA > 0.01 ? (g.touch ? LABELS.cave.warnTouch : LABELS.cave.warn) : g.touch ? LABELS.cave.bannerTouch : LABELS.cave.banner;
+    const text = seen ? LABELS.cave.spotted : c.warnA > 0.01 ? (g.touch ? LABELS.cave.warnTouch : LABELS.cave.warn) : g.touch ? LABELS.cave.bannerTouch : LABELS.cave.banner;
     ctx.globalAlpha = show;
     ctx.font = '700 15px system-ui, sans-serif';
     const w = min(viewW - 24, ctx.measureText(text).width + 32);
@@ -590,6 +597,7 @@
     bear(ctx, g, c, S, withBear);
     sink(ctx, S, c, b);
     for (const s of S.covers) if (vis(s.x, 80) && s !== front(b)) column(ctx, s);
+    for (const s of S.cave.pillars || []) if (vis(s.x, 80)) column(ctx, s);
     cover(ctx, g, c, S);
     passages(ctx, S, cam, viewW, offY);
     darkness(ctx, S, c, cam, viewW, offY, H, b, t);
@@ -604,6 +612,11 @@
     tally(ctx, c, viewW, offY);
     ctx.restore();
     if (c.flash > 0) { ctx.fillStyle = 'rgba(255,255,250,' + (0.6 * c.flash).toFixed(3) + ')'; ctx.fillRect(0, 0, viewW, H + 40); }
+    const dark = c.lost ? smooth(c.lost.t / SIM().ALERT.lost) : c.back || 0;
+    if (dark > 0.01) {
+      ctx.fillStyle = 'rgba(8,6,12,' + dark.toFixed(3) + ')'; ctx.fillRect(0, 0, viewW, H + 40);
+      if (c.lost) { ctx.globalAlpha = dark; label(ctx, LABELS.cave.lost, viewW / 2, (H + 40) / 2, 20, '#f6e7c4'); ctx.globalAlpha = 1; }
+    }
   }
 
   Object.assign(API, { draw, roofY });

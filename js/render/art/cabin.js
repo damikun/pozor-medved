@@ -254,7 +254,7 @@
     ctx.fillStyle = bad ? (sin(t * 16) > 0 ? '#e03131' : '#ff8a80') : '#f0c030';
     circle(ctx, x + k * (w / 2 - 8), y, 6);
     ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - zone / 2, y - 7); ctx.lineTo(x - zone / 2, y + 7); ctx.moveTo(x + zone / 2, y - 7); ctx.lineTo(x + zone / 2, y + 7); ctx.stroke();
-    if (bad || c.fail) { ctx.fillStyle = sin(t * 14) > 0 ? '#ff3b30' : '#7a1f1a'; circle(ctx, BOX.left + 30, BOX.top + 24, 7); circle(ctx, BOX.right - 30, BOX.top + 24, 7); }
+    if (bad || c.coolT > 0) { ctx.fillStyle = sin(t * 14) > 0 ? '#ff3b30' : '#7a1f1a'; circle(ctx, BOX.left + 30, BOX.top + 24, 7); circle(ctx, BOX.right - 30, BOX.top + 24, 7); }
   }
 
   function overlays(ctx, g, c, lo, hi, offY) {
@@ -308,8 +308,6 @@
     ctx.save(); ctx.translate(0, offY);
     banner(ctx, g, c, viewW, offY);
     ctx.restore();
-    const F = SIM().FAIL, dark = c.fail ? smooth((c.fail.t - F.shake) / (F.dark - F.shake)) : c.back || 0;
-    if (dark > 0.01) { ctx.fillStyle = 'rgba(8,8,12,' + dark.toFixed(3) + ')'; ctx.fillRect(0, 0, viewW, H + 40); }
     const f = (c.pointa && c.pointa.flash) || 0;
     if (f > 0) { ctx.fillStyle = 'rgba(255,255,250,' + (0.75 * f).toFixed(3) + ')'; ctx.fillRect(0, 0, viewW, H + 40); }
   }

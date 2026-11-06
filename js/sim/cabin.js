@@ -25,9 +25,9 @@
     { x: 750, mass: 1.3, look: 1 },
   ];
   const KIDS = [{ x: 690, look: 5 }, { x: 728, look: 3 }, { x: 766, look: 1 }, { x: 804, look: 4 }];
-  const BEAR = 6, SPREAD = 200, SCALE = 4200, LIMIT = 0.11, ALARM = 1.1, STOPS = 3, SIGHT = 300, COOL = 3;
+  const BEAR = 6, SPREAD = 200, SCALE = 4200, LIMIT = 0.11, ALARM = 1.1, SIGHT = 300, COOL = 3;
   const RAMP = 3;
-  const FAIL = { shake: 1.3, dark: 1.9, back: 2.6 };
+  const JOLT = { spin: 1.4, cool: 4 };
   const POINTA = { flash: 0.3, end: 1 };
 
   function stage() {
@@ -39,7 +39,7 @@
   function fresh(c) {
     Object.assign(c, {
       climb: 0, ride: 0, leg: 0, legT: 0, legAt: 0, wait: 0, arrived: 0, speed: 0, door: 0, side: 1, shift: null, warn: null,
-      tilt: 0, spin: 0, steady: 0, over: 0, kids: false, kidSide: 0, adultSide: 0, fail: null,
+      tilt: 0, spin: 0, steady: 0, over: 0, kids: false, kidSide: 0, adultSide: 0,
       people: PEOPLE.map((p, i) => Object.assign({ id: 'cabin' + i, kind: 'tourist', home: p.x, want: p.x, dir: 1, gone: false, size: 1, look: 0, go: 0, v: 90 }, p)),
     });
     c.said.warn = null;
@@ -123,8 +123,10 @@
   }
 
   function alarm(g, S, c) {
-    c.alarms++; c.over = 0; c.seen++;
-    c.fail = { t: 0 };
+    c.alarms++; c.over = 0; c.seen++; c.coolT = JOLT.cool;
+    c.spin += (c.tilt > 0 ? -1 : 1) * JOLT.spin;
+    const b = g.bear;
+    if (g.lives > 1) { g.lives -= 1; rules().onSound(g, 'hit', b.x); rules().float(g, b.x, GY - 130, LABELS.hit(g.lives), COLORS.shot); b.inv = 2; }
     for (const p of riders(c)) p.dir = Math.sign(g.bear.x - p.x) || 1;
     rules().spotted(g, g.bear.x, GY - 150, LABELS.cabin.alarm);
     rules().addPanic(g, 8);
@@ -135,7 +137,7 @@
 
   function looks(g, c) {
     const b = g.bear;
-    if (!c.shift || g.time - c.seenAt < COOL || c.fail) return;
+    if (!c.shift || g.time - c.seenAt < COOL) return;
     const p = riders(c).find((o) => !o.walking && Math.abs(o.want - o.x) <= 2 && Math.sign(b.x - o.x) === o.dir && Math.abs(b.x - o.x) < SIGHT && Math.abs(b.x - o.x) > 12);
     if (!p) return;
     c.seenAt = g.time; c.seen++;
@@ -186,30 +188,10 @@
     } else c.arrived += dt;
   }
 
-  function failing(g, S, c, dt) {
-    const f = c.fail, was = f.t, b = g.bear;
-    f.t += dt;
-    c.speed = Math.max(0, c.speed - dt * 2);
-    c.spin += Math.sin(f.t * 9) * 3 * dt * (1 - f.t / FAIL.dark);
-    swing(c, b, dt);
-    for (const p of riders(c)) p.walking = false;
-    b.moving = false; b.vx = 0; b.inv = Math.max(0, b.inv - dt); b.quipCd -= dt;
-    if (was < FAIL.shake && f.t >= FAIL.shake) rules().float(g, c.mid, GY - 210, LABELS.cabin.back, COLORS.bad);
-    if (was < FAIL.dark && f.t >= FAIL.dark) {
-      if (g.lives > 1) { g.lives -= 1; rules().onSound(g, 'hit', b.x); }
-      fresh(c);
-      c.back = 1;
-      chopok().quiet(b);
-      Object.assign(b, { x: S.start, trackX: S.start, dir: 1, inv: 2 });
-      if (g.lives >= 1) rules().float(g, b.x, GY - 130, LABELS.hit(g.lives), COLORS.shot);
-    }
-  }
-
   function update(g, c, dt) {
     const S = g.level, b = g.bear;
     c.t += dt;
-    c.back = Math.max(0, (c.back || 0) - dt * 1.6);
-    if (c.fail) { failing(g, S, c, dt); return false; }
+    c.coolT = Math.max(0, (c.coolT || 0) - dt);
     travel(c, dt);
     swing(c, b, dt);
     if (c.pointa) return pointa(g, c, dt) && finish(g, c);
@@ -218,7 +200,7 @@
     walk(c, dt);
     control(g, S, c, dt);
     c.over = Math.abs(c.tilt) > LIMIT ? c.over + dt : Math.max(0, c.over - dt * 2);
-    if (c.over > ALARM && c.alarms < STOPS) alarm(g, S, c);
+    if (c.over > ALARM && !c.coolT) alarm(g, S, c);
     looks(g, c);
     if (c.arrived > 0) {
       c.pointa = { t: 0, flash: 0 };
@@ -247,5 +229,5 @@
     else if (b.x > x + 14) keys.add('ArrowLeft');
   }
 
-  ZS.sim.cabin = { SHIFTS, RIDE, FAIL, BEAR, LIMIT, ALARM, stage, start, update, idle, riders, torque, balance, plan, pilot };
+  ZS.sim.cabin = { SHIFTS, RIDE, JOLT, BEAR, LIMIT, ALARM, stage, start, update, idle, riders, torque, balance, plan, pilot };
 })();
