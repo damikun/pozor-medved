@@ -19,12 +19,8 @@ The game runs right in the browser, nothing to install. Offline, just open `inde
   open-air museum, a sheepfold and a hotel, then by chairlift up to Zelené pleso in the High Tatras and the winter den.
 - **Winter on the Slopes**: a warm Advent and the snow cannons woke you up. Cross the ski resort and the Christmas
   market of Liptovský Mikuláš to reach a quiet den.
-- **Up to Ďumbier**: from a car park in Demänovská dolina along the road to the Cave of Liberty, where you count
-  the bats: hide behind a column or freeze like a stalagmite when the tour turns your way, put on a miner's helmet
-  for the closed part, jump up rock ledges, crawl through narrow passages and a brook, cross a hall and a river, and
-  don't run: you only get out once the bats are counted. Then up through the forest to the hotels of Jasná, a packed cable car
-  cabin you keep balanced from the far side, down a steep slope to a queue for cabbage soup at Kamenná chata, and
-  along the Low Tatras ridge in fog and wind up to Ďumbier and down to a den below it.
+- **Up to Ďumbier**: count the bats in the Cave of Liberty behind the tour's back, keep a packed cable car cabin
+  balanced on the way to Chopok and cross the foggy Low Tatras ridge to Ďumbier and a den below it.
 
 **Goal:** reach the den with enough fat (85% in summer, 65% in winter, 75% on Ďumbier) and hug someone at least once; a selfie
 with a tourist counts too. Without a hug the den won't let you in.
