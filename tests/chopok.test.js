@@ -228,6 +228,10 @@ test('in the cave the tour warns first, sees a bear in its light without sending
   c.lamp = true;
   Object.assign(b, { x: S.exit - 2, trackX: S.exit - 2 });
   run(DT * 2);
+  assert.ok(b.x < S.exit - 30 && c.result === null, 'no way out before the bats are counted');
+  for (const o of c.bats) o.state = 'gone';
+  Object.assign(b, { x: S.exit - 2, trackX: S.exit - 2 });
+  run(DT * 2);
   assert.equal(b.helmet, false, 'the headlamp stays in the cave');
 });
 
@@ -258,9 +262,18 @@ test('in the cabin a crowd at one window tips it, and a bear on the same side se
   assert.equal(c.side, -1);
   assert.ok(ZS.sim.cabin.balance(c) > c.mid + 100, 'the counterweight belongs on the right');
   Object.assign(b, { x: S.cabin.left + 20, trackX: S.cabin.left + 20 });
+  const lives = g.lives;
   run(2.5);
-  assert.ok(c.alarms >= 1, 'overload');
+  assert.ok(c.alarms >= 1 && c.fail, 'overload');
   assert.ok(g.panic > panic);
+  run(ZS.sim.cabin.FAIL.dark);
+  assert.equal(g.lives, lives - 1, 'an overload costs a life');
+  assert.ok(!c.fail && c.ride < 400 && c.leg === 0, 'the ride starts again from the station: ' + Math.round(c.ride));
+  assert.ok(Math.abs(b.x - S.start) < 30, 'the bear is back at the start');
+  g.lives = 1;
+  c.over = 9;
+  run(ZS.sim.cabin.FAIL.dark + 0.3);
+  assert.equal(g.lives, 1, 'never the last life');
 });
 
 test('every checkpoint of the Ďumbier level survives packing and resumes on its side of the passages', () => {
@@ -281,33 +294,27 @@ test('every checkpoint of the Ďumbier level survives packing and resumes on its
   }
 });
 
-test('in the hut queue, moving while the hut keeper looks sends the bear a step back, three catches wave it through, and ordering behind his back serves cabbage soup', () => {
+test('in the hut queue, moving while the hut keeper looks gets the bear noticed and no soup for a while, the hut is always a way through, and ordering behind his back serves cabbage soup', () => {
   const { ZS, g, b, L, run, quiet, put, input } = setup();
   quiet();
   run(0.1);
   const k = g.chopok.chata;
   const freeze = () => { k.cook.t = 99; for (const p of k.guests) { p.state = 'calm'; p.t = 99; } };
-  put(L.chata.queue[1]);
+  put(L.chata.from - 40);
   freeze();
   k.cook.state = 'look';
   input.press('ArrowRight', true);
-  run(0.2);
+  run(4);
   input.release('ArrowRight');
-  assert.ok(b.x < L.chata.queue[1] && b.x >= L.chata.door - 16, 'a step back: ' + Math.round(b.x));
-  assert.ok(g.stats.seen > 0);
-  for (let i = 0; i < 2; i++) {
-    g.time += 2;
-    put(L.chata.queue[1]);
-    input.press('ArrowRight', true);
-    run(0.1);
-    input.release('ArrowRight');
-  }
-  assert.equal(k.waved, true, 'the hut keeper gives up');
-  put(L.chata.queue[0]);
-  input.press('ArrowRight', true);
-  run(2);
-  input.release('ArrowRight');
-  assert.ok(b.x > L.chata.counter, 'through the hut: ' + Math.round(b.x));
+  assert.ok(b.x > L.chata.to, 'straight through the hut: ' + Math.round(b.x));
+  assert.ok(k.caught >= 1 && g.stats.seen > 0, 'noticed on the way');
+  put(L.chata.counter);
+  k.cook.state = 'pot';
+  input.press('KeyC', false);
+  run(0.3);
+  assert.equal(k.served, false, 'no soup right after being caught');
+  run(0.5);
+  g.time += 6;
   put(L.chata.counter);
   freeze();
   k.cook.state = 'pot';

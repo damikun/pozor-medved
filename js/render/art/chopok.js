@@ -108,37 +108,43 @@
 
   function road(ctx, g, x0, x1) {
     const R = g.level.road;
-    const a = max(x0, R.from), b = min(x1, R.to + 60);
+    const a = max(x0, R.from), b = min(x1, R.to);
     if (b <= a) return;
-    const end = (x) => 1 - sstep(R.to - 40, R.to + 60, x);
-    ctx.fillStyle = '#5d5a55';
-    ctx.beginPath(); ctx.moveTo(a, GY + 12);
-    for (let x = Math.floor(a / 20) * 20; x <= b + 20; x += 20) ctx.lineTo(x, GY + 46 - 32 * (1 - end(x)));
-    ctx.lineTo(b + 20, GY + 12); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#5d5a55'; ctx.fillRect(a, GY + 12, b - a, 34);
     ctx.fillStyle = '#6d6a64'; ctx.fillRect(a, GY + 12, b - a, 3);
     ctx.fillStyle = 'rgba(245,244,236,0.85)';
-    ctx.fillRect(a, GY + 16, min(b, R.to) - a, 2);
-    for (let x = Math.ceil(a / 64) * 64; x < min(b, R.to - 40); x += 64) ctx.fillRect(x, GY + 30, 30, 2.5);
+    ctx.fillRect(a, GY + 16, min(b, R.to - 30) - a, 2);
+    for (let x = Math.ceil(a / 64) * 64; x < min(b, R.to - 60); x += 64) ctx.fillRect(x, GY + 30, 30, 2.5);
     ctx.fillStyle = 'rgba(30,28,26,0.22)';
     for (let c = Math.floor(a / 29); c * 29 < b; c++) ell(ctx, c * 29 + hash(c) * 20, GY + 22 + hash(c * 2) * 20, 3 + hash(c * 3) * 6, 1.4);
-    ctx.fillStyle = '#7e7a72'; ctx.fillRect(a, GY + 46, min(b, R.to) - a, 5);
-    ctx.fillStyle = '#4f4b45'; ctx.fillRect(a, GY + 51, min(b, R.to) - a, 3);
+    ctx.fillStyle = '#7e7a72'; ctx.fillRect(a, GY + 46, b - a, 5);
+    ctx.fillStyle = '#4f4b45'; ctx.fillRect(a, GY + 51, b - a, 3);
   }
 
   function trail(ctx, g, x0, x1) {
-    const T = g.level.trail, a = max(x0, T.from - 80), b = min(x1, T.to);
+    const T = g.level.trail, A = T.from - 2, a = max(x0, A), b = min(x1, T.to);
     if (b <= a) return;
-    const k = (x) => sstep(T.from - 80, T.from + 120, x) * (1 - sstep(T.to - 120, T.to, x));
-    ctx.fillStyle = '#b39a74';
-    ctx.beginPath(); ctx.moveTo(a, GY + 4);
-    for (let x = Math.floor(a / 16) * 16; x <= b + 16; x += 16) ctx.lineTo(x, GY + 4 + 1.5 * sin(x * 0.04) - 0.5 * k(x));
-    for (let x = Math.ceil((b + 16) / 16) * 16; x >= a; x -= 16) ctx.lineTo(x, GY + 4 + 13 * k(x) + 2 * sin(x * 0.027));
+    const w = (x) => 1 - 0.45 * sstep(T.to - 300, T.to, x);
+    const s0 = Math.floor(a / 16) * 16, s1 = Math.ceil(b / 16) * 16 + 16;
+    ctx.fillStyle = '#a99f8c';
+    ctx.beginPath();
+    for (let x = s0; x <= s1; x += 16) ctx.lineTo(x, GY + 12 + 1.2 * sin(x * 0.05));
+    for (let x = s1; x >= s0; x -= 16) ctx.lineTo(x, GY + 12 + 32 * w(x) + 1.5 * sin(x * 0.031));
     ctx.closePath(); ctx.fill();
-    ctx.fillStyle = 'rgba(80,60,40,0.3)';
-    for (let c = Math.floor(a / 37); c * 37 < b; c++) { const x = c * 37 + hash(c) * 22; if (k(x) > 0.3) ell(ctx, x, GY + 9 + hash(c * 2) * 6, 3 + hash(c * 3) * 3, 1.6); }
-    ctx.fillStyle = '#9a958b';
-    for (let c = Math.floor(a / 83); c * 83 < b; c++) { const x = c * 83 + hash(c * 5) * 40; if (k(x) > 0.5) ell(ctx, x, GY + 15 + hash(c * 7) * 3, 5 + hash(c * 9) * 4, 3); }
+    ctx.strokeStyle = 'rgba(96,86,70,0.32)'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(s0, GY + 21); ctx.lineTo(s1, GY + 21); ctx.moveTo(s0, GY + 12 + 24 * w(a)); ctx.lineTo(s1, GY + 12 + 24 * w(b)); ctx.stroke();
+    for (let c = Math.floor(a / 11); c * 11 < b; c++) {
+      const x = c * 11 + hash(c) * 8, y = GY + 14 + hash(c * 2.3) * 28 * w(x), r = 1.2 + hash(c * 3.1) * 2.4;
+      ctx.fillStyle = hash(c * 4.7) > 0.5 ? '#c9c0ae' : '#8a8172'; ell(ctx, x, y, r, r * 0.7);
+    }
+    ctx.fillStyle = '#8f877a';
+    for (let c = Math.floor(a / 23); c * 23 < b; c++) { const x = c * 23 + hash(c * 5) * 10; ell(ctx, x, GY + 12 + 32 * w(x) + 1, 4 + hash(c * 9) * 3, 2.4); }
+    if (a < T.from + 60) {
+      ctx.fillStyle = '#5d5a55';
+      for (let i = 0; i < 12; i++) { const h = hash(i * 3.1 + 0.4); ell(ctx, T.from + h * 46 * (1 - i / 14), GY + 15 + i * 2.6, 3 + hash(i * 5.3) * 6 * (1 - h), 2); }
+    }
   }
+
 
   function lots(ctx, g, x0, x1) {
     for (const l of g.level.lots) {

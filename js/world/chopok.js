@@ -37,7 +37,7 @@
       lots: [{ from: 30, to: 1250, lines: true }, { from: 3150, to: 3420, lines: true }],
       concrete: { from: 30, to: 1250, machine: 610, bus: 1060, cars: [150, 290, 470, 880, 1170] },
       cave: { booth: 3460, group: 3505, door: 3630, from: 3580, to: 4000, exit: 3970, land: 4040 },
-      jasna: { from: 4900, to: 7150, hotels: [[5330, 300, 3, 'hotel', 1.3], [5820, 230, 2, 'apart', 2.1], [6330, 210, 2, 'pension', 3.7], [6760, 270, 3, 'hotel', 5.2]] },
+      jasna: { from: 4900, to: 7150, hotels: [[5330, 300, 3, 'hotel', 1.3], [5820, 230, 2, 'apart', 2.1]] },
       funi: { station: 7200, door: 7255, from: 7290, to: 7570, top: 7510, land: 7610 },
       summit: { rotunda: 7790, from: 7570, to: 8850 },
       chata: { x: 8450, from: 8250, to: 8630, door: 8290, queue: [8336, 8374, 8412], counter: 8454, cook: 8500, exit: 8570 },
@@ -61,7 +61,7 @@
       { key: 'chata', x: L.chata.to + 110 },
       { key: 'ridge', x: L.crest.saddle - 60 },
     ];
-    L.posts = [{ x: 4800 }, { x: 13600 }];
+    L.posts = [{ x: 13600 }];
     L.logs = [{ x: 1640, w: 96, h: 30 }, { x: 4330, w: 100, h: 32 }];
     L.covers = ROCKS.map(([x, w, h]) => rock(x, w, h)).concat(CAIRNS.map((x) => rock(x, 46, 58, true)), LIMESTONE.map(([x, w, h]) => Object.assign(rock(x, w, h), { lime: true })));
     L.signs = [
@@ -90,7 +90,7 @@
       || L.jasna.hotels.some(([hx, hw]) => x > hx - hw / 2 - 40 - m && x < hx + hw / 2 + 100 + m)
       || (x > L.funi.station - 110 - m && x < L.summit.to + m)
       || Math.abs(x - L.road.bridge) < 110 + m;
-    const blocked = (x) => x > 6480 || open(x, 30)
+    const blocked = (x) => x > 6960 || open(x, 30)
       || L.posts.some((p) => Math.abs(p.x - x) < 80)
       || L.logs.some((l) => Math.abs(l.x - x) < l.w / 2 + 80)
       || L.covers.some((c) => Math.abs(c.x - x) < c.w / 2 + 50)
@@ -107,7 +107,7 @@
     L.trees.sort((a, b) => a.x - b.x);
     L.calm = [[L.cave.booth - 100, L.cave.land + 100], [L.funi.station - 120, L.funi.land + 120], [L.chata.from - 120, L.chata.to + 120]];
 
-    K.backTrees(L, (bx) => bx > 6100);
+    K.backTrees(L, (bx) => bx > 6900);
     for (const t of L.backTrees) if (hash(t.x * 0.37) < sstep(3500, 5700, t.x / 0.85)) t.kind = 'smrek';
 
     const noFood = (fx) => open(fx, 40) || (fx > L.chata.from - 60 && fx < L.chata.to + 60) || Math.abs(fx - L.dumbier.minister) < 120 || fx > L.goalDen - 120 || L.covers.some((c) => Math.abs(c.x - fx) < c.w / 2 + 20);
@@ -119,9 +119,10 @@
     L.items.sort((a, b) => a.x - b.x);
 
     L.spawns = [
-      { kind: 'posed', x: L.posts[0].x, range: 450 },
-      { kind: 'posed', x: L.posts[1].x, range: 440 },
+      { kind: 'posed', x: L.posts[0].x, range: 440 },
       { kind: 'patrol', from: 2300, to: 3100 },
+      { kind: 'patrol', from: 4700, to: 5600 },
+      { kind: 'patrol', from: 6100, to: 6900 },
       { kind: 'picker', from: 1500, to: 2150 },
       { kind: 'tourist', from: 420, to: 1150 },
       { kind: 'tourist', from: 1450, to: 2250 },
@@ -163,18 +164,20 @@
   }
 
   const CAVE = {
-    w: 2960, start: 90, gap: 940, lamp: 860, bones: 2720, exit: 2900,
-    walk: [0, 940], vault: [2620, 2960],
-    low: [[1080, 1260], [2140, 2300]],
+    w: 3320, start: 90, gap: 940, lamp: 860, bones: 3080, exit: 3260,
+    walk: [0, 940], vault: [2960, 3320], hall: [2020, 2420],
+    low: [[1080, 1260], [2470, 2650]], brook: [2470, 2650],
     water: [1800, 1990], stones: [1880],
-    colonies: [[1400, 7], [1640, 8], [2440, 6]],
+    ledges: [[1490, 180, 70], [1670, 130, 92], [2880, 200, 64]],
+    colonies: [[1490, 7], [2200, 8], [2880, 6]],
   };
-  const STALAG = [[300, 84, 132], [520, 78, 118], [720, 88, 140], [1540, 56, 124], [2560, 58, 128]];
+  const STALAG = [[300, 84, 132], [520, 78, 118], [720, 88, 140], [2090, 60, 170], [2290, 56, 150]];
 
   function caveStage() {
     const L = K.base('chopok', mulberry32(3011));
     Object.assign(L, { w: CAVE.w, startDen: -9999, goalDen: Infinity, stage: true, cave: Object.assign({}, CAVE) });
     L.covers = STALAG.map(([x, w, h], i) => ({ x, w, h, hide: true, stalag: true, shade: hash(i * 3.7 + 0.2), id: i }));
+    L.logs = CAVE.ledges.map(([x, w, h]) => ({ x, w, h, ledge: true }));
     return L;
   }
 

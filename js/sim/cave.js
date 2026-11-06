@@ -10,11 +10,22 @@
   const NOISE = { run: 240, land: 150, splash: 280 };
   const SEEN = { panic: 8, flash: 0.6 };
   const LAMP = { reach: 34, range: 280 };
-  const STONE = 30, END = 120;
+  const STONE = 30, END = 180, REAR = 0.72, LEDGE = 90;
   const ROOF = GY - 330, HEAD = 90, LOW = GY - 70, SLOPE = 50;
 
   function roofY(x) {
-    return ROOF + 26 * Math.sin(x * 0.006) + 18 * Math.sin(x * 0.017 + 1.3) + 10 * Math.sin(x * 0.043);
+    const H = ZS.levelKit.CAVE.hall, k = x > H[0] && x < H[1] ? Math.sin((Math.PI * (x - H[0])) / (H[1] - H[0])) : 0;
+    return ROOF - 120 * k + 26 * Math.sin(x * 0.006) + 18 * Math.sin(x * 0.017 + 1.3) + 10 * Math.sin(x * 0.043);
+  }
+
+  const asleep = (c) => c.bats.some((o) => o.state === 'sleep' && o.counted < o.n);
+
+  function ledgeAhead(S, b) {
+    const d = b.dir < 0 ? -1 : 1;
+    return S.logs.find((l) => {
+      const edge = d > 0 ? l.x - l.w / 2 - b.x : b.x - (l.x + l.w / 2);
+      return edge > -4 && edge < LEDGE && b.y > GY - l.h + 2;
+    }) || null;
   }
 
   function curve(x, x0, y0, x1, y1, x2, y2) {
@@ -149,6 +160,11 @@
     b.helmet = c.lamp;
     if (b.running && b.moving && wild(S, b.x)) noise(g, c, b.x, NOISE.run);
     if (!c.said.bones && Math.abs(b.x - S.cave.bones) < 90) { c.said.bones = true; rules().quip(g, ZS.QUIPS.dragon, true); }
+    const stop = S.cave.exit - 40;
+    if (b.x > stop && asleep(c)) {
+      b.x = stop; b.trackX = Math.min(b.trackX, stop); b.vx = 0;
+      if (g.time - (c.leftAt || -9) > 3) { c.leftAt = g.time; rules().float(g, b.x, GY - 150, LABELS.cave.left, COLORS.story); }
+    }
   }
 
   function tour(g, S, c, dt) {
@@ -186,12 +202,14 @@
     g.panic = Math.max(0, g.panic - Math.round(n / 4));
     g.once.caveTour = { counted: n, of: c.total };
     g.bear.helmet = false;
+    g.bear.rear = 0;
     return true;
   }
 
   function update(g, c, dt) {
     const S = g.level, b = g.bear;
     c.t += dt;
+    b.rear = (b.rear || 0) + ((c.count ? REAR : 0) - (b.rear || 0)) * Math.min(1, dt * 7);
     c.flash = Math.max(0, c.flash - dt * 2.5);
     bats(c, dt);
     tour(g, S, c, dt);
@@ -215,6 +233,7 @@
     const b = g.bear, S = g.level;
     if (!b.onGround || b.stun > 0 || c.count) return null;
     if (low(S, b.x, 90) && !b.crouch) return 'crawl';
+    if (ledgeAhead(S, b)) return 'climb';
     if (b.x > S.cave.water[0] - 110 && b.x < S.cave.water[1] - 10) return 'jump';
     if (c.bats.some((q) => q.state === 'sleep' && q.counted < q.n && Math.abs(q.x - b.x) < COUNT.reach)) return 'count';
     if (c.pose) return null;
@@ -236,6 +255,7 @@
     if (c.bats.some((q) => q.state === 'sleep' && q.counted < q.n && Math.abs(q.x - b.x) < COUNT.reach - 8)) { keys.add('KeyC'); return; }
     keys.add('ArrowRight');
     if (low(S, b.x, 70)) keys.add('ArrowDown');
+    if (b.onGround && ledgeAhead(S, b) && !low(S, b.x, 60)) { g.input.jumpPressed = true; g.input.jumpKey = 'Space'; }
     const W = S.cave.water;
     if (b.onGround && ((b.x > W[0] - 56 && b.x < W[0] - 26) || S.cave.stones.some((s) => b.x > s - 10 && b.x < s + STONE))) { g.input.jumpPressed = true; g.input.jumpKey = 'Space'; }
   }

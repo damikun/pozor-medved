@@ -122,10 +122,10 @@
     s.asw = Number.isFinite(a.sway) ? a.sway * d : null;
   }
 
-  let helmetOn = false;
+  let helmetOn = null;
 
   function track(b, time) {
-    helmetOn = !!b.helmet;
+    helmetOn = b.helmet ? b : null;
     let s = anim.get(b);
     const head = b.dir < 0 ? Math.PI : 0;
     if (!s) {
@@ -838,6 +838,10 @@
     const lx = f * Math.abs(cy) * (w - 1.5);
     ctx.fillStyle = '#3a3a3a'; ell(ctx, lx, -2.5, 3.4, 3.2);
     ctx.fillStyle = '#fff6c8'; ell(ctx, lx + f * 0.8 * Math.abs(cy), -2.5, 2.3, 2.2);
+    if (ctx.getTransform) {
+      const m = ctx.getTransform(), x = lx + f * 2, y = -2.5;
+      ZS.bearLamp = { b: helmetOn, x: m.a * x + m.c * y + m.e, y: m.b * x + m.d * y + m.f, dx: m.a * f, dy: m.b * f };
+    }
     ctx.restore();
   }
 
@@ -1077,7 +1081,7 @@
     const d = s.dropT > 0 ? smooth(s.dropT / DROP) : 0, hid = s.from === 'hide' ? d : 0;
     const lo = Math.min(b.y, s.groundY), hi = Math.max(b.y, s.groundY);
     faded(ctx, b.x - 140, lo - 170, b.x + 140, hi + 20,
-      (c) => side(c, b, s, time, { rear: d, squeeze: 1, scale: lerp(1, 0.85, hid), pal: mixPal(hid), part }));
+      (c) => side(c, b, s, time, { rear: Math.max(d, b.rear || 0), squeeze: 1, scale: lerp(1, 0.85, hid), pal: mixPal(hid), part }));
   }
 
   function strawsOff(ctx, s, time) {

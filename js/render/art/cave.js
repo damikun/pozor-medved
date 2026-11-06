@@ -240,6 +240,59 @@
     }
   }
 
+  function ledges(ctx, S, vis) {
+    for (const l of S.logs) {
+      if (!vis(l.x, l.w)) continue;
+      const a = l.x - l.w / 2, z = l.x + l.w / 2, top = GY - l.h;
+      ctx.fillStyle = ROCK.floor;
+      ctx.beginPath(); ctx.moveTo(a - 10, GY + 6); ctx.quadraticCurveTo(a - 4, top + 20, a + 6, top + 2);
+      for (let x = a + 6; x <= z - 6; x += 14) ctx.lineTo(x, top + 1.5 * sin(x * 0.09));
+      ctx.lineTo(z - 6, top + 2); ctx.quadraticCurveTo(z + 4, top + 20, z + 10, GY + 6); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(a + 4, top + 16, l.w - 8, l.h - 16);
+      ctx.strokeStyle = ROCK.floorTop; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(a + 6, top + 2); for (let x = a + 6; x <= z - 6; x += 14) ctx.lineTo(x, top + 1.5 * sin(x * 0.09)); ctx.stroke();
+      ctx.strokeStyle = 'rgba(20,14,24,0.45)'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (let i = 0; i < l.w / 50; i++) { const x = a + 20 + i * 50 + hash(l.x + i) * 20; ctx.moveTo(x, top + 14); ctx.lineTo(x + 6, top + 30); ctx.lineTo(x + 2, top + 44); }
+      ctx.stroke();
+      ctx.fillStyle = ROCK.calc3;
+      for (let i = 0; i < l.w / 40; i++) { const x = a + 14 + i * 40 + hash(l.x * 2 + i) * 14; poly(ctx, [x - 4, top + 2, x + 4, top + 2, x, top - 6 - hash(i + l.x) * 6]); }
+    }
+  }
+
+  function brook(ctx, S, b, t) {
+    const [a, z] = S.cave.brook;
+    ctx.fillStyle = 'rgba(70,140,180,0.55)'; ctx.fillRect(a - 30, GY - 3, z - a + 60, 7);
+    ctx.strokeStyle = 'rgba(190,230,250,0.6)'; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    for (let x = a - 24; x < z + 24; x += 22) { const u = (t * 40 + x * 2) % 22; ctx.moveTo(x + u - 8, GY + 1); ctx.lineTo(x + u, GY + 1); }
+    ctx.stroke();
+    if (b.crouch && b.moving && b.x > a - 30 && b.x < z + 30) {
+      ctx.fillStyle = 'rgba(200,235,250,0.8)';
+      for (let i = 0; i < 6; i++) {
+        const k = (t * 3 + i / 6) % 1, h = hash(Math.floor(t * 3 + i / 6) * 7.1 + i);
+        circle(ctx, b.x + (h - 0.5) * 60, GY - 4 - 18 * sin(k * PI), 1.6 + h);
+      }
+    }
+  }
+
+  function hall(ctx, S, t) {
+    const [a, z] = S.cave.hall, m = (a + z) / 2;
+    ctx.fillStyle = 'rgba(160,140,170,0.08)'; ell(ctx, m, GY - 200, (z - a) / 2, 190);
+    for (const [x, w, h] of [[a + 70, 70, 230], [m + 40, 90, 280], [z - 60, 60, 200]]) {
+      const top = roofY(x) - 6;
+      ctx.fillStyle = 'rgba(217,204,180,0.55)';
+      ctx.beginPath(); ctx.moveTo(x - w / 2, top);
+      for (let i = 0; i <= 8; i++) { const u = i / 8; ctx.lineTo(x - w / 2 + u * w, top + h * (0.55 + 0.45 * sin(u * PI)) - (i % 2) * 18); }
+      ctx.lineTo(x + w / 2, top); ctx.closePath(); ctx.fill();
+    }
+    for (let i = 0; i < 14; i++) {
+      const x = a + 30 + hash(i * 4.1) * (z - a - 60), y = roofY(x) + 30 + hash(i * 2.3) * 60;
+      ctx.fillStyle = 'rgba(200,230,255,' + (0.25 + 0.35 * abs(sin(t * 1.3 + i))).toFixed(3) + ')';
+      circle(ctx, x, y, 1.6);
+    }
+  }
+
   function bat(ctx, x, y, s, sd, t) {
     const sway = sin(t * 1.4 + sd * 7) * 0.08;
     ctx.save(); ctx.translate(x, y); ctx.rotate(sway); ctx.scale(s, s);
@@ -290,31 +343,43 @@
   }
 
   function headlamp(ctx, c, b) {
-    if (!c.lamp || b.hiding || c.count || c.pose) return;
-    const [hx, hy] = head(b), d = b.dir < 0 ? -1 : 1, R = SIM().LAMP.range;
-    const gr = ctx.createLinearGradient(hx, 0, hx + d * R, 0);
-    gr.addColorStop(0, 'rgba(255,246,200,0.34)'); gr.addColorStop(1, 'rgba(255,246,200,0)');
+    if (!c.lamp || b.hiding || c.pose) return;
+    const R = SIM().LAMP.range, L = ZS.bearLamp;
+    let hx, hy, ux, uy;
+    if (L && L.b === b && ctx.getTransform) {
+      const m = ctx.getTransform(), det = m.a * m.d - m.b * m.c;
+      hx = (m.d * (L.x - m.e) - m.c * (L.y - m.f)) / det; hy = (-m.b * (L.x - m.e) + m.a * (L.y - m.f)) / det;
+      ux = (m.d * L.dx - m.c * L.dy) / det; uy = (-m.b * L.dx + m.a * L.dy) / det;
+    } else {
+      [hx, hy] = head(b); ux = b.dir < 0 ? -1 : 1; uy = 0;
+    }
+    const n = Math.hypot(ux, uy) || 1;
+    ux /= n; uy /= n;
+    const px = -uy, py = ux, ex = hx + ux * R, ey = hy + uy * R;
+    const gr = ctx.createLinearGradient(hx, hy, ex, ey);
+    gr.addColorStop(0, 'rgba(255,246,200,0.36)'); gr.addColorStop(1, 'rgba(255,246,200,0)');
     ctx.fillStyle = gr;
-    ctx.beginPath(); ctx.moveTo(hx, hy - 3); ctx.lineTo(hx + d * R, hy - 110); ctx.lineTo(hx + d * R, hy + 70); ctx.lineTo(hx, hy + 3); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(hx + px * 2.5, hy + py * 2.5); ctx.lineTo(ex + px * 95, ey + py * 95); ctx.lineTo(ex - px * 95, ey - py * 95); ctx.lineTo(hx - px * 2.5, hy - py * 2.5); ctx.closePath(); ctx.fill();
   }
 
-  function counting(ctx, g, c, b, withBear) {
+  function statue(ctx, g, c, b, withBear) {
     const s = c.statue || (c.statue = { spot: { x: 0, w: 34, hide: true, shade: 0.01 } });
     s.spot.x = b.x;
     const who = Object.assign(s.who || (s.who = {}), b, { hiding: s.spot, pose: 'stiff', hideT: 2, hideBlend: 1 });
     withBear(ZS.drawBearBehindTree, who, 1);
-    if (!c.count) {
-      const y = GY - 150 + sin(g.time * 2) * 0.6;
-      ctx.fillStyle = ROCK.calcite; poly(ctx, [b.x - 9, y + 6, b.x + 9, y + 6, b.x + 1, y - 22]);
-      ctx.fillStyle = 'rgba(255,248,230,0.7)'; poly(ctx, [b.x - 3, y + 4, b.x + 1, y + 4, b.x, y - 14]);
-      return;
+    const y = b.y - 150 + sin(g.time * 2) * 0.6;
+    ctx.fillStyle = ROCK.calcite; poly(ctx, [b.x - 9, y + 6, b.x + 9, y + 6, b.x + 1, y - 22]);
+    ctx.fillStyle = 'rgba(255,248,230,0.7)'; poly(ctx, [b.x - 3, y + 4, b.x + 1, y + 4, b.x, y - 14]);
+  }
+
+  function tallyMark(ctx, g, c, b) {
+    const o = c.count, t = g.time, top = roofY(o.x) + 8;
+    for (let i = 0; i < 3; i++) {
+      const k = (o.k + i / 3) % 1;
+      ctx.fillStyle = 'rgba(246,231,196,' + (0.5 * (1 - k)).toFixed(3) + ')';
+      circle(ctx, o.x + (i - 1) * 16, top + 40 + k * 30, 1.5);
     }
-    const t = g.time, k = c.count.k;
-    ctx.save(); ctx.translate(b.x + 12, GY - 116); ctx.rotate(-0.35 + sin(k * PI) * 0.25);
-    ctx.fillStyle = '#6b4626'; rr(ctx, -5, -30, 10, 32, 5);
-    ctx.fillStyle = '#3a2614'; for (let j = -1; j <= 1; j++) poly(ctx, [j * 3 - 1.2, -30, j * 3 + 1.2, -30, j * 3, -35]);
-    ctx.restore();
-    label(ctx, String(c.count.counted + 1), b.x + 26, GY - 172 - sin(t * 9) * 2, 15, '#f6e7c4');
+    label(ctx, String(o.counted + 1), b.x + 34 * (b.dir < 0 ? -1 : 1), b.y - 178 - sin(t * 9) * 2, 15, '#f6e7c4');
   }
 
   function bear(ctx, g, c, S, withBear) {
@@ -325,9 +390,10 @@
         withBear(ZS.drawBearBehindTree, who, b.hideBlend);
       }
     }
-    if (c.count || c.pose) { counting(ctx, g, c, b, withBear); return; }
+    if (c.pose) { statue(ctx, g, c, b, withBear); return; }
     const rest = 1 - (b.hideBlend || 0);
     if (rest > 0.01) withBear(ZS.drawBear, b, rest);
+    if (c.count) tallyMark(ctx, g, c, b);
   }
 
   function shade(S, c, x, b) {
@@ -372,7 +438,7 @@
     }
   }
 
-  const HINT = { crawl: ['ArrowDown', 'crouch'], jump: ['ArrowUp', 'jump'], count: ['KeyC', 'count'], hide: ['ArrowDown', 'hide'] };
+  const HINT = { crawl: ['ArrowDown', 'crouch'], jump: ['ArrowUp', 'jump'], climb: ['ArrowUp', 'jump'], count: ['KeyC', 'count'], hide: ['ArrowDown', 'hide'] };
 
   function hint(ctx, g, c, viewW) {
     const k = SIM().hint(g, c), b = g.bear;
@@ -425,7 +491,10 @@
     ctx.translate(-Math.round(cam), 0);
     if (vis(400, 200)) cascades(ctx, 400, 150, t);
     if (vis(640, 200)) cascades(ctx, 640, 110, t + 1);
+    if (vis((S.cave.hall[0] + S.cave.hall[1]) / 2, 400)) hall(ctx, S, t);
     floor(ctx, S, cam, viewW, t);
+    ledges(ctx, S, vis);
+    if (vis(S.cave.brook[0], 300) || vis(S.cave.brook[1], 300)) brook(ctx, S, b, t);
     walkway(ctx, S, cam, viewW);
     if (vis(S.cave.gap, 200)) gate(ctx, S, t);
     if (vis(S.cave.bones, 160)) bones(ctx, S, g);
