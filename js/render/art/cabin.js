@@ -1,7 +1,6 @@
 (function () {
   const { CFG, LABELS } = ZS;
   const GY = CFG.GROUND;
-  const PI = Math.PI, TAU = PI * 2;
   const sin = Math.sin, cos = Math.cos, abs = Math.abs, min = Math.min, max = Math.max;
   const { circle, ellipse: ell, rrect: rr, label } = ZS.gfx;
   const { hash, smooth, sstep, clamp, lerp } = ZS.util;
@@ -104,6 +103,37 @@
     void t;
   }
 
+  function platform(ctx, c, s, hx, hy, t) {
+    const x0 = hx + s.off + s.a, x1 = hx + s.off + s.z, deck = BOX.bot + 6, roof = hy - 92, bot = GY + 1200;
+    ctx.fillStyle = '#7a8087'; for (let x = x0 + 150; x < x1 - 60; x += 300) ctx.fillRect(x - 14, deck + 20, 28, bot - deck);
+    ctx.fillStyle = 'rgba(0,0,0,0.14)'; for (let x = x0 + 150; x < x1 - 60; x += 300) ctx.fillRect(x + 4, deck + 20, 10, bot - deck);
+    ctx.fillStyle = '#9ba0a5'; ctx.fillRect(x0, deck, x1 - x0, 26);
+    ctx.fillStyle = '#f0c030'; ctx.fillRect(x0, deck, x1 - x0, 6);
+    ctx.fillStyle = '#6d737b'; ctx.fillRect(x0, deck + 22, x1 - x0, 4);
+    ctx.fillStyle = '#4a4e55';
+    for (const [a, z] of [[x0, x0 + 200], [x1 - 160, x1]]) { ctx.fillRect(a, deck - 40, z - a, 4); for (let x = a + 2; x <= z; x += 40) ctx.fillRect(x - 2, deck - 40, 4, 40); }
+    for (let x = x0 + 100; x < x1 - 60; x += 160) { ctx.fillStyle = '#3c4048'; ctx.fillRect(x, roof + 30, 6, hy - roof - 36); }
+    ctx.fillStyle = '#4a4e55'; ctx.fillRect(x0 + 24, hy - 8, x1 - x0 - 48, 12);
+    ctx.fillStyle = '#6d727a'; ctx.fillRect(x0 + 24, hy - 8, x1 - x0 - 48, 3);
+    for (const x of [x0 + 24, x1 - 40]) {
+      ctx.fillStyle = '#4a4e55'; ctx.fillRect(x, roof + 30, 16, deck - roof - 30);
+      ctx.fillStyle = '#6d737b'; ctx.fillRect(x, roof + 30, 5, deck - roof - 30);
+    }
+    ctx.fillStyle = '#3c4048'; poly(ctx, [x0 - 30, roof + 6, x1 + 30, roof + 6, x1 + 8, roof - 12, x0 - 8, roof - 12]);
+    ctx.fillStyle = '#e8590c'; ctx.fillRect(x0 - 30, roof + 6, x1 - x0 + 60, 26);
+    ctx.fillStyle = '#c4490a'; ctx.fillRect(x0 - 30, roof + 28, x1 - x0 + 60, 4);
+    ctx.fillStyle = '#fff'; ctx.font = '900 18px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const name = stationName(s.kind);
+    for (let x = x0 + 230; x < x1 - 100; x += 480) ctx.fillText(name, x, roof + 18);
+    if (c.kids || c.leg) return;
+    const go = c.door * 150;
+    [5, 3, 1, 4].forEach((look, i) => {
+      ctx.save(); ctx.translate(0, deck - GY);
+      person(ctx, 'cabinWait' + i, 'tourist', hx + s.off + 402 + i * 34 - go, -1, c.door > 0.02 && c.door < 1 ? 'walk' : 'idle', t, { look, hiker: true, empty: true });
+      ctx.restore();
+    });
+  }
+
   function pylons(ctx, c, hx, hy, k) {
     for (const p of SIM().RIDE.pylons) {
       const x = hx + p - c.ride;
@@ -161,12 +191,21 @@
     ctx.fillStyle = '#2b2d31'; rr(ctx, hx - 46, T - 8, 92, 10, 4);
   }
 
-  function shell(ctx, c, g) {
-    const L = BOX.left, R = BOX.right, T = BOX.top, B = BOX.bot, [w0, w1] = BOX.win, t = g.time;
+  function altitude(ctx, c, x, y) {
+    const alt = Math.round(1110 + clamp(c.ride / SIM().RIDE.top, 0, 1) * 894);
+    ctx.fillStyle = '#b8460a'; rr(ctx, x - 72, y - 17, 144, 34, 9);
+    ctx.fillStyle = '#16181c'; rr(ctx, x - 68, y - 14, 136, 28, 7);
+    ctx.fillStyle = '#7cfc9a';
+    poly(ctx, [x - 56, y + 7, x - 46, y - 7, x - 40, y + 1, x - 36, y - 3, x - 28, y + 7]);
+    ctx.font = '700 16px ui-monospace, monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(String(alt).replace(/(\d)(\d{3})$/, '$1 $2') + ' m', x + 14, y + 1);
+  }
+
+  function shell(ctx, c) {
+    const L = BOX.left, R = BOX.right, T = BOX.top, B = BOX.bot, [w0, w1] = BOX.win;
     ctx.fillStyle = '#e8590c';
     rr(ctx, L, T, R - L, w0 - T + 4, 22);
     ctx.fillRect(L, w1 - 2, R - L, B - w1 + 2);
-    ctx.fillStyle = '#ff7a2e'; ctx.fillRect(L + 18, T + 3, R - L - 36, 3);
     ctx.fillStyle = '#c4490a'; ctx.fillRect(L, w1 + 26, R - L, 6);
     ctx.fillStyle = '#d4520a';
     const n = 5, pw = 14;
@@ -175,30 +214,16 @@
     for (let i = 0; i < n; i++) { const x = L + (i * (R - L)) / n + pw; ctx.fillRect(x, w0, (R - L) / n - pw * 1.5, w1 - w0); }
     ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 2;
     for (let i = 0; i < n; i++) { const x = L + (i * (R - L)) / n + pw + 10; ctx.beginPath(); ctx.moveTo(x, w0 + 12); ctx.lineTo(x + 26, w0 + 2); ctx.moveTo(x + 8, w0 + 22); ctx.lineTo(x + 46, w0 + 4); ctx.stroke(); }
-    ctx.fillStyle = '#fff'; ctx.font = '900 14px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('FUNITEL · VrcholPass', (L + R) / 2, T + 24);
-    const R2 = SIM().RIDE, u = clamp(c.ride / R2.top, 0, 1), alt = Math.round(1110 + u * 894);
-    ctx.fillStyle = '#1b1d21'; rr(ctx, L + 34, T + 12, 92, 24, 5);
-    ctx.fillStyle = '#7cfc9a'; ctx.font = '700 13px ui-monospace, monospace'; ctx.fillText(String(alt).replace(/(\d)(\d{3})$/, '$1 $2') + ' m', L + 80, T + 24);
-    const m0 = R - 240, m1 = R - 60, my = T + 24;
-    ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(m0, my); ctx.lineTo(m1, my); ctx.stroke();
-    for (const [f, on] of [[0, 1], [R2.mid / R2.top, c.leg > 0 || c.wait > 0 ? 1 : 0], [1, c.arrived > 0 ? 1 : 0]]) {
-      ctx.fillStyle = on ? '#fff' : '#e8590c'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(m0 + f * (m1 - m0), my, 4.5, 0, TAU); ctx.fill(); ctx.stroke();
-    }
-    ctx.fillStyle = '#ffe066'; circle(ctx, m0 + u * (m1 - m0), my, 3 + 0.8 * sin(t * 5));
+    altitude(ctx, c, (L + R) / 2, (T + w0) / 2 + 1);
     ctx.fillStyle = '#d7d9dc'; ctx.fillRect(L + 14, w1 + 2, R - L - 28, GY - w1 - 2);
     ctx.fillStyle = '#c3c6ca'; for (let x = L + 134; x < R - 30; x += 122) ctx.fillRect(x, w1 + 6, 2, GY - w1 - 10);
     ctx.fillStyle = '#5c6068';
     rr(ctx, L + 22, GY - 58, 104, 9, 4); rr(ctx, L + 22, GY - 34, 104, 8, 3);
     rr(ctx, R - 230, GY - 58, 104, 9, 4); rr(ctx, R - 230, GY - 34, 104, 8, 3);
     ctx.fillStyle = '#2f6db0'; rr(ctx, L + 160, w1 + 10, 70, 46, 4);
-    ctx.fillStyle = '#fff'; ctx.font = '800 8px system-ui, sans-serif'; ctx.fillText('VrcholPass', L + 195, w1 + 22); ctx.fillText('★ ★ ★', L + 195, w1 + 40);
+    ctx.fillStyle = '#fff'; ctx.font = '800 8px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('VrcholPass', L + 195, w1 + 22); ctx.fillText('★ ★ ★', L + 195, w1 + 40);
     ctx.fillStyle = '#4a4e55'; ctx.fillRect(L + 14, GY, R - L - 28, 14);
     ctx.fillStyle = 'rgba(255,255,255,0.07)'; for (let x = L + 18; x < R - 18; x += 9) ctx.fillRect(x, GY + 3, 4, 8);
-    ctx.fillStyle = '#5c6068'; ctx.fillRect(L + 14, w0 - 20, R - L - 28, 4);
-    ctx.fillStyle = 'rgba(255,250,220,0.9)'; ctx.fillRect(L + 40, w0 - 27, R - L - 80, 3);
-    ctx.fillStyle = '#9aa0a6'; ctx.fillRect(L + 30, w0 - 8, R - L - 60, 3);
     const d = c.door, dc = R - 75;
     ctx.strokeStyle = '#a63d08'; ctx.lineWidth = 3;
     for (const [x, w] of [[dc - 54 - 46 * d, 54], [dc + 46 * d, 54]]) {
@@ -209,9 +234,9 @@
   }
 
   function crowd(ctx, g, c) {
-    const t = g.time, pt = c.pointa;
+    const t = g.time;
     for (const p of SIM().riders(c)) {
-      person(ctx, p.id, 'tourist', p.x, p.dir, p.walking || pt ? 'walk' : 'idle', t, { look: p.look, size: p.size || 1, hiker: true, empty: true });
+      person(ctx, p.id, 'tourist', p.x, p.dir, p.walking ? 'walk' : 'idle', t, { look: p.look, size: p.size || 1, hiker: true, empty: true });
     }
     const w = c.warn;
     if (w) {
@@ -267,13 +292,13 @@
     view(ctx, g, c, viewW, H, offY);
     ctx.translate(viewW / 2, GY); ctx.scale(sc, sc); ctx.translate(-mid, -GY + shake);
     const hx = mid, hy = BOX.top - 74;
-    if (st.off + st.z > lo - hx && st.off + st.a < hi - hx) hall(ctx, c, st, hx, hy, t);
+    if (st.off + st.z > lo - hx && st.off + st.a < hi - hx) (st.kind === 'mid' ? platform : hall)(ctx, c, st, hx, hy, t);
     pylons(ctx, c, hx, hy, k);
     cables(ctx, hx, hy, k, lo, hi);
     carriage(ctx, hx, hy, k, c, t);
     ctx.save(); ctx.translate(hx, hy); ctx.rotate(c.tilt); ctx.translate(-hx, -hy);
     hanger(ctx, hx, hy);
-    shell(ctx, c, g);
+    shell(ctx, c);
     level(ctx, c, t);
     crowd(ctx, g, c);
     withBear(ZS.drawBear, b, 1);

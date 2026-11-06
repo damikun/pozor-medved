@@ -27,7 +27,7 @@
   const KIDS = [{ x: 690, look: 5 }, { x: 728, look: 3 }, { x: 766, look: 1 }, { x: 804, look: 4 }];
   const BEAR = 6, SPREAD = 200, SCALE = 4200, LIMIT = 0.11, ALARM = 1.1, STOPS = 3, SIGHT = 300, COOL = 3;
   const FAIL = { shake: 1.3, dark: 1.9, back: 2.6 };
-  const POINTA = { stop: 0.6, flash: 1.8, end: 3.6 };
+  const POINTA = { flash: 0.3, end: 1 };
 
   function stage() {
     const S = ZS.levelKit.cabinStage();
@@ -37,7 +37,7 @@
 
   function fresh(c) {
     Object.assign(c, {
-      climb: 0, ride: 0, leg: 0, legT: 0, wait: 0, arrived: 0, speed: 0, door: 0, side: 1, shift: null, warn: null,
+      climb: 0, ride: 0, leg: 0, legT: 0, legAt: 0, wait: 0, arrived: 0, speed: 0, door: 0, side: 1, shift: null, warn: null,
       tilt: 0, spin: 0, over: 0, kids: false, kidSide: 0, adultSide: 0, fail: null,
       people: PEOPLE.map((p, i) => Object.assign({ id: 'cabin' + i, kind: 'tourist', home: p.x, want: p.x, dir: 1, gone: false, size: 1, look: 0, go: 0, v: 90 }, p)),
     });
@@ -80,7 +80,7 @@
   }
 
   function shifts(g, S, c) {
-    const T = c.legT;
+    const T = c.legT - c.legAt;
     c.warn = SHIFTS.find((s) => s.leg === c.leg && T >= s.warn && T < s.at) || null;
     const now = SHIFTS.filter((s) => s.leg === c.leg && T >= s.at).pop();
     if (c.warn && c.said.warn !== c.warn) {
@@ -149,12 +149,12 @@
     if (b.y < GY - 40) { b.y = GY - 40; b.vy = Math.max(0, b.vy); }
   }
 
-  function pointa(g, S, c, dt) {
+  function pointa(g, c, dt) {
     const p = c.pointa, was = p.t, b = g.bear;
     p.t += dt;
     b.moving = false;
-    for (const o of riders(c)) { o.dir = 1; o.x += 70 * dt; o.walking = true; if (o.x > S.cabin.right + 40) o.gone = true; }
-    if (was < POINTA.stop && p.t >= POINTA.stop) rules().float(g, c.mid, GY - 200, c.alarms ? LABELS.cabin.wobbly : LABELS.cabin.level, c.alarms ? COLORS.bad : COLORS.good);
+    c.door = clamp(c.door + dt * 2.5, 0, 1);
+    for (const o of riders(c)) o.walking = false;
     if (was < POINTA.flash && p.t >= POINTA.flash) { p.flash = 1; rules().onSound(g, 'shutter', b.x); rules().say(g, c.alarms ? NEWS.funiRide[0] : NEWS.funiRide[1], true); }
     p.flash = Math.max(0, (p.flash || 0) - dt * 2.5);
     return p.t >= POINTA.end;
@@ -179,7 +179,7 @@
     c.ride = target;
     if (c.leg === 0) {
       c.wait += dt;
-      if (c.wait >= RIDE.wait) { c.leg = 1; c.legT = 0; c.shift = null; }
+      if (c.wait >= RIDE.wait) { c.leg = 1; c.legAt = c.legT; }
     } else c.arrived += dt;
   }
 
@@ -209,7 +209,7 @@
     if (c.fail) { failing(g, S, c, dt); return false; }
     travel(c, dt);
     swing(c, b, dt);
-    if (c.pointa) return pointa(g, S, c, dt) && finish(g, c);
+    if (c.pointa) return pointa(g, c, dt) && finish(g, c);
     station(g, S, c);
     shifts(g, S, c);
     walk(c, dt);
@@ -217,7 +217,11 @@
     c.over = Math.abs(c.tilt) > LIMIT ? c.over + dt : Math.max(0, c.over - dt * 2);
     if (c.over > ALARM && c.alarms < STOPS) alarm(g, S, c);
     looks(g, c);
-    if (c.arrived >= 0.6) { c.pointa = { t: 0, flash: 0 }; chopok().quiet(b); c.door = 1; }
+    if (c.arrived > 0) {
+      c.pointa = { t: 0, flash: 0 };
+      chopok().quiet(b);
+      rules().float(g, c.mid, GY - 160, c.alarms ? LABELS.cabin.wobbly : LABELS.cabin.level, c.alarms ? COLORS.bad : COLORS.good);
+    }
     return false;
   }
 

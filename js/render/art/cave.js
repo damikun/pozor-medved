@@ -396,6 +396,31 @@
     if (c.count) tallyMark(ctx, g, c, b);
   }
 
+  function sink(ctx, S, c, b) {
+    const k = c.sink, W = S.cave.water;
+    if (!k) return;
+    const u = clamp(k.t / SIM().SINK.t, 0, 1), x0 = max(W[0], k.x - 90), x1 = min(W[1], k.x + 90);
+    ctx.fillStyle = 'rgba(29,74,96,0.88)'; ctx.fillRect(x0, GY + 6, x1 - x0, 40);
+    ctx.fillStyle = 'rgba(15,28,38,0.6)'; ctx.fillRect(x0, GY + 6, x1 - x0, 5);
+    for (let i = 0; i < 3; i++) {
+      const r = (u * 1.4 + i * 0.3) % 1;
+      ctx.strokeStyle = 'rgba(190,230,250,' + (0.7 * (1 - r)).toFixed(3) + ')'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(k.x, GY + 8, 20 + r * 70, 4 + r * 9, 0, 0, TAU); ctx.stroke();
+    }
+    ctx.fillStyle = 'rgba(205,235,250,0.9)';
+    for (let i = 0; i < 16; i++) {
+      const h = hash(k.x * 0.37 + i * 7.3), q = hash(i * 3.1 + k.x * 0.11), e = u * (1.1 + q * 0.6);
+      if (e > 1) continue;
+      const vx = (h - 0.5) * 220, vy = 260 + q * 240, y = GY + 6 - (vy * e * 0.55 - 210 * e * e);
+      if (y < GY + 8) circle(ctx, k.x + vx * e * 0.55, y, 1.6 + 2.4 * (1 - e) * q);
+    }
+    for (let i = 0; i < 5; i++) {
+      const r = (k.t * 1.6 + hash(i * 5.7)) % 1;
+      ctx.fillStyle = 'rgba(205,235,250,' + (0.6 * (1 - r)).toFixed(3) + ')';
+      circle(ctx, k.x + (hash(i * 2.9) - 0.5) * 50 + sin(k.t * 9 + i) * 3, GY + 40 - r * 32, 2 + hash(i * 1.3) * 2);
+    }
+  }
+
   function shade(S, c, x, b) {
     const V = S.cave.vault, L = SIM().LAMP;
     let a = lerp(0.22, 0.88, sstep(S.cave.gap - 40, S.cave.gap + 80, x));
@@ -502,6 +527,7 @@
     lamp(ctx, S, c, t);
     group(ctx, g, c);
     bear(ctx, g, c, S, withBear);
+    sink(ctx, S, c, b);
     for (const s of S.covers) if (vis(s.x, 80)) column(ctx, s);
     cover(ctx, g, c, S);
     passages(ctx, S, cam, viewW, offY);

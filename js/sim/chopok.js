@@ -12,7 +12,7 @@
   const CHAMOIS = { near: 260, leap: 0.6, hop: 110, leaps: 5 };
   const MARMOT = { near: 300, hide: 1.2 };
   const CHATA = { counter: 26, bill: 2.8, said: 20, grace: 2, ban: 5 };
-  const MINISTER = { range: 320, close: 80, every: 12, panic: 12 };
+  const TATIER = { range: 320, close: 80, every: 12, panic: 12 };
   const RESCUER = { panic: 6 };
 
   const between = (r) => r[0] + Math.random() * (r[1] - r[0]);
@@ -33,7 +33,7 @@
       },
       chamois: L.wildlife.chamois.map(([x, dir], i) => ({ id: 'chopokChamois' + i, x, h: 0, home: i, dir, state: 'graze', leap: null, land: 0, snortAt: -99, leaps: 0 })),
       marmots: L.wildlife.marmots.map(([x, h], i) => ({ id: 'chopokMarmot' + i, x, h, k: 1, state: i % 2 ? 'graze' : 'sit', dir: i % 2 ? -1 : 1, whistleAt: -99, t: 0 })),
-      minister: { x: L.dumbier.minister, crew: L.dumbier.crew, seenAt: -99, seen: false, passed: false },
+      tatier: { x: L.tatier.x, seenAt: -99, seen: false, passed: false },
       said: {},
     };
     return g.chopok;
@@ -323,20 +323,20 @@
     return { kind: 'knock', t: 0, dur: 0.8, dir: 1, hit: false, target: null, done: false };
   }
 
-  function minister(g, c) {
-    const b = g.bear, m = c.minister;
+  function tatier(g, c) {
+    const b = g.bear, m = c.tatier;
     if (b.x < m.x - 700 || m.passed) return;
     if (b.x > m.x + 60) {
       m.passed = true;
-      if (!m.seen) { rules().say(g, NEWS.ministerFog, true); rules().quip(g, QUIPS().dumbier, true); }
+      if (!m.seen) { rules().say(g, NEWS.tatierFog, true); rules().quip(g, QUIPS().tatier, true); }
       return;
     }
     const d = Math.abs(b.x - m.x);
-    const sees = !b.covered && c.fog.k < FOG.dense && (d < MINISTER.close || (b.x < m.x && d < MINISTER.range));
-    if (!sees || g.time - m.seenAt < MINISTER.every) return;
+    const sees = !b.covered && c.fog.k < FOG.dense && (d < TATIER.close || (b.x < m.x && d < TATIER.range));
+    if (!sees || g.time - m.seenAt < TATIER.every) return;
     m.seenAt = g.time; m.seen = true;
-    rules().spotted(g, m.x, GY - 130, LABELS.chopok.speech);
-    rules().addPanic(g, MINISTER.panic, NEWS.ministerSeen, true);
+    rules().spotted(g, m.x, GY - 130, LABELS.chopok.inShot);
+    rules().addPanic(g, TATIER.panic, NEWS.tatierSeen, true);
     ZS.sim.hunters.alert(g, b.x);
   }
 
@@ -386,7 +386,7 @@
     fog(g, c, dt);
     wind(g, c, dt);
     chata(g, c, dt);
-    minister(g, c);
+    tatier(g, c);
     wildlife(g, c, dt);
     summit(g);
   }

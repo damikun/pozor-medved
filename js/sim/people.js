@@ -1,7 +1,7 @@
 (function () {
   const { CFG, LABELS, NEWS } = ZS;
   const GROUND = CFG.GROUND;
-  const { clamp } = ZS.util;
+  const { clamp, smooth } = ZS.util;
   const rules = () => ZS.sim.rules;
   const pen = () => ZS.sim.pen;
 
@@ -13,6 +13,8 @@
     shortestBeat: 200,
     waitAtBeatEnd: 2,
   };
+
+  const ROCK = { toe: 12, ramp: 26, slow: 0.45 };
 
   const FLEE = {
     leaveSpeedUp: 1.4,
@@ -72,6 +74,25 @@
     else if (person.state === 'flee' || person.leaving || person.hurdle) fleeUntilGone(game, person, dt);
     else if (person.kind === 'forester') ZS.sim.logging.forester(game, person, dt);
     else if (person.kind !== 'tycoon') goAboutBusiness(game, person, dt);
+    climbRocks(game.level, person);
+  }
+
+  function climbRocks(level, person) {
+    if (person.hurdle) return;
+    const lift = rockLift(level, person.x);
+    if (!lift && !person.onRock) return;
+    person.onRock = lift > 0;
+    person.fy = person.onRock ? GROUND - lift : undefined;
+  }
+
+  function rockLift(level, x) {
+    let lift = 0;
+    for (const log of level.logs) {
+      if (!log.of) continue;
+      const edge = Math.abs(x - log.x) - log.w / 2;
+      if (edge < ROCK.toe) lift = Math.max(lift, log.h * smooth((ROCK.toe - edge) / ROCK.ramp));
+    }
+    return lift;
   }
 
   function playReaction(game, person, dt) {
@@ -139,7 +160,7 @@
   }
 
   function walkBeat(level, person, dt) {
-    const nextX = person.x + person.dir * person.speed * dt;
+    const nextX = person.x + person.dir * person.speed * (person.onRock ? ROCK.slow : 1) * dt;
     const allowedX = stopAtFencesAndCorn(level, person.x, nextX);
     person.x = allowedX;
     if (allowedX !== nextX || person.x < person.from || person.x > person.to) turnAtBeatEnd(person);

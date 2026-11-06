@@ -115,11 +115,10 @@
     skin: '#e8bc96', hair: '#3a2a20', coat: '#d0312b', pants: '#2b2f3a', boots: '#3a2c22', sole: '#14100c', hat: '#d0312b',
     scale: 1.02, walkS: 50, runS: 100, stoop: 0.04, carry: 'tablet', belly: 0.8, top: 'fleece', hairdo: 'cap', bootF: 0.5,
   };
-  LOOK.minister = {
-    skin: '#ecbd98', hair: '#b9b4ab', coat: '#2b3245', trim: '#c0392b', pants: '#262b34', boots: '#1c1a18', sole: '#0c0b0a',
-    scale: 1.04, walkS: 44, runS: 90, stoop: -0.03, carry: 'tablet', belly: 3.2, top: 'resort', hairdo: 'silver', grin: 1, bootF: 0.2,
+  const HIKE = {
+    tycoon: Object.assign({}, LOOK.tycoon, { coat: '#1f3a2e', trim: '#d6ab42', pants: '#3a3f47', boots: '#5a4636', sole: '#1e1712', glove: '#2a2f2a', tail: 0, belly: 3, stick: 1 }),
   };
-  const GENERIC = { guest: 1, waiter: 1, tycoon: 1, aide: 1, forester: 1, rescuer: 1, minister: 1 };
+  const GENERIC = { guest: 1, waiter: 1, tycoon: 1, aide: 1, forester: 1, rescuer: 1 };
   const CAN_FILM = { tourist: 1, aide: 1, forester: 1 };
   const CAN_AIM = { walker: 1, ztmh: 1, poacher: 1, forester: 1 };
   const slung = (L) => L.carry === 'sling' || !!L.slung;
@@ -1508,6 +1507,13 @@
     const p = R.phone;
     ctx.save();
     ctx.translate(p.x, p.y); ctx.rotate(p.ang);
+    if (K.L.stick) {
+      ctx.rotate(0.62);
+      ctx.fillStyle = '#2b2d31'; ctx.fillRect(-0.8, -34, 1.6, 36);
+      ctx.fillStyle = '#9aa0a6'; ctx.fillRect(-0.5, -33, 0.6, 30);
+      ctx.translate(0, -34); ctx.rotate(-1.5);
+      ctx.fillStyle = '#2b2d31'; rr(ctx, -2.2, -1.6, 4.4, 3.2, 0.8);
+    }
     ctx.fillStyle = '#17181c'; rr(ctx, -1.5, -8.2, 3, 9.8, 1);
     ctx.fillStyle = '#7fd0ff'; ctx.fillRect(-1.5, -7.2, 0.8, 7.8);
     if (film) {
@@ -1662,7 +1668,7 @@
     if (kind === 'tourist' && L.poles) drawPoles(ctx, K, tm);
     if (K.film) drawPhone(ctx, K, tm, true);
     if ((kind === 'guest' || kind === 'waiter') && K.has && !INN[K.sp]) drawCarry(ctx, K);
-    if (kind === 'tycoon' && K.sp === 'selfie') drawPhone(ctx, K, tm, false);
+    if (kind === 'tycoon' && K.sp === 'selfie') drawPhone(ctx, K, tm, !!L.stick);
     else if (kind === 'tycoon' && K.has && !K.sp) drawPass(ctx, K, tm);
     if (kind === 'aide' && K.has && !K.sp) drawTablet(ctx, K, tm, K.state === 'film' && st.aimK > 0.5);
     if (kind === 'forester' && K.has && !K.sp && K.state !== 'aim') drawSpray(ctx, K, tm, K.state === 'film' && st.aimK > 0.5);
@@ -1816,7 +1822,7 @@
   ZS.drawHuman = function (ctx, h, time) {
     if (!(time >= 0)) time = 0;
     const kind = LOOK[h.kind] ? h.kind : 'walker';
-    let L = kind === 'guest' ? lookOf(kind, h.look) : kind === 'tourist' && h.hiker ? HIKERS[Math.abs(h.look | 0) % HIKERS.length] : (h.outfit === 'winter' && WLOOK[kind]) || LOOK[kind];
+    let L = kind === 'guest' ? lookOf(kind, h.look) : kind === 'tourist' && h.hiker ? HIKERS[Math.abs(h.look | 0) % HIKERS.length] : (h.outfit === 'winter' && WLOOK[kind]) || (h.outfit === 'hike' && HIKE[kind]) || LOOK[kind];
     if (h.size > 0 && h.size !== 1) L = sizedLook(L, h.size);
     let sp = SPECIAL[h.state] ? h.state : '';
     if ((sp === 'pickup' || sp === 'drop' || sp === 'climbStand') && !CAN_AIM[kind]) sp = '';

@@ -140,7 +140,7 @@ test('in the cave the closed part needs the headlamp, holding C under a colony c
   assert.equal(last.counted, 0);
 });
 
-test('in the cave a low ceiling stops an upright bear like a wall, a crawling one passes, the rock stops a jump, and the river throws it back', () => {
+test('in the cave a low ceiling stops an upright bear like a wall, a crawling one passes, the rock stops a jump, and the wide river is crossed stone by stone or sinks the bear', () => {
   const env = setup();
   const { ZS, g, b, run, quiet, input } = env;
   quiet();
@@ -179,15 +179,40 @@ test('in the cave a low ceiling stops an upright bear like a wall, a crawling on
   input.release('Space');
   assert.ok(top < GY0 - 20, 'a real jump: ' + Math.round(top));
   assert.ok(top - 90 >= ZS.sim.cave.ceiling(g.level, a - 30) - 1, 'the head stays under the rock: ' + Math.round(top));
-  const wet = S.water[0] + 30;
-  Object.assign(b, { x: wet, trackX: wet, stun: 0, y: g.bear.y });
-  run(DT * 2);
-  assert.equal(c.wet, 1, 'splash');
-  assert.ok(b.x < S.water[0], 'back on the bank: ' + Math.round(b.x));
-  assert.ok(!ZS.sim.cave.water(g.level, S.stones[0]), 'the stone is dry');
+  const W = S.water, CFG = ZS.CFG;
+  assert.ok(W[1] - W[0] >= 260 && S.stones.length === 2, 'a wide river with two stones');
+  assert.ok(W[1] - W[0] > (CFG.RUN * 2 * CFG.JUMP) / CFG.GRAVITY, 'not even a running jump clears it');
+  for (const s of S.stones) assert.ok(!ZS.sim.cave.water(g.level, s) && s > W[0] && s < W[1], 'a dry stone in the river');
+  const lives = g.lives;
+  Object.assign(b, { x: W[0] - 20, trackX: W[0] - 20, y: GY0, stun: 0, dir: 1 });
+  input.press('ArrowRight', true);
+  run(1, () => (c.sink ? false : undefined));
+  input.release('ArrowRight');
+  assert.equal(c.wet, 1, 'walked into the water');
+  const x0 = b.x;
+  run(0.4);
+  assert.ok(c.sink && b.y > GY0 + 5, 'sinking: ' + Math.round(b.y));
+  assert.ok(Math.abs(b.x - x0) < 0.5 && g.lives === lives, 'no control and no life lost while it sinks');
+  run(ZS.sim.cave.SINK.t);
+  assert.ok(!c.sink && g.lives === lives - 1, 'a life lost');
+  assert.ok(b.x < W[0] && b.x > W[0] - 80 && b.y === GY0, 'back on the near bank: ' + Math.round(b.x));
+  assert.ok(c.safe > 0 && b.inv > 0, 'a short grace');
+  g.lives = 1;
+  const panic = g.panic;
+  Object.assign(b, { x: W[0] + 10, trackX: W[0] + 10 });
+  run(ZS.sim.cave.SINK.t + 0.2);
+  assert.equal(c.wet, 2);
+  assert.ok(g.lives === 1 && g.panic > panic, 'never the last life, panic instead');
+  let jumps = 0;
+  Object.assign(b, { x: W[0] - 150, trackX: W[0] - 150, y: GY0 });
+  g.bot = true;
+  run(4, () => { if (b.vy < 0 && b.onGround === false && b.vy < -CFG.JUMP + 30) jumps++; return b.x > W[1] + 40 ? false : undefined; });
+  g.bot = false;
+  assert.ok(b.x > W[1] + 40 && c.wet === 2, 'crossed dry: ' + Math.round(b.x));
+  assert.ok(jumps >= 2, jumps + ' jumps');
 });
 
-test('in the cave the tour warns first, sees a bear in its light without sending it back, and walks past a bear behind a column or frozen like a stalagmite', () => {
+test('in the cave the tour warns first, a bear seen in its light loses a life but never the last and steps back to a column, and the tour walks past a bear behind a column or frozen like a stalagmite', () => {
   const env = setup();
   const { ZS, g, b, run, quiet, input } = env;
   quiet();
@@ -201,9 +226,12 @@ test('in the cave the tour warns first, sees a bear in its light without sending
   assert.equal(c.seen, 0);
   Object.assign(b, { x: 400, trackX: 400 });
   Object.assign(c, { go: c.t - T.delay - 1, guide: 520 });
+  const lives = g.lives;
   run(DT);
   assert.equal(c.seen, 1, 'seen in the light');
-  assert.ok(Math.abs(b.x - 400) < 5 && b.stun === 0, 'no push back and no restart: ' + Math.round(b.x));
+  assert.equal(g.lives, lives - 1, 'a life lost');
+  assert.equal(b.x, 300, 'a step back to the column behind, not to the start');
+  assert.ok(c.safe > 0 && b.inv > 0 && c.flash > 0, 'a flash and a short grace');
   run(1);
   assert.equal(c.seen, 1, 'the tour walks past after a scare');
   const col = g.level.covers.find((o) => o.stalag && o.x < S.gap);
@@ -225,6 +253,14 @@ test('in the cave the tour warns first, sees a bear in its light without sending
   assert.ok(c.pose, 'frozen like a stalagmite');
   input.release('KeyC');
   assert.equal(c.seen, 1, 'the tour takes the bear for a stalagmite');
+  g.lives = 1;
+  const panic = g.panic;
+  Object.assign(b, { x: 600, trackX: 600, hiding: null, stun: 0 });
+  Object.assign(c, { guide: 700, grace: false, safe: 0 });
+  run(DT * 2);
+  assert.equal(c.seen, 2, 'seen again');
+  assert.ok(g.lives === 1 && g.panic >= panic + 25, 'never the last life, a big panic instead');
+  assert.equal(b.x, 520, 'back to the nearest column');
   c.lamp = true;
   Object.assign(b, { x: S.exit - 2, trackX: S.exit - 2 });
   run(DT * 2);
@@ -242,8 +278,17 @@ test('the cabin is a sublevel too: a careful bear balances it from the other sid
   const c = into(env, L.funi.door);
   assert.ok(g.level.cabin, 'inside the cabin');
   g.bot = true;
-  run(50, () => (g.chopok.pass ? undefined : false));
+  let leg = 0, kept = null, halt = null, done = null;
+  run(50, () => {
+    if (c.leg !== leg) { leg = c.leg; kept = { shift: c.shift, dirs: c.people.map((p) => p.dir) }; }
+    if (halt === null && c.arrived > 0) halt = g.time;
+    if (done === null && c.result) done = g.time;
+    return g.chopok.pass ? undefined : false;
+  });
   g.bot = false;
+  assert.ok(kept && kept.shift && kept.shift.leg === 0, 'leaving Priehyba keeps the last call going');
+  assert.ok(c.legT > c.legAt && c.legAt > 15, 'the ride clock runs on through the middle station');
+  assert.ok(done - halt <= 1.1, 'off at Chopok right away: ' + (done - halt).toFixed(2) + ' s');
   assert.equal(g.once.funi, true);
   assert.equal(c.result, 'level');
   assert.equal(c.alarms, 0);
@@ -377,25 +422,33 @@ test('the rescuer on the ridge only asks if the bear is lost', () => {
   assert.equal(g.shooters.length, 0, 'the rescuer does not shoot');
 });
 
-test('the minister on Ďumbier spots a bear in clear weather, misses him in the fog, and the summit book gets an entry', () => {
+test('the Lord of the Tatras below Ďumbier spots a bear in clear weather, misses him in the fog, and the summit book gets an entry on the way down', () => {
   const seen = setup();
   seen.quiet();
-  seen.put(seen.L.dumbier.minister - 200);
+  seen.put(seen.L.tatier.x - 200);
   seen.run(0.1);
   seen.g.chopok.fog.phase = 'clear'; seen.g.chopok.fog.t = 99;
   seen.run(0.2);
-  assert.equal(seen.g.chopok.minister.seen, true);
+  assert.equal(seen.g.chopok.tatier.seen, true);
   assert.ok(seen.g.panic > 0);
+  assert.ok(seen.g.floaters.some((f) => f.text === seen.ZS.LABELS.chopok.inShot));
 
-  const { ZS, g, b, L, run, quiet, put, hold, release } = setup(6);
+  const { ZS, g, b, L, input, run, quiet, put, hold, release } = setup(6);
+  assert.ok(L.tatier.x > L.descent.from && L.tatier.x < L.goalDen, 'down below the summit');
   quiet();
-  put(L.dumbier.minister - 200);
-  Object.assign(ZS.sim.chopok.state(g).fog, { phase: 'thick', t: 99, k: 1 });
+  put(L.dumbier.x - 200);
+  const c = ZS.sim.chopok.state(g);
+  Object.assign(c.fog, { phase: 'thick', t: 99, k: 1 });
+  Object.assign(c.wind, { phase: 'calm', t: 99, k: 0 });
   hold('ArrowRight');
-  run(3);
+  run(10, (i) => {
+    if (i % 45 === 0) input.press('Space', false);
+    else if (i % 45 === 6) input.release('Space');
+    return b.x < L.tatier.x + 120;
+  });
   release('ArrowRight');
-  assert.equal(g.chopok.minister.seen, false);
-  assert.equal(g.chopok.minister.passed, true);
   assert.equal(g.once.book, true);
-  assert.ok(b.x > L.dumbier.book);
+  assert.equal(g.chopok.tatier.seen, false);
+  assert.equal(g.chopok.tatier.passed, true);
+  assert.ok(b.x > L.tatier.x + 60);
 });

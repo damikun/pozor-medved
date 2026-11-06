@@ -208,7 +208,7 @@ const SCENES = [
 ];
 
 for (const c of SCENES) {
-  test(`the cave, the cabin, the hut queue, the fog, the wind and the minister draw cleanly frame by frame on the way to Ďumbier, ${c.name}`, () => {
+  test(`the cave, the cabin, the hut queue, the fog, the wind and the Lord of the Tatras draw cleanly frame by frame on the way to Ďumbier, ${c.name}`, () => {
     const { ZS, g, problems, draw } = stage(Object.assign({ level: 'chopok' }, c));
     const { input } = ZS.ui;
     const L = g.level, b = g.bear;
@@ -254,8 +254,8 @@ for (const c of SCENES) {
     Object.assign(g.chopok.wind, { phase: 'warn', t: 0.5 });
     play(4);
     input.press('ArrowRight', true);
-    at(L.dumbier.minister - 300, 'firstSnow');
-    play(4);
+    at(L.dumbier.x - 300, 'firstSnow');
+    play(5);
     input.release('ArrowRight');
     assert.deepEqual([...seen], ['cave:close', 'cave:open', 'cave:play', 'cave:shut', 'cave:back', 'funi:close', 'funi:open', 'funi:play', 'funi:shut', 'funi:back']);
     assert.ok(g.once.caveTour && g.once.caveTour.counted > 0, 'bats counted');

@@ -33,7 +33,7 @@
       else if (sp.kind === 'dog') g.dogs.push(sim.wildlife.createDog(sp, level));
       else if (sp.kind === 'sheep') g.sheep.push(sim.wildlife.createSheep(sp, g.sheep.length));
       else if (sp.kind === 'deer') g.deer.push(sim.wildlife.createDeer(sp));
-      else g.people.push(sim.people.create(g, sp.kind, { from: sp.from, to: sp.to }));
+      else g.people.push(sim.people.create(g, sp.kind, sp.hiker ? { from: sp.from, to: sp.to, hiker: sp.hiker } : { from: sp.from, to: sp.to }));
     }
     ZS.fx.init(g);
     return g;

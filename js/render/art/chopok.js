@@ -4,7 +4,7 @@
   const PI = Math.PI, TAU = PI * 2;
   const sin = Math.sin, cos = Math.cos, abs = Math.abs, min = Math.min, max = Math.max, hypot = Math.hypot;
   const { circle, ellipse: ell, rrect: rr, label } = ZS.gfx;
-  const { hash, smooth, sstep, clamp, lerp } = ZS.util;
+  const { hash, smooth, sstep, clamp, lerp, frac } = ZS.util;
   const API = (ZS.chopokArt = {});
   const SIM = () => ZS.sim.chopok;
   const on = (ctx, x, fn) => ZS.render.on(ctx, x, fn);
@@ -12,8 +12,11 @@
   const A = () => ZS.alpineArt;
 
   const SKY = { summer: ['#6fb3e6', '#e2f1fa'], autumn: ['#86b4d8', '#f4e6cf'], snow: ['#9aaab8', '#e6ebee'] };
-  const FAR = { summer: '#9fb3c6', autumn: '#a9b2bd', snow: '#c3cbd3' };
-  const HOLE = { summer: ['#7f9a52', '#5f7a3a'], autumn: ['#a38549', '#7d6436'], snow: ['#9a9068', '#7a7254'] };
+  const DEPTH = {
+    summer: { haze: '226,238,246', far: ['#cad8e5', '#b1c3d3'], mid: '#adc0b6', near: '#9db29e', cap: 0.7 },
+    autumn: { haze: '242,235,224', far: ['#d0d6de', '#b8c0cb'], mid: '#c5bca8', near: '#b4a78b', cap: 0.8 },
+    snow: { haze: '232,237,241', far: ['#dbe2e8', '#c6cfd8'], mid: '#c4cbcf', near: '#adb4b1', cap: 0.92 },
+  };
   const CARS = ['#c0392b', '#2f6db0', '#e6e2d6', '#3c3f45', '#e1a33a', '#4f7f5a'];
   const JERSEY = ['#e8590c', '#1f78d1', '#2f9e44', '#c2255c'];
   const figures = new Map();
@@ -41,9 +44,12 @@
     label(ctx, '!', x, y - bob, red ? 24 : 20, red ? '#e03131' : '#e8a400');
   }
 
-  function ridgeLine(seed, x0, step, n, base, amp) {
+  function ridgeLoop(seed, step, n, base, amp, jag) {
     const pts = [];
-    for (let i = 0; i <= n; i++) pts.push([x0 + i * step, base - amp * (0.55 + 0.45 * sin(i * 0.7 + seed)) - amp * 0.35 * hash(seed + i)]);
+    for (let i = 0; i <= n; i++) {
+      const u = ((i % n) / n) * TAU;
+      pts.push([i * step, base - amp * (0.5 + 0.3 * sin(u * 3 + seed) + 0.2 * sin(u * 7 + seed * 2.3)) - amp * jag * hash(seed + (i % n))]);
+    }
     return pts;
   }
 
@@ -53,10 +59,30 @@
     ctx.lineTo(pts[pts.length - 1][0] - off, bottom); ctx.closePath(); ctx.fill();
   }
 
+  function tile(ctx, pts, bottom, shift, viewW) {
+    const P = pts[pts.length - 1][0];
+    for (let o = -(((shift % P) + P) % P); o < viewW + 4; o += P) band(ctx, pts, bottom, -o);
+  }
+
+  function dusted(ctx, key, col, top, base) {
+    if (key !== 'snow') return col;
+    const gr = ctx.createLinearGradient(0, top, 0, base);
+    gr.addColorStop(0, '#f1f4f6'); gr.addColorStop(0.45, '#e2e8ec'); gr.addColorStop(1, col);
+    return gr;
+  }
+
+  function haze(ctx, rgb, y0, y1, a, bottom, viewW) {
+    const gr = ctx.createLinearGradient(0, y0, 0, y1);
+    gr.addColorStop(0, 'rgba(' + rgb + ',0)'); gr.addColorStop(1, 'rgba(' + rgb + ',' + a + ')');
+    ctx.fillStyle = gr; ctx.fillRect(0, y0, viewW, y1 - y0);
+    ctx.fillStyle = 'rgba(' + rgb + ',' + a + ')'; ctx.fillRect(0, y1 - 0.5, viewW, bottom - y1 + 0.5);
+  }
+
   const FARLINE = [];
-  for (let i = 0; i < 60; i++) FARLINE.push([i * 46 - 200, GY - 250 - (i % 2 ? 40 + hash(i) * 70 : hash(i * 3) * 30)]);
-  const MIDLINE = ridgeLine(2.1, -300, 90, 40, GY - 120, 70);
-  const NEARLINE = ridgeLine(5.3, -300, 120, 30, GY - 40, 50);
+  for (let i = 0; i <= 30; i++) FARLINE.push([i * 46, GY - 250 - (i % 2 ? 40 + hash(i % 30) * 70 : hash((i % 30) * 3) * 30)]);
+  const BACKLINE = ridgeLoop(8.7, 70, 36, GY - 205, 60, 0.5);
+  const MIDLINE = ridgeLoop(2.1, 90, 40, GY - 112, 64, 0.35);
+  const NEARLINE = ridgeLoop(5.3, 120, 30, GY - 44, 46, 0.3);
 
   function backdrop(ctx, g, viewW, offY) {
     const L = g.level, camC = g.cam + viewW / 2, k = sstep(L.funi.station + 100, L.funi.land + 200, camC) * (1 - 0.55 * sstep(L.descent.from + 200, L.w - 400, camC));
@@ -68,37 +94,39 @@
   }
 
   function skyline(ctx, key, camC, viewW, offY, lift) {
-    const S = SKY[key], low = lift ? 600 : 0;
+    const S = SKY[key], D = DEPTH[key], low = lift ? 600 : 0, foot = GY + 20 + low;
     const gr = ctx.createLinearGradient(0, -offY, 0, GY);
     gr.addColorStop(0, S[0]); gr.addColorStop(1, S[1]);
     ctx.fillStyle = gr; ctx.fillRect(0, -offY, viewW, GY + offY + 40 + low);
-    const wrap = (v, w) => ((v % w) + w) % w;
-    const o1 = wrap(camC * 0.02, 46 * 30), o2 = wrap(camC * 0.08, 90 * 20), o3 = wrap(camC * 0.18, 120 * 15);
-    ctx.save(); ctx.translate(0, lift * 0.2);
-    ctx.fillStyle = FAR[key];
-    band(ctx, FARLINE, GY + low, o1);
-    ctx.fillStyle = 'rgba(255,255,255,' + (key === 'summer' ? 0.55 : 0.75) + ')';
-    for (let i = 0; i < FARLINE.length; i += 2) {
-      const [x, y] = FARLINE[i], px = x - o1;
-      if (px < -60 || px > viewW + 60) continue;
-      poly(ctx, [px - 9, y + 16, px, y, px + 11, y + 18, px + 3, y + 13]);
-    }
-    ctx.restore();
-    ctx.fillStyle = 'rgba(214,226,232,0.55)'; ctx.fillRect(0, GY - 150 + lift * 0.3, viewW, 70);
-    const H = HOLE[key];
-    ctx.save(); ctx.translate(0, lift * 0.55);
-    ctx.fillStyle = H[0]; band(ctx, MIDLINE, GY + 20 + low, o2); band(ctx, MIDLINE.map(([x, y]) => [x + 90 * 20, y]), GY + 20 + low, o2);
-    if (key === 'snow') {
-      ctx.fillStyle = 'rgba(248,250,252,0.85)';
-      for (let i = 0; i < MIDLINE.length - 1; i++) {
-        const [x, y] = MIDLINE[i], px = x - o2;
-        if (px < -100 || px > viewW + 100) continue;
-        ell(ctx, px + 30, y + 8, 34, 8);
+    ctx.save(); ctx.translate(0, lift * 0.15);
+    ctx.fillStyle = D.far[0];
+    tile(ctx, FARLINE, foot, camC * 0.02, viewW);
+    ctx.fillStyle = 'rgba(255,255,255,' + D.cap + ')';
+    const P = FARLINE[30][0];
+    for (let o = -(((camC * 0.02) % P + P) % P); o < viewW + 60; o += P) {
+      for (let i = 1; i < 30; i += 2) {
+        const [x, y] = FARLINE[i], px = x + o, l = FARLINE[i - 1], r = FARLINE[i + 1];
+        if (px < -60 || px > viewW + 60) continue;
+        const kl = 0.3, kr = 0.34;
+        poly(ctx, [px, y, px + (r[0] - x) * kr, y + (r[1] - y) * kr, px + (r[0] - x) * kr * 0.45, y + (r[1] - y) * kr * 0.7, px + 1, y + (r[1] - y) * kr * 0.9, px + (l[0] - x) * kl * 0.5, y + (l[1] - y) * kl * 0.75, px + (l[0] - x) * kl, y + (l[1] - y) * kl]);
       }
     }
+    haze(ctx, D.haze, GY - 250, GY - 150, 0.5, foot, viewW);
+    ctx.restore();
+    ctx.save(); ctx.translate(0, lift * 0.3);
+    ctx.fillStyle = dusted(ctx, key, D.far[1], GY - 265, GY - 170);
+    tile(ctx, BACKLINE, foot, camC * 0.045, viewW);
+    haze(ctx, D.haze, GY - 190, GY - 95, 0.55, foot, viewW);
+    ctx.restore();
+    ctx.save(); ctx.translate(0, lift * 0.55);
+    ctx.fillStyle = dusted(ctx, key, D.mid, GY - 180, GY - 90);
+    tile(ctx, MIDLINE, foot, camC * 0.08, viewW);
+    haze(ctx, D.haze, GY - 120, GY - 30, 0.45, foot, viewW);
     ctx.restore();
     ctx.save(); ctx.translate(0, lift);
-    ctx.fillStyle = H[1]; band(ctx, NEARLINE, GY + 20 + low, o3); band(ctx, NEARLINE.map(([x, y]) => [x + 120 * 15, y]), GY + 20 + low, o3);
+    ctx.fillStyle = dusted(ctx, key, D.near, GY - 95, GY - 30);
+    tile(ctx, NEARLINE, foot, camC * 0.18, viewW);
+    haze(ctx, D.haze, GY - 70, GY + 4, 0.6, foot, viewW);
     ctx.restore();
   }
 
@@ -106,58 +134,99 @@
     return sstep(l.from - 50, l.from + 10, x) * (1 - sstep(l.to - 10, l.to + 50, x));
   }
 
+  const FADE = 150;
+
   function road(ctx, g, x0, x1) {
-    const R = g.level.road;
-    const a = max(x0, R.from), b = min(x1, R.to);
-    if (b <= a) return;
-    ctx.fillStyle = '#5d5a55'; ctx.fillRect(a, GY + 12, b - a, 34);
-    ctx.fillStyle = '#6d6a64'; ctx.fillRect(a, GY + 12, b - a, 3);
-    ctx.fillStyle = 'rgba(245,244,236,0.85)';
-    ctx.fillRect(a, GY + 16, min(b, R.to - 30) - a, 2);
-    for (let x = Math.ceil(a / 64) * 64; x < min(b, R.to - 60); x += 64) ctx.fillRect(x, GY + 30, 30, 2.5);
+    const R = g.level.road, z0 = R.to - FADE, a = max(x0, R.from), b = min(x1, R.to);
+    if (min(x1, R.to + 20) <= a) return;
+    const wear = (x) => clamp((x - z0) / FADE, 0, 1), e = min(b, z0);
+    if (e > a) {
+      ctx.fillStyle = '#5d5a55'; ctx.fillRect(a, GY + 12, e - a, 34);
+      ctx.fillStyle = '#6d6a64'; ctx.fillRect(a, GY + 12, e - a, 3);
+    }
+    if (x1 > z0 - 30) patches(ctx, R, max(a, z0 - 30), min(x1, R.to + 20));
     ctx.fillStyle = 'rgba(30,28,26,0.22)';
-    for (let c = Math.floor(a / 29); c * 29 < b; c++) ell(ctx, c * 29 + hash(c) * 20, GY + 22 + hash(c * 2) * 20, 3 + hash(c * 3) * 6, 1.4);
-    ctx.fillStyle = '#7e7a72'; ctx.fillRect(a, GY + 46, b - a, 5);
-    ctx.fillStyle = '#4f4b45'; ctx.fillRect(a, GY + 51, b - a, 3);
+    for (let c = Math.floor(a / 29); c * 29 < min(b, z0); c++) ell(ctx, c * 29 + hash(c) * 20, GY + 22 + hash(c * 2) * 20, 3 + hash(c * 3) * 6, 1.4);
+    for (let x = Math.floor(a / 6) * 6; x < b; x += 6) {
+      const k = 1 - clamp(wear(x) * 2.5, 0, 1);
+      if (k <= 0) break;
+      ctx.fillStyle = 'rgba(245,244,236,' + (0.85 * k).toFixed(3) + ')'; ctx.fillRect(x, GY + 16, 6, 2);
+      if (((x % 64) + 64) % 64 < 30) ctx.fillRect(x, GY + 30, 6, 2.5);
+    }
+    for (let x = Math.floor(a / 5) * 5; x < b; x += 5) {
+      const k = 1 - wear(x);
+      if (k <= 0) break;
+      ctx.globalAlpha = k;
+      ctx.fillStyle = '#7e7a72'; ctx.fillRect(x, GY + 46, 5, 5);
+      ctx.fillStyle = '#4f4b45'; ctx.fillRect(x, GY + 51, 5, 3);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function patches(ctx, R, a, b) {
+    const z0 = R.to - FADE, edge = (y) => z0 + FADE * (0.32 + 0.2 * sin(y * 0.27 + 1.3) + 0.09 * sin(y * 0.71 + 0.4) + 0.025 * sin(y * 2.3));
+    ctx.save();
+    ctx.beginPath(); ctx.rect(a - 30, GY + 12, b - a + 60, 34); ctx.clip();
+    ctx.fillStyle = '#5d5a55';
+    ctx.beginPath(); ctx.moveTo(z0 - 30, GY + 12);
+    for (let y = 12; y <= 46; y += 2) ctx.lineTo(edge(y), GY + y);
+    ctx.lineTo(z0 - 30, GY + 46); ctx.closePath(); ctx.fill();
+    for (let c = Math.floor((a - 16) / 13); c * 13 < b + 16; c++) {
+      const x = c * 13 + hash(c * 1.7) * 9, k = (x - z0) / FADE;
+      if (k < 0.15 || k > 1 || hash(c * 2.9) > 0.85 * (1 - k)) continue;
+      const w = (9 + hash(c * 3.3) * 12) * (1.1 - 0.6 * k), h = 1.4 + hash(c * 4.1) * 2.2, y = GY + 15 + hash(c * 5.7) * 28;
+      ctx.fillStyle = '#625f59'; poly(ctx, [x - w, y + 0.5, x - w * 0.5, y - h, x + w * 0.4, y - h * 0.7, x + w, y, x + w * 0.5, y + h, x - w * 0.4, y + h * 0.8]);
+    }
+    for (let c = Math.floor((a - 8) / 6); c * 6 < b + 8; c++) {
+      const x = c * 6 + hash(c * 0.9) * 5, k = (x - z0) / FADE;
+      if (k < 0 || k > 1.1 || hash(c * 6.1) > 0.25 + 0.5 * k) continue;
+      const r = 1 + hash(c * 3.1) * 2.2;
+      ctx.fillStyle = hash(c * 4.7) > 0.5 ? '#c9c0ae' : '#8a8172'; ell(ctx, x, GY + 14 + hash(c * 2.3) * 30, r, r * 0.7);
+    }
+    ctx.restore();
   }
 
   function trail(ctx, g, x0, x1) {
-    const T = g.level.trail, A = T.from - 2, a = max(x0, A), b = min(x1, T.to);
+    const T = g.level.trail, a = max(x0, T.from - FADE - 10), b = min(x1, T.to + 4);
     if (b <= a) return;
-    const w = (x) => 1 - 0.45 * sstep(T.to - 300, T.to, x);
+    const w = (x) => 1 - 0.45 * sstep(T.to - 300, T.to, x), end = (x) => sstep(T.to - 80, T.to, x);
+    const bot = (x) => GY + 12 + 32 * w(x) + 1.5 * sin(x * 0.031), at = (x, y) => lerp(y, bot(x), end(x));
     const s0 = Math.floor(a / 16) * 16, s1 = Math.ceil(b / 16) * 16 + 16;
     ctx.fillStyle = '#a99f8c';
     ctx.beginPath();
-    for (let x = s0; x <= s1; x += 16) ctx.lineTo(x, GY + 12 + 1.2 * sin(x * 0.05));
-    for (let x = s1; x >= s0; x -= 16) ctx.lineTo(x, GY + 12 + 32 * w(x) + 1.5 * sin(x * 0.031));
+    for (let x = s0; x <= s1; x += 16) ctx.lineTo(x, at(x, GY + 12 + 1.2 * sin(x * 0.05)));
+    for (let x = s1; x >= s0; x -= 16) ctx.lineTo(x, bot(x));
     ctx.closePath(); ctx.fill();
     ctx.strokeStyle = 'rgba(96,86,70,0.32)'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(s0, GY + 21); ctx.lineTo(s1, GY + 21); ctx.moveTo(s0, GY + 12 + 24 * w(a)); ctx.lineTo(s1, GY + 12 + 24 * w(b)); ctx.stroke();
-    for (let c = Math.floor(a / 11); c * 11 < b; c++) {
-      const x = c * 11 + hash(c) * 8, y = GY + 14 + hash(c * 2.3) * 28 * w(x), r = 1.2 + hash(c * 3.1) * 2.4;
+    ctx.beginPath();
+    for (let x = s0; x <= s1; x += 16) ctx.lineTo(x, at(x, GY + 21));
+    ctx.moveTo(s0, at(s0, GY + 12 + 24 * w(s0)));
+    for (let x = s0 + 16; x <= s1; x += 16) ctx.lineTo(x, at(x, GY + 12 + 24 * w(x)));
+    ctx.stroke();
+    for (let c = Math.floor(a / 11) - 1; c * 11 < b; c++) {
+      const x = c * 11 + hash(c) * 8, y = at(x, GY + 14 + hash(c * 2.3) * 28 * w(x)), r = (1.2 + hash(c * 3.1) * 2.4) * (1 - 0.6 * end(x));
+      if (x > T.to) continue;
       ctx.fillStyle = hash(c * 4.7) > 0.5 ? '#c9c0ae' : '#8a8172'; ell(ctx, x, y, r, r * 0.7);
     }
     ctx.fillStyle = '#8f877a';
-    for (let c = Math.floor(a / 23); c * 23 < b; c++) { const x = c * 23 + hash(c * 5) * 10; ell(ctx, x, GY + 12 + 32 * w(x) + 1, 4 + hash(c * 9) * 3, 2.4); }
-    if (a < T.from + 60) {
-      ctx.fillStyle = '#5d5a55';
-      for (let i = 0; i < 12; i++) { const h = hash(i * 3.1 + 0.4); ell(ctx, T.from + h * 46 * (1 - i / 14), GY + 15 + i * 2.6, 3 + hash(i * 5.3) * 6 * (1 - h), 2); }
-    }
+    for (let c = Math.floor(a / 23) - 1; c * 23 < b + 10; c++) { const x = c * 23 + hash(c * 5) * 10, k = 1 - 0.7 * end(x); if (x < T.to) ell(ctx, x, bot(x) + 1, (4 + hash(c * 9) * 3) * k, 2.4 * k); }
   }
 
 
   function lots(ctx, g, x0, x1) {
     for (const l of g.level.lots) {
       if (l.to + 60 < x0 || l.from - 60 > x1) continue;
-      const a = max(x0, l.from - 50), b = min(x1, l.to + 50);
+      const a = max(x0, l.from - 50), b = min(x1, l.to + 50), xs = [];
+      for (let x = Math.floor(a / 10) * 10; x <= b + 10; x += 10) xs.push(x);
+      const top = (x) => GY + 14 - 17 * lotEdge(l, x);
       ctx.fillStyle = '#6a6761';
-      ctx.beginPath(); ctx.moveTo(a, GY + 14);
-      for (let x = Math.floor(a / 10) * 10; x <= b + 10; x += 10) ctx.lineTo(x, GY + 14 - 17 * lotEdge(l, x));
-      ctx.lineTo(b + 10, GY + 14); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(xs[0], GY + 14);
+      for (const x of xs) ctx.lineTo(x, top(x));
+      ctx.lineTo(xs[xs.length - 1], GY + 14); ctx.closePath(); ctx.fill();
       ctx.fillStyle = 'rgba(255,255,255,0.12)';
-      ctx.beginPath(); ctx.moveTo(a, GY + 14);
-      for (let x = Math.floor(a / 10) * 10; x <= b + 10; x += 10) ctx.lineTo(x, GY + 14 - 17 * lotEdge(l, x));
-      for (let x = Math.ceil((b + 10) / 10) * 10; x >= a; x -= 10) ctx.lineTo(x, GY + 14 - 15 * lotEdge(l, x));
+      ctx.beginPath();
+      for (const x of xs) ctx.lineTo(x, top(x));
+      for (let i = xs.length - 1; i >= 0; i--) ctx.lineTo(xs[i], GY + 14 - 15 * lotEdge(l, xs[i]));
       ctx.closePath(); ctx.fill();
       if (!l.lines) continue;
       ctx.strokeStyle = 'rgba(245,244,236,0.75)'; ctx.lineWidth = 2;
@@ -178,19 +247,85 @@
     ctx.fillStyle = '#b9b5ab'; ell(ctx, x - 70, GY + 70, 9, 4); ell(ctx, x + 50, GY + 74, 11, 4);
   }
 
-  function traffic(ctx, g, x0, x1) {
-    const R = g.level.road, t = g.time;
-    for (let i = 0; i < 4; i++) {
-      const dir = i % 2 ? -1 : 1, span = 2600 + i * 400, speed = 150 + i * 35;
-      const base = Math.floor((x0 - 300) / span) * span;
-      for (let k = 0; k < 2; k++) {
-        const x = base + k * span + ((dir > 0 ? t * speed : -t * speed) % span + span) % span + i * 610;
-        if (x < x0 - 80 || x > x1 + 80 || x < R.from + 60 || x > R.to - 80 || abs(x - R.bridge) < 1) continue;
-        ctx.save(); ctx.translate(x, (dir > 0 ? GY + 40 : GY + 28) + rise(x)); ctx.scale(0.62 * dir, 0.62);
-        car(ctx, 0, CARS[(i * 2 + k) % CARS.length], hash(i + k), true);
-        ctx.restore();
-      }
+  const FLOW = { level: null, t: 0, cars: [], slots: [], n: 0, next: 0 };
+  const LANE = { near: GY + 41, far: GY + 26, lot: GY, turn: 90, gap: 130, wait: 2, stay: 6 };
+
+  function traffic(ctx, g, cam, viewW) {
+    const F = FLOW, L = g.level, R = L.road;
+    const seen = (x) => x > cam - 160 && x < cam + viewW + 160;
+    if (F.level !== L || g.time < F.t) startFlow(F, L, g.time, seen);
+    const dt = clamp(g.time - F.t, 0, 0.1);
+    F.t = g.time;
+    if (g.time >= F.next) launch(F, R, g.time, seen);
+    for (const c of F.cars) drive(F, R, c, dt);
+    F.cars = F.cars.filter((c) => {
+      const done = c.x < R.from - 150 || (c.phase === 'park' && c.t > LANE.stay && !seen(c.x));
+      if (done && c.slot && c.slot.car === c) c.slot.car = null;
+      return !done;
+    });
+    const list = F.cars.slice().sort((p, q) => p.y - q.y);
+    for (const c of list) {
+      if (!seen(c.x)) continue;
+      ctx.save(); ctx.translate(c.x, c.y + rise(c.x)); ctx.scale(c.dir, 1);
+      car(ctx, 0, c.col, c.sd, true);
+      ctx.restore();
     }
+  }
+
+  function startFlow(F, L, time, seen) {
+    Object.assign(F, { level: L, t: time, cars: [], n: 0, next: time + 1 });
+    F.slots = [];
+    for (const l of L.lots) for (const x of l.slots || []) F.slots.push({ x, car: null });
+    const last = F.slots[F.slots.length - 1];
+    [[600, 1], [1500, -1], [2350, -1], [2700, 1]].forEach(([x, dir], i) => {
+      if (seen(x) || (dir > 0 && (!last || last.car || last.x < x + LANE.turn))) return;
+      const c = { x, y: dir > 0 ? LANE.near : LANE.far, dir, v: 0, top: 150 + hash(i * 3.3) * 50, slot: dir > 0 ? last : null, phase: 'road', t: 0, col: CARS[(i * 2 + 1) % CARS.length], sd: hash(i * 5.1) };
+      if (c.slot) c.slot.car = c;
+      F.cars.push(c);
+    });
+  }
+
+  function launch(F, R, time, seen) {
+    F.n++;
+    F.next = time + 3 + hash(F.n * 1.37) * 6;
+    const free = F.slots.filter((s) => !s.car), hidden = free.filter((s) => !seen(s.x));
+    const out = hidden.length > 0 && hash(F.n * 0.91) < 0.5, list = out ? hidden : free;
+    if (!list.length) return;
+    if (!out && F.cars.some((c) => c.dir > 0 && c.x < R.from - 120 + LANE.gap)) return;
+    const s = list[Math.floor(hash(F.n * 2.71) * list.length) % list.length];
+    const c = { x: out ? s.x : R.from - 120, y: out ? LANE.lot : LANE.near, dir: out ? -1 : 1, v: 0, top: 140 + hash(F.n * 3.3) * 60, slot: s, phase: out ? 'wait' : 'road', t: 0, col: CARS[F.n % CARS.length], sd: hash(F.n * 5.1) };
+    s.car = c;
+    F.cars.push(c);
+  }
+
+  function drive(F, R, c, dt) {
+    c.t += dt;
+    if (c.phase === 'park') return;
+    if (c.phase === 'wait') {
+      if (c.t > LANE.wait && !F.cars.some((o) => o !== c && o.dir < 0 && o.phase === 'road' && o.x > c.x - 40 && o.x < c.x + 320)) c.phase = 'out';
+      return;
+    }
+    let v = c.top;
+    for (const o of F.cars) {
+      if (o === c || o.dir !== c.dir || o.phase === 'park' || o.phase === 'wait') continue;
+      const gap = (o.x - c.x) * c.dir;
+      if (gap > 0 && gap < LANE.gap + 80) v = min(v, max(0, gap - LANE.gap) * 2.5 + o.v * 0.5);
+    }
+    const s = c.slot;
+    if (c.dir > 0 && s && s.x - c.x < LANE.turn) {
+      const k = 1 - (s.x - c.x) / LANE.turn;
+      v = min(v, max(16, c.top * (1 - k)));
+      c.y = lerp(LANE.near, LANE.lot, smooth(k));
+      c.phase = 'in';
+    } else if (c.dir < 0 && c.phase === 'out') {
+      const k = clamp((s.x - c.x) / LANE.turn, 0, 1);
+      v = min(v, 24 + c.top * k);
+      c.y = lerp(LANE.lot, LANE.far, smooth(k));
+      if (k >= 1) { c.phase = 'road'; s.car = null; c.slot = null; }
+    }
+    c.v = v;
+    c.x += c.dir * v * dt;
+    if (c.dir > 0 && s && c.x >= s.x) { c.x = s.x; c.y = LANE.lot; c.v = 0; c.phase = 'park'; c.t = 0; }
   }
 
   function turf(ctx, g, x0, x1) {
@@ -234,14 +369,14 @@
       ctx.transform(1, k, 0, 1, 0, d - k * a);
       hillside(ctx, g, a, SLICE);
       B.ground(ctx, a, SLICE, g);
-      road(ctx, g, a, z);
       trail(ctx, g, a, z);
+      road(ctx, g, a, z);
       lots(ctx, g, a, z);
       bridgeDeck(ctx, g, a, z);
       turf(ctx, g, a, z);
       ctx.restore();
     }
-    traffic(ctx, g, cam - 20, x1);
+    traffic(ctx, g, cam, viewW);
   }
 
   function under(ctx, g, viewW) {
@@ -684,18 +819,12 @@
     ctx.fillStyle = '#c0392b'; ctx.fillRect(bx - 14, GY - 58, 28, 3);
   }
 
-  function minister(ctx, g, vis) {
-    const c = g.chopok, D = g.level.dumbier;
-    if (!c || !vis(D.minister, 160)) return;
-    const m = c.minister, t = g.time, talk = sin(t * 5) > 0;
-    ctx.fillStyle = '#3c4048'; ctx.fillRect(D.minister - 46, GY - 64, 3, 64);
-    ctx.fillStyle = '#18284a'; rr(ctx, D.minister - 54, GY - 72, 20, 10, 3);
-    person(ctx, 'minister', 'minister', D.minister, -1, 'idle', t);
-    person(ctx, 'crew', 'tourist', D.crew, -1, 'film', t, { aimAt: [D.minister, GY - 60], look: 2 });
-    ctx.fillStyle = '#c0392b'; ctx.fillRect(D.crew - 18, GY - 112, 36, 12);
-    ctx.fillStyle = '#fff'; ctx.font = '800 8px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(LABELS.chopok.board.crew, D.crew, GY - 106);
-    if (talk && !m.passed && abs(g.bear.x - D.minister) < 600) label(ctx, '…', D.minister - 10, GY - 116, 16, '#2a2f22');
+  function tatier(ctx, g, vis) {
+    const c = g.chopok, T = g.level.tatier;
+    if (!c || !vis(T.x, 160)) return;
+    const m = c.tatier, t = g.time, caught = t - m.seenAt < 3.5;
+    person(ctx, 'tatier', 'tycoon', T.x, caught ? -1 : 1, 'selfie', t, { outfit: 'hike', selfieK: caught ? 0.8 : 0.42 + 0.04 * sin(t * 0.7) });
+    if (!caught && !m.passed && abs(g.bear.x - T.x) < 600 && frac(t * 0.18) < 0.6) label(ctx, LABELS.chopok.vlog, T.x + 6, GY - 132, 12, '#2a2f22');
   }
 
   function back(ctx, g, vis, span, withBear) {
@@ -715,32 +844,66 @@
       for (const k of g.chopok.chamois) if (vis(k.x, 60)) on(ctx, k.x, () => A().chamois(ctx, k, g));
     }
     if (vis(L.dumbier.x, 120)) on(ctx, L.dumbier.x, () => cross(ctx, L.dumbier, g));
-    on(ctx, L.dumbier.minister, () => minister(ctx, g, vis));
   }
 
   function front(ctx, g, vis, span) {
     const L = g.level;
     on(ctx, L.chata.x, () => chataFront(ctx, g, vis));
+    on(ctx, L.tatier.x, () => tatier(ctx, g, vis));
     for (const t of L.dwarf) if (span(t[0], t[1], 60)) on(ctx, (t[0] + t[1]) / 2, () => A().thicketFront(ctx, t, g));
+  }
+
+  const BANKS = [
+    { y: GY - 250, h: 120, f: 0.0042, v: 7, a: 0.1, sd: 0.4 },
+    { y: GY - 175, h: 105, f: 0.0058, v: 11, a: 0.12, sd: 2.1 },
+    { y: GY - 100, h: 90, f: 0.0075, v: 16, a: 0.16, sd: 3.7 },
+    { y: GY - 30, h: 75, f: 0.0098, v: 23, a: 0.22, sd: 5.2 },
+  ];
+  const WISPS = 12;
+
+  function bankTop(B, x, u, k, cover) {
+    const n = 0.5 + 0.3 * sin(u * B.f + B.sd) + 0.2 * sin(u * B.f * 2.7 + B.sd * 3);
+    return B.y + B.h * (1 - cover * (0.35 + 0.65 * k) * (0.45 + 0.55 * n));
+  }
+
+  function banks(ctx, g, viewW, k, roll) {
+    const cam = g.cam, t = g.time, gust = 1 + 2.5 * g.chopok.wind.k, x0 = cam - 20, x1 = cam + viewW + 20;
+    const edge = cam - 460 + (viewW + 760) * (1 - roll), cover = (x) => sstep(edge, edge + 320, x);
+    const veil = ctx.createLinearGradient(edge, 0, edge + 420, 0);
+    veil.addColorStop(0, 'rgba(234,239,243,0)'); veil.addColorStop(1, 'rgba(234,239,243,' + (k * 0.18).toFixed(3) + ')');
+    ctx.fillStyle = veil; ctx.fillRect(x0, -400, x1 - x0, GY + 480);
+    for (const B of BANKS) {
+      const drift = t * B.v * gust, top = B.y - B.h;
+      const gr = ctx.createLinearGradient(0, top, 0, B.y + 20);
+      gr.addColorStop(0, 'rgba(240,244,247,0)');
+      gr.addColorStop(0.45, 'rgba(240,244,247,' + (k * B.a).toFixed(3) + ')');
+      gr.addColorStop(1, 'rgba(240,244,247,' + (k * B.a * 1.35).toFixed(3) + ')');
+      ctx.fillStyle = gr;
+      ctx.beginPath(); ctx.moveTo(x0, GY + 80);
+      for (let x = x0; x <= x1 + 24; x += 24) ctx.lineTo(x, bankTop(B, x, x + drift, k, cover(x)));
+      ctx.lineTo(x1 + 24, GY + 80); ctx.closePath(); ctx.fill();
+    }
+    const W = ctx.createLinearGradient(0, 0, 1, 0);
+    W.addColorStop(0, 'rgba(246,248,250,0)'); W.addColorStop(0.35, 'rgba(246,248,250,1)'); W.addColorStop(0.65, 'rgba(246,248,250,1)'); W.addColorStop(1, 'rgba(246,248,250,0)');
+    for (let i = 0; i < WISPS; i++) {
+      const len = 150 + hash(i * 1.9) * 220, span = viewW + len + 200, v = 30 + hash(i * 2.3) * 40;
+      const x = cam + span - ((t * v * gust + hash(i * 5.1) * span) % span) - len - 100, y = GY - 18 - hash(i * 3.3) * 250;
+      const a = k * (0.22 + 0.2 * hash(i * 4.7)) * cover(x + len / 2) * (0.6 + 0.4 * sin(t * 0.5 + i));
+      if (a < 0.01) continue;
+      ctx.save();
+      ctx.globalAlpha *= a;
+      ctx.translate(x, y); ctx.scale(len, 4 + hash(i * 6.1) * 7);
+      ctx.fillStyle = W; ctx.fillRect(0, -0.5, 1, 1);
+      ctx.globalAlpha *= 0.6; ctx.fillRect(0.12, -1.1, 0.76, 0.6);
+      ctx.restore();
+    }
   }
 
   function fog(ctx, g, viewW) {
     const c = g.chopok, L = g.level;
     if (!c) return;
     const cam = g.cam, f = c.fog, k = f.k * sstep(L.fog.from - 500, L.fog.from + 100, cam + viewW / 2);
-    if (k > 0.01) {
-      const t = g.time, top = -300;
-      ctx.fillStyle = 'rgba(236,240,243,' + (k * 0.32).toFixed(3) + ')';
-      ctx.fillRect(cam - 10, top, viewW + 20, GY + 80 - top);
-      for (let i = 0; i < 4; i++) {
-        const y = GY - 40 - i * 75, w = 260 + i * 60, step = w * 1.15, drift = (t * (14 + i * 9) + i * 200) % step;
-        ctx.fillStyle = 'rgba(244,247,249,' + (k * (0.32 - i * 0.04)).toFixed(3) + ')';
-        for (let x = Math.floor((cam - w) / step) * step - drift; x < cam + viewW + w; x += step) {
-          const sd = Math.round(x / step) * 1.7 + i;
-          ell(ctx, x + hash(sd) * 80, y + (hash(sd * 2) - 0.5) * 30, w * 0.5, 34 + hash(sd * 3) * 18);
-        }
-      }
-    }
+    if (k > 0.01) banks(ctx, g, viewW, k, f.phase === 'coming' ? smooth(min(1, f.k * 1.15)) : 1);
     const w = c.wind;
     if (w.k > 0.02 && g.bear.x > L.wind.from - 200) {
       ctx.strokeStyle = 'rgba(255,255,255,' + (0.55 * w.k).toFixed(3) + ')'; ctx.lineWidth = 2; ctx.lineCap = 'round';

@@ -8,9 +8,10 @@
   const TOUR = { from: 700, speed: 100, len: 220, light: 220, gone: -260, trigger: 260, wait: 8, delay: 2.4, warn: 3, near: 40 };
   const COUNT = { per: 0.22, reach: 48 };
   const NOISE = { run: 240, land: 150, splash: 280 };
-  const SEEN = { panic: 8, flash: 0.6 };
+  const SEEN = { panic: 8, big: 25, flash: 0.6, safe: 2 };
+  const SINK = { t: 0.8, depth: 34, safe: 2, panic: 15, bank: 40, stun: 0.6 };
   const LAMP = { reach: 34, range: 280 };
-  const STONE = 30, END = 180, REAR = 0.72, LEDGE = 90;
+  const STONE = 30, END = 180, REAR = 0.72, LEDGE = 90, LEAP = 118;
   const ROOF = GY - 330, HEAD = 90, LOW = GY - 70, SLOPE = 50;
 
   function roofY(x) {
@@ -55,7 +56,7 @@
 
   function start(g, S) {
     const c = {
-      t: 0, guide: TOUR.from, go: null, warn: false, grace: false, pose: false, lamp: false, flash: 0, seen: 0, said: {}, result: null, count: null, wet: 0, air: false, bonk: 0,
+      t: 0, guide: TOUR.from, go: null, warn: false, grace: false, pose: false, lamp: false, flash: 0, seen: 0, said: {}, result: null, count: null, wet: 0, air: false, bonk: 0, safe: 0, sink: null,
       bats: S.cave.colonies.map(([x, n], i) => ({ id: i, x, n, counted: 0, state: 'sleep', k: 0, t: 0 })),
     };
     c.total = c.bats.reduce((a, o) => a + o.n, 0);
@@ -69,6 +70,8 @@
   const walking = (c) => tourOn(c) && c.t - c.go >= TOUR.delay;
   const water = (S, x) => x > S.cave.water[0] && x < S.cave.water[1] && !S.cave.stones.some((s) => Math.abs(s - x) < STONE);
   const wild = (S, x) => x > S.cave.gap;
+  const next = (S, b) => S.cave.stones.concat(S.cave.water[1] + 60).find((s) => s > b.x + STONE);
+  const leap = (S, b, m) => { const W = S.cave.water, to = next(S, b); return !!to && b.x > W[0] - 2 * LEAP && b.x < W[1] && b.x >= to - LEAP - m; };
 
   function wake(g, c, o) {
     if (o.state !== 'sleep') return;
@@ -126,17 +129,37 @@
     }
   }
 
+  function hurt(g, b, panic) {
+    if (g.lives <= 1) { rules().addPanic(g, panic); return; }
+    g.lives -= 1;
+    rules().onSound(g, 'hit', b.x);
+    rules().float(g, b.x, GY - 160, LABELS.hit(g.lives), COLORS.shot);
+  }
+
   function river(g, S, c, b) {
     if (!b.onGround) { c.air = true; return; }
-    if (c.air) { c.air = false; if (b.x > S.cave.water[0] - 40 && b.x < S.cave.water[1] + 40) noise(g, c, b.x, NOISE.land); }
+    if (c.air) { c.air = false; if (b.x > S.cave.water[0] && b.x < S.cave.water[1]) noise(g, c, b.x, NOISE.land); }
     if (!water(S, b.x)) return;
     c.wet++;
     chopok().quiet(b);
-    Object.assign(b, { x: S.cave.water[0] - 30, trackX: S.cave.water[0] - 30, stun: 0.5, dir: 1 });
+    c.sink = { t: 0, x: b.x };
     rules().float(g, b.x, GY - 120, LABELS.cave.splash, COLORS.bad);
     rules().onSound(g, 'splash', b.x, 1);
     noise(g, c, S.cave.water[0], NOISE.splash);
     if (!c.said.splash) { c.said.splash = true; rules().quip(g, ZS.QUIPS.splash, true); }
+  }
+
+  function sinking(g, S, c, dt) {
+    const b = g.bear, k = c.sink;
+    k.t += dt;
+    Object.assign(b, { moving: false, running: false, vx: 0, vy: 0, onGround: true, y: GY + SINK.depth * Math.min(1, k.t / SINK.t) });
+    b.quipCd -= dt;
+    if (k.t < SINK.t) return;
+    c.sink = null;
+    const x = S.cave.water[0] - SINK.bank;
+    Object.assign(b, { x, trackX: x, y: GY, dir: 1, kx: 0, stun: SINK.stun });
+    hurt(g, b, SINK.panic);
+    c.safe = SINK.safe;
   }
 
   function lamp(g, S, c, b) {
@@ -150,6 +173,7 @@
   function control(g, S, c, dt) {
     const b = g.bear;
     g.input.hugPressed = false; g.input.bitePressed = false;
+    if (c.sink) { sinking(g, S, c, dt); return; }
     if (counting(g, S, c, dt)) return;
     ZS.sim.bear.update(g, dt);
     b.x = clamp(b.x, 40, c.lamp ? S.cave.exit : S.cave.gap - 10);
@@ -180,14 +204,23 @@
     const ahead = !wild(S, b.x) && c.guide + TOUR.len > b.x;
     const eta = (c.guide - TOUR.light - b.x) / (TOUR.speed + Math.max(0, b.vx));
     c.warn = ahead && !c.grace && !hidden && (!walking(c) || eta < TOUR.warn);
-    if (!ahead || hidden || c.grace) return;
+    if (!ahead || hidden || c.grace || c.safe > 0) return;
     const inLight = walking(c) && b.x < c.guide && b.x > c.guide - TOUR.light;
     const inGroup = b.x >= c.guide - TOUR.near;
     if (!inLight && !inGroup) return;
-    c.seen++; c.flash = SEEN.flash; c.grace = true; c.warn = false;
+    caught(g, S, c, b);
+  }
+
+  function caught(g, S, c, b) {
+    c.seen++; c.flash = SEEN.flash; c.grace = true; c.warn = false; c.safe = SEEN.safe;
     rules().spotted(g, b.x, GY - 130, LABELS.cave.seen);
-    rules().addPanic(g, SEEN.panic);
     rules().onSound(g, 'scream', b.x, 0.7);
+    rules().addPanic(g, SEEN.panic);
+    const col = S.covers.filter((s) => s.x < S.cave.gap && s.x < b.x - 10).reduce((p, s) => (!p || s.x > p.x ? s : p), null);
+    const x = col ? col.x : Math.max(S.start, b.x - 60);
+    chopok().quiet(b);
+    Object.assign(b, { x, trackX: x, dir: 1, stun: 0.4 });
+    hurt(g, b, SEEN.big);
     if (!c.said.seen) { c.said.seen = true; rules().say(g, NEWS.caveSeen, true); }
   }
 
@@ -209,11 +242,13 @@
   function update(g, c, dt) {
     const S = g.level, b = g.bear;
     c.t += dt;
+    c.safe = Math.max(0, c.safe - dt);
     b.rear = (b.rear || 0) + ((c.count ? REAR : 0) - (b.rear || 0)) * Math.min(1, dt * 7);
     c.flash = Math.max(0, c.flash - dt * 2.5);
     bats(c, dt);
     tour(g, S, c, dt);
     control(g, S, c, dt);
+    if (c.safe > 0) b.inv = Math.max(b.inv, c.safe);
     if (b.x >= S.cave.exit - 4 || c.t >= END) return finish(g, c);
     return false;
   }
@@ -231,10 +266,10 @@
 
   function hint(g, c) {
     const b = g.bear, S = g.level;
-    if (!b.onGround || b.stun > 0 || c.count) return null;
+    if (!b.onGround || b.stun > 0 || c.count || c.sink) return null;
     if (low(S, b.x, 90) && !b.crouch) return 'crawl';
     if (ledgeAhead(S, b)) return 'climb';
-    if (b.x > S.cave.water[0] - 110 && b.x < S.cave.water[1] - 10) return 'jump';
+    if (leap(S, b, 25)) return 'jump';
     if (c.bats.some((q) => q.state === 'sleep' && q.counted < q.n && Math.abs(q.x - b.x) < COUNT.reach)) return 'count';
     if (c.pose) return null;
     if (c.warn || (!wild(S, b.x) && tourOn(c) && !c.grace && c.guide - b.x < 600 && c.guide + TOUR.len > b.x)) return 'hide';
@@ -244,7 +279,13 @@
   function pilot(g, c) {
     const b = g.bear, keys = g.input.keys, S = g.level;
     if (!wild(S, b.x) && tourOn(c) && c.guide + TOUR.len > b.x - 40) {
-      const st = S.covers.find((s) => s.x < S.cave.gap && Math.abs(s.x - b.x) < 160);
+      if (b.hiding && b.hiding.stalag) { keys.add('ArrowDown'); return; }
+      const wait = Math.max(0, TOUR.delay - (c.t - c.go));
+      const ok = (s) => {
+        const xa = s.x - s.w / 2 - 14, k = Math.max(0, xa - b.x) / CFG.WALK + 0.3, at = c.guide - TOUR.speed * Math.max(0, k - wait);
+        return xa < at - TOUR.near - 20 && (k < wait || xa < at - TOUR.light - 10);
+      };
+      const st = S.covers.filter((s) => s.x < S.cave.gap && ok(s)).reduce((p, s) => (!p || s.x > p.x ? s : p), null);
       if (c.guide - b.x < 520 && st) {
         if (Math.abs(st.x - b.x) < st.w / 2 + 14) keys.add('ArrowDown');
         else keys.add(st.x > b.x ? 'ArrowRight' : 'ArrowLeft');
@@ -256,9 +297,8 @@
     keys.add('ArrowRight');
     if (low(S, b.x, 70)) keys.add('ArrowDown');
     if (b.onGround && ledgeAhead(S, b) && !low(S, b.x, 60)) { g.input.jumpPressed = true; g.input.jumpKey = 'Space'; }
-    const W = S.cave.water;
-    if (b.onGround && ((b.x > W[0] - 56 && b.x < W[0] - 26) || S.cave.stones.some((s) => b.x > s - 10 && b.x < s + STONE))) { g.input.jumpPressed = true; g.input.jumpKey = 'Space'; }
+    if (b.onGround && b.y > GY - 5 && leap(S, b, 0)) { g.input.jumpPressed = true; g.input.jumpKey = 'Space'; }
   }
 
-  ZS.sim.cave = { TOUR, COUNT, LAMP, stage, start, update, idle, low, water, wild, counted, plan, pilot, hint, tourOn, walking, roofY, ceiling };
+  ZS.sim.cave = { TOUR, COUNT, LAMP, SINK, LEAP, stage, start, update, idle, low, water, wild, counted, plan, pilot, hint, tourOn, walking, roofY, ceiling };
 })();

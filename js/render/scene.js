@@ -99,6 +99,7 @@
     const b = g.bear, r = o.react;
     const h = o.h || (o.h = { aimAt: [0, 0] });
     h.x = o.x; h.y = o.fy; h.dir = o.dir; h.kind = o.kind === 'posed' ? 'walker' : o.kind; h.outfit = g.level.theme; h.cold = b.cold;
+    if (o.hiker) { h.hiker = true; h.look = o.hiker; }
     h.armed = !shooter || o.armed !== false; h.empty = !!o.empty; h.clutch = !!o.clutch; h.texting = !!o.texting;
     h.scared = false; h.kick = 0; h.rifleDir = o.rifleDir; h.rifleX = o.pickX; h.offer = o.offer || 0;
     h.aimAt[0] = b.x; h.aimAt[1] = GY - 50;
@@ -280,7 +281,7 @@
 
   function overlays(ctx, g, vis, viewW, top) {
     const b = g.bear;
-    for (const d of g.drones) P.drone(ctx, d, g.time);
+    for (const d of g.drones) on(ctx, d.x, () => P.drone(ctx, d, g.time));
     const aim = ZS.sim.hunters.aimFactor(g);
     if (!g.cut) for (const s of g.shooters) if (!s.react && vis(s.cross, 60) && Math.abs(s.x - b.x) < 1500) on(ctx, s.cross, () => P.crosshair(ctx, s, aim, g));
     if (g.level.logging) ZS.loggingArt.over(ctx, g, viewW, top);
@@ -353,7 +354,7 @@
     for (const s of L.signs) if (vis(s.x, 160)) on(ctx, s.x, () => P.sign(ctx, s, g));
     for (const p of L.posts) if (vis(p.x, 80)) on(ctx, p.x, () => P.post(ctx, p, g));
     if (b.climbing && b.climbing.ladder) withBear(ZS.drawBearOnLadder);
-    for (const lg of L.logs) if (vis(lg.x, 80)) on(ctx, lg.x, () => (lg.rock ? ZS.alpineArt.slab : P.log)(ctx, lg, g));
+    for (const lg of L.logs) if (!lg.of && vis(lg.x, 80)) on(ctx, lg.x, () => (lg.rock ? ZS.alpineArt.slab : P.log)(ctx, lg, g));
     for (const it of L.items) if ((!it.eaten || P.left(it)) && !OWN_ART[it.type] && vis(it.x, 60)) on(ctx, it.x, () => P.item(ctx, it, g.time, g));
     for (const p of g.props) if (vis(p.x, 60)) on(ctx, p.x, () => ZS.drawDropped(ctx, p, g.time));
     ZS.fx.drawBack(ctx, g, viewW);
