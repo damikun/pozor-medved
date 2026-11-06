@@ -381,26 +381,8 @@
     if (L.summit) ZS.chopokArt.iris(ctx, g, viewW, offY);
   }
 
-  const SEASON_FADE = 2.5;
-  const fade = { key: null, level: null, img: null, t: -99 };
+  ZS.draw = scene;
 
-  ZS.draw = function (g, ctx, viewW, offY) {
-    const cv = ctx.canvas, live = typeof document !== 'undefined' && cv && cv.width > 0;
-    if (fade.level === g.level && fade.key && fade.key !== g.seasonKey && live && !g.level.stage) {
-      if (!fade.img) fade.img = document.createElement('canvas');
-      fade.img.width = cv.width; fade.img.height = cv.height;
-      fade.img.getContext('2d').drawImage(cv, 0, 0);
-      fade.t = g.time;
-    }
-    fade.key = g.seasonKey; fade.level = g.level;
-    scene(g, ctx, viewW, offY);
-    const k = 1 - (g.time - fade.t) / SEASON_FADE;
-    if (k > 0 && k <= 1 && fade.img && live) {
-      ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = k * k;
-      ctx.drawImage(fade.img, 0, 0);
-      ctx.restore();
-    }
-  };
 
   ZS.render.cue = cue;
   ZS.render.on = on;
