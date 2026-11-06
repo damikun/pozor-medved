@@ -107,7 +107,7 @@
     LEVEL_TEXT: {
       summer: {
         name: 'Verano en el valle',
-        blurb: 'Pueblo, majada, hotel y un lago de los Tatras',
+        blurb: 'Pueblo, majada y lago de los Tatras',
         seasons: { spring: 'Primavera', summer: 'Verano', autumn: 'Otoño' },
         trip: 'Hacia la osera de invierno',
         startDen: 'Osera de primavera',

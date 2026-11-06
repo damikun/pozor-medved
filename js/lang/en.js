@@ -107,7 +107,7 @@
     LEVEL_TEXT: {
       summer: {
         name: 'Summer in the Valley',
-        blurb: 'Village, sheepfold, hotel and a Tatra lake',
+        blurb: 'Village, sheepfold and a Tatra lake',
         seasons: { spring: 'Spring', summer: 'Summer', autumn: 'Autumn' },
         trip: 'Road to the winter den',
         startDen: 'Spring den',

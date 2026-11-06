@@ -108,7 +108,7 @@
   ZS.LEVEL_TEXT = {
     summer: {
       name: 'Leto v doline',
-      blurb: 'Dedina, salaš, hotel a Zelené pleso',
+      blurb: 'Dedina, salaš a Zelené pleso',
       seasons: { spring: 'Jar', summer: 'Leto', autumn: 'Jeseň' },
       trip: 'Cesta do zimného brlohu',
       startDen: 'Jarný brloh',

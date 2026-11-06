@@ -107,7 +107,7 @@
     LEVEL_TEXT: {
       summer: {
         name: 'Sommer im Tal',
-        blurb: 'Dorf, Schafalm, Hotel und ein Tatra-See',
+        blurb: 'Dorf, Schafalm und Tatra-See',
         seasons: { spring: 'Frühling', summer: 'Sommer', autumn: 'Herbst' },
         trip: 'Weg zur Winterhöhle',
         startDen: 'Frühlingshöhle',
