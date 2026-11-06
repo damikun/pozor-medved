@@ -612,10 +612,17 @@
     tally(ctx, c, viewW, offY);
     ctx.restore();
     if (c.flash > 0) { ctx.fillStyle = 'rgba(255,255,250,' + (0.6 * c.flash).toFixed(3) + ')'; ctx.fillRect(0, 0, viewW, H + 40); }
-    const dark = c.lost ? smooth(c.lost.t / SIM().ALERT.lost) : c.back || 0;
-    if (dark > 0.01) {
-      ctx.fillStyle = 'rgba(8,6,12,' + dark.toFixed(3) + ')'; ctx.fillRect(0, 0, viewW, H + 40);
-      if (c.lost) { ctx.globalAlpha = dark; label(ctx, LABELS.cave.lost, viewW / 2, (H + 40) / 2, 20, '#f6e7c4'); ctx.globalAlpha = 1; }
+    const L = SIM().ALERT.lost, lt = c.lost ? c.lost.t : 0;
+    const dark = c.lost ? max(min(0.6, lt * 2), smooth((lt - (L - 0.5)) / 0.5)) : c.back || 0;
+    if (dark > 0.01) { ctx.fillStyle = 'rgba(8,6,12,' + dark.toFixed(3) + ')'; ctx.fillRect(0, 0, viewW, H + 40); }
+    if (c.lost && lt < L - 0.3) {
+      const text = LABELS.cave.lost, y = (H + 40) / 2 - offY / 2;
+      ctx.globalAlpha = min(1, lt * 5);
+      ctx.font = '800 24px system-ui, sans-serif';
+      const w = min(viewW - 24, ctx.measureText(text).width + 48);
+      ctx.fillStyle = 'rgba(150,40,30,0.95)'; rr(ctx, viewW / 2 - w / 2, y - 26, w, 52, 26);
+      ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, viewW / 2, y + 1, w - 24);
+      ctx.globalAlpha = 1;
     }
   }
 

@@ -9,7 +9,7 @@
   const COUNT = { per: 0.22, reach: 48 };
   const NOISE = { run: 240, land: 150, splash: 280 };
   const SEEN = { panic: 8, big: 25, flash: 0.6 };
-  const ALERT = { panic: 4, fill: 3, near: 2, fall: 0.3, stop: 0.25, calm: 0.04, slow: 0.55, wider: 70, block: 34, lost: 1.6 };
+  const ALERT = { panic: 4, fill: 3, near: 2, fall: 0.3, stop: 0.25, calm: 0.04, slow: 0.55, wider: 70, block: 34, lost: 2.6 };
   const SINK = { t: 0.8, depth: 34, safe: 2, panic: 15, bank: 40, stun: 0.6 };
   const LAMP = { reach: 34, range: 280 };
   const FLOCK = { fly: 2.2, away: 7, back: 1.6, hang: 290 };
@@ -205,7 +205,6 @@
   function lose(g, c, b) {
     c.lost = { t: 0 }; c.alert = null; c.warn = false;
     chopok().quiet(b);
-    rules().float(g, b.x, GY - 170, LABELS.cave.lost, COLORS.bad);
     rules().onSound(g, 'scream', b.x, 0.8);
     rules().addPanic(g, SEEN.big);
     rules().say(g, NEWS.caveLost, true);
