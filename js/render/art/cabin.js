@@ -280,7 +280,7 @@
   }
 
   function draw(g, ctx, viewW, offY) {
-    const c = g.chopok.pass.play, H = g.viewH || 540, b = g.bear, t = g.time;
+    const c = g.pass.play, H = g.viewH || 540, b = g.bear, t = g.time;
     const hurt = b.inv > 0 ? 0.45 + 0.35 * cos(t * 14) : 1;
     const withBear = (fn, who = b, alpha = 1) => { ctx.globalAlpha = hurt * alpha; fn(ctx, who, t); ctx.globalAlpha = 1; };
     const sc = min(1, (viewW - 16) / (BOX.right - BOX.left + 40)), mid = (BOX.left + BOX.right) / 2;

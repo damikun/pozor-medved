@@ -18,6 +18,8 @@
         sim.rules.say(g, si === 1 ? NEWS.snow : NEWS.frost, si === 2);
       } else if (g.level.id === 'chopok') {
         sim.rules.say(g, si === 1 ? NEWS.chopokAutumn : NEWS.chopokSnow, si === 2);
+      } else if (g.level.id === 'capital') {
+        sim.rules.say(g, si === 1 ? NEWS.capital.budget : NEWS.capital.recess, si === 2);
       } else {
         if (si === 1) sim.rules.say(g, NEWS.summer);
         if (si === 2) {
@@ -73,10 +75,10 @@
   }
 
   function passing(g, dt) {
-    sim.chopok.stepPass(g, dt);
+    sim.passes.step(g, dt);
     if (g.over) return;
     g.cam = cameraX(g);
-    if (!sim.chopok.inside(g)) ZS.fx.update(g, dt, g.viewW);
+    if (!sim.passes.inside(g)) ZS.fx.update(g, dt, g.viewW);
     updateMeters(g, dt);
     sim.politics.escalate(g);
     ageEffects(g, dt);
@@ -89,10 +91,10 @@
     if (!changeSeason(g)) return;
     if (g.ride) { riding(g, dt); return; }
     if (sim.logging.carried(g)) { staged(g, dt); return; }
-    if (sim.chopok.passing(g)) { passing(g, dt); return; }
+    if (sim.passes.passing(g)) { passing(g, dt); return; }
     sim.bear.update(g, dt);
     sim.logging.walls(g);
-    sim.chopok.walls(g);
+    sim.passes.walls(g);
     if (sim.lift.check(g)) { g.cam = cameraX(g); sim.rules.tickerStep(g, dt); return; }
     sim.logging.check(g);
     sim.encounters.update(g, dt);
@@ -100,7 +102,7 @@
     sim.boar.update(g, dt);
     sim.lot.update(g, dt);
     sim.alpine.update(g, dt);
-    sim.chopok.update(g, dt);
+    if (!sim.passes.enter(g)) { sim.chopok.update(g, dt); sim.capital.update(g, dt); }
     sim.fisher.update(g);
     g.cam = cameraX(g);
     ZS.fx.update(g, dt, g.viewW);

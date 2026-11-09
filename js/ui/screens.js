@@ -1,10 +1,10 @@
 (function () {
   const { UI } = ZS;
   const $ = (id) => document.getElementById(id);
-  const ORDER = ['summer', 'winter', 'chopok'];
-  const FRESH = 'chopok';
-  const TEASER = { summer: 'winterTeaser', winter: 'chopokTeaser' };
-  const NEXT = { summer: 'next', winter: 'nextChopok' };
+  const ORDER = ['summer', 'winter', 'chopok', 'capital'];
+  const FRESH = 'capital';
+  const TEASER = { summer: 'winterTeaser', winter: 'chopokTeaser', chopok: 'capitalTeaser' };
+  const NEXT = { summer: 'next', winter: 'nextChopok', chopok: 'nextCapital' };
   const next = (id) => ORDER[ORDER.indexOf(id) + 1] || null;
   const CONTROLS = { walk: ['ArrowLeft', 'ArrowRight'], hide: ['ArrowDown'], climb: ['ArrowUp'], stomp: ['Space'], hug: ['KeyC'], shake: ['KeyC'], bite: ['KeyX'] };
   const TOUCH_CONTROLS = ['walk', 'hide', 'climb', 'hug', 'bite'];

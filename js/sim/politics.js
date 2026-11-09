@@ -70,6 +70,7 @@
     summer: ['wrongbear', 'court', 'meat', 'poacher', 'bins', 'census', 'constitution', 'feeding'],
     winter: ['wrongbear', 'court', 'meat', 'poacher', 'stalls', 'census', 'decree', 'drive'],
     chopok: ['wrongbear', 'court', 'meat', 'poacher', 'bins', 'census', 'constitution', 'drive'],
+    capital: ['wrongbear', 'court', 'meat', 'bins', 'census', 'constitution'],
   };
 
   function randomEvents(g, dt) {

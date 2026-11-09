@@ -545,7 +545,7 @@
   }
 
   function draw(g, ctx, viewW, offY) {
-    const S = g.level, c = g.chopok.pass.play, cam = g.cam, H = g.viewH || 540, b = g.bear, t = g.time;
+    const S = g.level, c = g.pass.play, cam = g.cam, H = g.viewH || 540, b = g.bear, t = g.time;
     const vis = (x, m) => x > cam - m && x < cam + viewW + m;
     const hurt = b.inv > 0 ? 0.45 + 0.35 * Math.cos(t * 14) : 1;
     const withBear = (fn, who = b, alpha = 1) => { ctx.globalAlpha = hurt * alpha; fn(ctx, who, t); ctx.globalAlpha = 1; };

@@ -21,8 +21,10 @@ The game runs right in the browser, nothing to install. Offline, just open `inde
   market of Liptovský Mikuláš to reach a quiet den.
 - **Up to Ďumbier**: count the bats in the Cave of Liberty behind the tour's back, keep a packed cable car cabin
   balanced on the way to Chopok and cross the foggy Low Tatras ridge to Ďumbier and a den below it.
+- **To Parliament**: get a PRESS badge past the police cordon, make the quorum in parliament, raid the buffet and ride
+  a Danube boat to a den in the floodplain forest.
 
-**Goal:** reach the den with enough fat (85% in summer, 65% in winter, 75% on Ďumbier) and hug someone at least once; a selfie
+**Goal:** reach the den with enough fat (85% in summer, 65% in winter, 75% on Ďumbier and in parliament) and hug someone at least once; a selfie
 with a tourist counts too. Without a hug the den won't let you in.
 
 ## How to play

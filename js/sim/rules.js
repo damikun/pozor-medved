@@ -9,7 +9,7 @@
     onSound: () => {},
   };
 
-  const headlinesOf = (id) => (id === 'winter' ? ZS.WINTER_HEADLINES : id === 'chopok' ? ZS.CHOPOK_HEADLINES : ZS.HEADLINES);
+  const headlinesOf = (id) => (id === 'winter' ? ZS.WINTER_HEADLINES : id === 'chopok' ? ZS.CHOPOK_HEADLINES : id === 'capital' ? ZS.CAPITAL_HEADLINES : ZS.HEADLINES);
 
   rules.create = function (input, { viewW = CFG.MIN_VIEW_W, bot = false, level: id = 'summer' } = {}) {
     const def = ZS.LEVELS[id];
@@ -33,7 +33,7 @@
       else if (sp.kind === 'dog') g.dogs.push(sim.wildlife.createDog(sp, level));
       else if (sp.kind === 'sheep') g.sheep.push(sim.wildlife.createSheep(sp, g.sheep.length));
       else if (sp.kind === 'deer') g.deer.push(sim.wildlife.createDeer(sp));
-      else g.people.push(sim.people.create(g, sp.kind, sp.hiker ? { from: sp.from, to: sp.to, hiker: sp.hiker } : { from: sp.from, to: sp.to }));
+      else g.people.push(sim.people.create(g, sp.kind, sp.hiker ? { from: sp.from, to: sp.to, hiker: sp.hiker } : sp.look ? { from: sp.from, to: sp.to, look: sp.look } : { from: sp.from, to: sp.to }));
     }
     ZS.fx.init(g);
     return g;
@@ -74,6 +74,11 @@
   rules.addPanic = function (g, n, news, hot) { g.panic = Math.max(0, Math.min(100, g.panic + n)); if (news) rules.say(g, news, hot); };
   rules.spotted = function (g, x, y, text) { g.stats.seen++; rules.float(g, x, y, text, COLORS.seen); };
 
+  rules.offScreen = function (g, x) {
+    const w = g.viewW || CFG.MIN_VIEW_W;
+    return Math.abs(x - g.bear.x) > w + 200;
+  };
+
   rules.eat = function (g, it) {
     const f = ZS.FOOD[it.type];
     it.eaten = true;
@@ -91,7 +96,7 @@
     if (news && !(g.time - g.saidAt[it.type] < 30)) { g.saidAt[it.type] = g.time; rules.say(g, news); }
     if (g.fat >= g.def.fatGoal && !g.readySaid) {
       g.readySaid = true;
-      rules.say(g, !rules.hugged(g) ? NEWS.readyNoHug : g.level.theme === 'winter' ? NEWS.readyForSleep : g.level.id === 'chopok' ? NEWS.readyForDumbier : NEWS.readyForWinter, true);
+      rules.say(g, !rules.hugged(g) ? NEWS.readyNoHug : g.level.theme === 'winter' ? NEWS.readyForSleep : g.level.id === 'chopok' ? NEWS.readyForDumbier : g.level.id === 'capital' ? NEWS.capital.ready : NEWS.readyForWinter, true);
     }
   };
 

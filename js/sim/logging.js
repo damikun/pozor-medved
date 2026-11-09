@@ -596,7 +596,7 @@
   }
 
   function trip(g) {
-    const c = g.cut, b = g.bear, staged = ZS.sim.chopok.trip(g);
+    const c = g.cut, b = g.bear, staged = ZS.sim.passes.trip(g);
     if (staged !== null) return staged;
     if (c && c.main) {
       const A = area(g), k = A ? clamp((b.x - A.from) / (A.to - A.from), 0, 1) : 0;

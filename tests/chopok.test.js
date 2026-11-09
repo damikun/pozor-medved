@@ -73,9 +73,9 @@ function into(env, door) {
   const { g, run, put, hold, release } = env;
   put(door - 60);
   hold('ArrowRight');
-  run(4, () => (g.chopok && g.chopok.pass && g.chopok.pass.phase === 'play' ? false : undefined));
+  run(4, () => (g.pass && g.pass.phase === 'play' ? false : undefined));
   release('ArrowRight');
-  return g.chopok.pass.play;
+  return g.pass.play;
 }
 
 test('the cave is a sublevel of its own: the valley is put away, the bear counts the bats and comes out by the ice cave', () => {
@@ -87,9 +87,9 @@ test('the cave is a sublevel of its own: the valley is put away, the bear counts
   const c = into(env, L.cave.door);
   assert.ok(g.level.stage && g.level.cave && g.level !== main, 'inside the cave stage');
   assert.equal(g.people.length, 0, 'the valley people wait outside');
-  assert.ok(ZS.sim.chopok.inside(g));
+  assert.ok(ZS.sim.passes.inside(g));
   g.bot = true;
-  run(90, () => (g.chopok.pass ? undefined : false));
+  run(90, () => (g.pass ? undefined : false));
   g.bot = false;
   assert.equal(g.level, main);
   assert.ok(g.people.includes(people[0]), 'the valley people are back');
@@ -296,7 +296,7 @@ test('the cabin is a sublevel too: a careful bear balances it from the other sid
     if (c.leg !== leg) { leg = c.leg; kept = { shift: c.shift, dirs: c.people.map((p) => p.dir) }; }
     if (halt === null && c.arrived > 0) halt = g.time;
     if (done === null && c.result) done = g.time;
-    return g.chopok.pass ? undefined : false;
+    return g.pass ? undefined : false;
   });
   g.bot = false;
   assert.ok(kept && kept.shift && kept.shift.leg === 0, 'leaving Priehyba keeps the last call going');

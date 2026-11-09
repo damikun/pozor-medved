@@ -390,6 +390,7 @@
 
   function hugHuman(game, human) {
     game.stats.hugs++;
+    ZS.sim.capital.hugged(game, human);
     rules().onSound(game, 'hug', human.x);
     drop(game, human, -human.dir * HUG.throwSpeed, HUG.throwLift);
     rules().float(game, human.x, GROUND - SHOUT_HEIGHT, said(LABELS.shout.hug, human), COLORS.story);
@@ -399,7 +400,7 @@
     }
     calmPanicWithHug(game, human);
     game.viralUntil = game.time + VIRAL_FOR;
-    if (game.stats.hugs === HUG.banAfter) game.hugBanAt = game.time + HUG.banDelay;
+    if (game.stats.hugs === HUG.banAfter && human.kind !== 'flinta') game.hugBanAt = game.time + HUG.banDelay;
     showHearts(game, game.bear);
     rules().quip(game, ZS.QUIPS.hugPerson, true);
   }
@@ -566,6 +567,7 @@
     human.hugBy = null;
     human.dir = Math.sign(human.x - game.bear.x) || 1;
     if (human.kind === 'tycoon') ZS.sim.tycoon.release(game, human);
+    else if (ZS.sim.capital.release(game, human)) return;
     else if (human.react === 'selfie') walkOffTexting(human);
     else if (isHunter(human)) human.react = 'flee';
     else runAway(human);
@@ -889,6 +891,7 @@
   }
 
   function leaveForGood(game, hunter, dt) {
+    hunter.leaveT = (hunter.leaveT || 0) + dt;
     hunter.x += hunter.dir * leaveSpeed(hunter) * dt;
     if (outOfScene(game, hunter)) hunter.dead = true;
   }
@@ -900,7 +903,7 @@
   }
 
   function outOfScene(game, hunter) {
-    return Math.abs(hunter.x - game.bear.x) > LEAVE.goneBeyond || hunter.x < 0 || hunter.x > game.level.w;
+    return (hunter.leaveT > 5 && rules().offScreen(game, hunter.x)) || Math.abs(hunter.x - game.bear.x) > LEAVE.goneBeyond || hunter.x < 0 || hunter.x > game.level.w;
   }
 
   function flee(game, hunter, time, dt) {
@@ -1073,6 +1076,7 @@
 
   function runOffBitten(game, person) {
     person.react = null;
+    if (ZS.sim.capital.bitten(game, person)) return;
     if (person.kind === 'tycoon') {
       ZS.sim.tycoon.leave(game, person);
       return;

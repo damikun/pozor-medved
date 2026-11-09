@@ -122,10 +122,11 @@
     s.asw = Number.isFinite(a.sway) ? a.sway * d : null;
   }
 
-  let helmetOn = null;
+  let helmetOn = null, pressOn = null;
 
   function track(b, time) {
     helmetOn = b.helmet ? b : null;
+    pressOn = b.press ? b : null;
     let s = anim.get(b);
     const head = b.dir < 0 ? Math.PI : 0;
     if (!s) {
@@ -822,8 +823,25 @@
     }
     for (const e of ears) if (e.near >= 0.5) drawEar(e);
     if (helmetOn) helmet(ctx, pt, cy, sy, t);
+    if (pressOn) press(ctx, pt, cy, t);
     o.mouth = pt(19.5, 4.4, 0);
     return n;
+  }
+
+  function press(ctx, pt, cy, t) {
+    const l = pt(-5.5, 5.5, -5.5), r = pt(-5.5, 5.5, 5.5), m = pt(-3, 15, 0);
+    const sw = Math.sin((pressOn.walkT || 0) * 10) * 0.12 * (pressOn.moving ? 1 : 0.2);
+    ctx.strokeStyle = '#c4262e'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(l[0], l[1]); ctx.lineTo(m[0], m[1]); ctx.lineTo(r[0], r[1]); ctx.stroke();
+    ctx.save();
+    ctx.translate(m[0], m[1]); ctx.rotate(-t + sw);
+    const w = 4 + 2 * Math.abs(cy);
+    ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(-w + 0.6, 0.6, 2 * w, 11);
+    ctx.fillStyle = '#f6f2ec'; ctx.fillRect(-w, 0, 2 * w, 11);
+    ctx.fillStyle = '#c4262e'; ctx.fillRect(-w, 0, 2 * w, 3);
+    ctx.fillStyle = '#1f2430'; ctx.fillRect(-w * 0.7, 5, w * 1.4, 1.1); ctx.fillRect(-w * 0.7, 7.6, w * 1.1, 1.1);
+    ctx.fillStyle = '#9aa1a8'; ctx.fillRect(-0.8, -1, 1.6, 1.4);
+    ctx.restore();
   }
 
   function helmet(ctx, pt, cy, sy, t) {

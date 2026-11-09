@@ -72,7 +72,7 @@
     if (document.activeElement) document.activeElement.blur();
     if (from) for (const c of g.level.checkpoints || []) if (c.x <= from.x) reached.add(c.key);
     if (from) note(g, from.key === 'lift' ? LABELS.lift.resumed : LABELS.cp.resumed, from.key === 'lift' ? NEWS.liftResume : NEWS.cpResume);
-    else rules.say(g, current === 'winter' ? NEWS.winterStart : current === 'chopok' ? NEWS.chopokStart : NEWS.springStart);
+    else rules.say(g, current === 'winter' ? NEWS.winterStart : current === 'chopok' ? NEWS.chopokStart : current === 'capital' ? NEWS.capital.start : NEWS.springStart);
   }
 
   function preview(level) {
@@ -91,7 +91,7 @@
     if (g) g.running = false;
     audio.pause(false);
     hud.hidePlaying();
-    const saved = { summer: stored('summer'), winter: stored('winter'), chopok: stored('chopok') };
+    const saved = { summer: stored('summer'), winter: stored('winter'), chopok: stored('chopok'), capital: stored('capital') };
     screens.showStart(done(), (id, cont) => start(id, cont ? saved[id] : null), preview, touchy(), (code) => { setLang(code); menu(); }, saved);
   }
 
@@ -113,7 +113,7 @@
 
   function pass(run) {
     const b = run.bear;
-    if (run.ride || run.cut || run.over || ZS.sim.chopok.passing(run)) return;
+    if (run.ride || run.cut || run.over || ZS.sim.passes.passing(run)) return;
     for (const c of run.level.checkpoints || []) {
       if (reached.has(c.key) || b.x < c.x) continue;
       reached.add(c.key);

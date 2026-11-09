@@ -56,7 +56,7 @@
   }
 
   function crawl(g, dir) {
-    const b = g.bear, s = ZS.sim.bear.shed(g.level);
+    const b = g.bear, s = ZS.sim.bear.shed(g.level, b.x);
     if (!s || !b.onGround) return false;
     const half = s.w / 2 + ZS.sim.bear.ROOF;
     return Math.abs(b.x - s.x) < half + 14 && (s.x - b.x) * dir > -half;
@@ -148,11 +148,9 @@
     keys.clear();
     if (g.ride) { swingTo(g, dt); return; }
     if (g.cut && g.cut.phase !== 'done') { clearing(g, dt); return; }
-    const cave = ZS.sim.cave.plan(g), cabin = ZS.sim.cabin.plan(g);
-    if (cave || cabin) {
+    if (g.pass && g.pass.phase === 'play') {
       if (bot.mode === 'runner') keys.add('ArrowRight');
-      else if (cave) ZS.sim.cave.pilot(g, cave);
-      else ZS.sim.cabin.pilot(g, cabin);
+      else ZS.sim.passes.pilot(g);
       return;
     }
     const pilot = g.pilot || (g.pilot = { t: 0, danger: 0, wait: 0, bold: 0, alarm: -9 });
@@ -175,6 +173,15 @@
       keys.add(honey || danger ? 'ArrowUp' : 'ArrowDown');
       return;
     }
+    const way = ZS.sim.capital.stairway(g);
+    if (way === 'duck') { keys.add('ArrowDown'); return; }
+    if (way === 'left') { keys.add('ArrowLeft'); return; }
+    if (ZS.sim.capital.hop(g)) { jump(g, 'ArrowUp'); keys.add('ArrowRight'); return; }
+    const cap = runner ? null : ZS.sim.capital.bot(g, danger);
+    if (cap === 'hug' || cap === 'order') { g.input.hugPressed = true; return; }
+    if (cap === 'wait') return;
+    if (cap === 'duck' || cap === 'hide') { keys.add('ArrowDown'); return; }
+    if (cap === 'left' || cap === 'right') { keys.add(cap === 'left' ? 'ArrowLeft' : 'ArrowRight'); return; }
     const queue = runner || danger ? null : ZS.sim.chopok.queue(g);
     if (queue === 'order') { g.input.hugPressed = true; return; }
     if (queue === 'wait') return;

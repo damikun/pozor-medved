@@ -2,7 +2,7 @@
   const { CFG, COLORS, LABELS, NEWS } = ZS;
   const GY = CFG.GROUND;
   const rules = () => ZS.sim.rules;
-  const GRAB = 24, KEEP = 16, UP = 27, DOWN = 110, RUNG = 25, HATCH = 48, RISE = 118, IN = 0.85, OUT = 0.55, BAIL = 0.42, SIT = 0.7, SNACK = 1.5, CABIN = 150;
+  const GRAB = 24, KEEP = 16, UP = 27, DOWN = 110, RUNG = 25, HATCH0 = 48, RISE0 = 118, IN0 = 0.85, OUT = 0.55, BAIL = 0.42, SIT = 0.7, SNACK = 1.5, CABIN = 150;
 
   const hunterOf = (g, p) => g.shooters.find((s) => s.kind === 'posed' && s.home === p.x && !s.dead) || null;
 
@@ -84,16 +84,16 @@
   }
 
   function snack(g, r) {
-    if (!r.snack) return;
+    if (!r.snack || r.post.snack === false) return;
     r.snack = false;
     const n = g.floaters.length;
-    rules().eat(g, { type: 'sandwich', x: r.post.x, labelKey: 'hunterSnack', eaten: false, locked: false });
+    rules().eat(g, { type: 'sandwich', x: r.post.x, labelKey: r.post.snackKey || 'hunterSnack', eaten: false, locked: false });
     for (let i = n; i < g.floaters.length; i++) g.floaters[i].y = GY - CABIN - 45;
     rules().quip(g, ZS.QUIPS.ladder, true);
   }
 
   function climb(g, b, dt, up, down, jump, dx) {
-    const r = b.climbing, s = r.shooter;
+    const r = b.climbing, s = r.shooter, P = r.post, HATCH = P.hatch || HATCH0, RISE = P.rise || RISE0, IN = P.inT || IN0;
     b.running = false; b.moving = false; b.crouch = false; b.hiding = null; b.eating = false; b.vx = 0;
     b.climbT += dt;
     b.x += (r.x - b.x) * Math.min(1, dt * 12);
@@ -140,7 +140,7 @@
       if (down && r.t >= SIT) { r.phase = 'out'; r.k = 1; rules().onSound(g, 'hatch', r.x); }
     } else if (r.phase === 'out') {
       b.climbV = 1;
-      r.k = Math.max(0, r.k - dt / OUT);
+      r.k = Math.max(0, r.k - dt / (P.outT || OUT));
       b.y = GY - HATCH - RISE * r.k * r.k * (3 - 2 * r.k);
       if (r.k <= 0) { r.phase = 'climb'; r.h = HATCH - 0.5; r.rung = Math.floor(r.h / RUNG); }
     }
@@ -149,5 +149,5 @@
     creak(g, r, dt);
   }
 
-  ZS.sim.ladder = { at, grab, climb, exposed, GRAB, HATCH, RISE, CABIN };
+  ZS.sim.ladder = { at, grab, climb, exposed, GRAB, HATCH: HATCH0, RISE: RISE0, CABIN };
 })();

@@ -22,6 +22,7 @@
     runSpeed: 210,
     goneBeyond: 1600,
     offLevel: 200,
+    offScreenAfter: 5,
   };
 
   const SIGHT = {
@@ -73,6 +74,7 @@
     if (person.react) playReaction(game, person, dt);
     else if (person.state === 'flee' || person.leaving || person.hurdle) fleeUntilGone(game, person, dt);
     else if (person.kind === 'forester') ZS.sim.logging.forester(game, person, dt);
+    else if (person.capital && ZS.sim.capital.person(game, person, dt)) return;
     else if (person.kind !== 'tycoon') goAboutBusiness(game, person, dt);
     climbRocks(game.level, person);
   }
@@ -102,12 +104,14 @@
   }
 
   function fleeUntilGone(game, person, dt) {
+    person.fleeT = (person.fleeT || 0) + dt;
     flee(game, person, dt);
     if (farEnoughAway(game, person)) person.dead = true;
   }
 
   function farEnoughAway(game, person) {
-    return Math.abs(person.x - game.bear.x) > FLEE.goneBeyond
+    return (person.fleeT > FLEE.offScreenAfter && ZS.sim.rules.offScreen(game, person.x))
+      || Math.abs(person.x - game.bear.x) > FLEE.goneBeyond
       || person.x < -FLEE.offLevel
       || person.x > game.level.w + FLEE.offLevel;
   }

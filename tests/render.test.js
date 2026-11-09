@@ -45,6 +45,10 @@ const CASES = [
   { name: 'Ďumbier, portrait 390x844', width: 390, height: 844, dpr: 3, seed: 13, level: 'chopok' },
   { name: 'Ďumbier, portrait, sprinting autopilot', width: 390, height: 844, dpr: 2, seed: 14, mode: 'runner', level: 'chopok' },
   { name: 'Ďumbier, phone landscape 932x410 on touch', width: 932, height: 410, dpr: 3, seed: 15, level: 'chopok', touch: true },
+  { name: 'Bratislava, landscape 1280x720', width: 1280, height: 720, dpr: 1, seed: 16, level: 'capital' },
+  { name: 'Bratislava, portrait 390x844', width: 390, height: 844, dpr: 3, seed: 17, level: 'capital' },
+  { name: 'Bratislava, portrait, sprinting autopilot', width: 390, height: 844, dpr: 2, seed: 18, mode: 'runner', level: 'capital' },
+  { name: 'Bratislava, phone landscape 932x410 on touch', width: 932, height: 410, dpr: 3, seed: 19, level: 'capital', touch: true },
 ];
 
 for (const c of CASES) {
@@ -230,7 +234,7 @@ for (const c of SCENES) {
       g.bot = true;
       for (let i = 0; i < 60 * 70 && !g.over; i++) {
         ZS.sim.loop.step(g, 1 / 60);
-        const p = g.chopok && g.chopok.pass;
+        const p = g.pass;
         if (p) seen.add(p.key + ':' + p.phase);
         if (i % 3 === 0) draw();
         if (i > 60 && !p) break;

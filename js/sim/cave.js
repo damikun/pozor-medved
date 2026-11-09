@@ -3,7 +3,6 @@
   const GY = CFG.GROUND;
   const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
-  const chopok = () => ZS.sim.chopok;
 
   const TOUR = { from: 700, speed: 100, len: 220, light: 220, gone: -260, trigger: 260, wait: 8, delay: 2.4, warn: 3, near: 40 };
   const COUNT = { per: 0.22, reach: 48 };
@@ -134,7 +133,7 @@
     if (c.air) { c.air = false; if (b.x > S.cave.water[0] && b.x < S.cave.water[1]) noise(g, c, b.x, NOISE.land); }
     if (!water(S, b.x)) return;
     c.wet++;
-    chopok().quiet(b);
+    ZS.sim.passes.quiet(b);
     c.sink = { t: 0, x: b.x };
     rules().float(g, b.x, GY - 120, LABELS.cave.splash, COLORS.bad);
     rules().onSound(g, 'splash', b.x, 1);
@@ -197,7 +196,7 @@
 
   function lose(g, c, b) {
     c.lost = { t: 0 }; c.alert = null; c.warn = false;
-    chopok().quiet(b);
+    ZS.sim.passes.quiet(b);
     rules().onSound(g, 'scream', b.x, 0.8);
     rules().addPanic(g, SEEN.big);
     rules().say(g, NEWS.caveLost, true);
@@ -206,7 +205,7 @@
   function restart(g, S, c) {
     const b = g.bear, again = (c.restarts || 0) + 1;
     Object.assign(c, start(g, S, true), { restarts: again, back: 1 });
-    chopok().quiet(b);
+    ZS.sim.passes.quiet(b);
     Object.assign(b, { x: S.start, trackX: S.start, dir: 1, stun: 0, hiding: null, helmet: false, rear: 0, inv: 1 });
   }
 
@@ -308,7 +307,7 @@
   }
 
   function plan(g) {
-    const p = g.chopok && g.chopok.pass;
+    const p = g.pass;
     return p && p.key === 'cave' && p.phase === 'play' ? p.play : null;
   }
 

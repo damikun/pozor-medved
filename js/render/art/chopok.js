@@ -838,7 +838,7 @@
   }
 
   function iris(ctx, g, viewW, offY) {
-    const p = g.chopok && g.chopok.pass, P = SIM().PASS;
+    const p = g.pass, P = ZS.sim.passes.PASS;
     if (!p || p.phase === 'play') return;
     const H = g.viewH || 540 + offY / 0.45, far = hypot(viewW, H), k = clamp(p.t / (p.phase === 'close' || p.phase === 'shut' ? P.close : P.open), 0, 1);
     const r = p.phase === 'close' || p.phase === 'shut' ? 1 - smooth(k) : smooth(k);

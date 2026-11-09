@@ -4,7 +4,6 @@
   const rules = () => ZS.sim.rules;
   const QUIPS = () => ZS.QUIPS;
 
-  const PASS = { close: 0.8, open: 0.8, calm: 1.8 };
   const FOG = { clear: [7, 10], near: [3, 5], coming: 3, thick: [5, 8], thinning: 2.5, dense: 0.7, sees: 90 };
   const WIND = { calm: [7, 11], warn: 1.6, gust: 2.2, push: 130 };
   const COOK = { pot: [2.2, 3.6], turn: 1.1, look: [1.5, 2.4] };
@@ -17,13 +16,11 @@
 
   const between = (r) => r[0] + Math.random() * (r[1] - r[0]);
   const on = (g) => !!g.level && g.level.id === 'chopok' && !g.level.stage;
-  const ours = (g) => !!g.level && g.level.id === 'chopok' && !!g.chopok && !!g.chopok.pass;
 
   function state(g) {
     if (g.chopok) return g.chopok;
     const L = g.level;
     g.chopok = {
-      pass: null,
       fog: { phase: 'clear', t: between(FOG.clear), k: 0 },
       wind: { phase: 'calm', t: between(WIND.calm), k: 0 },
       chata: {
@@ -54,131 +51,6 @@
 
   function free(b) {
     return b.onGround && !b.climbing && !b.act && !(b.stun > 0);
-  }
-
-  function passing(g) {
-    return ours(g);
-  }
-
-  const KEEP = ['shooters', 'people', 'dogs', 'sheep', 'deer', 'drones', 'props', 'tracks'];
-  const STAGES = { cave: () => ZS.sim.cave, funi: () => ZS.sim.cabin };
-
-  function enter(g, c) {
-    const b = g.bear;
-    if (!free(b) || b.hiding || b.y < GY - 2) return false;
-    for (const p of g.level.passes) {
-      if (g.once[p.key] || b.x < p.from || b.x >= p.to) continue;
-      c.pass = { key: p.key, to: p.to, door: p.from, phase: 'close', t: 0, main: null, play: null };
-      quiet(b);
-      rules().onSound(g, p.key === 'cave' ? 'scree' : 'door', b.x, 0.6);
-      return true;
-    }
-    return false;
-  }
-
-  function quiet(b) {
-    Object.assign(b, { act: null, hiding: null, crouch: false, running: false, moving: false, eating: false, eatT: 0, vx: 0, slide: 0, covered: false, warn: false, danger: false, reach: null, push: 0, kx: 0, crawl: false, vy: 0 });
-  }
-
-  function clearPresses(g) {
-    const inp = g.input;
-    inp.jumpPressed = false; inp.bitePressed = false; inp.hugPressed = false; inp.downReleased = false;
-  }
-
-  function swapIn(g, p) {
-    const b = g.bear, mod = STAGES[p.key](), S = mod.stage();
-    p.main = { level: g.level, x: b.x };
-    for (const k of KEEP) { p.main[k] = g[k]; g[k] = []; }
-    g.level = S;
-    g.particles = []; g.floaters = []; g.shots = []; g.bubble = null;
-    quiet(b);
-    Object.assign(b, { x: S.start, trackX: S.start, dir: 1, y: GY, onGround: true, hideBlend: 0, hideTree: null, spot: null, thin: null, stun: 0, climbing: null, inCanopy: false });
-    p.play = mod.start(g, S);
-    p.phase = 'open'; p.t = 0;
-  }
-
-  function banish(g, p) {
-    const M = p.main;
-    if (!M) return;
-    for (const k of ['shooters', 'drones']) {
-      for (const o of g[k]) {
-        const dx = p.to + 500 - o.x;
-        o.x += dx;
-        if (o.from !== null && o.from !== undefined) { o.from += dx; o.to += dx; }
-        if (o.cross !== undefined) o.cross += dx;
-        M[k].push(o);
-      }
-      g[k] = [];
-    }
-  }
-
-  function swapOut(g, p) {
-    const M = p.main;
-    banish(g, p);
-    g.level = M.level;
-    for (const k of KEEP) g[k] = M[k];
-    g.particles = []; g.floaters = []; g.shots = []; g.bubble = null;
-    g.bear.helmet = false; g.bear.rear = 0;
-    p.main = null;
-    land(g, p);
-    p.phase = 'back'; p.t = 0;
-  }
-
-  function land(g, p) {
-    const b = g.bear;
-    g.once[p.key] = true;
-    quiet(b);
-    Object.assign(b, { x: p.to, trackX: p.to, dir: 1, y: GY, onGround: true, hideBlend: 0, hideTree: null, stun: 0, spot: null, thin: null });
-    for (const s of g.shooters) { s.lock = 0; s.reload = Math.max(s.reload, PASS.calm + PASS.open); s.alertX = null; }
-    g.liftCalm = g.time + PASS.calm + PASS.open;
-    g.lastKnown = null;
-    g.tracks.length = 0;
-  }
-
-  function stepPass(g, dt) {
-    const c = g.chopok, p = c.pass, b = g.bear;
-    p.t += dt;
-    b.inv = Math.max(0, b.inv - dt);
-    b.quipCd -= dt;
-    b.warn = false;
-    if (p.phase === 'play') {
-      banish(g, p);
-      if (STAGES[p.key]().update(g, p.play, dt)) { p.phase = 'shut'; p.t = 0; quiet(b); }
-      return;
-    }
-    clearPresses(g);
-    b.moving = false;
-    if (p.phase === 'close') {
-      b.x += 40 * dt; b.walkT += dt; b.moving = true;
-      if (p.t >= PASS.close) swapIn(g, p);
-    } else if (p.phase === 'open') {
-      b.x += 50 * dt; b.walkT += dt; b.moving = true; b.trackX = b.x;
-      if (p.t >= PASS.open) { p.phase = 'play'; p.t = 0; b.moving = false; }
-    } else if (p.phase === 'shut') {
-      STAGES[p.key]().idle(g, p.play, dt);
-      if (p.t >= PASS.close) swapOut(g, p);
-    } else if (p.phase === 'back') {
-      b.x += 50 * dt; b.walkT += dt; b.moving = true; b.trackX = b.x;
-      if (p.t >= PASS.open) { c.pass = null; b.moving = false; }
-    }
-  }
-
-  function inside(g) {
-    const p = ours(g) && g.chopok.pass;
-    return !!p && (p.phase === 'open' || p.phase === 'play' || p.phase === 'shut');
-  }
-
-  function trip(g) {
-    const p = g.chopok && g.chopok.pass;
-    if (!p || !p.main) return null;
-    const S = g.level, k = Math.max(0, Math.min(1, g.bear.x / S.w));
-    return (p.door + (p.to - p.door) * k) / p.main.level.goalDen;
-  }
-
-  function walls(g) {
-    if (!on(g)) return;
-    const b = g.bear;
-    for (const p of g.level.passes) if (g.once[p.key] && b.x < p.wall) { b.x = p.wall; b.trackX = Math.max(b.trackX, p.wall); if (b.vx < 0) b.vx = 0; }
   }
 
   function inDwarf(L, x) {
@@ -378,10 +250,14 @@
     }
   }
 
+  ZS.sim.passes.register('chopok', {
+    cave: { mod: () => ZS.sim.cave, sound: 'scree' },
+    funi: { mod: () => ZS.sim.cabin, sound: 'door' },
+  });
+
   function update(g, dt) {
     if (!on(g)) return;
     const c = state(g);
-    if (enter(g, c)) return;
     pines(g);
     fog(g, c, dt);
     wind(g, c, dt);
@@ -406,5 +282,5 @@
     return risky ? 'wait' : 'go';
   }
 
-  ZS.sim.chopok = { PASS, FOG, WIND, KEEP, update, passing, stepPass, inside, trip, quiet, clearPresses, between, walls, inDwarf, spotted, atCounter, act, duck, queue, state };
+  ZS.sim.chopok = { FOG, WIND, update, between, inDwarf, spotted, atCounter, act, duck, queue, state };
 })();

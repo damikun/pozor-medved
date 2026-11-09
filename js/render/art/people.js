@@ -98,7 +98,90 @@
     cook: { skin: '#e4b08a', hair: '#3a2a20', coat: '#38404c', apron: '#f4f2ec', dots: '#b8322a', hat: '#2f3a4a', band: '#c0392b',
       scale: 1, belly: 3.6, top: 'apron', hairdo: 'beanie', stache: 1 },
   };
-  const lookOf = (kind, look) => (kind === 'guest' ? GUESTS[Math.abs(look | 0) % GUESTS.length] : LOOK[kind] || LOOK.walker);
+  const MPS = [
+    { skin: '#efc6a2', hair: '#3a2c22', coat: '#26324a', shirt: '#eef0f4', tie: '#b8322a', pants: '#232a38', boots: '#1b1a1a', sole: '#070707',
+      scale: 1, walkS: 44, runS: 96, stoop: 0.02, carry: 'phone', belly: 2.4, top: 'suit', hairdo: 'slick', bootF: 0.2 },
+    { skin: '#e9bd98', hair: '#c9c6c0', coat: '#2f4a5f', shirt: '#f2efe6', tie: '#e0a53a', pants: '#253848', boots: '#2a1d14', sole: '#0d0805',
+      scale: 1.03, walkS: 42, runS: 92, stoop: 0.05, carry: 'phone', belly: 3.6, top: 'suit', hairdo: 'short', stache: 1, bootF: 0.2 },
+    { skin: '#f3cfb3', hair: '#7a3a22', coat: '#5a2a3a', shirt: '#f6efe6', tie: '#d6ab42', pants: '#2b2f3a', boots: '#3a2018', sole: '#140a06',
+      scale: 0.95, walkS: 46, runS: 96, stoop: 0, carry: 'phone', belly: 0.6, top: 'blazer', hairdo: 'bun', blush: 1, bootF: 0.4 },
+    { skin: '#e8b894', hair: '#2a201a', coat: '#3d4a3a', shirt: '#eef0e8', tie: '#e8590c', pants: '#2c3328', boots: '#1b1a1a', sole: '#070707',
+      scale: 1, walkS: 44, runS: 94, stoop: 0.03, carry: 'phone', belly: 1.8, top: 'suit', hairdo: 'slick', stache: 1, bootF: 0.2 },
+  ];
+  MPS.push(
+    { skin: '#f0c8a6', hair: '#2a201a', coat: '#1d2a3a', shirt: '#dfe8f2', tie: '#6a2a8a', pants: '#1d2430', boots: '#1b1a1a', sole: '#070707',
+      scale: 1.06, walkS: 46, runS: 98, stoop: 0.01, carry: 'phone', belly: 1.2, top: 'suit', hairdo: 'short', glasses: 1, bootF: 0.2 },
+    { skin: '#f6d2b6', hair: '#c9873a', coat: '#2f6a6a', shirt: '#f6f2ec', tie: '#f6f2ec', pants: '#243038', boots: '#3a2018', sole: '#140a06',
+      scale: 0.93, walkS: 46, runS: 96, stoop: 0, carry: 'phone', belly: 0.4, top: 'blazer', hairdo: 'pony', blush: 1, bootF: 0.4 },
+    { skin: '#eac2a0', hair: '#5a4535', coat: '#6b5a3a', shirt: '#f2efe6', tie: '#2f8f4e', pants: '#4a3e2c', boots: '#2a1d14', sole: '#0d0805',
+      scale: 1.02, walkS: 40, runS: 88, stoop: 0.06, carry: 'phone', belly: 5, top: 'suit', hairdo: 'bald', stache: 1, bootF: 0.2 },
+    { skin: '#e4b08a', hair: '#1f1a16', coat: '#3a3f47', shirt: '#f2efe6', tie: '#c4262e', pants: '#2b2f36', boots: '#1b1a1a', sole: '#070707',
+      scale: 0.98, walkS: 44, runS: 94, stoop: 0.02, carry: 'phone', belly: 2, top: 'suit', hairdo: 'tuft', bootF: 0.2 },
+    { skin: '#f2ccb0', hair: '#d8d4cc', coat: '#2c2f36', shirt: '#f4f2ea', tie: '#d6ab42', pants: '#24272e', boots: '#1b1a1a', sole: '#070707',
+      scale: 1.04, walkS: 40, runS: 86, stoop: 0.08, carry: 'phone', belly: 3.2, top: 'suit', hairdo: 'short', stache: 1, glasses: 1, bootF: 0.2 },
+    { skin: '#e2ae88', hair: '#4a2e1c', coat: '#8a2f3a', shirt: '#f6efe6', tie: '#f6efe6', pants: '#2b2f3a', boots: '#3a2018', sole: '#140a06',
+      scale: 0.94, walkS: 46, runS: 96, stoop: 0, carry: 'phone', belly: 0.5, top: 'blazer', hairdo: 'pony', blush: 1, bootF: 0.4 },
+    { skin: '#efc6a2', hair: '#9a5a2a', coat: '#3f5a7a', shirt: '#eef0f4', tie: '#e0a53a', pants: '#2a3446', boots: '#1b1a1a', sole: '#070707',
+      scale: 1.01, walkS: 44, runS: 94, stoop: 0.02, carry: 'phone', belly: 2.6, top: 'suit', hairdo: 'tuft', bootF: 0.2 },
+    { skin: '#d9a77e', hair: '#111111', coat: '#5b6370', shirt: '#f2efe6', tie: '#2f8f4e', pants: '#3a3f47', boots: '#2a1d14', sole: '#0d0805',
+      scale: 1.05, walkS: 44, runS: 94, stoop: 0.03, carry: 'phone', belly: 3.8, top: 'suit', hairdo: 'slick', bootF: 0.2 },
+    { skin: '#f6d2b6', hair: '#e0c58a', coat: '#4a6a4a', shirt: '#f6f2ec', tie: '#f6f2ec', pants: '#2e3a2e', boots: '#3a2018', sole: '#140a06',
+      scale: 0.92, walkS: 46, runS: 96, stoop: 0, carry: 'phone', belly: 0.3, top: 'blazer', hairdo: 'bun', glasses: 1, blush: 1, bootF: 0.4 },
+    { skin: '#eab892', hair: '#6a6a6a', coat: '#1f2a44', shirt: '#dfe8f2', tie: '#b8322a', pants: '#1a2236', boots: '#1b1a1a', sole: '#070707',
+      scale: 1, walkS: 42, runS: 90, stoop: 0.05, carry: 'phone', belly: 4.4, top: 'suit', hairdo: 'bald', bootF: 0.2 },
+    { skin: '#f0c4a0', hair: '#3a2214', coat: '#6a4a2a', shirt: '#f2efe6', tie: '#2f6db0', pants: '#3e2e1e', boots: '#2a1d14', sole: '#0d0805',
+      scale: 0.99, walkS: 44, runS: 94, stoop: 0.02, carry: 'phone', belly: 1.4, top: 'suit', hairdo: 'short', stache: 1, bootF: 0.2 },
+    { skin: '#e8b894', hair: '#7a2a1a', coat: '#2f3a5a', shirt: '#f6f2ec', tie: '#f6f2ec', pants: '#232a3a', boots: '#3a2018', sole: '#140a06',
+      scale: 0.96, walkS: 46, runS: 96, stoop: 0, carry: 'phone', belly: 0.6, top: 'blazer', hairdo: 'pony', glasses: 1, bootF: 0.4 },
+  );
+  LOOK.mp = MPS[0];
+  LOOK.flinta = {
+    skin: '#f0c4a0', hair: '#8a7a6a', coat: '#7d8088', shirt: '#f4f2ea', tie: '#d0312b', pants: '#6f727a', boots: '#2a1d14', sole: '#0d0805',
+    scale: 0.96, walkS: 36, runS: 88, stoop: 0.06, carry: 'phone', belly: 4.6, top: 'suit', hairdo: 'bald', glasses: 1, blush: 1, short: 1, bootF: 0.3,
+  };
+  LOOK.police = {
+    skin: '#e6bd96', hair: '#3a2c20', coat: '#24345a', vest: '#d6f04a', shirt: '#e8ecf4', trim: '#f0f2f6', pants: '#1f2a44', boots: '#101216', sole: '#050608', hat: '#1c2a4a', band: '#e8ecf4',
+    scale: 1.04, walkS: 50, runS: 104, stoop: 0.01, carry: 'phone', belly: 1.2, top: 'police', hairdo: 'peaked', bootF: 0.55,
+  };
+  const POLICES = [];
+  const INTERNS = [];
+  const CLERKS = [];
+  LOOK.intern = {
+    skin: '#f3cfb3', hair: '#5a3a22', coat: '#3f8f7a', pants: '#2e3440', boots: '#ece7dc', sole: '#9a8f80', badge: '#c0392b',
+    scale: 0.94, walkS: 46, runS: 100, stoop: 0.02, carry: 'phone', belly: 0, top: 'intern', hairdo: 'pony', blush: 1, bootF: 0.14,
+  };
+  LOOK.reporter = {
+    skin: '#f2ccb0', hair: '#6a3b22', coat: '#c4262e', shirt: '#f6f2ec', tie: '#f6f2ec', pants: '#1f2430', boots: '#2c3038', sole: '#121418',
+    scale: 0.95, walkS: 46, runS: 94, stoop: 0, carry: 'phone', belly: 0, top: 'blazer', hairdo: 'bun', blush: 1, bootF: 0.42,
+  };
+  LOOK.clerk = {
+    skin: '#f0c7a6', hair: '#a8452e', coat: '#e8e4dc', apron: '#ffffff', dots: '#2f6db0', hat: '#ffffff', band: '#2f6db0',
+    scale: 0.95, walkS: 40, runS: 84, stoop: 0.04, carry: 'tray', belly: 3, top: 'apron', hairdo: 'beanie', blush: 1, bootF: 0.2, pants: '#e8e4dc', boots: '#f2f2f2', sole: '#9a9a9a',
+  };
+  POLICES.push(LOOK.police,
+    Object.assign({}, LOOK.police, { skin: '#f2ccb0', hair: '#8a4a26', hairdo: 'peaked', scale: 0.96, belly: 0.4, blush: 1 }),
+    Object.assign({}, LOOK.police, { skin: '#d9a77e', hair: '#2a201a', scale: 1.08, belly: 3.4, stache: 1 }),
+    Object.assign({}, LOOK.police, { skin: '#eac2a0', hair: '#c9c6c0', scale: 1, belly: 2.2, glasses: 1 }),
+    Object.assign({}, LOOK.police, { skin: '#f6d2b6', hair: '#c9873a', scale: 0.94, belly: 0.2, blush: 1 }),
+    Object.assign({}, LOOK.police, { skin: '#e2ae88', hair: '#1f1a16', scale: 1.06, belly: 1.6, stache: 1, glasses: 1 }));
+  INTERNS.push(LOOK.intern,
+    Object.assign({}, LOOK.intern, { skin: '#e8b894', hair: '#2a201a', coat: '#e07a2e', hairdo: 'cap', hat: '#2c5aa0', blush: 0, glasses: 1, scale: 0.98 }));
+  CLERKS.push(LOOK.clerk,
+    Object.assign({}, LOOK.clerk, { skin: '#eab892', hair: '#5a4535', coat: '#f4f2ec', apron: '#b8322a', dots: '#f4f2ec', hat: '#b8322a', band: '#f4f2ec', scale: 1.02, belly: 4, blush: 0, stache: 1, hairdo: 'beanie' }),
+    Object.assign({}, LOOK.clerk, { skin: '#f3cfb3', hair: '#3a2c22', coat: '#2f6db0', apron: '#2f6db0', dots: '#ffffff', hat: '#ffffff', band: '#2f6db0', scale: 0.92, belly: 0.8, hairdo: 'bun' }));
+  const CITY = [LOOK.tourist,
+    Object.assign({}, LOOK.tourist, { skin: '#e8b894', hair: '#2a201a', coat: '#e64980', pants: '#2f3b52', hat: '#f8f9fa', pack: '#20c997', scale: 0.95 }),
+    Object.assign({}, LOOK.tourist, { skin: '#f6d2b6', hair: '#c9873a', coat: '#fab005', pants: '#495057', hat: '#1971c2', pack: '#e03131', belly: 2 }),
+    Object.assign({}, LOOK.tourist, { skin: '#d9a77e', hair: '#111', coat: '#2b8a3e', pants: '#cbb98d', hat: '#343a40', pack: '#f08c00', scale: 1.05 }),
+    Object.assign({}, LOOK.tourist, { skin: '#eac2a0', hair: '#c9c6c0', coat: '#7048e8', pants: '#dee2e6', hat: '#e7dfc0', pack: '#868e96', stoop: 0.06, belly: 3 }),
+    Object.assign({}, LOOK.tourist, { skin: '#f3cfb3', hair: '#8a4a26', coat: '#f76707', pants: '#1c7ed6', hat: '#ffffff', pack: '#364fc7', scale: 0.9 }),
+    Object.assign({}, LOOK.tourist, { skin: '#e8b894', hair: '#5a3a22', coat: '#1098ad', pants: '#343a40', hat: '#ffd43b', pack: '#c2255c', scale: 1.02, belly: 1 }),
+    Object.assign({}, LOOK.tourist, { skin: '#f6d2b6', hair: '#e0c58a', coat: '#f8f9fa', pants: '#2b8a3e', hat: '#c92a2a', pack: '#495057', scale: 0.93 }),
+    Object.assign({}, LOOK.tourist, { skin: '#d9a77e', hair: '#2a201a', coat: '#5c940d', pants: '#e9ecef', hat: '#212529', pack: '#e67700', scale: 1.06, belly: 2.4 }),
+    Object.assign({}, LOOK.tourist, { skin: '#eac2a0', hair: '#9a5a2a', coat: '#c2255c', pants: '#1864ab', hat: '#f1f3f5', pack: '#2f9e44', scale: 0.97 }),
+  ];
+  const VARIANTS = { guest: GUESTS, mp: MPS, police: POLICES, intern: INTERNS, clerk: CLERKS };
+  const lookOf = (kind, look) => (VARIANTS[kind] ? VARIANTS[kind][Math.abs(look | 0) % VARIANTS[kind].length] : LOOK[kind] || LOOK.walker);
   const SIZED = new Map();
   function sizedLook(L, s) {
     let m = SIZED.get(L);
@@ -118,8 +201,12 @@
   const HIKE = {
     tycoon: Object.assign({}, LOOK.tycoon, { coat: '#1f3a2e', trim: '#d6ab42', pants: '#3a3f47', boots: '#5a4636', sole: '#1e1712', glove: '#2a2f2a', tail: 0, belly: 3, stick: 1 }),
   };
-  const GENERIC = { guest: 1, waiter: 1, tycoon: 1, aide: 1, forester: 1, rescuer: 1 };
-  const CAN_FILM = { tourist: 1, aide: 1, forester: 1 };
+  const GUARD = {
+    walker: Object.assign({}, LOOK.walker, { coat: '#26324f', vest: '#26324f', pants: '#1c2338', boots: '#111', sole: '#050505', hat: '#1c2338', belly: 0.6, stoop: -0.01, scale: 1.04, guard: 1 }),
+    ztmh: LOOK.ztmh,
+  };
+  const GENERIC = { guest: 1, waiter: 1, tycoon: 1, aide: 1, forester: 1, rescuer: 1, mp: 1, flinta: 1, police: 1, intern: 1, reporter: 1, clerk: 1 };
+  const CAN_FILM = { tourist: 1, aide: 1, forester: 1, intern: 1 };
   const CAN_AIM = { walker: 1, ztmh: 1, poacher: 1, forester: 1 };
   const slung = (L) => L.carry === 'sling' || !!L.slung;
   const SPECIAL = { down: 1, pickup: 1, hugged: 1, bitten: 1, drop: 1, climbStand: 1, selfie: 1, dive: 1, jump: 1, climbOut: 1, cling: 1, hurdle: 1 };
@@ -889,6 +976,7 @@
     else if (kind === 'tycoon') resortTop(ctx, L);
     else if (kind === 'aide') pufferTop(ctx, L);
     else if (kind === 'forester') foresterTop(ctx, L);
+    else if (OFFICE[kind]) officeTop(ctx, L);
     ctx.fillStyle = 'rgba(0,0,0,0.14)'; ctx.fillRect(-9, -26, 5, 32);
     ctx.restore();
     ctx.restore();
@@ -954,6 +1042,56 @@
     } else if (L.top === 'stripes') {
       ctx.fillStyle = L.stripe; for (let y = -21; y < 3; y += 4.4) ctx.fillRect(-9, y, 20 + b, 1.8);
       ctx.fillStyle = '#f2c230'; circle(ctx, 2.4, -12, 2.2); ctx.fillStyle = '#2a201a'; circle(ctx, 1.6, -12.6, 0.4); circle(ctx, 3.2, -12.6, 0.4);
+    }
+  }
+
+  const OFFICE = { mp: 1, flinta: 1, police: 1, intern: 1, reporter: 1, clerk: 1 };
+
+  function officeTop(ctx, L) {
+    const b = L.belly;
+    if (L.top === 'suit' || L.top === 'blazer') {
+      ctx.fillStyle = L.shirt;
+      ctx.beginPath(); ctx.moveTo(0.4, -23.6); ctx.lineTo(6.2, -21.4); ctx.quadraticCurveTo(7.6 + b, -12, 6.4 + b, -4); ctx.lineTo(2.2, -4); ctx.quadraticCurveTo(3.4, -14, 0.4, -23.6); ctx.closePath(); ctx.fill();
+      if (L.top === 'suit') {
+        ctx.fillStyle = L.tie;
+        const end = L.short ? -13.5 : -6.5;
+        ctx.beginPath(); ctx.moveTo(3.4, -22.4); ctx.lineTo(5.2, -22.6); ctx.lineTo(5.6, end + 2); ctx.lineTo(4.4, end); ctx.lineTo(3, end + 2); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = dk(L.tie, 0.75); ctx.fillRect(3.4, -22.6, 1.8, 1.6);
+      } else {
+        ctx.fillStyle = L.tie === L.shirt ? '#d6ab42' : L.tie; circle(ctx, 4.6, -20.6, 0.9);
+      }
+      ctx.fillStyle = dk(L.coat, 0.8);
+      ctx.beginPath(); ctx.moveTo(0.4, -23.6); ctx.lineTo(3, -14.4); ctx.lineTo(1.4, -12.6); ctx.lineTo(-0.6, -22); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(6.2, -21.4); ctx.lineTo(4.6, -12.4); ctx.lineTo(6.8 + b * 0.3, -12.8); ctx.lineTo(7.6, -18.6); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = dk(L.coat, 0.66); circle(ctx, 3.4 + b * 0.3, -9, 0.8); circle(ctx, 3.6 + b * 0.35, -5, 0.8);
+      ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(-6.4, -21, 2.2, 18);
+      ctx.fillStyle = dk(L.coat, 0.85); ctx.fillRect(-4.6, -13, 3.6, 0.9);
+      if (L.badge) { ctx.fillStyle = L.badge; rr(ctx, -4.4, -18, 3, 2.4, 0.4); }
+    } else if (L.top === 'police') {
+      ctx.fillStyle = L.vest;
+      ctx.beginPath(); ctx.moveTo(-5.8, 2); ctx.quadraticCurveTo(-7, -6, -6.8, -15); ctx.quadraticCurveTo(-6.6, -21, -3.6, -22);
+      ctx.lineTo(1.2, -17.8); ctx.lineTo(4.8, -20.4); ctx.quadraticCurveTo(7.8, -13, 7.1 + b, -6); ctx.quadraticCurveTo(7.3 + b, 0, 5.6, 2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = L.trim; ctx.fillRect(-7, -12.6, 15 + b, 1.7); ctx.fillRect(-7, -6.4, 15.4 + b, 1.7);
+      ctx.fillStyle = 'rgba(160,170,175,0.55)'; ctx.fillRect(-7, -11.5, 15 + b, 0.6);
+      ctx.fillStyle = L.coat; ctx.font = '700 3.4px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillRect(-4.2, -17.6, 8.6, 3.2);
+      ctx.fillStyle = L.vest; ctx.fillText('POLÍCIA', 0.2, -15.9, 8.2);
+      ctx.fillStyle = '#d6ab42'; circle(ctx, 4.6, -9.2, 1.1);
+      ctx.fillStyle = '#111317'; ctx.fillRect(-7.6, -0.8, 16.4 + b, 2.6);
+      ctx.fillStyle = '#2a2d33'; rr(ctx, 3 + b * 0.5, -2, 4, 4, 0.8);
+    } else if (L.top === 'intern') {
+      ctx.fillStyle = dk(L.coat, 0.82); rr(ctx, -0.6, -8.6, 8.8 + b, 6.6, 2.4);
+      ctx.fillStyle = dk(L.coat, 0.88); ctx.fillRect(-8, 0.2, 17 + b, 3);
+      ctx.strokeStyle = '#1f2430'; ctx.lineWidth = 0.7;
+      ctx.beginPath(); ctx.moveTo(1.6, -23.4); ctx.lineTo(3.8, -12.4); ctx.lineTo(6.2, -22.6); ctx.stroke();
+      ctx.fillStyle = '#f6f2ec'; rr(ctx, 2, -12.8, 4, 5, 0.5);
+      ctx.fillStyle = L.badge; ctx.fillRect(2, -12.8, 4, 1.4);
+    } else if (L.top === 'apron') {
+      ctx.fillStyle = L.apron;
+      ctx.beginPath(); ctx.moveTo(-1.4, -15.6); ctx.lineTo(6.4, -16.6); ctx.quadraticCurveTo(8 + b, -6, 7.6 + b, 4); ctx.lineTo(-2.4, 4); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = L.dots; ctx.fillRect(-2.4, -1.4, 10 + b, 1.2);
+      ctx.strokeStyle = dk(L.apron, 0.8); ctx.lineWidth = 0.7;
+      ctx.beginPath(); ctx.moveTo(-1.2, -15.4); ctx.lineTo(-3, -22.6); ctx.stroke();
     }
   }
 
@@ -1243,6 +1381,14 @@
 
   function hat(ctx, K, tm) {
     const L = K.L, kind = K.kind, yaw = R.yaw, win = !!L.win;
+    if (kind === 'walker' && L.guard && !win) {
+      ctx.fillStyle = L.hat;
+      ctx.beginPath(); ctx.moveTo(-7.4, -3.4); ctx.lineTo(-6.6, -12.4); ctx.quadraticCurveTo(0.6, -13.6, 7.4, -12.2); ctx.lineTo(7.2, -3.4); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#b8323a'; ctx.fillRect(-7.2, -6.2, 14.4, 2.4);
+      ctx.fillStyle = '#0d1424'; ctx.beginPath(); ctx.moveTo(3.4, -4); ctx.lineTo(12, -2.8); ctx.quadraticCurveTo(12.2, -1.4, 10.4, -1.2); ctx.lineTo(3.2, -2.2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#d6ab42'; circle(ctx, 2.8, -9, 1.6); ctx.fillRect(-6.6, -12.6, 13.6, 1.2);
+      return;
+    }
     if (kind === 'walker') {
       ctx.save(); ctx.rotate(-0.07);
       if (win) {
@@ -1260,18 +1406,20 @@
         ctx.fillStyle = dk(L.hat, 0.85); ell(ctx, 0.6, -4.6, 10.6, 2.3);
         ctx.fillStyle = L.hat;
         ctx.beginPath(); ctx.moveTo(-6.4, -4.7); ctx.lineTo(-5.2, -11.6); ctx.quadraticCurveTo(0, -12.6, 5.6, -11.4); ctx.lineTo(6.8, -4.7); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = '#7a5c3a'; ctx.fillRect(-6.5, -6.6, 13.3, 2);
+        ctx.fillStyle = L.guard ? '#d6ab42' : '#7a5c3a'; ctx.fillRect(-6.5, -6.6, 13.3, 2);
         ctx.fillStyle = dk(L.hat, 1.25); ctx.fillRect(-4.8, -11, 2.6, 0.9);
       }
-      const fs = K.fs || (K.small ? 0.6 : 1);
-      ctx.translate(-3.6, -6.4); ctx.scale(fs, fs); ctx.translate(3.6, 6.4);
-      if (win) ctx.translate(-0.6, -0.8);
-      ctx.strokeStyle = '#e8d9b0'; ctx.lineWidth = 1.1; ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.moveTo(-3.6, -6.4); ctx.quadraticCurveTo(-8.6, -10, -11.4, -17); ctx.stroke();
-      ctx.fillStyle = '#d9c28c';
-      ctx.beginPath(); ctx.moveTo(-4, -7); ctx.quadraticCurveTo(-9, -9, -12.6, -17.6); ctx.quadraticCurveTo(-7.6, -14, -2.6, -6.4); ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = '#a07a40'; ctx.lineWidth = 0.7;
-      ctx.beginPath(); ctx.moveTo(-6.6, -9.6); ctx.lineTo(-4.4, -9.4); ctx.moveTo(-9, -12.6); ctx.lineTo(-6.8, -12); ctx.stroke();
+      if (!L.guard) {
+        const fs = K.fs || (K.small ? 0.6 : 1);
+        ctx.translate(-3.6, -6.4); ctx.scale(fs, fs); ctx.translate(3.6, 6.4);
+        if (win) ctx.translate(-0.6, -0.8);
+        ctx.strokeStyle = '#e8d9b0'; ctx.lineWidth = 1.1; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(-3.6, -6.4); ctx.quadraticCurveTo(-8.6, -10, -11.4, -17); ctx.stroke();
+        ctx.fillStyle = '#d9c28c';
+        ctx.beginPath(); ctx.moveTo(-4, -7); ctx.quadraticCurveTo(-9, -9, -12.6, -17.6); ctx.quadraticCurveTo(-7.6, -14, -2.6, -6.4); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#a07a40'; ctx.lineWidth = 0.7;
+        ctx.beginPath(); ctx.moveTo(-6.6, -9.6); ctx.lineTo(-4.4, -9.4); ctx.moveTo(-9, -12.6); ctx.lineTo(-6.8, -12); ctx.stroke();
+      }
       ctx.restore();
     } else if (kind === 'ztmh') {
       if (win) {
@@ -1360,6 +1508,15 @@
       ctx.beginPath(); ctx.moveTo(4.4, -4.8); ctx.lineTo(13.2, -3.6); ctx.quadraticCurveTo(13.6, -2.1, 11.8, -1.9); ctx.lineTo(4.2, -2.6); ctx.closePath(); ctx.fill();
       ctx.fillStyle = 'rgba(255,255,255,0.85)'; rr(ctx, 1, -8.6, 3.6, 2.4, 0.8);
       ctx.fillStyle = dk(L.hat, 1.25); circle(ctx, -0.4, -10.8, 1.1);
+      return;
+    }
+    if (d === 'peaked') {
+      ctx.fillStyle = L.hat;
+      ctx.beginPath(); ctx.moveTo(-7.6, -3); ctx.quadraticCurveTo(-8.4, -10.6, -0.6, -11.2); ctx.quadraticCurveTo(8.4, -11.6, 9.4, -7.4); ctx.quadraticCurveTo(7.8, -4.4, 6.6, -3.2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#0d1424';
+      ctx.beginPath(); ctx.moveTo(3.4, -4.4); ctx.lineTo(12.4, -3.2); ctx.quadraticCurveTo(12.6, -1.8, 10.8, -1.6); ctx.lineTo(3.2, -2.6); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = L.band; ctx.fillRect(-7.4, -5.6, 14.4, 1.6);
+      ctx.fillStyle = '#d6ab42'; circle(ctx, 3.4, -7.8, 1.3);
       return;
     }
     if (d === 'klobuk') {
@@ -1822,7 +1979,7 @@
   ZS.drawHuman = function (ctx, h, time) {
     if (!(time >= 0)) time = 0;
     const kind = LOOK[h.kind] ? h.kind : 'walker';
-    let L = kind === 'guest' ? lookOf(kind, h.look) : kind === 'tourist' && h.hiker ? HIKERS[Math.abs(h.look | 0) % HIKERS.length] : (h.outfit === 'winter' && WLOOK[kind]) || (h.outfit === 'hike' && HIKE[kind]) || LOOK[kind];
+    let L = VARIANTS[kind] ? lookOf(kind, h.look) : kind === 'tourist' && !h.hiker && h.look > 0 && h.outfit !== 'winter' ? CITY[(h.look | 0) % CITY.length] : kind === 'tourist' && h.hiker ? HIKERS[Math.abs(h.look | 0) % HIKERS.length] : (h.outfit === 'winter' && WLOOK[kind]) || (h.outfit === 'hike' && HIKE[kind]) || (h.outfit === 'guard' && GUARD[kind]) || LOOK[kind];
     if (h.size > 0 && h.size !== 1) L = sizedLook(L, h.size);
     let sp = SPECIAL[h.state] ? h.state : '';
     if ((sp === 'pickup' || sp === 'drop' || sp === 'climbStand') && !CAN_AIM[kind]) sp = '';
@@ -2115,7 +2272,7 @@
 
   ZS.drawGuestBust = function (ctx, b, time) {
     if (!(time >= 0)) time = 0;
-    const kind = b.kind === 'waiter' ? 'waiter' : 'guest', L = (b.kind === 'local' && LOCALS[b.look]) || lookOf(kind, b.look), sd = hashSeed(b.seed || 1);
+    const kind = b.kind === 'waiter' ? 'waiter' : OFFICE[b.kind] ? b.kind : 'guest', L = (b.kind === 'local' && LOCALS[b.look]) || lookOf(kind, b.look), sd = hashSeed(b.seed || 1);
     const up = unit(b.up), stand = unit(b.stand), act = b.act || 'eat', sc = (b.scale || 0.8) * L.scale, face = b.face < 0 ? -1 : 1;
     if (up <= 0.001) return;
     K.kind = kind; K.L = L; K.state = 'idle'; K.face = face; K.seed = sd; K.armed = false; K.has = false; K.text = 0;

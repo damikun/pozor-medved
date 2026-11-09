@@ -143,7 +143,7 @@
   }
 
   function collectSpots(level) {
-    const trees = level.trees.filter((tree) => tree.hide);
+    const trees = level.trees.filter((tree) => tree.hide && !tree.pole);
     const hay = hayOf(level);
     const covers = (level.covers || []).filter((cover) => cover.hide);
     return trees.concat(hay, covers).sort(byX);
@@ -447,7 +447,7 @@
   }
 
   function knockOnDoor(game, bear) {
-    return ZS.sim.chopok.act(game, bear) || ZS.sim.vendors.act(game, bear) || ZS.sim.knock.act(game, bear);
+    return ZS.sim.chopok.act(game, bear) || ZS.sim.capital.act(game, bear) || ZS.sim.vendors.act(game, bear) || ZS.sim.knock.act(game, bear);
   }
 
   function encounterAct(bear, kind, target) {

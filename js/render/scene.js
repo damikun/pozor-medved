@@ -4,7 +4,7 @@
   const { label, circle, ellipse } = ZS.gfx;
   const P = ZS.render.props;
   const B = ZS.render.backdrop;
-  const OWN_ART = { feeder: 1, punch: 1, lokse: 1, sausage: 1, cheese: 1, carrot: 1, cob: 1, catch: 1 };
+  const OWN_ART = { feeder: 1, punch: 1, lokse: 1, sausage: 1, cheese: 1, carrot: 1, cob: 1, catch: 1, rozok: 1 };
   const CORN = 3, LOG = 0.3;
   let rise = null;
 
@@ -72,12 +72,14 @@
     if (L.logging && span(L.logging.from - 300, L.logging.to + 300, 200)) ZS.loggingArt.back(ctx, g, vis, span, withBear);
     if (L.clearing) ZS.loggingArt.site(ctx, g, vis, span, withBear);
     if (L.summit) ZS.chopokArt.back(ctx, g, vis, span, withBear);
+    if (L.capital) ZS.capitalArt.back(ctx, g, vis, span, withBear);
   }
 
   function treesWithBear(ctx, g, vis, withBear) {
     const b = g.bear, season = g.seasonIdx;
     for (const t of g.level.trees) {
       if (!vis(t.x, 170)) continue;
+      if (t.pole) { on(ctx, t.x, () => ZS.capitalArt.pole(ctx, t, g, withBear)); continue; }
       on(ctx, t.x, () => {
         if (t === b.climbing) {
           P.trunk(ctx, t, g);
@@ -98,8 +100,8 @@
   function view(g, o, shooter) {
     const b = g.bear, r = o.react;
     const h = o.h || (o.h = { aimAt: [0, 0] });
-    h.x = o.x; h.y = o.fy; h.dir = o.dir; h.kind = o.kind === 'posed' ? 'walker' : o.kind; h.outfit = g.level.theme; h.cold = b.cold;
-    if (o.hiker) { h.hiker = true; h.look = o.hiker; }
+    h.x = o.x; h.y = o.fy; h.dir = o.dir; h.kind = o.kind === 'posed' ? 'walker' : o.kind; h.outfit = o.outfit || g.level.theme; h.cold = b.cold;
+    if (o.hiker) { h.hiker = true; h.look = o.hiker; } else if (o.look !== undefined) h.look = o.look;
     h.armed = !shooter || o.armed !== false; h.empty = !!o.empty; h.clutch = !!o.clutch; h.texting = !!o.texting;
     h.scared = false; h.kick = 0; h.rifleDir = o.rifleDir; h.rifleX = o.pickX; h.offer = o.offer || 0;
     h.aimAt[0] = b.x; h.aimAt[1] = GY - 50;
@@ -177,6 +179,7 @@
   function cover(g) {
     const b = g.bear, L = g.level;
     if (b.spot && b.spot.rock) return LABELS.chopok.rock;
+    if (L.capital && (b.spot || ZS.sim.capital.inDwarf(L, b.x))) return LABELS.capital.hint;
     if (b.spot && b.spot.logs) return LABELS.logging.pile;
     if ((b.spot && !b.spot.hay) || L.trees.some((t) => t.hide && Math.abs(t.x - b.x) < t.w / 2 + 40)) return LABELS.hideHint;
     if ((b.spot && b.spot.hay) || L.haystacks.some((x) => Math.abs(x - b.x) < 72)) return LABELS.hayHint;
@@ -209,7 +212,7 @@
   }
 
   function cue(g) {
-    const b = g.bear;
+    const b = g.bear, L = g.level;
     if (b.warn && !b.hiding && !b.inSpray) {
       const hide = fresh(g, 'hide') && cover(g);
       if (hide) return [tip('ArrowDown', hide, 'hide')];
@@ -223,6 +226,7 @@
     if (b.reach && !aimed(g)) return interact(g, b.reach);
     if (!b.act && b.onGround && !b.hiding && !b.climbing && ZS.sim.logging.marked(g, b)) return [use('KeyC', LABELS.logging.rub, 'rub')];
     if (!b.act && b.onGround && ZS.sim.chopok.atCounter(g)) return [use('KeyC', LABELS.chopok.order, 'order')];
+    if (!b.act && b.onGround && L.capital) for (const k of ['counter', 'vitrine', 'stall', 'spy']) if (ZS.sim.capital.near(g, k)) return [use('KeyC', LABELS.capital.cue[k], 'order')];
     if (!b.reach && !b.climbing && ZS.sim.ladder.at(g) && fresh(g, 'ladderUp')) return [tip('ArrowUp', LABELS.ladderUp, 'ladderUp')];
     if (b.inCorn && !b.crouch && g.time - b.cornAt < CORN && fresh(g, 'crouch')) return [tip('ArrowDown', LABELS.cornHint, 'crouch')];
     return knock(g, b);
@@ -310,7 +314,7 @@
   function scene(g, ctx, viewW, offY) {
     const lift = ZS.render.lift;
     if (g.ride && lift.inside(g)) { lift.draw(g, ctx, viewW, offY); return; }
-    if (ZS.sim.chopok.inside(g)) { (g.level.cabin ? ZS.cabinArt : ZS.caveArt).draw(g, ctx, viewW, offY); ZS.chopokArt.iris(ctx, g, viewW, offY); return; }
+    if (ZS.sim.passes.inside(g)) { (g.level.plenary ? ZS.plenaryArt : g.level.boat ? ZS.boatArt : g.level.cabin ? ZS.cabinArt : ZS.caveArt).draw(g, ctx, viewW, offY); ZS.chopokArt.iris(ctx, g, viewW, offY); return; }
     const L = g.level, b = g.bear, cam = g.cam, T = ZS.LEVEL_TEXT[L.id], zoom = g.ride ? lift.zoom(g) : null;
     const vis = (x, m) => x > cam - m && x < cam + viewW + m;
     const span = (a, z, m) => z > cam - m && a < cam + viewW + m;
@@ -324,19 +328,22 @@
     if (zoom) { ctx.translate(zoom.x, zoom.y); ctx.scale(zoom.k, zoom.k); ctx.translate(-zoom.x, -zoom.y); }
     if (L.stage) ZS.loggingArt.backdrop(ctx, g, viewW, offY);
     else {
-      B.sky(ctx, g, viewW, offY);
+      if (L.capital) ZS.capitalArt.sky(ctx, g, viewW, offY);
+      else B.sky(ctx, g, viewW, offY);
       if (L.alpine) ZS.alpineArt.backdrop(ctx, g, viewW, offY);
       if (L.slope) ZS.winterArt.slope(ctx, g, viewW, offY);
-      B.backForest(ctx, g, viewW, offY);
+      if (L.capital) ZS.capitalArt.backdrop(ctx, g, viewW, offY);
+      else B.backForest(ctx, g, viewW, offY);
       if (L.summit) ZS.chopokArt.backdrop(ctx, g, viewW, offY);
     }
     const hb = L.profile ? ZS.levelKit.height(L, b.x) : 0;
-    rise = L.profile ? (x) => hb - ZS.levelKit.height(L, x) : null;
+    rise = L.profile ? (x) => hb - ZS.levelKit.height(L, x) : L.capital ? (x) => ZS.capitalArt.rise(g, x) : null;
     if (L.profile) ZS.chopokArt.under(ctx, g, viewW);
     ctx.translate(-Math.round(cam), 0);
     if (!L.profile) B.ground(ctx, cam, viewW, g);
     if (L.alpine) ZS.alpineArt.ground(ctx, g, cam, viewW);
     if (L.summit) ZS.chopokArt.ground(ctx, g, cam, viewW);
+    if (L.capital) ZS.capitalArt.ground(ctx, g, cam, viewW);
     if (g.tracks.length) B.tracks(ctx, g, viewW);
     if (L.river && span(L.river.from, L.river.to, 60)) {
       ZS.scenery.river(ctx, L.river.from, L.river.to, g.time);
@@ -352,7 +359,7 @@
     landmarks(ctx, g, vis, span, withBear);
     treesWithBear(ctx, g, vis, withBear);
     for (const s of L.signs) if (vis(s.x, 160)) on(ctx, s.x, () => P.sign(ctx, s, g));
-    for (const p of L.posts) if (vis(p.x, 80)) on(ctx, p.x, () => P.post(ctx, p, g));
+    for (const p of L.posts) if (!p.kind && vis(p.x, 80)) on(ctx, p.x, () => P.post(ctx, p, g));
     if (b.climbing && b.climbing.ladder) withBear(ZS.drawBearOnLadder);
     for (const lg of L.logs) if (!lg.of && vis(lg.x, 80)) on(ctx, lg.x, () => (lg.rock ? ZS.alpineArt.slab : P.log)(ctx, lg, g));
     for (const it of L.items) if ((!it.eaten || P.left(it)) && !OWN_ART[it.type] && vis(it.x, 60)) on(ctx, it.x, () => P.item(ctx, it, g.time, g));
@@ -367,11 +374,13 @@
     penFront(ctx, g, span);
     if (L.alpine && span(L.alpine.from, L.alpine.to, 200)) ZS.alpineArt.front(ctx, g, span);
     if (L.summit) ZS.chopokArt.front(ctx, g, vis, span);
+    if (L.capital) ZS.capitalArt.front(ctx, g, vis, span);
     if (L.corn && span(L.corn.from, L.corn.to, 140)) ZS.scenery.cornFront(ctx, L.corn, g);
     if (L.lot && span(L.lot.from, L.lot.to, 160)) ZS.winterArt.lotFront(ctx, L.lot, g);
     if (b.zapT < 1.4) ZS.scenery.zap(ctx, b, g.time);
     for (const c of L.cannons) if (vis(c.x, 320)) ZS.winterArt.spray(ctx, c, g.time);
     if (L.summit) ZS.chopokArt.over(ctx, g, viewW);
+    if (L.capital) ZS.capitalArt.over(ctx, g, viewW);
     bearCues(ctx, g);
     overlays(ctx, g, vis, viewW, -offY);
     drawCue(ctx, g, viewW);

@@ -3,7 +3,6 @@
   const GY = CFG.GROUND;
   const { clamp } = ZS.util;
   const rules = () => ZS.sim.rules;
-  const chopok = () => ZS.sim.chopok;
 
   const RIDE = { px: 360, mid: 4900, top: 8300, wait: 3.6, brake: 1.2, go: 1.2, pylons: [1500, 3300, 6400] };
   const SHIFTS = [
@@ -148,7 +147,7 @@
 
   function control(g, S, c, dt) {
     const b = g.bear;
-    chopok().clearPresses(g);
+    ZS.sim.passes.clearPresses(g);
     ZS.sim.bear.update(g, dt);
     b.x = clamp(b.x, S.cabin.left, S.cabin.right);
     if (b.y < GY - 40) { b.y = GY - 40; b.vy = Math.max(0, b.vy); }
@@ -204,7 +203,7 @@
     looks(g, c);
     if (c.arrived > 0) {
       c.pointa = { t: 0, flash: 0 };
-      chopok().quiet(b);
+      ZS.sim.passes.quiet(b);
       rules().float(g, c.mid, GY - 160, c.alarms ? LABELS.cabin.wobbly : LABELS.cabin.level, c.alarms ? COLORS.bad : COLORS.good);
     }
     return false;
@@ -217,7 +216,7 @@
   }
 
   function plan(g) {
-    const p = g.chopok && g.chopok.pass;
+    const p = g.pass;
     return p && p.key === 'funi' && p.phase === 'play' ? p.play : null;
   }
 

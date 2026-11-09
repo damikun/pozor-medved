@@ -425,6 +425,14 @@
       else if (v === 'kid') play('voice.scream.f', x, 0.9, { reach: 1.4, rate: 1.3 });
       else play('voice.yell.m', x, 1, { reach: 1.4 });
     },
+    whistle(x) { play('note.f5', x, 0.7, { rate: 1.9, reach: 1.6 }); play('note.f5', x, 0.6, { rate: 1.9, delay: 0.22, reach: 1.6 }); },
+    sob(x) { play('voice.yelp.m', x, 0.8, { rate: rr(1.3, 1.45), reach: 1.4 }); play('voice.yelp.m', x, 0.5, { rate: rr(1.4, 1.55), delay: 0.35, reach: 1.4 }); },
+    gasp(x) { play('voice.yell.m', x, 0.9, { rate: 1.25, reach: 1.4 }); },
+    tram(x) { play('note.cs5', x, 0.6, { rate: 1.5, reach: 2.2 }); play('note.cs5', x, 0.5, { rate: 1.5, delay: 0.3, reach: 2.2 }); },
+    bell(x) { for (let i = 0; i < 4; i++) play('note.gs5', x, 0.45, { rate: 1.8, delay: i * 0.11, reach: 3 }); },
+    clap(x, k) { for (let i = 0; i < 6; i++) play('impact.wood', x === null || x === undefined ? null : x + rr(-300, 300), 0.22 * (k || 1), { rate: rr(2.2, 2.8), delay: i * rr(0.07, 0.12), reach: 3 }); play('chat.walla', x, 0.4 * (k || 1), { reach: 3 }); },
+    horn(x) { play('pylon', x, 1, { rate: 0.45, reach: 3, send: 0.3 }); },
+    beep(x) { play('note.gs5', x, 0.6, { rate: 2.2 }); },
     pour(x) { play('eat.plate', x, 0.5, { rate: 1.45 }); play('eat.lick', x, 0.35, { delay: 0.2, rate: 1.3 }); },
     gulp(x) { play('eat.lick', x, 0.7, { rate: 0.8 }); play('bear.huff', x, 0.5, { delay: 0.3 }); },
     hiccup(x) { play('bear.huff', x, 0.5, { rate: 1.7 }); },
@@ -453,6 +461,7 @@
       play('hide.leaves', x, 0.8, { rate: 0.7, delay: 0.06, reach: 1.6 });
     },
     spray,
+    splash,
     lock(x) { play('gun.cock', x, 1, { reach: 2 }); },
     hut(x) {
       play(rnd() < 0.5 ? 'chat.walla' : 'chat.mumble', x, 0.8, { amb: true, reach: 1.4, send: 0.3, rate: rr(0.94, 1.06) });
@@ -503,6 +512,24 @@
     (p ? (g.connect(p), p) : g).connect(bedBus);
     a.start(0); b.start(0); n.start(0, rnd() * 3);
     return { g, p, v: 0, pan: 0, a, b, f, hz: 44 };
+  }
+
+  function makeEngine() {
+    const g = ctx.createGain(), f = filter('lowpass', 320, 0.9), p = panOk ? ctx.createStereoPanner() : null, a = ctx.createOscillator(), b = ctx.createOscillator(), mix = ctx.createGain();
+    const lfo = ctx.createOscillator(), lg = ctx.createGain(), chug = ctx.createGain();
+    a.type = 'triangle'; b.type = 'sawtooth';
+    a.frequency.value = 52; b.frequency.value = 104.6; mix.gain.value = 0.18;
+    lfo.type = 'sine'; lfo.frequency.value = 13; lg.gain.value = 0.22; chug.gain.value = 0.78;
+    g.gain.value = 0;
+    a.connect(chug); b.connect(mix); mix.connect(chug); lfo.connect(lg); lg.connect(chug.gain); chug.connect(f); f.connect(g);
+    (p ? (g.connect(p), p) : g).connect(bedBus);
+    a.start(0); b.start(0); lfo.start(0);
+    return { g, p, v: 0, pan: 0, a, b, f, lfo, hz: 52 };
+  }
+
+  function splash(x, k) {
+    play('step.water', x, 0.9 * (k || 1), { rate: 0.62, send: 0.2 });
+    play('step.water', x, 0.6 * (k || 1), { rate: 0.85, delay: 0.09, send: 0.2 });
   }
 
   function scurry(x, vol) {
@@ -585,7 +612,7 @@
   const LOOPS = {
     forest: ['loop.forest', 0.15], stream: ['loop.stream', 0.15], spruce: ['loop.wind', 0.1], crickets: ['loop.crickets', 0.2], bells: ['loop.bells', 0.25],
     church: ['loop.church', 0.3], spray: ['loop.spray', 0.1], drone: ['loop.drone', 0.1], cable: ['loop.cable', 0], murmur: ['loop.murmur', 0.35], market: ['loop.market', 0.35],
-    alpine: ['loop.alpine', 0.25],
+    alpine: ['loop.alpine', 0.25], river: ['loop.stream', 0.15],
   };
 
   function bed(key) {
@@ -739,6 +766,13 @@
     }
   }
 
+  function indoor(g, b) {
+    const L = g.level, I = L.indoor;
+    if (L.plenary) return 1;
+    if (!I || L.stage) return 0;
+    return sstep(I[0] - 150, I[0] + 50, b.x) * (1 - sstep(I[1] - 50, I[1] + 150, b.x));
+  }
+
   function crowdLoops(g, b, dt) {
     const L = g.level, k = g.koliba;
     let mv = 0, mp = 0;
@@ -748,6 +782,8 @@
       const near = Math.max(0, 1 - Math.abs(b.x - k.x) / 900);
       mv = LEVEL.murmur * (sit / k.seats.length) * near * near; mp = relPan(k.x);
     }
+    const inside = indoor(g, b);
+    if (inside > mv / LEVEL.murmur) { mv = LEVEL.murmur * inside * 0.8; mp = 0; }
     loopLevel('murmur', g.ride ? 0 : mv, mp, 0.25);
     let kv = 0, kp = 0;
     if (L.theme === 'winter' && L.stalls && L.stalls.length) {
@@ -897,6 +933,24 @@
     if (saw0 && !w.saw) { w.saw = true; saw(x, 0.85, 1.2); } else if (!saw0) w.saw = false;
   }
 
+  function boatSounds(g) {
+    const P = g.pass, on = !!P && P.key === 'boat' && !!g.level.boat && (P.phase === 'open' || P.phase === 'play') && !!P.play;
+    const c = on ? P.play : null, out = on && c.dock && c.v < 1 ? 0.3 : 1;
+    if (!beds.engine && on) beds.engine = makeEngine();
+    const e = beds.engine;
+    loopLevel('river', on ? LEVEL.stream * 0.75 : 0, 0, 0.5);
+    if (!e) return;
+    level(e, on ? LEVEL.machine * 0.55 * out : 0, on ? clamp(-(c.lv || 0) * 0.08, -0.2, 0.2) : 0, undefined, on ? 0.3 : 0.4);
+    if (!on) return;
+    const v = clamp(c.v / 245, 0, 1.1), turn = Math.min(1, Math.abs(c.lv || 0) / 2.6), hz = 40 + 18 * v + 4 * turn, t = ctx.currentTime;
+    if (Math.abs(hz - e.hz) > 0.3) {
+      e.hz = hz;
+      e.a.frequency.setTargetAtTime(hz, t, 0.3); e.b.frequency.setTargetAtTime(hz * 2.012, t, 0.3);
+      e.lfo.frequency.setTargetAtTime(hz / 4, t, 0.3); e.f.frequency.setTargetAtTime(260 + 140 * v + 90 * turn, t, 0.3);
+    }
+    rate(beds.river, 0.85 + 0.25 * v);
+  }
+
   function droneSounds(g, b, dt) {
     let near = null;
     if (!g.ride) for (const d of g.drones) if (!near || Math.abs(d.x - b.x) < Math.abs(near.x - b.x)) near = d;
@@ -914,11 +968,11 @@
     const winter = g.level.theme === 'winter', t = g.time, season = winter ? 'winter' : ZS.seasonLook(g.seasonKey);
     if ((w.gustT -= dt) <= 0) { w.gustT = rr(1.5, 4.5); w.gust = rr(0.25, 1); }
     const wind = winter ? (g.seasonKey === 'frost' ? LEVEL.windFrost : LEVEL.windWinter) : LEVEL.wind;
-    const A = g.level.alpine, high = A ? sstep(A.from - 250, A.from + 250, b.x) * (1 - sstep(A.to, A.to + 400, b.x)) : 0;
+    const A = g.level.alpine, high = A ? sstep(A.from - 250, A.from + 250, b.x) * (1 - sstep(A.to, A.to + 400, b.x)) : 0, roof = 1 - indoor(g, b);
     level(beds.wind, wind * (0.6 + 0.4 * w.gust) * (1 + 0.5 * high), undefined, undefined, 1.2);
-    loopLevel('forest', winter ? 0 : LEVEL.forest * (season === 'autumn' ? 0.8 : 1) * (1 - high), 0, 1);
+    loopLevel('forest', winter ? 0 : LEVEL.forest * (season === 'autumn' ? 0.8 : 1) * (1 - high) * roof, 0, 1);
     loopLevel('spruce', winter ? LEVEL.spruce * (0.6 + 0.4 * w.gust) : 0, 0, 1.4);
-    loopLevel('crickets', !winter && season !== 'spring' && !g.ride ? LEVEL.crickets * (season === 'autumn' ? 0.6 : 1) * (1 - 0.7 * high) : 0, 0, 1);
+    loopLevel('crickets', !winter && season !== 'spring' && !g.ride ? LEVEL.crickets * (season === 'autumn' ? 0.6 : 1) * (1 - 0.7 * high) * roof : 0, 0, 1);
     loopLevel('alpine', LEVEL.alpine * high * (0.8 + 0.2 * w.gust), 0, 1);
     const R = g.level.river;
     let creek = 0, cp = 0;
@@ -936,9 +990,9 @@
     droneSounds(g, b, dt);
     if ((w.bird -= dt) <= 0) {
       w.bird = high > 0.5 ? rr(12, 24) : winter ? rr(16, 30) : rr(9, 18) * (season === 'autumn' ? 1.6 : 1);
-      if (!g.ride || rnd() < 0.5) bird(high > 0.5 ? 'alpine' : season);
+      if ((!g.ride || rnd() < 0.5) && roof > 0.5) bird(high > 0.5 ? 'alpine' : season);
     }
-    if (season === 'autumn' && !g.ride && (w.stag -= dt) <= 0) {
+    if (season === 'autumn' && !g.ride && roof > 0.5 && (w.stag -= dt) <= 0) {
       w.stag = rr(25, 50);
       play('deer.call', null, rr(0.4, 0.8), { amb: true, pan: rr(-0.8, 0.8), send: 0.6, lp: 2200 });
     }
@@ -982,6 +1036,7 @@
     rideSounds(g);
     machineSounds(g, b);
     natureSounds(g, b, dt);
+    boatSounds(g);
     if (g.ride) { loopLevel('murmur', 0); loopLevel('market', 0); loopLevel('bells', 0); loopLevel('church', 0); return; }
     rummage(g, b, dt);
     crowdCues(g, dt);
