@@ -146,6 +146,7 @@
     const b = g.bear, L = g.level, keys = g.input.keys;
     const runner = bot.mode === 'runner';
     keys.clear();
+    if (L.olymp) { if (runner) keys.add('ArrowRight'); else ZS.sim.olymp.pilot(g); return; }
     if (g.ride) { swingTo(g, dt); return; }
     if (g.cut && g.cut.phase !== 'done') { clearing(g, dt); return; }
     if (g.pass && g.pass.phase === 'play') {

@@ -1,5 +1,5 @@
 (function () {
-  const state = { keys: new Set(), jumpPressed: false, jumpKey: null, downReleased: false, bitePressed: false, hugPressed: false };
+  const state = { keys: new Set(), jumpPressed: false, jumpKey: null, downReleased: false, bitePressed: false, hugPressed: false, stickX: 0, stickOn: false };
   const JUMP_KEYS = ['ArrowUp', 'KeyW', 'Space'];
   const BITE_KEYS = ['KeyX', 'KeyK'];
   const HUG_KEYS = ['KeyC', 'KeyO'];
@@ -87,6 +87,7 @@
       const d = Math.hypot(vx, vy);
       if (d > r) { at = { x: at.x + vx * (1 - r / d), y: at.y + vy * (1 - r / d) }; vx *= r / d; vy *= r / d; }
       const a = aim(vx, vy, r, stick.fast);
+      state.stickX = vx / r; state.stickOn = true;
       if (a.fast && !stick.fast) buzz(8);
       steer(a);
       zone.classList.toggle('sprint', a.fast);
@@ -101,6 +102,7 @@
       move(e);
     }, move, () => {
       at = null;
+      state.stickX = 0; state.stickOn = false;
       steer(aim(0, 0, 1, false));
       zone.classList.remove('on', 'sprint');
       show(0, 0);

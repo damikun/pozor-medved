@@ -88,6 +88,7 @@
   function step(g, dt) {
     if (g.bot && ZS.dev && ZS.dev.autopilot) ZS.dev.autopilot(g, dt);
     g.time += dt;
+    if (g.level.olymp) { sim.olymp.step(g, dt); return; }
     if (!changeSeason(g)) return;
     if (g.ride) { riding(g, dt); return; }
     if (sim.logging.carried(g)) { staged(g, dt); return; }

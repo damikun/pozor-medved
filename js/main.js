@@ -72,7 +72,7 @@
     if (document.activeElement) document.activeElement.blur();
     if (from) for (const c of g.level.checkpoints || []) if (c.x <= from.x) reached.add(c.key);
     if (from) note(g, from.key === 'lift' ? LABELS.lift.resumed : LABELS.cp.resumed, from.key === 'lift' ? NEWS.liftResume : NEWS.cpResume);
-    else rules.say(g, current === 'winter' ? NEWS.winterStart : current === 'chopok' ? NEWS.chopokStart : current === 'capital' ? NEWS.capital.start : NEWS.springStart);
+    else rules.say(g, current === 'winter' ? NEWS.winterStart : current === 'chopok' ? NEWS.chopokStart : current === 'capital' ? NEWS.capital.start : current === 'olymp' ? NEWS.olymp.open : NEWS.springStart);
   }
 
   function preview(level) {
@@ -91,12 +91,12 @@
     if (g) g.running = false;
     audio.pause(false);
     hud.hidePlaying();
-    const saved = { summer: stored('summer'), winter: stored('winter'), chopok: stored('chopok'), capital: stored('capital') };
+    const saved = { summer: stored('summer'), winter: stored('winter'), chopok: stored('chopok'), capital: stored('capital'), olymp: stored('olymp') };
     screens.showStart(done(), (id, cont) => start(id, cont ? saved[id] : null), preview, touchy(), (code) => { setLang(code); menu(); }, saved);
   }
 
   function showPause() {
-    screens.showPause(togglePause, menu, touchy());
+    screens.showPause(togglePause, menu, touchy(), g && g.level.id);
   }
 
   function togglePause() {

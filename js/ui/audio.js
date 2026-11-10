@@ -462,6 +462,22 @@
     },
     spray,
     splash,
+    push() { play('ski.swish', null, 0.9, { rate: 0.85 }); play('bear.huff', null, 0.6, { delay: 0.1 }); },
+    plant() { play('step.snow', null, 0.9, { rate: 1.6 }); play('step.ice', null, 0.35, { rate: 1.8, delay: 0.03 }); play('ski.swish', null, 0.45, { rate: 1.2, delay: 0.16 }); play('bear.huff', null, 0.25, { rate: 1.2, delay: 0.12 }); },
+    gate() { play('impact.wood', null, 0.3, { rate: 2.4 }); },
+    pole() { play('impact.wood', null, 0.75, { rate: 1.7 }); play('cloth', null, 0.6, { rate: 1.2 }); },
+    miss() { play('note.gs4', null, 0.55, { rate: 0.5 }); play('note.gs4', null, 0.45, { rate: 0.47, delay: 0.18 }); },
+    net(x, k) { play('cloth', null, 0.5 + 0.5 * (k || 0), { rate: 0.75 }); play('impact.dirt', null, 0.3 * (k || 0.5), { rate: 1.4 }); },
+    tumble() { play('fall.body', null, 1, { must: true }); play('flee.snow', null, 0.9, { delay: 0.05 }); play('bear.growl', null, 0.45, { delay: 0.15 }); },
+    finish() { ['note.cs5', 'note.f5', 'note.gs5'].forEach((n, i) => play(n, null, 0.7, { delay: i * 0.12, must: true })); },
+    cheer(x, k) { const v = k || 1; play('chat.walla', null, 0.9 * v, { gain: 3, send: 0.3 }); play('chat.walla', null, 0.7 * v, { gain: 3, delay: 0.25, send: 0.3 }); for (let i = 0; i < 7; i++) play('note.f5', null, 0.25 * v, { rate: rr(1.3, 1.5), delay: i * rr(0.08, 0.14), amb: true }); },
+    pop(x, k) { play('whoosh', null, 0.6 + 0.4 * (k || 0), { rate: 0.85 }); play('ski.swish', null, 0.7, { rate: 1.2 }); },
+    land(x, k) { play('fall.body', null, 0.5 * (k || 1), { rate: 1.35 }); play('step.snow', null, 1, { rate: 0.8 }); play('ski.swish', null, 0.6, { delay: 0.05 }); },
+    trick() { play('whoosh', null, 0.45, { rate: 1.45 }); },
+    whoosh() { play('whoosh', null, 0.55, { rate: 1.15 }); },
+    judge() { for (let i = 0; i < 5; i++) play('note.cs5', null, 0.4, { rate: 1.5, delay: 0.4 + i * 0.35 }); },
+    anthem() { const N = ['note.gs4', 'note.cs5', 'note.f5', 'note.cs5', 'note.gs5', 'note.f5', 'note.cs5', 'note.gs4', 'note.cs5', 'note.f5', 'note.gs5', 'note.gs5']; N.forEach((n, i) => play(n, null, 0.6, { delay: 0.1 + i * 0.42 + (i > 7 ? 0.2 : 0), send: 0.35, must: true })); },
+    camera() { play('camera', null, 1, { must: true }); },
     lock(x) { play('gun.cock', x, 1, { reach: 2 }); },
     hut(x) {
       play(rnd() < 0.5 ? 'chat.walla' : 'chat.mumble', x, 0.8, { amb: true, reach: 1.4, send: 0.3, rate: rr(0.94, 1.06) });
@@ -1014,6 +1030,27 @@
     }
   }
 
+  function olympSounds(g) {
+    const O = g.olymp || null, c = (O && O.c) || null;
+    if (!c) { silence(); return; }
+    if (!beds.air) {
+      const mk = (buf, type, f, q) => { const gg = ctx.createGain(), fl = filter(type, f, q), src = ctx.createBufferSource(); gg.gain.value = 0; src.buffer = buf; src.loop = true; src.connect(fl); fl.connect(gg); gg.connect(bedBus); src.start(0, rnd()); return { g: gg, f: fl, v: 0, p: null, pan: 0 }; };
+      beds.air = mk(brown, 'bandpass', 500, 0.6);
+      beds.edge = mk(white, 'bandpass', 3200, 1.4);
+    }
+    const run = !!c && !O.fadeTo && ((O.stage === 'slalom' && O.phase === 'ski') || (O.stage === 'skok' && (O.phase === 'in' || O.phase === 'air' || O.phase === 'out')) || (O.stage === 'sane' && O.phase === 'run'));
+    const v = run ? c.v : 0, t = ctx.currentTime, sled = O && O.stage === 'sane', air = O && O.phase === 'air';
+    level(beds.air, run ? 0.05 * clamp(0.15 + v / 26, 0, 1.3) : 0, 0, undefined, 0.2);
+    beds.air.f.frequency.setTargetAtTime(300 + v * 38, t, 0.3);
+    const edge = !run || air ? 0 : sled ? 0.012 * clamp(v / 20, 0, 1) * (0.5 + Math.abs(c.w || 0)) : 0.022 * (c.edge || 0) + 0.01 * (c.spray || 0);
+    level(beds.edge, edge, 0, undefined, 0.08);
+    beds.edge.f.frequency.setTargetAtTime(sled ? 1800 : 2600 + 900 * (c.edge || 0), t, 0.2);
+    const near = O && O.stage === 'slalom' && c ? ((c.s > 380 && c.s < 520) || (c.s > 660 && c.s < 780) || c.s > g.level.olymp.slalom.finish - 160 || c.s < 60 ? 1 : 0.35) : O && O.stage === 'skok' && O.phase !== 'top' && O.phase !== 'in' ? 1 : 0.3;
+    loopLevel('bells', O && O.phase !== 'podium' && O.phase !== 'doping' && O.phase !== 'bar' ? LEVEL.bells * near : 0, 0, 0.6);
+    loopLevel('murmur', O && (O.phase === 'bar' || O.phase === 'stop' || O.phase === 'judges' || O.phase === 'podium') ? LEVEL.murmur * 1.6 : O && O.phase === 'view' ? LEVEL.murmur * 0.6 : 0, 0, 0.5);
+    loopLevel('market', O && O.phase === 'bar' ? LEVEL.market * 1.2 : 0, 0, 0.4);
+  }
+
   function begin(g) {
     w.g = g; w.zones = zonesOf(g); w.bird = rr(3, 6);
     const theme = g.level.theme;
@@ -1032,6 +1069,7 @@
     const b = g.bear;
     if (g !== w.g) begin(g);
     if (!w.active) { w.active = true; w.lastX = b.x; w.stepD = 0; }
+    if (g.level.olymp) { olympSounds(g); return; }
     walkSounds(g, b, dt);
     rideSounds(g);
     machineSounds(g, b);

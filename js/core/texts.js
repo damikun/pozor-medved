@@ -130,6 +130,17 @@
     'Hlasovanie prerušili pre medveďa v sále. Po prestávke ho nenašli. Uznesenie: Medveď v sále nie je.',
   ];
 
+
+  ZS.OLYMP_HEADLINES = [
+    'Zimné olympijské hry v Jasnej otvorené. Minister Strašiak: Medvede spia, bezpečnosť je zaručená.',
+    'Holding Vrcholy zdražil skipas pre olympionikov. Pretekári idú pomalšie, aby si ho užili.',
+    'Poslanec Flinta navrhuje novú disciplínu: zjazd s plašením medveďov. Medaila za každý výstrel.',
+    'Organizátori hlásia rekordný záujem: 40 000 divákov a jeden pretekár v hnedej kombinéze.',
+    'Snežné delá v Jasnej bežia nonstop. Demänovka sa sťažuje, že ju nikto nepozval.',
+    'Lyžiarska škola Medvedík prihlásila do slalomu celý oddiel. Inštruktorka: Ideme hadom, nikto nepredbieha.',
+    'Antidopingová komisia rozdáva poháre. Odber vzoriek vedie skúsený poľovník, terén pozná.',
+    'Rozhodcovia skoku prisahali nestrannosť. Slovenský rozhodca prisahal dvakrát, pre istotu.',
+  ];
   ZS.LEVEL_TEXT = {
     summer: {
       name: 'Leto v doline',
@@ -166,6 +177,15 @@
       startDen: 'Hradný vrch',
       goalDen: 'Brloh pod vŕbou',
       village: 'Bratislava',
+    },
+    olymp: {
+      name: 'Olympiáda v Jasnej',
+      blurb: 'Slalom z Chopku, skok a sánky',
+      seasons: { games: 'Zimné hry' },
+      trip: 'Cesta za medailou',
+      startDen: 'Chopok',
+      goalDen: 'Après-ski bar',
+      village: 'Jasná',
     },
   };
 
@@ -730,6 +750,8 @@
       mesto: 'Kontrolný bod: hradná terasa. Medveď vyšiel z tajného tunela, ktorý už nie je tajný.',
       boat: 'Kontrolný bod: prístav. Pokladníčka predala medveďovi lístok, v sprievode dospelej osoby.',
       luh: 'Kontrolný bod: Sihoť. Medveď vystúpil z lode. Vodárne hlásia: vodu sme zatiaľ nevypili.',
+      skok: 'Kontrolný bod: Big Air Jasná. Slalom je zapísaný, kombinéza drží, nikto nič nezistil.',
+      sane: 'Kontrolný bod: Záhradky. Sánky sú pripravené, žľab zľadovatený a après-ski bar už nalieva.',
     },
     cpResume: 'Medveď sa vrátil na kontrolný bod. Ministerstvo hlási druhú vlnu.',
     capital: {
@@ -843,6 +865,23 @@
         'Lesník strieľal, medveď šúchal. Zachránené stromy ministerstvo eviduje ako škodu na pláne ťažby.',
         'Kalamita spracovaná do posledného stromu. Minister Strašiak: Konečne vidno, kde sa medveď neskryje.',
       ],
+    },
+    olymp: {
+      open: 'Olympiáda v Jasnej sa začína. Za Slovensko štartuje pretekár s číslom 7 v hnedej kombinéze. Chlpatej, ale vraj je to nový materiál.',
+      start: 'Štart obrovského slalomu na Chopku. Výhľad na Tatry je zadarmo, skipas nie.',
+      crash: [
+        'Slovenský pretekár spadol. Lekár na trati: Má veľa chlpov, ale nič zlomené.',
+        'Pád na trati v Jasnej. Diváci zvonia ďalej, kravské zvonce sa vypnúť nedajú.',
+      ],
+      mid: 'Komentátor Gusto Hlasivka: Slovenský pretekár ide ako medveď. Myslím to ako kompliment.',
+      ratrak: 'Medveď v kombinéze preskočil v Jasnej ratrak. Rolbár: Myslel som, že je to kamzík.',
+      record: 'Nový rekord trate na Chopku! Pretekár v hnedej kombinéze prekonal rekord aj ratrak.',
+      slalom: 'Obrovský slalom je za nami. Slovenský pretekár v cieli zamával labou. Diváci zamávali zvoncami.',
+      jump: 'Big Air Jasná: na mostíku sa chystá slovenský reprezentant. Poľský rozhodca už vie, čo dá.',
+      judges: 'Rozhodcovia skoku zverejnili známky. Slovenský rozhodca dal desiatku ešte pred skokom.',
+      sled: 'Sánkovanie od Záhradiek: žľab je zľadovatený, zákruty klopené a na konci čaká après-ski bar. Motivácia je jasná.',
+      bar: 'Slovenský sánkar vletel rovno do après-ski baru. Organizátori: Cieľ je cieľ.',
+      doping: 'Dopingová kontrola v Jasnej. Komisár s puškou na chrbte žiada vzorku, pretekár ponúka med.',
     },
   };
 
@@ -1035,7 +1074,7 @@
     cp: { skanzen: 'Kontrolný bod: skanzen', koliba: 'Kontrolný bod: koliba', market: 'Kontrolný bod: trhy', logging: 'Kontrolný bod: ťažba', lift: 'Kontrolný bod: lanovka',
       cave: 'Kontrolný bod: jaskyňa', caved: 'Kontrolný bod: za jaskyňou', funi: 'Kontrolný bod: kabínka', top: 'Kontrolný bod: Chopok', chata: 'Kontrolný bod: chata', ridge: 'Kontrolný bod: sedlo',
       hrad: 'Kontrolný bod: hrad', press: 'Kontrolný bod: parlament', door: 'Kontrolný bod: hala', vote: 'Kontrolný bod: sála', voted: 'Kontrolný bod: po hlasovaní', mesto: 'Kontrolný bod: terasa', boat: 'Kontrolný bod: prístav', luh: 'Kontrolný bod: Sihoť',
-      resumed: 'Znova od kontrolného bodu' },
+      resumed: 'Znova od kontrolného bodu', skok: 'Kontrolný bod: mostík', sane: 'Kontrolný bod: Záhradky' },
     cave: {
       woke: 'Netopiere uleteli!',
       home: 'Netopiere sa vrátili',
@@ -1259,6 +1298,48 @@
       logging: 'Spracovanie kalamity – pozor, ťažba',
       by: '— minister Strašiak',
     },
+    olymp: {
+      hud: {
+        slalom: 'Obrovský slalom', skok: 'Big Air', sane: 'Sánkovanie', gates: 'Bránky', speed: 'km/h', time: 'Čas', record: 'Rekord trate',
+        view: 'Chopok 2 024 m · výhľad na Tatry', go: 'ŠTART!', finish: 'CIEĽ', judges: 'Známky poroty', total: 'Spolu', height: 'Výška',
+        rank: (n) => n + '. miesto', pts: (n) => n + ' b.', you: 'M. Huňatý', crashes: 'Pády', flies: 'Vyletenia',
+      },
+      mic: {
+        name: 'Gusto Hlasivka',
+        welcome: ['Vitajte na Chopku! Za Slovensko štartuje číslo sedem, M. Huňatý.', 'Dobrý deň z Chopku! Na štarte stojí M. Huňatý, mohutná postava, zaujímavá kombinéza.'],
+        ready: ['Pípanie… a ide sa!', 'Pozor, štart!'],
+        school: ['Pozor, cez trať ide lyžiarska škola! Hadom, ako vždy.', 'Na trati deti z Medvedíka! Pretekár musí okolo.'],
+        missed: ['Vynechal bránku! To bude stáť sekundy.', 'Bránka zostala bokom. Škoda!'],
+        steep: ['Teraz Stena! Najstrmší úsek celej trate.', 'Prichádza Stena, tu sa rozhoduje.'],
+        bear: ['Huňatý ide ako medveď. Myslím to ako kompliment!', 'Tá kombinéza je úžasná, vyzerá ako skutočná srsť.'],
+        record: ['NOVÝ REKORD TRATE! Neuveriteľné!', 'Rekord! Diváci zvonia ako o život!'],
+        good: ['Výborná jazda! Medzi najlepšími!', 'Skvelý čas pre Slovensko!'],
+        slow: ['V cieli, trochu pomalšie, ale v cieli!', 'Nie najrýchlejšie, ale srdce tam bolo.'],
+        jump: ['Big Air Jasná! Huňatý sa chystá na mostík.', 'Mostík je pripravený, porota tiež.'],
+        auto: ['A predsa salto! Sám od seba!', 'Nič neplánoval, a predsa salto!'],
+        jumpGood: ['Čistý dopad! Porota je nadšená!', 'To bol skok! Zvonce, zvonce!'],
+        jumpBad: ['Pád pri dopade! Porota aj tak dáva body.', 'Ouch. Ale poľský rozhodca stále 9,8.'],
+        sled: ['Sánkovanie od Záhradiek! Na konci čaká bar.', 'Sánky, žľab, klopené zákruty. A na konci teplý čaj. S rumom.'],
+        bank: ['Vysoko na stene! Pozor, aby nevyletel!', 'Klopená zákruta, ide až po okraj!'],
+        bar: ['A je v bare! Cieľ je cieľ!', 'Rovno k pultu! To je finiš!'],
+        ramp: ['Huňatý mieri na navienku pred ratrakom!', 'Snehový mostík a za ním ratrak! Odváži sa?'],
+        ratrak: ['Preletel ponad ratrak! Rolbár ani nezdvihol hlavu.', 'Cez ratrak! Toto v Jasnej ešte nevideli!'],
+      },
+      prompt: { pole: 'odraz palicami', steer: 'zatáčaj', hop: 'skoč', tuck: 'zbaľ sa', pop: 'odraz na hrane', flip: 'salto', spin: 'vrtuľa', grab: 'objím lyže', lean: 'nakloň sa', lie: 'ľahni si', next: 'ďalej', start: 'štart' },
+      missed: (n) => 'Vynechaná bránka +' + n + ' s',
+      hit: { ratrak: 'Ratrak! Au.', fallen: 'Pozor, turista!', school: 'Lyžiarska škola!', net: 'Do siete!', land: 'Nedotočené salto!', out: 'Vyletel si zo žľabu!', mound: 'Kopa snehu!', glove: 'Stratená rukavica!', tourist: 'Turista v žľabe!', waiter: 'Čašník s podnosom!' },
+      late: 'Bez odrazu', perfect: 'Dokonalý odraz!', early: 'Odraz trochu skoro', notYet: 'Ešte nie, až na hrane!',
+      landing: { sweet: 'Čistý dopad!', table: 'Dopad na stôl', flat: 'Prestrelený dopad', crash: 'Pád!' },
+      trick: { back: 'Salto vzad', front: 'Salto vpred', spinL: 'Vrtuľa vľavo', spinR: 'Vrtuľa vpravo', grab: 'Objatie lyží', none: 'Bez triku' },
+      judge: { pol: 'Raz som už videl medveďa vojaka.', cze: 'Bratská známka.', svk: 'Domáci rozhodca.' },
+      ouch: ['Au. Zvonce zvonia ďalej.', 'Sneh v uchu.', 'To bol trik. Neplánovaný.'],
+      banner: { hop: 'HOP HOP HOP!', svk: 'SLOVENSKO, DO TOHO!', tree: 'HRUBÝ STROM = ISTOTA', holding: 'HOLDING VRCHOLY · SKIPAS 99 €' },
+      sign: { school: 'LYŽIARSKA ŠKOLA MEDVEDÍK', soup: 'KAPUSTNICA', bar: 'APRÈS-SKI U KAMZÍKA', start: 'ŠTART · CHOPOK', jasna: 'JASNÁ 2026', bigair: 'BIG AIR JASNÁ', zahradky: 'ZÁHRADKY', live: 'NAŽIVO', tatry: 'Vysoké Tatry', krivan: 'Kriváň', mara: 'Liptovská Mara' },
+      ceremony: { title: 'Zimné olympijské hry · Jasná', gold: 'ZLATO', silver: 'STRIEBRO', bronze: 'BRONZ', anthem: 'Hymna', doping: 'Dopingová kontrola. Vzorku, prosím.', honey: 'Med?', notice: 'Moment… to sú pazúry?', commissioner: 'Dopingový komisár' },
+      bar: { cheer: 'Na zdravie šampiónovi!', menu: 'Varené víno · Hriatô · Kapustnica' },
+      lastGate: 'Ešte jedna vynechaná bránka a diskvalifikácia!',
+      air: { big: (n) => 'Preskok ratraku! −' + String(n).replace('.', ',') + ' s', roll: (n) => 'Vzduch! −' + String(n).replace('.', ',') + ' s' },
+    },
   };
 
   ZS.UI = {
@@ -1270,7 +1351,7 @@
     levelNew: 'novinka',
     resumeAt: { skanzen: '🔁 Pokračovať od skanzenu', koliba: '🔁 Pokračovať od koliby', lift: '🔁 Pokračovať od lanovky', logging: '🔁 Pokračovať od ťažby', market: '🔁 Pokračovať od trhov',
       cave: '🔁 Pokračovať od jaskyne', caved: '🔁 Pokračovať za jaskyňou', funi: '🔁 Pokračovať od kabínky', top: '🔁 Pokračovať z Chopku', chata: '🔁 Pokračovať od chaty', ridge: '🔁 Pokračovať zo sedla',
-      hrad: '🔁 Pokračovať od hradu', press: '🔁 Pokračovať pred parlamentom', door: '🔁 Pokračovať z haly', vote: '🔁 Pokračovať pred sálou', voted: '🔁 Pokračovať po hlasovaní', mesto: '🔁 Pokračovať z terasy', boat: '🔁 Pokračovať z prístavu', luh: '🔁 Pokračovať zo Sihote' },
+      hrad: '🔁 Pokračovať od hradu', press: '🔁 Pokračovať pred parlamentom', door: '🔁 Pokračovať z haly', vote: '🔁 Pokračovať pred sálou', voted: '🔁 Pokračovať po hlasovaní', mesto: '🔁 Pokračovať z terasy', boat: '🔁 Pokračovať z prístavu', luh: '🔁 Pokračovať zo Sihote', skok: '🔁 Pokračovať od mostíka', sane: '🔁 Pokračovať od Záhradiek' },
     howTo: 'Ako sa hrá',
     tips: {
       walk: 'beh, {ShiftLeft} šprint',
@@ -1301,7 +1382,7 @@
     retryLift: 'Skúsiť znova od lanovky',
     retryAt: { skanzen: 'Skúsiť znova od skanzenu', koliba: 'Skúsiť znova od koliby', lift: 'Skúsiť znova od lanovky', logging: 'Skúsiť znova od ťažby', market: 'Skúsiť znova od trhov',
       cave: 'Skúsiť znova od jaskyne', caved: 'Skúsiť znova za jaskyňou', funi: 'Skúsiť znova od kabínky', top: 'Skúsiť znova z Chopku', chata: 'Skúsiť znova od chaty', ridge: 'Skúsiť znova zo sedla',
-      hrad: 'Skúsiť znova od hradu', press: 'Skúsiť znova pred parlamentom', door: 'Skúsiť znova z haly', vote: 'Skúsiť znova pred sálou', voted: 'Skúsiť znova po hlasovaní', mesto: 'Skúsiť znova z terasy', boat: 'Skúsiť znova z prístavu', luh: 'Skúsiť znova zo Sihote' },
+      hrad: 'Skúsiť znova od hradu', press: 'Skúsiť znova pred parlamentom', door: 'Skúsiť znova z haly', vote: 'Skúsiť znova pred sálou', voted: 'Skúsiť znova po hlasovaní', mesto: 'Skúsiť znova z terasy', boat: 'Skúsiť znova z prístavu', luh: 'Skúsiť znova zo Sihote', skok: 'Skúsiť znova od mostíka', sane: 'Skúsiť znova od Záhradiek' },
     next: 'Pokračovať do zimy →',
     nextChopok: 'Pokračovať na Ďumbier →',
     nextCapital: 'Pokračovať do parlamentu →',
@@ -1340,6 +1421,9 @@
       viral: 'Virálne video',
       decree: 'Povinný zimný spánok',
     },
+    nextOlymp: 'Pokračovať na olympiádu →',
+    olympTeaser: 'Na Chopku zatiaľ chystajú olympiádu. Kombinézu v tvojej veľkosti už majú…',
+    olymp: { slalom: 'Obrovský slalom', jump: 'Big Air', sled: 'Sánkovanie', total: 'Body spolu', medal: 'Medaila', pen: (n) => '+' + n + ' s', rank: (n) => n + '. miesto', pts: (n) => n + ' b.', crashes: 'pády' },
   };
 
   ZS.ENDINGS = {
@@ -1364,6 +1448,14 @@
       win: { title: 'Prezimuje v Bratislave', text: 'Zaľahol si do brlohu pod vŕbou v lužnom lese. Poslanec Flinta: Navrhoval som to. Teraz navrhujem opak.' },
       starve: { title: 'Hladný v hlavnom meste', text: 'Do lužného lesa si prišiel s prázdnym bruchom. Parlament schválil zákon o tvojej výžive, účinný od budúceho roka.' },
       problem: { title: 'Problémový medveď', text: 'Koše, bufet a rožky z teba urobili „problémového medveďa“. Uznesenie prijali 90 hlasmi, nemohol si sa vyjadriť.' },
+    },
+    olymp: {
+      win: { title: 'Medaila pre Slovensko', text: 'Na krku ti visí medaila a nikto si nevšimol, že si medveď.' },
+      gold: { title: 'Zlato pre Slovensko!', text: 'Na najvyššom stupienku stál pretekár v hnedej kombinéze. Hymnu si nespieval, len ju bručal. Dopingový komisár odišiel bez vzorky a s medom na fúzoch.' },
+      silver: { title: 'Striebro pre Slovensko', text: 'Strieborná medaila visí na chlpatom krku. Rakúsky víťaz celý ceremoniál premýšľal, prečo má druhý takú veľkú kombinézu. Komisár vzorku nedostal, dostal objatie.' },
+      bronze: { title: 'Bronz pre Slovensko', text: 'Bronz je tiež medaila, povedal komentátor Gusto Hlasivka a rozplakal sa. Minister Strašiak sľúbil pretekárovi tréningové centrum. V lese, za stromom.' },
+      disq: { title: 'Diskvalifikovaný', text: 'Lekár na trati ťa po poslednom páde odviezol na skútri. Rozhodcovia zapísali DNF a pod to ceruzkou: „Možno medveď?“ Nikto to nekontroloval.' },
+      gates: { title: 'Diskvalifikovaný za bránky', text: 'Vynechal si priveľa bránok. Rozhodca zapísal DSQ a do poznámky: „Lyžoval ako medveď.“ Komentátor Gusto Hlasivka to bral ako kompliment.' },
     },
   };
 })();

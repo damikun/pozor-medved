@@ -30,9 +30,13 @@ ZS.LEVELS = {
     w: 11200, year: 330, fatGoal: 75, startFat: 25, metabolism: 0.1,
     seasons: [{ key: 'session', end: 110 }, { key: 'budget', end: 220 }, { key: 'recess', end: 330 }],
   },
+  olymp: {
+    w: 3200, year: 1e9, fatGoal: 0, startFat: 60, metabolism: 0,
+    seasons: [{ key: 'games', end: 1e9 }],
+  },
 };
 
-ZS.SEASON_LOOK = { lateSummer: 'summer', firstSnow: 'autumn', session: 'summer', budget: 'autumn', recess: 'autumn' };
+ZS.SEASON_LOOK = { lateSummer: 'summer', firstSnow: 'autumn', session: 'summer', budget: 'autumn', recess: 'autumn', games: 'winter' };
 ZS.seasonLook = (key) => ZS.SEASON_LOOK[key] || key;
 
 ZS.COLORS = {

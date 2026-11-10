@@ -50,12 +50,14 @@
     $('barTrip').querySelector('span').textContent = ZS.LEVEL_TEXT[levelId].trip;
     $('barFat').querySelector('em').style.left = g.def.fatGoal + '%';
     $('tray').querySelector('[data-tally="photos"]').hidden = !g.level.photographer;
+    $('hud').classList.toggle('olymp', !!g.level.olymp);
+    $('touch').classList.toggle('olymp', !!g.level.olymp);
   }
 
   function hidePlaying() {
     rideOn = null; cutOn = null;
-    $('touch').classList.remove('ride', 'cut');
-    $('hud').classList.remove('ride', 'cut');
+    $('touch').classList.remove('ride', 'cut', 'olymp');
+    $('hud').classList.remove('ride', 'cut', 'olymp');
     $('trees').hidden = true;
     $('hud').hidden = true;
     $('ticker').hidden = true;
@@ -75,8 +77,8 @@
     bar('barTrip', Math.min(100, ZS.sim.logging.trip(g) * 100));
     hearts(g);
     counts(g);
-    const free = !g.over && !g.ride, kind = free ? actOf(g, b) : null, reach = !!kind;
-    const bite = free && !!b.reach && !b.reach.post && (b.reach.kind !== 'photographer' || ZS.sim.photographer.bitable(g));
+    const free = !g.over && !g.ride, kind = free ? (g.level.olymp ? ZS.sim.olymp.act(g) : actOf(g, b)) : null, reach = !!kind;
+    const bite = free && !g.level.olymp && !!b.reach && !b.reach.post && (b.reach.kind !== 'photographer' || ZS.sim.photographer.bitable(g));
     if (reach !== reachOn) { reachOn = reach; $('act').classList.toggle('on', reach); }
     if (kind !== actOn) { actOn = kind; dress(kind); }
     if (bite !== biteOn) { biteOn = bite; $('bite').classList.toggle('on', bite); }

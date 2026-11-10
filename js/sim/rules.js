@@ -9,7 +9,7 @@
     onSound: () => {},
   };
 
-  const headlinesOf = (id) => (id === 'winter' ? ZS.WINTER_HEADLINES : id === 'chopok' ? ZS.CHOPOK_HEADLINES : id === 'capital' ? ZS.CAPITAL_HEADLINES : ZS.HEADLINES);
+  const headlinesOf = (id) => (id === 'winter' ? ZS.WINTER_HEADLINES : id === 'chopok' ? ZS.CHOPOK_HEADLINES : id === 'capital' ? ZS.CAPITAL_HEADLINES : id === 'olymp' ? ZS.OLYMP_HEADLINES : ZS.HEADLINES);
 
   rules.create = function (input, { viewW = CFG.MIN_VIEW_W, bot = false, level: id = 'summer' } = {}) {
     const def = ZS.LEVELS[id];

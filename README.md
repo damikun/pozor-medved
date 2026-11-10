@@ -23,6 +23,10 @@ The game runs right in the browser, nothing to install. Offline, just open `inde
   balanced on the way to Chopok and cross the foggy Low Tatras ridge to Ďumbier and a den below it.
 - **To Parliament**: get a PRESS badge past the police cordon, make the quorum in parliament, raid the buffet and ride
   a Danube boat to a den in the floodplain forest.
+- **Olympics in Jasná**: seen from right behind the bear, race a giant slalom down from Chopok through the gates
+  (and over the snow groomer, if you are fast enough),
+  pop a trick off the Big Air kicker for the judges and sled the icy chute from Záhradky into the après-ski bar.
+  Bear fans cheer all the way. The medal is yours, as long as the doping commissioner (a hunter) does not look too closely.
 
 **Goal:** reach the den with enough fat (85% in summer, 65% in winter, 75% on Ďumbier and in parliament) and hug someone at least once; a selfie
 with a tourist counts too. Without a hug the den won't let you in.
