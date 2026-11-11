@@ -126,3 +126,11 @@ test('the recorded sounds are base64 MP3 clips or loops with a loop length', () 
   }
   assert.ok(size < 2900000, 'sounds take ' + size + ' bytes');
 });
+
+test('every sound effect has its own name, so a level never replaces another one', () => {
+  const src = fs.readFileSync(path.join(__dirname, '..', 'js', 'ui', 'audio.js'), 'utf8');
+  const from = src.indexOf('const SFX = {'), to = src.indexOf('\n  };', from);
+  const names = [...src.slice(from, to).matchAll(/^    (\w+)[(,]/gm)].map(m => m[1]);
+  assert.ok(names.includes('jump') && names.includes('land'));
+  assert.deepEqual(names.filter((n, i) => names.indexOf(n) !== i), []);
+});

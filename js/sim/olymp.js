@@ -198,12 +198,12 @@
       const d = Math.abs(c.u - q.u);
       if (d <= 3.6) {
         c.passed++; q.hit = true; q.wob = d > 2.4 ? 1 : 0.35;
-        rules().onSound(g, d > 2.4 ? 'pole' : 'gate', null, d > 2.4 ? 1 : 0);
+        rules().onSound(g, d > 2.4 ? 'pole' : 'skiGate', null, d > 2.4 ? 1 : 0);
         if (c.passed === 2) learn('olympSteer');
         if (d <= 2.4) o.cheer = Math.max(o.cheer || 0, 0.55);
       } else {
         c.missed++; c.pen += SKI.pen; q.missed = true;
-        rules().onSound(g, 'miss', null);
+        rules().onSound(g, 'skiMiss', null);
         if (c.missed > SKI.dsq) { rules().end(g, 'gates'); return; }
         rules().float(g, 0, 0, LABELS.olymp.missed(SKI.pen), COLORS.seen);
         if (c.missed === SKI.dsq) rules().float(g, 0, 0, LABELS.olymp.lastGate, COLORS.shot);
@@ -235,7 +235,7 @@
     if (e && e.jump && !(c.hy > 0) && !(c.fall > 0)) { c.hv = v; c.hy = 0.001; rules().onSound(g, 'pop', null, 0.2); learn('olympHop'); }
     if (!(c.hy > 0)) return false;
     c.hy += c.hv * dt; c.hv -= HOP.g * dt;
-    if (c.hy <= 0) { c.hy = 0; c.hv = 0; c.v *= 0.97; rules().onSound(g, 'land', null, 0.45); return false; }
+    if (c.hy <= 0) { c.hy = 0; c.hv = 0; c.v *= 0.97; rules().onSound(g, 'skiLand', null, 0.45); return false; }
     return true;
   }
 
@@ -399,7 +399,7 @@
     c.y = ground(J, c.s);
     c.air = 0;
     if (open) { hurt(g, c, LABELS.olymp.hit.land, 'tumble'); if (g.over) return; }
-    else { g.olymp.cheer = zone === 'sweet' ? 1 : 0.6; rules().onSound(g, 'land', null, zone === 'sweet' ? 1 : 0.6); rules().onSound(g, 'cheer', null, zone === 'sweet' ? 1 : 0.5); }
+    else { g.olymp.cheer = zone === 'sweet' ? 1 : 0.6; rules().onSound(g, 'skiLand', null, zone === 'sweet' ? 1 : 0.6); rules().onSound(g, 'cheer', null, zone === 'sweet' ? 1 : 0.5); }
     rules().float(g, 0, 0, LABELS.olymp.landing[c.land], c.land === 'sweet' ? COLORS.good : COLORS.zap);
     score(g, c);
   }
