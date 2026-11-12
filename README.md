@@ -15,18 +15,12 @@ The game runs right in the browser, nothing to install. Offline, just open `inde
 
 ## Levels
 
-- **Summer in the Valley**: from the spring den through the village of Dolný Strach, a cornfield, the Pribylina
-  open-air museum, a sheepfold and a hotel, then by chairlift up to Zelené pleso in the High Tatras and the winter den.
-- **Winter on the Slopes**: a warm Advent and the snow cannons woke you up. Cross the ski resort and the Christmas
-  market of Liptovský Mikuláš to reach a quiet den.
-- **Up to Ďumbier**: count the bats in the Cave of Liberty behind the tour's back, keep a packed cable car cabin
-  balanced on the way to Chopok and cross the foggy Low Tatras ridge to Ďumbier and a den below it.
-- **To Parliament**: get a PRESS badge past the police cordon, make the quorum in parliament, raid the buffet and ride
-  a Danube boat to a den in the floodplain forest.
-- **Olympics in Jasná**: seen from right behind the bear, race a giant slalom down from Chopok through the gates
-  (and over the snow groomer, if you are fast enough),
-  pop a trick off the Big Air kicker for the judges and sled the icy chute from Záhradky into the après-ski bar.
-  Bear fans cheer all the way. The medal is yours, as long as the doping commissioner (a hunter) does not look too closely.
+- **Summer in the Valley**: from the spring den through Dolný Strach and Pribylina, then by chairlift up to Zelené pleso.
+- **Winter on the Slopes**: woken by snow cannons, cross the ski resort and the Christmas market to a quiet den.
+- **Up to Ďumbier**: count the bats in the Cave of Liberty, balance a cable car cabin and cross the foggy ridge to Ďumbier.
+- **To Parliament**: get past the police cordon, make the quorum, raid the buffet and take a Danube boat.
+- **Olympics in Jasná**: a giant slalom from Chopok, a Big Air jump and a sled run, then the medal and a doping check.
+- **Východná Folk Festival**: sneak into the festival, get a costume and dance the odzemok on the Big Stage.
 
 **Goal:** reach the den with enough fat (85% in summer, 65% in winter, 75% on Ďumbier and in parliament) and hug someone at least once; a selfie
 with a tourist counts too. Without a hug the den won't let you in.
@@ -48,3 +42,7 @@ with a tourist counts too. Without a hug the den won't let you in.
 | <kbd>X</kbd> | bite a person (turns you into a problem bear) |
 | <kbd>P</kbd> | pause |
 | <kbd>M</kbd> | sound on or off (also the 🔊 button on the start screen and in the pause menu) |
+
+## Music
+
+The Východná festival plays "Slovenský čardáš č. 5" by Sió Aladár és zenekara (Victor, 1923), a public domain recording from the Library of Congress National Jukebox ([archive.org](https://archive.org/details/loc-jukebox-68836-slovensk-ard-slo-5)).

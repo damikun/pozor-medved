@@ -73,6 +73,7 @@
     if (L.clearing) ZS.loggingArt.site(ctx, g, vis, span, withBear);
     if (L.summit) ZS.chopokArt.back(ctx, g, vis, span, withBear);
     if (L.capital) ZS.capitalArt.back(ctx, g, vis, span, withBear);
+    if (L.vychodna) ZS.vychodnaArt.back(ctx, g, vis, span, withBear);
   }
 
   function treesWithBear(ctx, g, vis, withBear) {
@@ -149,10 +150,15 @@
 
   function bearCues(ctx, g) {
     const b = g.bear;
-    if (b.inWater) {
+    const sunk = (g.vychodna && g.vychodna.sink) || (g.capital && g.capital.sink);
+    if (b.inWater && !sunk) {
+      const R = g.level.river;
+      ctx.save();
+      if (R) { ZS.scenery.waterPath(ctx, R.from, R.to, 14); ctx.clip(); }
       ctx.fillStyle = 'rgba(79,143,192,0.62)'; ellipse(ctx, b.x, GY - 2, 66, 13);
       ctx.strokeStyle = 'rgba(230,245,255,0.7)'; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.ellipse(b.x, GY - 6, 50 + Math.sin(g.time * 6) * 6, 6, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
     }
     if (b.warn && !b.hiding && !b.inSpray) {
       const red = g.shooters.some((s) => s.lock > 0);
@@ -180,6 +186,7 @@
     const b = g.bear, L = g.level;
     if (b.spot && b.spot.rock) return LABELS.chopok.rock;
     if (L.capital && (b.spot || ZS.sim.capital.inDwarf(L, b.x))) return LABELS.capital.hint;
+    if (L.vychodna && ZS.sim.vychodna.inDwarf(L, b.x)) return LABELS.vychodna.hint;
     if (b.spot && b.spot.logs) return LABELS.logging.pile;
     if ((b.spot && !b.spot.hay) || L.trees.some((t) => t.hide && Math.abs(t.x - b.x) < t.w / 2 + 40)) return LABELS.hideHint;
     if ((b.spot && b.spot.hay) || L.haystacks.some((x) => Math.abs(x - b.x) < 72)) return LABELS.hayHint;
@@ -227,6 +234,8 @@
     if (!b.act && b.onGround && !b.hiding && !b.climbing && ZS.sim.logging.marked(g, b)) return [use('KeyC', LABELS.logging.rub, 'rub')];
     if (!b.act && b.onGround && ZS.sim.chopok.atCounter(g)) return [use('KeyC', LABELS.chopok.order, 'order')];
     if (!b.act && b.onGround && L.capital) for (const k of ['counter', 'vitrine', 'stall', 'spy']) if (ZS.sim.capital.near(g, k)) return [use('KeyC', LABELS.capital.cue[k], 'order')];
+    const fest = !b.act && b.onGround && L.vychodna ? ZS.sim.vychodna.cue(g) : null;
+    if (fest) return [use('KeyC', LABELS.vychodna.cue[fest])];
     if (!b.reach && !b.climbing && ZS.sim.ladder.at(g) && fresh(g, 'ladderUp')) return [tip('ArrowUp', LABELS.ladderUp, 'ladderUp')];
     if (b.inCorn && !b.crouch && g.time - b.cornAt < CORN && fresh(g, 'crouch')) return [tip('ArrowDown', LABELS.cornHint, 'crouch')];
     return knock(g, b);
@@ -315,7 +324,7 @@
     const lift = ZS.render.lift;
     if (g.ride && lift.inside(g)) { lift.draw(g, ctx, viewW, offY); return; }
     if (g.level.olymp) { ZS.olympArt.draw(g, ctx, viewW, offY); return; }
-    if (ZS.sim.passes.inside(g)) { (g.level.plenary ? ZS.plenaryArt : g.level.boat ? ZS.boatArt : g.level.cabin ? ZS.cabinArt : ZS.caveArt).draw(g, ctx, viewW, offY); ZS.chopokArt.iris(ctx, g, viewW, offY); return; }
+    if (ZS.sim.passes.inside(g)) { (g.level.dance ? ZS.tanecArt : g.level.plenary ? ZS.plenaryArt : g.level.boat ? ZS.boatArt : g.level.cabin ? ZS.cabinArt : ZS.caveArt).draw(g, ctx, viewW, offY); ZS.chopokArt.iris(ctx, g, viewW, offY); return; }
     const L = g.level, b = g.bear, cam = g.cam, T = ZS.LEVEL_TEXT[L.id], zoom = g.ride ? lift.zoom(g) : null;
     const vis = (x, m) => x > cam - m && x < cam + viewW + m;
     const span = (a, z, m) => z > cam - m && a < cam + viewW + m;
@@ -330,10 +339,12 @@
     if (L.stage) ZS.loggingArt.backdrop(ctx, g, viewW, offY);
     else {
       if (L.capital) ZS.capitalArt.sky(ctx, g, viewW, offY);
+      else if (L.vychodna) ZS.vychodnaArt.sky(ctx, g, viewW, offY);
       else B.sky(ctx, g, viewW, offY);
       if (L.alpine) ZS.alpineArt.backdrop(ctx, g, viewW, offY);
       if (L.slope) ZS.winterArt.slope(ctx, g, viewW, offY);
       if (L.capital) ZS.capitalArt.backdrop(ctx, g, viewW, offY);
+      else if (L.vychodna) ZS.vychodnaArt.backdrop(ctx, g, viewW, offY);
       else B.backForest(ctx, g, viewW, offY);
       if (L.summit) ZS.chopokArt.backdrop(ctx, g, viewW, offY);
     }
@@ -345,6 +356,7 @@
     if (L.alpine) ZS.alpineArt.ground(ctx, g, cam, viewW);
     if (L.summit) ZS.chopokArt.ground(ctx, g, cam, viewW);
     if (L.capital) ZS.capitalArt.ground(ctx, g, cam, viewW);
+    if (L.vychodna) ZS.vychodnaArt.ground(ctx, g, cam, viewW);
     if (g.tracks.length) B.tracks(ctx, g, viewW);
     if (L.river && span(L.river.from, L.river.to, 60)) {
       ZS.scenery.river(ctx, L.river.from, L.river.to, g.time);
@@ -376,12 +388,14 @@
     if (L.alpine && span(L.alpine.from, L.alpine.to, 200)) ZS.alpineArt.front(ctx, g, span);
     if (L.summit) ZS.chopokArt.front(ctx, g, vis, span);
     if (L.capital) ZS.capitalArt.front(ctx, g, vis, span);
+    if (L.vychodna) ZS.vychodnaArt.front(ctx, g, vis, span);
     if (L.corn && span(L.corn.from, L.corn.to, 140)) ZS.scenery.cornFront(ctx, L.corn, g);
     if (L.lot && span(L.lot.from, L.lot.to, 160)) ZS.winterArt.lotFront(ctx, L.lot, g);
     if (b.zapT < 1.4) ZS.scenery.zap(ctx, b, g.time);
     for (const c of L.cannons) if (vis(c.x, 320)) ZS.winterArt.spray(ctx, c, g.time);
     if (L.summit) ZS.chopokArt.over(ctx, g, viewW);
     if (L.capital) ZS.capitalArt.over(ctx, g, viewW);
+    if (L.vychodna) ZS.vychodnaArt.over(ctx, g, viewW);
     bearCues(ctx, g);
     overlays(ctx, g, vis, viewW, -offY);
     drawCue(ctx, g, viewW);

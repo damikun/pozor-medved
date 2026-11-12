@@ -2,7 +2,7 @@
   const { UI } = ZS;
   const $ = (id) => document.getElementById(id);
   const NEWS_HOLD = 2;
-  let levelId = null, reachOn = null, biteOn = null, actOn = null, icons = null, rideOn = null, cutOn = null, treesKey = '';
+  let levelId = null, danceOn = null, reachOn = null, biteOn = null, actOn = null, icons = null, rideOn = null, cutOn = null, treesKey = '';
   const tv = { hold: 0, next: null }, shown = {};
   const JUST = 1.6;
   const TALLY = { hunters: '🎩', stands: '🪜', trees: '🌲', photos: '📸' };
@@ -79,6 +79,8 @@
     counts(g);
     const free = !g.over && !g.ride, kind = free ? (g.level.olymp ? ZS.sim.olymp.act(g) : actOf(g, b)) : null, reach = !!kind;
     const bite = free && !g.level.olymp && !!b.reach && !b.reach.post && (b.reach.kind !== 'photographer' || ZS.sim.photographer.bitable(g));
+    const dance = ZS.sim.passes.playing(g, 'tanec');
+    if (dance !== danceOn) { danceOn = dance; $('touch').classList.toggle('dance', dance); $('hud').classList.toggle('stage', dance); }
     if (reach !== reachOn) { reachOn = reach; $('act').classList.toggle('on', reach); }
     if (kind !== actOn) { actOn = kind; dress(kind); }
     if (bite !== biteOn) { biteOn = bite; $('bite').classList.toggle('on', bite); }
@@ -106,8 +108,13 @@
     el.setAttribute('aria-label', kind ? UI.touch.acts[kind] : UI.touch.hug);
   }
 
+  const FEST = { honey: 'steal', fish: 'steal', car: 'push', stomp: 'stomp', order: 'order', rack: 'dress', fujara: 'play', firemen: 'taste', radio: 'talk', cardas: 'dance' };
+
   function actOf(g, b) {
     const o = b.reach, k = b.knock, c = b.climbing;
+    if (ZS.sim.passes.playing(g, 'tanec')) return 'slap';
+    const fest = g.level.vychodna && !b.act && b.onGround && !o ? ZS.sim.vychodna.cue(g) : null;
+    if (fest) return FEST[fest];
     if (b.hiding) return 'hidden';
     if (c) return c.ladder && c.phase === 'seat' ? 'down' : null;
     if (o) return o.post ? 'shake' : o.kind === 'photographer' ? 'pose' : o.kind === 'tourist' || (o.kind === 'tycoon' && !o.promo) ? 'selfie' : 'hug';

@@ -1,6 +1,6 @@
 (function () {
   const ZS = window.ZS;
-  const TABLES = ['HEADLINES', 'WINTER_HEADLINES', 'CHOPOK_HEADLINES', 'CAPITAL_HEADLINES', 'OLYMP_HEADLINES', 'LEVEL_TEXT', 'QUIPS', 'NEWS', 'LABELS', 'UI', 'ENDINGS'];
+  const TABLES = ['HEADLINES', 'WINTER_HEADLINES', 'CHOPOK_HEADLINES', 'CAPITAL_HEADLINES', 'VYCHODNA_HEADLINES', 'OLYMP_HEADLINES', 'LEVEL_TEXT', 'QUIPS', 'NEWS', 'LABELS', 'UI', 'ENDINGS'];
   const CODES = ['sk', 'en', 'de', 'es'];
   const KEY = 'zaStromom.lang';
   const LANGS = (ZS.LANGS = ZS.LANGS || {});

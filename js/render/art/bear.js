@@ -122,11 +122,12 @@
     s.asw = Number.isFinite(a.sway) ? a.sway * d : null;
   }
 
-  let helmetOn = null, pressOn = null;
+  let helmetOn = null, pressOn = null, festOn = null;
 
   function track(b, time) {
     helmetOn = b.helmet ? b : null;
     pressOn = b.press ? b : null;
+    festOn = b.fest || null;
     let s = anim.get(b);
     const head = b.dir < 0 ? Math.PI : 0;
     if (!s) {
@@ -447,7 +448,7 @@
     }
     if (act === 'taste') {
       const t = s.at, w = s.ax, k = (n) => key(t, TASTE[n]) * w, u = k('up'), sp = k('sip'), bt = k('bite'), gl = k('glad');
-      const hold = t < 1.15 ? 'shot' : t < 2.05 ? 'cheese' : '';
+      const hold = b.act && b.act.bowl ? (t < 2.05 ? 'bowl' : '') : t < 1.15 ? 'shot' : t < 2.05 ? 'cheese' : '';
       M.grab = w; M.ht = t; M.up = u; M.ph = k('arm'); M.st = TASTE.step; M.reach = 8; M.dang = 1;
       put(M.o, 10, 8, 0.5);
       const mo = Math.max(sp, bt);
@@ -627,6 +628,11 @@
     P.breath = br * lerp(1, 0.4, mw);
     sy *= 1 + 0.012 * br * (1 - mw);
     P.pitch = lerp(P.pitch, -1.0, rear); P.by -= 3 * rear; P.headA += 0.7 * rear; P.ears += 0.3 * rear;
+    const D = b.dance, ddt = clamp(time - (s.daT === undefined ? time : s.daT), 0, 0.1), dk = 1 - Math.exp(-ddt * 16);
+    s.daT = time;
+    if (!D) s.da = null;
+    if (D && D.k === 'squat') { P.by += 16 * Math.sin(Math.PI * clamp(D.u * 1.4, 0, 1)); P.headA -= 0.2; }
+    if (D && D.k === 'clap') P.headA -= 0.25 * Math.sin(Math.PI * D.u);
     const M = moves(b, s, time, P);
     P.sway = 0.1 * Math.sin(time * 2.3) + 0.15 * P.swing - 0.8 * P.shake;
     sx *= M.sx; sy *= M.sy;
@@ -649,6 +655,23 @@
       if (rear > 0.001 && fore) {
         const A = fromToe(L, root[0] + 6 - (far ? 3 : 0), root[1] + 25, 1.2);
         ex = lerp(ex, A[0], rear); ey = lerp(ey, A[1], rear); ea = lerp(ea, 1.2, rear);
+        if (D && rear > 0.5) {
+          const T = danceArm(D, root, far);
+          s.da = s.da || [];
+          const prev = s.da[i] || T, cur = prev.map((v, j) => v + (T[j] - v) * dk);
+          s.da[i] = cur;
+          const Q = fromToe(L, cur[0], cur[1], cur[2]); ex = Q[0]; ey = Q[1]; ea = cur[2];
+        }
+      }
+      if (D && !fore) {
+        let kx = 0, ky = 0, ka = 0;
+        if (D.k === 'squat') { const ph = D.u * 4, on = Math.floor(ph) % 2 === (far ? 1 : 0), k = on ? Math.sin(Math.PI * (ph % 1)) : 0; kx = 16 * k; ky = -10 * k; ka = -0.5 * k; }
+        if (D.k === 'slap' && !far) { const k = Math.sin(Math.PI * clamp(D.u, 0, 1)); kx = 20 * k; ky = -26 * k; ka = -0.9 * k; }
+        if (D.k === 'step') { const k = Math.max(0, Math.sin(Math.PI * 2 * (D.u + (far ? 0.5 : 0)))); kx = 4 * k; ky = -7 * k; ka = -0.2 * k; }
+        s.dl = s.dl || [];
+        const prev = s.dl[i] || [kx, ky, ka], cur = [prev[0] + (kx - prev[0]) * dk, prev[1] + (ky - prev[1]) * dk, prev[2] + (ka - prev[2]) * dk];
+        s.dl[i] = cur;
+        ex += cur[0]; ey += cur[1]; ea += cur[2];
       }
       const e = [ex, ey, ea];
       if (M.any) limb(M, e, i, root);
@@ -656,6 +679,16 @@
     }
     settle(P, tg, (1 - aw) * (1 - rear) * (1 - M.up));
     return P;
+  }
+
+  function danceArm(D, root, far) {
+    const side = far ? -1 : 1, u = D.u || 0, k = Math.sin(Math.PI * clamp(u, 0, 1));
+    if (D.k === 'step') return (D.side || 1) * side > 0 ? [root[0] + 8, root[1] - 26 - 3 * k, -1.4] : [root[0] - 6, root[1] + 12, 0.6];
+    if (D.k === 'clap') return [root[0] + 18 - 6 * k + (far ? -2 : 2), root[1] - 14 - 16 * k, -1.2];
+    if (D.k === 'slap') return far ? [root[0] + 6, root[1] - 26, -1.4] : [root[0] + 26 - 4 * k, root[1] + 20 + 14 * k, 0.9];
+    if (D.k === 'jump') return [root[0] + 12 + 6 * side, root[1] - 28, -1.5];
+    if (D.k === 'squat') return [root[0] + 24, root[1] + 2 - 2 * side, 0.1];
+    return [root[0] - 6, root[1] + 12, 0.6];
   }
 
   const HIP_X = -28, SH_X = 12, MID_X = -8;
@@ -680,14 +713,40 @@
   function drawLeg(ctx, l, K, sp) {
     const g = l.g, R = LEG[g.fore ? 0 : 1].r, n = l.near, M = (x, y) => sp.map(x, y, l.xa, l.z);
     const r0 = M(g.root[0], g.root[1]), j = M(g.jx, g.jy), e = M(g.ex, g.ey);
-    ctx.fillStyle = tint(K, 'far', 'fur', n);
+    const kroj = festOn && festOn.kroj, linen = n < 0.5 ? '#cfc8ba' : '#f4f0e6';
+    ctx.fillStyle = kroj ? linen : tint(K, 'far', 'fur', n);
     seg(ctx, r0[0], r0[1], R[0], j[0], j[1], R[1]);
     ctx.fillStyle = tint(K, 'far', 'leg', n);
     seg(ctx, j[0], j[1], R[2], e[0], e[1], R[3]);
+    if (kroj) {
+      const u = g.fore ? 0.62 : 0.8, cx = j[0] + (e[0] - j[0]) * u, cy = j[1] + (e[1] - j[1]) * u;
+      ctx.fillStyle = linen; seg(ctx, j[0], j[1], R[2] + 0.6, cx, cy, R[3] + 0.8);
+      const dx = e[0] - j[0], dy = e[1] - j[1], d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d;
+      const ux = j[0] - r0[0], uy = j[1] - r0[1], ud = Math.hypot(ux, uy) || 1, mx = -uy / ud, my = ux / ud;
+      ctx.strokeStyle = n < 0.5 ? 'rgba(120,110,95,0.45)' : 'rgba(150,140,120,0.5)'; ctx.lineWidth = 0.8;
+      for (const k of [0.3, 0.6]) {
+        const ax = r0[0] + ux * k, ay = r0[1] + uy * k, w = R[0] + (R[1] - R[0]) * k - 1;
+        ctx.beginPath(); ctx.moveTo(ax - mx * w * 0.8, ay - my * w * 0.8); ctx.quadraticCurveTo(ax + ux / ud * 2, ay + uy / ud * 2, ax + mx * w * 0.6, ay + my * w * 0.6); ctx.stroke();
+      }
+      if (g.fore) {
+        const w = R[3] + 3.2;
+        ctx.fillStyle = linen;
+        ctx.beginPath(); ctx.moveTo(cx - nx * w, cy - ny * w); ctx.lineTo(cx + nx * w, cy + ny * w); ctx.lineTo(cx + nx * (R[3] + 1) - dx / d * 5, cy + ny * (R[3] + 1) - dy / d * 5); ctx.lineTo(cx - nx * (R[3] + 1) - dx / d * 5, cy - ny * (R[3] + 1) - dy / d * 5); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#c4262e'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(cx - nx * w, cy - ny * w); ctx.lineTo(cx + nx * w, cy + ny * w); ctx.stroke();
+        for (let q = -1; q <= 1; q++) { ctx.fillStyle = q ? '#2f9e44' : '#f2c230'; ell(ctx, cx + nx * q * w * 0.55 - dx / d * 2.5, cy + ny * q * w * 0.55 - dy / d * 2.5, 0.9, 0.9); }
+      } else {
+        ctx.strokeStyle = '#1e2a44'; ctx.lineWidth = 0.9;
+        ctx.beginPath();
+        for (let q = 0; q <= 6; q++) { const k = 0.15 + q * 0.12, ax = r0[0] + ux * k + mx * (q % 2 ? 1.6 : -1.6), ay = r0[1] + uy * k + my * (q % 2 ? 1.6 : -1.6); if (q) ctx.lineTo(ax, ay); else ctx.moveTo(ax, ay); }
+        ctx.stroke();
+        ctx.strokeStyle = '#1e2a44'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(cx - nx * (R[3] + 0.8), cy - ny * (R[3] + 0.8)); ctx.lineTo(cx + nx * (R[3] + 0.8), cy + ny * (R[3] + 0.8)); ctx.stroke();
+      }
+    }
     ctx.save();
     ctx.transform(Math.cos(l.f), 0, 0, 1, e[0], e[1]);
     ctx.rotate(g.a);
     const cl = tint(K, 'clawFar', 'claw', n);
+    if (festOn && festOn.kroj && !g.fore) ctx.fillStyle = n < 0.5 ? '#3a2616' : '#4f3420';
     if (g.fore) {
       ctx.scale(1 - 0.14 * (1 - smooth(Math.abs(g.a) / 0.6)), 1);
       blob(ctx, [[-4.5, -2.2], [1.5, -3], [6, 0.4], [6.6, 3.5], [1, 4.2], [-4.6, 3]]); ctx.fill();
@@ -697,6 +756,11 @@
       blob(ctx, [[-5.5, -3], [2, -3.6], [9, -0.6], [12.6, 2.6], [11.6, 4.5], [-3, 4.6], [-6.6, 1.4]]); ctx.fill();
       ctx.fillStyle = K.pad; blob(ctx, [[-6.2, 1.8], [2, 3.4], [11.6, 3.2], [11.8, 4.5], [-3, 4.7], [-6.4, 2.8]]); ctx.fill();
       claws(ctx, [[11.2, 2.2, 13.8, 3.5], [11, 3.6, 13.6, 4.6]], cl, 0.9);
+      if (festOn && festOn.kroj) {
+        ctx.strokeStyle = 'rgba(240,226,200,0.85)'; ctx.lineWidth = 0.7;
+        ctx.beginPath(); for (const lx of [-2, 2, 6]) { ctx.moveTo(lx, -3); ctx.lineTo(lx + 2.2, 1.6); } ctx.stroke();
+        ctx.strokeStyle = '#2b1a0e'; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(-6, 3.2); ctx.lineTo(11.5, 3.6); ctx.stroke();
+      }
     }
     ctx.restore();
   }
@@ -727,7 +791,30 @@
       const m = M(x, y), c = cos(x, y);
       ctx.fillStyle = col; ell(ctx, m[0], m[1], rx * Math.max(0.35, Math.abs(c)), ry, (P.pitch + rot) * Math.sign(c || 1));
     }
+    if (festOn && festOn.kroj) vest(ctx, M);
     ctx.restore();
+  }
+
+  const SHIRT = [[18, -60], [27, -56], [33, -46], [36, -33], [30, -23], [19, -19.4], [10, -19], [10, -55]];
+  const VEST = [[0, -57.5], [14, -60.5], [21, -58], [19, -44], [22, -30], [21, -19.6], [0, -19.6]];
+  const BELT = [[-17, -52.5], [-1, -55], [0, -19.4], [-16, -21]];
+  const GATE = [[-42, -48], [-33, -52], [-17, -52.5], [-16, -21], [-29, -25], [-42, -34]];
+
+  function vest(ctx, M) {
+    const poly = (list, col) => { ctx.fillStyle = col; ctx.beginPath(); list.forEach((p, i) => { const m = M(p[0], p[1]); if (i) ctx.lineTo(m[0], m[1]); else ctx.moveTo(m[0], m[1]); }); ctx.closePath(); ctx.fill(); };
+    const line = (a, b, col, w) => { const p = M(a[0], a[1]), q = M(b[0], b[1]); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); };
+    poly(GATE, '#f4f0e6');
+    poly(SHIRT, '#f7f3ea');
+    for (let i = 0; i < 4; i++) line([24 + i * 2.6, -54 + i * 7], [28 + i * 1.6, -52 + i * 7], 'rgba(150,140,120,0.45)', 0.7);
+    line([-30, -50], [-29, -26], '#1e2a44', 1.1);
+    for (let i = 0; i < 5; i++) { const m = M(-29.5, -46 + i * 4.6); ctx.fillStyle = '#1e2a44'; ell(ctx, m[0] - 1.4, m[1], 1, 0.7); ell(ctx, m[0] + 1.4, m[1], 1, 0.7); }
+    poly(VEST, '#1c1a18');
+    const cols = ['#c4262e', '#2f9e44', '#f2c230'];
+    for (let i = 0; i < 8; i++) { const m = M(19 + (i < 3 ? -i * 0.4 : i < 6 ? 0.8 : 1.6), -55 + i * 4.6); ctx.fillStyle = cols[i % 3]; ell(ctx, m[0], m[1], 1.3, 1.3); }
+    for (let i = 0; i < 3; i++) { const m = M(6 + i * 4, -50 + i * 2); ctx.fillStyle = cols[(i + 1) % 3]; ell(ctx, m[0], m[1], 1.6, 1.2); }
+    poly(BELT, '#6b4423');
+    line([-16.5, -50], [-0.5, -52.5], 'rgba(0,0,0,0.3)', 0.8); line([-15.8, -23], [-0.2, -21.5], 'rgba(0,0,0,0.3)', 0.8);
+    for (let i = 0; i < 6; i++) for (const x of [-12.5, -5]) { const m = M(x, -47 + i * 4.8); ctx.fillStyle = '#e0b84a'; ell(ctx, m[0], m[1], 1.15, 1.15); }
   }
 
   function bristle(ctx, pts, k, K) {
@@ -824,6 +911,8 @@
     for (const e of ears) if (e.near >= 0.5) drawEar(e);
     if (helmetOn) helmet(ctx, pt, cy, sy, t);
     if (pressOn) press(ctx, pt, cy, t);
+    else if (festOn && festOn.band) festPass(ctx, pt, cy, t, festOn);
+    if (festOn && festOn.hat) folkHat(ctx, pt, cy, sy, t);
     o.mouth = pt(19.5, 4.4, 0);
     return n;
   }
@@ -841,6 +930,44 @@
     ctx.fillStyle = '#c4262e'; ctx.fillRect(-w, 0, 2 * w, 3);
     ctx.fillStyle = '#1f2430'; ctx.fillRect(-w * 0.7, 5, w * 1.4, 1.1); ctx.fillRect(-w * 0.7, 7.6, w * 1.1, 1.1);
     ctx.fillStyle = '#9aa1a8'; ctx.fillRect(-0.8, -1, 1.6, 1.4);
+    ctx.restore();
+  }
+
+  function festPass(ctx, pt, cy, t, f) {
+    const l = pt(-5.5, 5.5, -5.5), r = pt(-5.5, 5.5, 5.5), m = pt(-3, 15, 0);
+    ctx.strokeStyle = '#2f6a34'; ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.moveTo(l[0], l[1]); ctx.lineTo(m[0], m[1]); ctx.lineTo(r[0], r[1]); ctx.stroke();
+    ctx.strokeStyle = '#c4262e'; ctx.lineWidth = 0.5;
+    ctx.beginPath(); ctx.moveTo(l[0], l[1]); ctx.lineTo(m[0], m[1]); ctx.lineTo(r[0], r[1]); ctx.stroke();
+    ctx.save();
+    ctx.translate(m[0], m[1]); ctx.rotate(-t);
+    const w = 4 + 2 * Math.abs(cy);
+    ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(-w + 0.6, 0.6, 2 * w, 11);
+    ctx.fillStyle = '#f7f3ea'; ctx.fillRect(-w, 0, 2 * w, 11);
+    ctx.fillStyle = '#c4262e'; ctx.fillRect(-w, 0, 2 * w, 3);
+    ctx.fillStyle = '#2f6a34';
+    for (let i = 0; i < 3; i++) { const x = -w * 0.6 + i * w * 0.6; ctx.beginPath(); ctx.moveTo(x - 1.4, 7); ctx.lineTo(x, 5); ctx.lineTo(x + 1.4, 7); ctx.lineTo(x, 9); ctx.closePath(); ctx.fill(); }
+    ctx.fillStyle = '#9aa1a8'; ctx.fillRect(-0.8, -1, 1.6, 1.4);
+    ctx.restore();
+  }
+
+  function folkHat(ctx, pt, cy, sy, t) {
+    const c = pt(-1.5, -10.5, 0), w = Math.hypot(13 * cy, 10.5 * sy), f = cy < 0 ? -1 : 1, tw = 0;
+    ctx.save();
+    ctx.translate(c[0], c[1]); ctx.rotate(t * cy - 0.05 * f);
+    ctx.fillStyle = '#1c1a18'; ell(ctx, 0, 1.6, w, 2.6);
+    ctx.beginPath(); ctx.moveTo(-w * 0.58, 1.4); ctx.quadraticCurveTo(-w * 0.6, -7.4, 0, -7.8); ctx.quadraticCurveTo(w * 0.6, -7.4, w * 0.58, 1.4); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#c4262e'; ctx.fillRect(-w * 0.58, -1.6, w * 1.16, 2.4);
+    for (let i = 0; i < 4; i++) { ctx.fillStyle = ['#f2c230', '#f7f3ea', '#2f9e44', '#f2c230'][i]; ell(ctx, -w * 0.4 + i * w * 0.27, -0.4, 0.9, 0.9); }
+    ctx.save(); ctx.translate(-f * w * 0.45, -2); ctx.rotate(-0.55 * f + tw);
+    ctx.fillStyle = '#f7f3ea'; ell(ctx, 0, -7.5, 1.6, 7.5);
+    ctx.strokeStyle = 'rgba(160,150,130,0.8)'; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -14); ctx.stroke();
+    ctx.fillStyle = '#d6336c'; ell(ctx, 0, -0.6, 1.6, 1.6);
+    ctx.restore();
+    ctx.strokeStyle = '#c4262e'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-f * w * 0.56, 0); ctx.quadraticCurveTo(-f * (w * 0.6 + 4), 5, -f * (w * 0.6 + 3), 11); ctx.stroke();
+    ctx.strokeStyle = '#2f6db0';
+    ctx.beginPath(); ctx.moveTo(-f * w * 0.56, 0.4); ctx.quadraticCurveTo(-f * (w * 0.6 + 2), 6, -f * (w * 0.6 + 0.5), 12); ctx.stroke();
     ctx.restore();
   }
 
@@ -1028,6 +1155,13 @@
     ctx.save(); ctx.translate(e[0] + 1, e[1] - 2.4); ctx.scale(1.8, 1.8);
     if (P.held === 'shot') ZS.drawShot(ctx, 0, 0, P.fill);
     else if (P.held === 'cheese') ZS.drawCheeseBit(ctx, 0, 0);
+    else if (P.held === 'bowl') {
+      ctx.fillStyle = '#f7f3ea'; ctx.beginPath(); ctx.moveTo(-6, -1); ctx.quadraticCurveTo(0, 6, 6, -1); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#c9ccd0'; ctx.fillRect(-6.2, -1.6, 12.4, 1);
+      ctx.fillStyle = '#efe2b0'; ctx.beginPath(); ctx.ellipse(0, -2.2, 5.2, 1.8, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#b5452e'; for (const q of [-2.5, 0.6, 2.8]) ctx.fillRect(q, -3.2, 1.2, 0.9);
+      ctx.fillStyle = '#f7f3ea'; for (const q of [-1, 1.8]) ctx.fillRect(q, -3.6, 0.8, 0.8);
+    }
     ctx.restore();
   }
 

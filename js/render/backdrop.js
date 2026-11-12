@@ -400,7 +400,9 @@
     ctx.fillStyle = '#86674a'; ctx.fillRect(cam - 10, GY + 24, viewW + 20, 14);
     ctx.strokeStyle = '#4f8a35'; ctx.lineWidth = 2;
     ctx.beginPath();
+    const R = g && g.level && g.level.river;
     for (let x = Math.floor(cam / 37) * 37; x < cam + viewW + 37; x += 37) {
+      if (R && x > R.from - 30 && x < R.to + 30) continue;
       ctx.moveTo(x, GY + 2); ctx.lineTo(x - 4, GY - 8); ctx.moveTo(x, GY + 2); ctx.lineTo(x + 3, GY - 9);
     }
     ctx.stroke();

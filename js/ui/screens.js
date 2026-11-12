@@ -1,8 +1,8 @@
 (function () {
   const { UI } = ZS;
   const $ = (id) => document.getElementById(id);
-  const ORDER = ['summer', 'winter', 'chopok', 'capital', 'olymp'];
-  const FRESH = 'olymp';
+  const ORDER = ['summer', 'winter', 'chopok', 'capital', 'olymp', 'vychodna'];
+  const FRESH = 'vychodna';
   const TEASER = { summer: 'winterTeaser', winter: 'chopokTeaser', chopok: 'capitalTeaser', capital: 'olympTeaser' };
   const NEXT = { summer: 'next', winter: 'nextChopok', chopok: 'nextCapital', capital: 'nextOlymp' };
   const next = (id) => ORDER[ORDER.indexOf(id) + 1] || null;
@@ -156,7 +156,8 @@
     if (kind === 'win' && TEASER[g.level.id]) text += ' ' + UI[TEASER[g.level.id]];
     const S = UI.stats, st = g.stats;
     const extra = [['hugs', st.hugs], ['selfies', st.selfies], ['bites', st.bites], ['stomps', st.stomps]].filter(([, n]) => n > 0)
-      .map(([k, n]) => `<div class="stat"><b>${n}</b><span>${S[k]}</span></div>`).join('');
+      .map(([k, n]) => `<div class="stat"><b>${n}</b><span>${S[k]}</span></div>`).join('')
+      + (g.once && g.once.odzemok ? `<div class="stat"><b>${UI.pct(g.once.odzemok.pct)}</b><span>${ZS.LABELS.tanec.grade[g.once.odzemok.grade]}</span></div>` : '');
     const next = kind === 'win' && !!NEXT[g.level.id];
     const G = UI.goals, hugs = st.hugs + st.selfies, goal = g.def.fatGoal;
     const goals = `<p class="goals">${G.fat} ${Math.floor(g.fat)}\u00a0/ ${UI.pct(goal)} ${g.fat >= goal ? G.ok : G.no} · ${G.hug} ${Math.min(1, hugs)}\u00a0/ 1 ${hugs > 0 ? G.ok : G.no} · ${G.den} ${kind === 'win' ? G.ok : G.no}</p>`;

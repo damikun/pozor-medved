@@ -20,6 +20,8 @@
         sim.rules.say(g, si === 1 ? NEWS.chopokAutumn : NEWS.chopokSnow, si === 2);
       } else if (g.level.id === 'capital') {
         sim.rules.say(g, si === 1 ? NEWS.capital.budget : NEWS.capital.recess, si === 2);
+      } else if (g.level.id === 'vychodna') {
+        sim.rules.say(g, si === 1 ? NEWS.vychodna.dusk : NEWS.vychodna.night, si === 2);
       } else {
         if (si === 1) sim.rules.say(g, NEWS.summer);
         if (si === 2) {
@@ -103,7 +105,7 @@
     sim.boar.update(g, dt);
     sim.lot.update(g, dt);
     sim.alpine.update(g, dt);
-    if (!sim.passes.enter(g)) { sim.chopok.update(g, dt); sim.capital.update(g, dt); }
+    if (!sim.passes.enter(g)) { sim.chopok.update(g, dt); sim.capital.update(g, dt); sim.vychodna.update(g, dt); }
     sim.fisher.update(g);
     g.cam = cameraX(g);
     ZS.fx.update(g, dt, g.viewW);

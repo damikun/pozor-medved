@@ -30,13 +30,17 @@ ZS.LEVELS = {
     w: 11200, year: 330, fatGoal: 75, startFat: 25, metabolism: 0.1,
     seasons: [{ key: 'session', end: 110 }, { key: 'budget', end: 220 }, { key: 'recess', end: 330 }],
   },
+  vychodna: {
+    w: 8340, year: 330, fatGoal: 75, startFat: 60, metabolism: 0.05,
+    seasons: [{ key: 'afternoon', end: 110 }, { key: 'dusk', end: 220 }, { key: 'night', end: 330 }],
+  },
   olymp: {
     w: 3200, year: 1e9, fatGoal: 0, startFat: 60, metabolism: 0,
     seasons: [{ key: 'games', end: 1e9 }],
   },
 };
 
-ZS.SEASON_LOOK = { lateSummer: 'summer', firstSnow: 'autumn', session: 'summer', budget: 'autumn', recess: 'autumn', games: 'winter' };
+ZS.SEASON_LOOK = { lateSummer: 'summer', firstSnow: 'autumn', session: 'summer', budget: 'autumn', recess: 'autumn', games: 'winter', afternoon: 'summer', dusk: 'summer', night: 'summer' };
 ZS.seasonLook = (key) => ZS.SEASON_LOOK[key] || key;
 
 ZS.COLORS = {
@@ -88,4 +92,9 @@ ZS.FOOD = {
   bonbon:      { emoji: '🍬', fat: 3,  syn: 4,  panic: 1 },
   jewels:      { emoji: '🍯', fat: 9,  syn: 6,  panic: 4 },
   catch:       { emoji: '🐟', fat: 7,  syn: 10, panic: 4 },
+  rezen:       { emoji: '🍗', fat: 8,  syn: 8,  panic: 2 },
+  medovnik:    { emoji: '❤️', fat: 4,  syn: 5,  panic: 1 },
+  kolac:       { emoji: '🥮', fat: 6,  syn: 6,  panic: 1 },
+  porcia:      { emoji: '🥟', fat: 16, syn: 8,  panic: 0 },
+  pagac:       { emoji: '🥐', fat: 10, syn: 4,  panic: 0 },
 };

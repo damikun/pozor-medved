@@ -134,3 +134,46 @@ test('every sound effect has its own name, so a level never replaces another one
   assert.ok(names.includes('jump') && names.includes('land'));
   assert.deepEqual(names.filter((n, i) => names.indexOf(n) !== i), []);
 });
+
+test('the dance music starts once, follows the dance and fades out once at the end without restarting', async () => {
+  const log = { sources: 0, decoded: 0, ctx: null, dance: [] };
+  const Base = fakeAudio(log);
+  class Ctx extends Base {
+    decodeAudioData(data, ok) { log.decoded++; const b = { duration: data.byteLength > 200000 ? 66 : 0.5 }; return Promise.resolve().then(() => { ok(b); return b; }); }
+    createBufferSource() {
+      const s = super.createBufferSource(), ctx = this;
+      s.start = (at, offset) => { if (s.buffer && s.buffer.duration === 66) log.dance.push({ at: ctx.currentTime, offset }); };
+      return s;
+    }
+  }
+  const atob = (text) => Buffer.from(text, 'base64').toString('latin1');
+  const ZS = loadGame({ seed: 5, withAudio: true, globals: { AudioContext: Ctx, setTimeout: () => 0, clearTimeout: () => {}, atob } });
+  const box = { window: {} };
+  box.window = box;
+  vm.createContext(box);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', 'ui', 'music.js'), 'utf8'), box);
+  ZS.MUSIC = box.ZS.MUSIC;
+  const { rules, loop } = ZS.sim, audio = ZS.audio;
+  rules.onSound = audio.event;
+  audio.unlock();
+  await new Promise((done) => setImmediate(done));
+  const g = rules.create(ZS.ui.input.state, { viewW: VIEW_W, bot: true, level: 'vychodna' });
+  g.running = true; g.nextEvent = 1e9; g.shooters = [];
+  Object.assign(g.once, { naramok: true, kroj: true });
+  Object.assign(g.bear, { x: g.level.vychodna.scena.door[0] - 40, trackX: g.level.vychodna.scena.door[0] - 40 });
+  let started = false, endAt = null;
+  for (let i = 0; i < 60 * 90 && !g.over; i++) {
+    loop.step(g, STEP);
+    audio.frame(g, STEP);
+    if (i === 30) await new Promise((done) => setImmediate(done));
+    log.ctx.currentTime = g.time;
+    const c = g.pass && g.pass.key === 'tanec' ? g.pass.play : null;
+    if (c && c.pointa && endAt === null) endAt = log.dance.length;
+    if (c && c.phase === 'play') started = true;
+    if (started && !g.pass) break;
+  }
+  assert.ok(started, 'the dance played');
+  assert.ok(endAt !== null, 'the dance reached its end');
+  assert.ok(log.dance.length >= 1 && log.dance.length <= 2, 'the dance music started ' + log.dance.length + ' times');
+  assert.equal(log.dance.length, endAt, 'no restart after the last note');
+});

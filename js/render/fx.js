@@ -594,7 +594,7 @@
         drawFall(ctx, g, viewW, 0);
         return;
       }
-      shafts(ctx, g, viewW, 0);
+      if (!g.level.vychodna) shafts(ctx, g, viewW, 0);
       drawLayer(ctx, g, viewW, 0);
     },
     drawFront(ctx, g, viewW) {

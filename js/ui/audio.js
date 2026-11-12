@@ -483,7 +483,99 @@
       play(rnd() < 0.5 ? 'chat.walla' : 'chat.mumble', x, 0.8, { amb: true, reach: 1.4, send: 0.3, rate: rr(0.94, 1.06) });
       if (rnd() < 0.6) play(rnd() < 0.5 ? 'market.clatter' : 'eat.plate', x, 0.5, { amb: true, reach: 1.4, send: 0.25, delay: rr(0.1, 0.6), rate: rr(1, 1.15) });
     },
+    serve(x) { play('eat.plate', x, 0.7, { rate: 1.1, reach: 1.4 }); play('market.clatter', x, 0.4, { delay: 0.15, reach: 1.4 }); },
+    interview(x) { play('bear.growl', x, 0.45, { rate: 0.85 }); play('chat.mumble', x, 0.5, { delay: 0.6, rate: 1.1 }); play('voice.laugh', x, 0.5, { delay: 1.1 }); },
+    dress(x) { play('cloth', x, 0.9); play('cloth', x, 0.8, { delay: 0.35, rate: 1.2 }); play('cloth', x, 0.7, { delay: 0.8, rate: 0.9 }); },
+    stamp(x) { play('impact.dirt', x, 0.9, { rate: 0.8 }); play('impact.wood', x, 0.45, { rate: 0.7, delay: 0.02 }); },
+    bagpipe(x) { for (let i = 0; i < 4; i++) play('note.gs4', x, 0.5, { rate: [0.5, 0.75, 0.84, 0.5][i], delay: i * 0.22, reach: 2.2 }); },
+    fujara(x) { play('note.gs4', x, 0.8, { rate: 0.38, reach: 2.6, send: 0.5 }); play('note.gs4', x, 0.6, { rate: 0.57, delay: 0.5, reach: 2.6, send: 0.5 }); play('note.gs4', x, 0.6, { rate: 0.5, delay: 1.1, reach: 2.6, send: 0.5 }); play('voice.sigh', x, 0.3, { rate: 0.6 }); },
+    outage(x) { play('zap.spark', x, 1, { must: true }); play('zap', x, 0.7, { rate: 0.6, delay: 0.1 }); play('chat.walla', null, 0.6, { delay: 0.3 }); },
+    leap(x) { play('cloth', x, 0.9, { rate: 1.2 }); play('bear.huff', x, 0.6, { rate: 1.15 }); },
+    carAlarm(x) { play('note.gs4', x, 0.2, { rate: 0.94, reach: 1.4 }); play('note.gs4', x, 0.18, { rate: 0.79, delay: 0.32, reach: 1.4 }); },
+    bands(x) { play('cloth', x, 0.6, { rate: 1.5 }); play('note.gs5', x, 0.3, { rate: 2.6, delay: 0.1 }); },
+    slap(x) { play('impact.body', x, 0.7, { rate: 1.8 }); play('impact.wood', x, 0.3, { rate: 2.4 }); },
   };
+
+  const music = { dance: null };
+
+  function fetchMusic() {
+    const d = root.document;
+    if (ZS.MUSIC || fetchMusic.sent || !d || !d.createElement || !HERE) return;
+    fetchMusic.sent = true;
+    const s = d.createElement('script');
+    s.src = HERE.replace(/audio\.js(\?.*)?$/, 'music.js');
+    s.async = true;
+    s.onload = () => { if (ctx) loadMusic(); };
+    s.onerror = () => { fetchMusic.sent = false; };
+    d.head.appendChild(s);
+  }
+
+  function loadMusic() {
+    const src = ZS.MUSIC;
+    if (!src || loadMusic.done || !ctx || typeof ctx.decodeAudioData !== 'function') return;
+    loadMusic.done = true;
+    for (const name of Object.keys(src)) {
+      const item = src[name];
+      if (item.loop) loops[name] = [item.start || 0, item.loop];
+      decode(item.data).then((buf) => { if (buf) samples[name] = [buf]; });
+    }
+  }
+
+  function festMusic(g, b, dt) {
+    const L = g.level, S = L.vychodna;
+    if (!S && !L.dance) return;
+    fetchMusic();
+    loadMusic();
+    if (!S || !loops['music.bg'] || !samples['music.bg']) return;
+    const src = [];
+    const P = g.vychodna && g.vychodna.proc;
+    if (P && P.phase !== 'gone' && P.phase !== 'wait') src.push(P.head - 70);
+    src.push((S.scena.stage[0] + S.scena.stage[1]) / 2);
+    if (g.seasonIdx >= 1) src.push((S.noc.tent[0] + S.noc.tent[1]) / 2);
+    let best = null;
+    for (const x of src) if (best === null || Math.abs(x - b.x) < Math.abs(best - b.x)) best = x;
+    const near = Math.max(0, 1 - Math.abs(best - b.x) / 1300);
+    if (!beds['music.bg']) beds['music.bg'] = makeLoop('music.bg', ambBus, 0.18);
+    level(beds['music.bg'], g.pass ? 0 : 0.5 * near * near, Math.max(-1, Math.min(1, (best - b.x) / 700)), undefined, 0.6);
+  }
+
+  function stopDance(t) {
+    const m = music.dance;
+    if (!m) return;
+    music.dance = null;
+    try { m.g.gain.setTargetAtTime(0, t, 0.15); m.s.stop(t + 0.8); } catch (e) { m.s.disconnect(); }
+  }
+
+  function fadeDance(t) {
+    const m = music.dance;
+    if (!m || m.fading) return;
+    m.fading = true;
+    try { m.g.gain.cancelScheduledValues(t); m.g.gain.setTargetAtTime(0, t, 0.4); m.s.stop(t + 2.5); } catch (e) { m.s.disconnect(); }
+  }
+
+  function danceMusic(g) {
+    const T = ZS.sim.tanec, c = g.pass && g.pass.key === 'tanec' ? g.pass.play : null, t = ctx.currentTime;
+    if (c && c.pointa) { fadeDance(t); return; }
+    if (music.dance && music.dance.fading) { if (!c) music.dance = null; return; }
+    const on = !!c && c.phase === 'play' && c.song >= 0 && c.song < T.CHART.end + 2.5 && !!samples['music.dance'];
+    if (!on) { stopDance(t); return; }
+    if (music.dance && Math.abs(t - music.dance.at - c.song) > 0.25) stopDance(t);
+    if (!music.dance) {
+      const s = ctx.createBufferSource(), gn = ctx.createGain();
+      s.buffer = samples['music.dance'][0]; gn.gain.value = 0;
+      s.connect(gn); gn.connect(sfx);
+      s.start(t, c.song);
+      music.dance = { s, g: gn, at: t - c.song };
+    }
+    const end = c.song > T.CHART.end ? Math.max(0, 1 - (c.song - T.CHART.end) / 2.5) : 1;
+    music.dance.g.gain.setTargetAtTime((T.outage(c) ? 0.32 : 0.85) * end, t, 0.08);
+  }
+
+  function festCrowd(L, b) {
+    const S = L.vychodna;
+    if (!S) return 0;
+    return sstep(S.gate.from - 200, S.gate.from + 200, b.x) * (1 - sstep(S.noc.to - 200, S.noc.to + 300, b.x));
+  }
 
   function spray(x, k) {
     const dur = 0.25 + 0.75 * (k || 1), d = voice('spray', dur + 0.15, x, LEVEL.hiss * 10, { send: 0.04 });
@@ -798,7 +890,7 @@
       const near = Math.max(0, 1 - Math.abs(b.x - k.x) / 900);
       mv = LEVEL.murmur * (sit / k.seats.length) * near * near; mp = relPan(k.x);
     }
-    const inside = indoor(g, b);
+    const inside = Math.max(indoor(g, b), L.stage ? 0 : festCrowd(L, b) * 0.75);
     if (inside > mv / LEVEL.murmur) { mv = LEVEL.murmur * inside * 0.8; mp = 0; }
     loopLevel('murmur', g.ride ? 0 : mv, mp, 0.25);
     let kv = 0, kp = 0;
@@ -807,6 +899,10 @@
       const d = Math.max(0, Math.abs(b.x - c) - (z - a) / 2 - 60), near = Math.max(0, 1 - d / 900);
       kv = LEVEL.market * near * near; kp = relPan(clamp(b.x, a, z));
       if (near > 0.3 && !g.ride && (w.clatter -= dt) <= 0) { w.clatter = rr(2.5, 6); play('market.clatter', a + rnd() * (z - a), 0.7, { amb: true, reach: 1.5, send: 0.3 }); }
+    }
+    if (L.vychodna && !L.stage) {
+      const J = L.vychodna.jarmok, d = Math.max(0, Math.abs(b.x - (J.from + J.to) / 2) - (J.to - J.from) / 2), near = Math.max(0, 1 - d / 700);
+      if (near * LEVEL.market > kv) { kv = LEVEL.market * near * near; kp = 0; }
     }
     loopLevel('market', g.ride ? 0 : kv, kp, 0.4);
   }
@@ -821,6 +917,7 @@
     if (L.salas) add(L.salas.from, L.salas.koliba + 200, ['chat.mumble', 'chat.adults'], 0.5, { koliba: true });
     if (L.chata) add(L.chata.x - 150, L.chata.x + 350, ['chat.walla', 'chat.mumble'], 0.9);
     if (L.slope) add(L.slope.from, L.slope.to, ['chat.walla', 'chat.kids'], 0.5, { ski: true });
+    if (L.vychodna) add(L.vychodna.gate.from, L.vychodna.noc.to, ['chat.walla', 'chat.adults', 'chat.kids'], 1.1);
     return z;
   }
 
@@ -1063,11 +1160,13 @@
     if (!beds) makeBeds();
     const active = !!g && g.running && !g.over && !g.paused;
     if (!active) {
+      stopDance(ctx.currentTime);
       if (w.active) { silence(); w.active = false; }
       return;
     }
     const b = g.bear;
     if (g !== w.g) begin(g);
+    danceMusic(g);
     if (!w.active) { w.active = true; w.lastX = b.x; w.stepD = 0; }
     if (g.level.olymp) { olympSounds(g); return; }
     walkSounds(g, b, dt);
@@ -1083,6 +1182,7 @@
     placeSounds(g, b, dt);
     bellSounds(g, b);
     sheepSounds(g, b, dt);
+    festMusic(g, b, dt);
   }
 
   function bounce(name, seconds, a, b, c) {

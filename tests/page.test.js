@@ -7,7 +7,7 @@ const { loadGame, pageScripts } = require('./helpers/load-game');
 const { fakePage } = require('./helpers/fake-dom');
 
 const ROOT = path.resolve(__dirname, '..');
-const LAZY = ['js/ui/sounds.js'];
+const LAZY = ['js/ui/sounds.js', 'js/ui/music.js'];
 
 function boot(opts) {
   const page = fakePage(opts);

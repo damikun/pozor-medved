@@ -180,7 +180,54 @@
     Object.assign({}, LOOK.tourist, { skin: '#d9a77e', hair: '#2a201a', coat: '#5c940d', pants: '#e9ecef', hat: '#212529', pack: '#e67700', scale: 1.06, belly: 2.4 }),
     Object.assign({}, LOOK.tourist, { skin: '#eac2a0', hair: '#9a5a2a', coat: '#c2255c', pants: '#1864ab', hat: '#f1f3f5', pack: '#2f9e44', scale: 0.97 }),
   ];
-  const VARIANTS = { guest: GUESTS, mp: MPS, police: POLICES, intern: INTERNS, clerk: CLERKS };
+  const FEST = [
+    { skin: '#efc6a2', hair: '#4a3626', coat: '#3f6fa0', check: 'rgba(20,24,40,0.36)', pants: '#2f3b52', boots: '#5a4030', sole: '#1e140c',
+      scale: 1.02, walkS: 48, runS: 98, stoop: 0.02, carry: 'none', belly: 2.4, top: 'flannel', hairdo: 'short', stache: 1, bootF: 0.4 },
+    { skin: '#f3cfb3', hair: '#8a4a26', coat: '#c2255c', pants: '#2e3440', boots: '#ece7dc', sole: '#9a8f80',
+      scale: 0.95, walkS: 46, runS: 92, stoop: 0.01, carry: 'none', belly: 0.6, top: 'fleece', hairdo: 'pony', blush: 1, bootF: 0.14 },
+    { skin: '#f6d2b6', hair: '#c9873a', coat: '#2f9e44', stripe: '#f4f2ec', pants: '#3b5b8a', boots: '#f2f2f2', sole: '#c0392b', hat: '#e8590c',
+      scale: 0.7, walkS: 40, runS: 96, stoop: 0, carry: 'phone', belly: 0.2, top: 'stripes', hairdo: 'cap', blush: 1, bootF: 0.2 },
+    { skin: '#f0c4a0', hair: '#5a3a22', coat: '#26292f', vest: '#d9f03c', trim: '#e9edf0', pants: '#24272e', boots: '#2c3038', sole: '#121418',
+      scale: 0.96, walkS: 46, runS: 96, stoop: 0, carry: 'scanner', belly: 0.6, top: 'hivis', hairdo: 'pony', blush: 1, bootF: 0.45, word: 'USPORIADATEĽ' },
+    { skin: '#e2ae88', hair: '#3a2c22', coat: '#2f3a2a', vest: '#ff8a1e', trim: '#e9edf0', pants: '#3a3f2c', boots: '#3a2a1c', sole: '#120d08', hat: '#ff8a1e',
+      scale: 1.04, walkS: 44, runS: 90, stoop: 0.03, carry: 'paddle', belly: 3.4, top: 'hivis', hairdo: 'cap', stache: 1, bootF: 0.5, word: 'PARKOVISKO' },
+    { skin: '#f2ccb0', hair: '#2a201a', coat: '#1d1f24', pants: '#1d1f24', boots: '#1d1f24', sole: '#0a0a0a',
+      scale: 0.95, walkS: 52, runS: 104, stoop: 0, carry: 'clipboard', belly: 0, top: 'black', hairdo: 'headset', glasses: 1, bootF: 0.3 },
+    { skin: '#eec6a6', hair: '#a8452e', coat: '#6d4a8c', apron: '#f4efe2', dots: '#c0392b', pants: '#3a3550', boots: '#2a2430', sole: '#100c12',
+      scale: 0.93, walkS: 40, runS: 84, stoop: 0.05, carry: 'none', belly: 2.2, top: 'tape', hairdo: 'bun', glasses: 1, blush: 1, bootF: 0.2 },
+    { skin: '#e4b08a', hair: '#3a2a20', coat: '#1f2b46', trim: '#e7ecf0', band: '#c4262e', pants: '#1f2b46', boots: '#121212', sole: '#050505', hat: '#c4262e',
+      scale: 1.04, walkS: 44, runS: 92, stoop: 0.02, carry: 'none', belly: 3.8, top: 'dhz', hairdo: 'cap', stache: 1, bootF: 0.55 },
+    { skin: '#efc6a2', hair: '#6a6a6a', coat: '#2c4a6a', shirt: '#f2efe6', tie: '#f2efe6', pants: '#2b2f36', boots: '#3a2018', sole: '#140a06',
+      scale: 1, walkS: 44, runS: 92, stoop: 0.03, carry: 'mic', belly: 1.6, top: 'blazer', hairdo: 'short', glasses: 1, bootF: 0.3 },
+    { skin: '#f1c9a6', hair: '#6b4a2b', coat: '#e8590c', print: '#fff4e0', pants: '#cbb98d', boots: '#f2f2f2', sole: '#c0392b', hat: '#e9d9a6',
+      scale: 1, walkS: 46, runS: 94, stoop: 0.02, carry: 'phone', belly: 1, top: 'tee', hairdo: 'straw', bootF: 0.14 },
+    { skin: '#e8b894', hair: '#2a201a', coat: '#1c7ed6', poncho: 'rgba(250,210,60,0.78)', pants: '#2f3b52', boots: '#3a3f47', sole: '#111',
+      scale: 0.96, walkS: 46, runS: 94, stoop: 0.02, carry: 'phone', belly: 0.4, top: 'poncho', hairdo: 'pony', blush: 1, bootF: 0.3 },
+    { skin: '#eac2a0', hair: '#c9c6c0', coat: '#5c6b3a', check: 'rgba(30,30,20,0.3)', pants: '#4a3e2c', boots: '#3a2a1c', sole: '#120d08', hat: '#e9d9a6',
+      scale: 1, walkS: 40, runS: 86, stoop: 0.07, carry: 'none', belly: 3.6, top: 'flannel', hairdo: 'straw', stache: 1, bootF: 0.3 },
+    { skin: '#f6d2b6', hair: '#e0c58a', coat: '#7048e8', poncho: 'rgba(120,200,255,0.72)', pants: '#212529', boots: '#e9ecef', sole: '#868e96',
+      scale: 0.93, walkS: 46, runS: 94, stoop: 0, carry: 'phone', belly: 0, top: 'poncho', hairdo: 'bun', blush: 1, bootF: 0.14 },
+    { skin: '#d9a77e', hair: '#111111', coat: '#2b8a3e', print: '#f8f9fa', pants: '#343a40', boots: '#f2f2f2', sole: '#2b8a3e', hat: '#c92a2a',
+      scale: 1.04, walkS: 48, runS: 98, stoop: 0.02, carry: 'phone', belly: 2, top: 'tee', hairdo: 'cap', bootF: 0.14 },
+    { skin: '#f0c7a6', hair: '#6a3b22', coat: '#b8322a', apron: '#f2ede2', dots: '#2f6a34', hat: '#f4efe2', band: '#c0392b', pants: '#3a3550', boots: '#2a2430', sole: '#100c12',
+      scale: 0.95, walkS: 40, runS: 84, stoop: 0.03, carry: 'none', belly: 2.6, top: 'apron', hairdo: 'beanie', blush: 1, bootF: 0.2 },
+    { skin: '#e9be97', hair: '#5a4030', coat: '#3f5a33', print: '#e9d9a6', pants: '#3e4b33', boots: '#4a3424', sole: '#1e140c',
+      scale: 1, walkS: 46, runS: 96, stoop: 0.02, carry: 'phone', belly: 1.4, top: 'tee', hairdo: 'tuft', bootF: 0.4 },
+    { skin: '#f3cfb3', hair: '#c9873a', coat: '#1d4f9a', pants: '#2b2f36', boots: '#2a2430', sole: '#100c12',
+      scale: 0.95, walkS: 46, runS: 92, stoop: 0, carry: 'phone', belly: 0.4, top: 'fleece', hairdo: 'headset', blush: 1, bootF: 0.3 },
+    { skin: '#f0c7a6', hair: '#c9873a', coat: '#1f2b46', trim: '#e7ecf0', band: '#c4262e', pants: '#1f2b46', boots: '#121212', sole: '#050505',
+      scale: 0.94, walkS: 46, runS: 94, stoop: 0, carry: 'none', belly: 0.8, top: 'dhz', hairdo: 'short', blush: 1, bootF: 0.55 },
+  ];
+  LOOK.fest = FEST[0];
+  const FEST_TOURISTS = [
+    Object.assign({}, LOOK.tourist, { coat: '#f08c00', hat: '#e9d9a6', pack: '#2f9e44', poncho: 'rgba(255,224,80,0.74)' }),
+    Object.assign({}, LOOK.tourist, { skin: '#e8b894', hair: '#2a201a', coat: '#c2255c', pants: '#2f3b52', hat: '#f8f9fa', pack: '#1c7ed6', scale: 0.95, poncho: 'rgba(110,190,255,0.7)' }),
+    Object.assign({}, LOOK.tourist, { skin: '#f6d2b6', hair: '#c9873a', coat: '#2b8a3e', pants: '#495057', hat: '#e9d9a6', pack: '#e03131', belly: 2 }),
+    Object.assign({}, LOOK.tourist, { skin: '#d9a77e', hair: '#111', coat: '#f8f9fa', pants: '#cbb98d', hat: '#343a40', pack: '#f08c00', scale: 1.05, poncho: 'rgba(240,80,90,0.62)' }),
+    Object.assign({}, LOOK.tourist, { skin: '#eac2a0', hair: '#c9c6c0', coat: '#7048e8', pants: '#dee2e6', hat: '#e9d9a6', pack: '#868e96', stoop: 0.06, belly: 3 }),
+    Object.assign({}, LOOK.tourist, { skin: '#f3cfb3', hair: '#8a4a26', coat: '#1098ad', pants: '#1c7ed6', hat: '#ffffff', pack: '#364fc7', scale: 0.9, poncho: 'rgba(140,230,140,0.66)' }),
+  ];
+  const VARIANTS = { guest: GUESTS, mp: MPS, police: POLICES, intern: INTERNS, clerk: CLERKS, fest: FEST };
   const lookOf = (kind, look) => (VARIANTS[kind] ? VARIANTS[kind][Math.abs(look | 0) % VARIANTS[kind].length] : LOOK[kind] || LOOK.walker);
   const SIZED = new Map();
   function sizedLook(L, s) {
@@ -205,10 +252,11 @@
     walker: Object.assign({}, LOOK.walker, { coat: '#26324f', vest: '#26324f', pants: '#1c2338', boots: '#111', sole: '#050505', hat: '#1c2338', belly: 0.6, stoop: -0.01, scale: 1.04, guard: 1 }),
     ztmh: LOOK.ztmh,
   };
-  const GENERIC = { guest: 1, waiter: 1, tycoon: 1, aide: 1, forester: 1, rescuer: 1, mp: 1, flinta: 1, police: 1, intern: 1, reporter: 1, clerk: 1 };
-  const CAN_FILM = { tourist: 1, aide: 1, forester: 1, intern: 1 };
+  const GENERIC = { fest: 1, guest: 1, waiter: 1, tycoon: 1, aide: 1, forester: 1, rescuer: 1, mp: 1, flinta: 1, police: 1, intern: 1, reporter: 1, clerk: 1 };
+  const CAN_FILM = { fest: 1, tourist: 1, aide: 1, forester: 1, intern: 1 };
   const CAN_AIM = { walker: 1, ztmh: 1, poacher: 1, forester: 1 };
   const slung = (L) => L.carry === 'sling' || !!L.slung;
+  const FEST_CARRY = { scanner: 1, paddle: 1, clipboard: 1, mic: 1 };
   const SPECIAL = { down: 1, pickup: 1, hugged: 1, bitten: 1, drop: 1, climbStand: 1, selfie: 1, dive: 1, jump: 1, climbOut: 1, cling: 1, hurdle: 1 };
   const INN = { dive: 1, jump: 1, climbOut: 1, cling: 1 };
 
@@ -495,6 +543,11 @@
       tp(lerp(8.5, 16.5, o), lerp(-11.5, -22, o) + j * (1 - o) + 0.5 * wave * o);
       gN = 1; gnx = TP.x; gny = TP.y;
       if (o > 0) { uF = lerp(uF, 1.15 + 0.16 * wave, o); fF = lerp(fF, 0.55 - 0.12 * wave, o); R.face = o > 0.5 ? 5 : R.face; }
+    }
+    if (K.has && FEST_CARRY[L.carry] && !film && !K.text) {
+      const wave = L.carry === 'paddle' ? sin(tm * 3 + sd) * 0.5 + 0.5 : 0;
+      tp(lerp(9.5, 8, wave), lerp(-15, -30, wave) + sin(TAU * p0 * 2) * 0.5 * amt);
+      gN = 1; gnx = TP.x; gny = TP.y;
     }
     if (K.has && L.carry === 'tablet' && !film) {
       tp(9.5, -15 + sin(TAU * p0 * 2) * 0.5 * amt);
@@ -976,7 +1029,9 @@
     else if (kind === 'tycoon') resortTop(ctx, L);
     else if (kind === 'aide') pufferTop(ctx, L);
     else if (kind === 'forester') foresterTop(ctx, L);
+    else if (kind === 'fest') festTop(ctx, L, tm);
     else if (OFFICE[kind]) officeTop(ctx, L);
+    if (kind === 'tourist' && L.poncho) poncho(ctx, L);
     ctx.fillStyle = 'rgba(0,0,0,0.14)'; ctx.fillRect(-9, -26, 5, 32);
     ctx.restore();
     ctx.restore();
@@ -1045,7 +1100,7 @@
     }
   }
 
-  const OFFICE = { mp: 1, flinta: 1, police: 1, intern: 1, reporter: 1, clerk: 1 };
+  const OFFICE = { fest: 1, mp: 1, flinta: 1, police: 1, intern: 1, reporter: 1, clerk: 1 };
 
   function officeTop(ctx, L) {
     const b = L.belly;
@@ -1093,6 +1148,68 @@
       ctx.strokeStyle = dk(L.apron, 0.8); ctx.lineWidth = 0.7;
       ctx.beginPath(); ctx.moveTo(-1.2, -15.4); ctx.lineTo(-3, -22.6); ctx.stroke();
     }
+  }
+
+  function poncho(ctx, L) {
+    const b = L.belly;
+    ctx.fillStyle = L.poncho;
+    ctx.beginPath(); ctx.moveTo(-8.6, 5); ctx.quadraticCurveTo(-9.4, -12, -4, -24.4); ctx.quadraticCurveTo(2.4, -26, 6.8, -22); ctx.quadraticCurveTo(10 + b, -8, 10.4 + b, 5); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.moveTo(-6, -18); ctx.quadraticCurveTo(-6.6, -6, -5.6, 3); ctx.moveTo(4.4, -20); ctx.quadraticCurveTo(7, -10, 7.4 + b, 3); ctx.stroke();
+    ctx.fillStyle = 'rgba(0,0,0,0.08)'; ctx.fillRect(-8.6, 1.6, 19 + b, 3.4);
+  }
+
+  function festTop(ctx, L, tm) {
+    const b = L.belly, t = L.top;
+    if (t === 'flannel' || t === 'fleece' || t === 'stripes' || t === 'hoodie' || t === 'cardigan') { guestTop(ctx, L); return; }
+    if (t === 'blazer' || t === 'suit' || t === 'apron') { officeTop(ctx, L); return; }
+    if (t === 'hivis') {
+      ctx.fillStyle = L.vest;
+      ctx.beginPath(); ctx.moveTo(-5.8, 3); ctx.quadraticCurveTo(-7, -6, -6.8, -15); ctx.quadraticCurveTo(-6.6, -21, -3.6, -22);
+      ctx.lineTo(1.2, -17.4); ctx.lineTo(4.8, -20.4); ctx.quadraticCurveTo(7.8, -13, 7.1 + b, -6); ctx.quadraticCurveTo(7.3 + b, 0, 5.6, 3); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = L.trim; ctx.fillRect(-7, -12.6, 15 + b, 1.6); ctx.fillRect(-7, -6.6, 15.4 + b, 1.6);
+      ctx.fillStyle = 'rgba(150,160,165,0.55)'; ctx.fillRect(-7, -11.6, 15 + b, 0.5); ctx.fillRect(-7, -5.6, 15.4 + b, 0.5);
+      ctx.fillStyle = dk(L.vest, 0.7); ctx.font = '800 2.6px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(L.word || '', 0.6 + b * 0.4, -16, 11);
+      ctx.fillStyle = '#c4262e'; circle(ctx, 4.6, -9.4, 1);
+      return;
+    }
+    if (t === 'dhz') {
+      ctx.fillStyle = L.trim; ctx.fillRect(-8, -10.6, 17 + b, 1.8); ctx.fillRect(-8, -4.6, 17.4 + b, 1.8);
+      ctx.fillStyle = 'rgba(220,200,40,0.85)'; ctx.fillRect(-8, -9.6, 17 + b, 0.6); ctx.fillRect(-8, -3.6, 17.4 + b, 0.6);
+      ctx.fillStyle = L.band; rr(ctx, 1.4, -21, 5, 4.4, 0.8);
+      ctx.fillStyle = '#f2efe6'; ctx.font = '800 2.4px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('DHZ', 3.9, -18.8, 4.6);
+      ctx.fillStyle = dk(L.coat, 0.7); ctx.fillRect(4.8 + b * 0.2, -22, 0.8, 24);
+      ctx.fillStyle = '#121212'; ctx.fillRect(-8, -0.4, 17 + b, 2.2);
+      return;
+    }
+    if (t === 'black') {
+      ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(-6, -20, 3, 18);
+      ctx.fillStyle = '#d6ab42'; rr(ctx, 2, -15, 4.4, 5.4, 0.6);
+      ctx.fillStyle = '#1d1f24'; ctx.fillRect(2.4, -13.6, 3.6, 0.6); ctx.fillRect(2.4, -12.2, 2.6, 0.6);
+      ctx.strokeStyle = '#d6ab42'; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(1.4, -23.6); ctx.lineTo(4.2, -15); ctx.lineTo(6.4, -22.6); ctx.stroke();
+      return;
+    }
+    if (t === 'tape') {
+      ctx.fillStyle = L.apron;
+      ctx.beginPath(); ctx.moveTo(-1.4, -15.6); ctx.lineTo(6.4, -16.6); ctx.quadraticCurveTo(8 + b, -6, 7.6 + b, 4); ctx.lineTo(-2.4, 4); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#e8c547';
+      ctx.beginPath(); ctx.moveTo(-0.6, -23.4); ctx.quadraticCurveTo(3, -16, 2.2, -4); ctx.lineTo(3.4, -4); ctx.quadraticCurveTo(4.4, -16, 1, -23.6); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(5.6, -22); ctx.quadraticCurveTo(5.2, -14, 5.8, -6); ctx.lineTo(7, -6); ctx.quadraticCurveTo(6.4, -14, 6.8, -21.6); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#7a5a10'; for (let y = -20; y < -6; y += 2.2) { ctx.fillRect(2.4 + (y + 20) * 0.02, y, 0.8, 0.3); ctx.fillRect(5.9, y + 1, 0.8, 0.3); }
+      ctx.fillStyle = '#c4262e'; circle(ctx, 1.2, -1.6, 0.9); ctx.fillStyle = '#2f6a34'; circle(ctx, 4.6, -0.4, 0.9);
+      ctx.fillStyle = '#9aa1a8'; ctx.fillRect(-1.6, -8, 0.5, 4);
+      return;
+    }
+    if (t === 'tee') {
+      ctx.fillStyle = L.print;
+      ctx.beginPath(); for (let i = 0; i < 8; i++) { const a = (i / 8) * PI * 2 + tm * 0; ctx.moveTo(2.4, -13); ctx.lineTo(2.4 + cos(a) * 3.6, -13 + sin(a) * 3.6); } ctx.lineWidth = 1; ctx.strokeStyle = L.print; ctx.stroke();
+      circle(ctx, 2.4, -13, 1.6);
+      ctx.fillStyle = L.coat; circle(ctx, 2.4, -13, 0.7);
+      ctx.fillStyle = dk(L.coat, 0.8); ctx.fillRect(-1.4, -24, 7, 1.4);
+      return;
+    }
+    if (t === 'poncho') { ctx.fillStyle = dk(L.coat, 0.85); ctx.fillRect(-8, 0.4, 17 + b, 2.6); poncho(ctx, L); }
   }
 
   function waiterTop(ctx, L) {
@@ -1501,6 +1618,26 @@
 
   function hairdo(ctx, K, tm) {
     const L = K.L, d = L.hairdo;
+    if (d === 'straw') {
+      ctx.fillStyle = L.hat; ell(ctx, 0.4, -4.6, 12.4, 2.6);
+      ctx.beginPath(); ctx.moveTo(-6, -4.8); ctx.quadraticCurveTo(-6.2, -11.2, 0.2, -11.2); ctx.quadraticCurveTo(6.4, -11.2, 6.4, -4.8); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#c0392b'; ctx.fillRect(-6, -6.8, 12.4, 1.6);
+      ctx.strokeStyle = dk(L.hat, 0.82); ctx.lineWidth = 0.45;
+      ctx.beginPath(); for (let x = -10; x < 11; x += 2.2) { ctx.moveTo(x, -5.6); ctx.lineTo(x * 1.08, -3.6); } ctx.stroke();
+      return;
+    }
+    if (d === 'headset') {
+      ctx.fillStyle = L.hair;
+      ctx.beginPath(); ctx.moveTo(-7.4, 2); ctx.quadraticCurveTo(-8.6, -8.8, -0.2, -8.7); ctx.quadraticCurveTo(6.7, -8.5, 7.3, -4.1);
+      ctx.quadraticCurveTo(3.8, -6.5, 0.2, -5.4); ctx.quadraticCurveTo(-3.2, -4.4, -4.6, 2.2); ctx.closePath(); ctx.fill();
+      circle(ctx, -6.6, -5.6, 3);
+      ctx.strokeStyle = '#2b2f36'; ctx.lineWidth = 1.1;
+      ctx.beginPath(); ctx.arc(0, -0.4, 8, -2.5, -0.55); ctx.stroke();
+      ctx.fillStyle = '#2b2f36'; rr(ctx, 4.4, -3.4, 3, 4.6, 1);
+      ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(6, 0.8); ctx.quadraticCurveTo(8.6, 4, 6.6, 5.6); ctx.stroke();
+      ctx.fillStyle = '#e03131'; circle(ctx, 6.4, 5.7, 0.9);
+      return;
+    }
     if (d === 'cap') {
       ctx.fillStyle = L.hat;
       ctx.beginPath(); ctx.moveTo(-7.5, -2.2); ctx.quadraticCurveTo(-7.9, -11, 0, -11); ctx.quadraticCurveTo(7.3, -10.8, 7.6, -3.4); ctx.closePath(); ctx.fill();
@@ -1772,6 +1909,38 @@
     circle(ctx, p.x, p.y + 0.4, 2.4);
   }
 
+  function festCarry(ctx, K, tm, st) {
+    const L = K.L, a = R.armN;
+    if (L.carry === 'phone') { drawPhone(ctx, K, tm, K.state === 'film' && st.aimK > 0.5); return; }
+    if (!FEST_CARRY[L.carry]) return;
+    ctx.save(); ctx.translate(a.wx, a.wy);
+    if (L.carry === 'scanner') {
+      ctx.rotate(-0.4);
+      ctx.fillStyle = '#2b2f36'; rr(ctx, -1.4, -6, 3.4, 8, 0.9);
+      ctx.fillStyle = '#ffd43b'; rr(ctx, -1.6, -7.4, 3.8, 2, 0.6);
+      ctx.fillStyle = frac(tm * 0.8) < 0.2 ? '#ff6b6b' : '#5a1f1f'; ctx.fillRect(-0.6, -8, 1.8, 0.8);
+    } else if (L.carry === 'paddle') {
+      ctx.rotate(-0.25 + sin(tm * 3) * 0.2);
+      ctx.fillStyle = '#5a4030'; ctx.fillRect(-0.6, -9, 1.4, 9);
+      ctx.fillStyle = '#e03131'; circle(ctx, 0.1, -12.4, 4.4);
+      ctx.fillStyle = '#ffffff'; circle(ctx, 0.1, -12.4, 3.2);
+      ctx.fillStyle = '#e03131'; ctx.font = '900 3.6px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('P', 0.1, -12.2);
+    } else if (L.carry === 'clipboard') {
+      ctx.rotate(-0.2);
+      ctx.fillStyle = '#a07a4a'; rr(ctx, -2.6, -9, 7.4, 10, 0.8);
+      ctx.fillStyle = '#f6f2ec'; ctx.fillRect(-1.8, -7.6, 5.8, 8);
+      ctx.fillStyle = '#8a9099'; for (let y = -6.6; y < 0; y += 1.6) ctx.fillRect(-1.2, y, 4.4, 0.4);
+      ctx.fillStyle = '#9aa1a8'; ctx.fillRect(-0.4, -9.6, 3, 1.4);
+    } else if (L.carry === 'mic') {
+      ctx.rotate(-0.9);
+      ctx.fillStyle = '#2b2f36'; rr(ctx, -0.9, -6, 1.8, 7, 0.6);
+      ctx.fillStyle = '#9aa1a8'; circle(ctx, 0, -7.2, 2.1);
+      ctx.fillStyle = '#c4262e'; ctx.fillRect(-1.6, -4.6, 3.2, 2);
+    }
+    ctx.restore();
+    ctx.fillStyle = L.skin; circle(ctx, a.wx, a.wy, 2.5);
+  }
+
   function drawTablet(ctx, K, tm, film) {
     const p = R.phone;
     ctx.save();
@@ -1810,6 +1979,7 @@
       if (kind === 'porter') ZS.alpineArt.load(ctx, R.px, R.py, R.lean, K.has, K.seed);
       if (rf.mode && rf.behind && !rf.back) drawRifle(ctx, rf, tm);
       if (kind === 'picker') drawSkirt(ctx, L.skirt, dk(L.skirt, 1.55), 1.4, 0.53, 1);
+      else if (kind === 'fest' && L.skirt) drawSkirt(ctx, L.skirt, dk(L.skirt, 1.4), 1.4, 0.6, 1.1);
       else if (kind === 'santa') drawSkirt(ctx, L.coat, L.trim, 3.2, L.tail, 1.06);
       else if (L.tail) drawSkirt(ctx, L.coat, dk(L.coat, 0.72), 1.3, L.tail, 0.94, true);
       drawTorso(ctx, K, tm);
@@ -1828,6 +1998,7 @@
     if (kind === 'tycoon' && K.sp === 'selfie') drawPhone(ctx, K, tm, !!L.stick);
     else if (kind === 'tycoon' && K.has && !K.sp) drawPass(ctx, K, tm);
     if (kind === 'aide' && K.has && !K.sp) drawTablet(ctx, K, tm, K.state === 'film' && st.aimK > 0.5);
+    if (kind === 'fest' && K.has && !K.sp) festCarry(ctx, K, tm, st);
     if (kind === 'forester' && K.has && !K.sp && K.state !== 'aim') drawSpray(ctx, K, tm, K.state === 'film' && st.aimK > 0.5);
     if (R.stars > 0.01) drawStars(ctx, R.stars, tm, st.seed);
   }
@@ -1979,11 +2150,11 @@
   ZS.drawHuman = function (ctx, h, time) {
     if (!(time >= 0)) time = 0;
     const kind = LOOK[h.kind] ? h.kind : 'walker';
-    let L = VARIANTS[kind] ? lookOf(kind, h.look) : kind === 'tourist' && !h.hiker && h.look > 0 && h.outfit !== 'winter' ? CITY[(h.look | 0) % CITY.length] : kind === 'tourist' && h.hiker ? HIKERS[Math.abs(h.look | 0) % HIKERS.length] : (h.outfit === 'winter' && WLOOK[kind]) || (h.outfit === 'hike' && HIKE[kind]) || (h.outfit === 'guard' && GUARD[kind]) || LOOK[kind];
+    let L = VARIANTS[kind] ? lookOf(kind, h.look) : kind === 'tourist' && h.outfit === 'vychodna' ? FEST_TOURISTS[Math.abs(h.look | 0) % FEST_TOURISTS.length] : kind === 'tourist' && !h.hiker && h.look > 0 && h.outfit !== 'winter' ? CITY[(h.look | 0) % CITY.length] : kind === 'tourist' && h.hiker ? HIKERS[Math.abs(h.look | 0) % HIKERS.length] : (h.outfit === 'winter' && WLOOK[kind]) || (h.outfit === 'hike' && HIKE[kind]) || (h.outfit === 'guard' && GUARD[kind]) || LOOK[kind];
     if (h.size > 0 && h.size !== 1) L = sizedLook(L, h.size);
     let sp = SPECIAL[h.state] ? h.state : '';
     if ((sp === 'pickup' || sp === 'drop' || sp === 'climbStand') && !CAN_AIM[kind]) sp = '';
-    if (sp === 'selfie' && kind !== 'tourist' && kind !== 'tycoon') sp = '';
+    if (sp === 'selfie' && kind !== 'tourist' && kind !== 'tycoon' && kind !== 'fest') sp = '';
     if (INN[sp] && kind !== 'guest' && kind !== 'waiter') sp = '';
     let state = sp ? 'idle' : h.state;
     if (state !== 'walk' && state !== 'run' && state !== 'aim' && state !== 'film') state = 'idle';

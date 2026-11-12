@@ -1600,27 +1600,33 @@
     }
     if (L.river && span(L.river.from, L.river.to, 80)) reeds(ctx, g, L.river.from, L.river.to);
     climber(ctx, g, C);
-    dunk(ctx, g);
+    dunk(ctx, g.capital && g.capital.sink, L.river);
   }
 
-  function dunk(ctx, g) {
-    const k = g.capital && g.capital.sink;
-    if (!k) return;
-    const x = k.x, t = k.t, top = GY - 4;
-    ctx.save(); ctx.beginPath(); ctx.rect(x - 90, top, 180, 400); ctx.clip();
-    const gr = ctx.createLinearGradient(0, top, 0, top + 140);
-    gr.addColorStop(0, 'rgba(98,181,208,0.55)'); gr.addColorStop(1, 'rgba(36,95,130,0.9)');
-    ctx.fillStyle = gr; ctx.fillRect(x - 90, top, 180, 400);
-    ctx.restore();
-    ctx.strokeStyle = 'rgba(240,252,255,0.8)'; ctx.lineWidth = 1.6;
-    for (let i = 0; i < 3; i++) { const u = frac(t * 0.9 + i / 3); ctx.globalAlpha = 1 - u; ctx.beginPath(); ctx.ellipse(x, top + 2, 20 + u * 60, 3 + u * 4, 0, 0, PI * 2); ctx.stroke(); }
-    ctx.globalAlpha = 1;
-    ctx.save(); ctx.beginPath(); ctx.rect(x - 90, top + 3, 180, 400); ctx.clip();
+  function dunk(ctx, k, R) {
+    if (!k || !R) return;
+    const S = ZS.scenery, x = k.x, t = k.t, top = S.WATER, deep = k.deep || 80;
+    ctx.save();
+    S.waterPath(ctx, R.from, R.to, 0); ctx.clip();
+    const gr = ctx.createRadialGradient(x, top + deep * 0.55, 6, x, top + deep * 0.55, 96);
+    gr.addColorStop(0, 'rgba(46,128,166,0.62)'); gr.addColorStop(0.6, 'rgba(52,140,178,0.45)'); gr.addColorStop(1, 'rgba(60,150,190,0)');
+    ctx.fillStyle = gr; ctx.fillRect(x - 100, top, 200, deep + 120);
+    const sh = ctx.createLinearGradient(0, top, 0, top + 10);
+    sh.addColorStop(0, 'rgba(160,220,236,0.75)'); sh.addColorStop(1, 'rgba(98,181,208,0)');
+    ctx.fillStyle = sh; ctx.fillRect(x - 70, top, 140, 10);
     ctx.fillStyle = 'rgba(235,250,255,0.85)';
-    for (let i = 0; i < 7; i++) { const u = frac(t * 1.2 + i * 0.37), bx = x + sin(i * 2.3 + t * 3) * 18; circle(ctx, bx, top + 90 - u * 88, 1.6 + (i % 3)); }
+    for (let i = 0; i < 6; i++) { const u = frac(t * 1.1 + i * 0.37), bx = x + 10 * sin(i * 2.3 + t * 3) + (i - 2.5) * 5; circle(ctx, bx, top + deep * 0.7 - u * deep * 0.68, 1 + (i % 3) * 0.5); }
     ctx.restore();
-    if (t < 0.45) { const f = t / 0.45; for (let i = 0; i < 10; i++) { const a = PI + (i / 9) * PI; circle(ctx, x + cos(a) * 46 * f, top - sin(-a) * 0 - 40 * sin(f * PI) * (0.6 + (i % 3) * 0.2), 2.4 * (1 - f) + 0.8); } }
+    ctx.save();
+    S.waterPath(ctx, R.from, R.to, 8); ctx.clip();
+    ctx.strokeStyle = 'rgba(240,252,255,0.8)'; ctx.lineWidth = 1.3;
+    for (let i = 0; i < 3; i++) { const u = frac(t * 0.9 + i / 3); ctx.globalAlpha = 0.9 * (1 - u); ctx.beginPath(); ctx.ellipse(x, top + 1, 12 + u * 34, 1.6 + u * 2.4, 0, 0, PI * 2); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    if (t < 0.4) { const f = t / 0.4; ctx.fillStyle = 'rgba(235,250,255,0.9)'; for (let i = 0; i < 8; i++) { const a = PI + (i / 7) * PI; circle(ctx, x + cos(a) * 26 * f, top - 22 * sin(f * PI) * (0.6 + (i % 3) * 0.2), 1.8 * (1 - f) + 0.6); } }
   }
+
+  API.dunk = dunk;
 
   const CLIMB = { climbing: null, y: 0, x: 0, climbT: 1 };
 

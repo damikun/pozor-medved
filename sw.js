@@ -1,5 +1,5 @@
 const CACHE = 'za-stromom';
-const SHELL = ['./', 'index.html', 'privacy.html', 'manifest.webmanifest', 'css/game.css', 'js/ui/sounds.js', 'icons/icon-192.png', 'icons/icon-512.png'];
+const SHELL = ['./', 'index.html', 'privacy.html', 'manifest.webmanifest', 'css/game.css', 'js/ui/sounds.js', 'js/ui/music.js', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 async function precache() {
   const cache = await caches.open(CACHE);

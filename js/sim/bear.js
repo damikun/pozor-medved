@@ -121,8 +121,9 @@
   const shedOf = (level, x) => (level.salas && level.salas.strunga) || caveRoof(level, x);
 
   function caveRoof(level, x) {
-    if (!level.cave || !level.cave.low) return null;
-    if (!level.caveRoofs) level.caveRoofs = level.cave.low.map(([a, z]) => ({ x: (a + z) / 2, w: z - a }));
+    const lows = level.lows || (level.cave && level.cave.low);
+    if (!lows) return null;
+    if (!level.caveRoofs) level.caveRoofs = lows.map(([a, z]) => ({ x: (a + z) / 2, w: z - a }));
     let best = null;
     for (const r of level.caveRoofs) if (!best || Math.abs(r.x - x) < Math.abs(best.x - x)) best = r;
     return best;
@@ -414,6 +415,8 @@
   }
 
   function chooseAct(game, bear, key) {
+    const fest = key === 'hug' && ZS.sim.vychodna.cue(game) ? ZS.sim.vychodna.act(game, bear) : null;
+    if (fest) return fest;
     const encounters = ZS.sim.encounters;
     const kept = keptPartner(bear);
     const person = encounters.target(game) || kept;
@@ -447,7 +450,7 @@
   }
 
   function knockOnDoor(game, bear) {
-    return ZS.sim.chopok.act(game, bear) || ZS.sim.capital.act(game, bear) || ZS.sim.vendors.act(game, bear) || ZS.sim.knock.act(game, bear);
+    return ZS.sim.chopok.act(game, bear) || ZS.sim.capital.act(game, bear) || ZS.sim.vychodna.act(game, bear) || ZS.sim.vendors.act(game, bear) || ZS.sim.knock.act(game, bear);
   }
 
   function encounterAct(bear, kind, target) {

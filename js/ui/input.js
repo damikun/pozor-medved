@@ -142,6 +142,10 @@
       };
       grab(btn, () => { on(true); if (act && btn.classList.contains('on')) buzz(10); }, null, () => on(false));
     });
+    box.querySelectorAll('.dancepad button').forEach((btn) => {
+      const key = btn.dataset.key;
+      grab(btn, () => { btn.classList.add('down'); press(key, false); buzz(6); }, null, () => { btn.classList.remove('down'); release(key); });
+    });
     box.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 

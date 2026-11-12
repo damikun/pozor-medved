@@ -822,5 +822,98 @@
       ],
       "eaten": 12
     }
+  },
+  {
+    "seed": 31,
+    "reaction": 0.4,
+    "mode": null,
+    "level": "vychodna",
+    "expected": {
+      "ending": "win",
+      "time": 131.95,
+      "fat": 99.8967,
+      "lives": 5,
+      "x": 8022.587,
+      "syn": 8.7367,
+      "panic": 4.795,
+      "stats": {
+        "natural": 7,
+        "human": 3,
+        "seen": 3,
+        "hugs": 1,
+        "bites": 0,
+        "stomps": 0,
+        "selfies": 1
+      },
+      "flags": [],
+      "events": [
+        "constitution",
+        "census"
+      ],
+      "eaten": 5
+    }
+  },
+  {
+    "seed": 32,
+    "reaction": 0.6,
+    "mode": null,
+    "level": "vychodna",
+    "expected": {
+      "ending": "win",
+      "time": 133.9667,
+      "fat": 99.9467,
+      "lives": 5,
+      "x": 8021.218,
+      "syn": 8.3333,
+      "panic": 4.405,
+      "stats": {
+        "natural": 7,
+        "human": 3,
+        "seen": 3,
+        "hugs": 1,
+        "bites": 0,
+        "stomps": 1,
+        "selfies": 1
+      },
+      "flags": [
+        "meat"
+      ],
+      "events": [
+        "wrongbear",
+        "meat"
+      ],
+      "eaten": 5
+    }
+  },
+  {
+    "seed": 33,
+    "reaction": 0.4,
+    "mode": "runner",
+    "level": "vychodna",
+    "expected": {
+      "ending": "hunted",
+      "time": 91.35,
+      "fat": 79.3808,
+      "lives": 0,
+      "x": 7855.583,
+      "syn": 2.8167,
+      "panic": 29.005,
+      "stats": {
+        "natural": 5,
+        "human": 1,
+        "seen": 9,
+        "hugs": 0,
+        "bites": 0,
+        "stomps": 0,
+        "selfies": 0
+      },
+      "flags": [
+        "press"
+      ],
+      "events": [
+        "census"
+      ],
+      "eaten": 5
+    }
   }
 ]

@@ -9,7 +9,7 @@
     onSound: () => {},
   };
 
-  const headlinesOf = (id) => (id === 'winter' ? ZS.WINTER_HEADLINES : id === 'chopok' ? ZS.CHOPOK_HEADLINES : id === 'capital' ? ZS.CAPITAL_HEADLINES : id === 'olymp' ? ZS.OLYMP_HEADLINES : ZS.HEADLINES);
+  const headlinesOf = (id) => (id === 'winter' ? ZS.WINTER_HEADLINES : id === 'chopok' ? ZS.CHOPOK_HEADLINES : id === 'capital' ? ZS.CAPITAL_HEADLINES : id === 'olymp' ? ZS.OLYMP_HEADLINES : id === 'vychodna' ? ZS.VYCHODNA_HEADLINES : ZS.HEADLINES);
 
   rules.create = function (input, { viewW = CFG.MIN_VIEW_W, bot = false, level: id = 'summer' } = {}) {
     const def = ZS.LEVELS[id];
@@ -70,7 +70,11 @@
     g.bear.quipCd = 5;
   };
 
-  rules.float = function (g, x, y, text, color) { g.floaters.push({ x, y, text, color, t: 1.6 }); };
+  rules.float = function (g, x, y, text, color) {
+    if (g.level && g.level.vychodna && !g.level.stage) y = Math.min(y, ZS.CFG.GROUND - 226);
+    for (let k = 0; k < 5 && g.floaters.some((f) => f.t > 0.4 && Math.abs(f.x - x) < (g.level && g.level.vychodna ? 220 : 120) && Math.abs(f.y - y) < 24); k++) y -= 26;
+    g.floaters.push({ x, y, text, color, t: 1.6 });
+  };
   rules.addPanic = function (g, n, news, hot) { g.panic = Math.max(0, Math.min(100, g.panic + n)); if (news) rules.say(g, news, hot); };
   rules.spotted = function (g, x, y, text) { g.stats.seen++; rules.float(g, x, y, text, COLORS.seen); };
 
@@ -96,7 +100,7 @@
     if (news && !(g.time - g.saidAt[it.type] < 30)) { g.saidAt[it.type] = g.time; rules.say(g, news); }
     if (g.fat >= g.def.fatGoal && !g.readySaid) {
       g.readySaid = true;
-      rules.say(g, !rules.hugged(g) ? NEWS.readyNoHug : g.level.theme === 'winter' ? NEWS.readyForSleep : g.level.id === 'chopok' ? NEWS.readyForDumbier : g.level.id === 'capital' ? NEWS.capital.ready : NEWS.readyForWinter, true);
+      rules.say(g, !rules.hugged(g) ? NEWS.readyNoHug : g.level.theme === 'winter' ? NEWS.readyForSleep : g.level.id === 'chopok' ? NEWS.readyForDumbier : g.level.id === 'capital' ? NEWS.capital.ready : g.level.id === 'vychodna' ? NEWS.vychodna.ready : NEWS.readyForWinter, true);
     }
   };
 

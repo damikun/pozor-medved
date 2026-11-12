@@ -183,6 +183,12 @@
     if (cap === 'wait') return;
     if (cap === 'duck' || cap === 'hide') { keys.add('ArrowDown'); return; }
     if (cap === 'left' || cap === 'right') { keys.add(cap === 'left' ? 'ArrowLeft' : 'ArrowRight'); return; }
+    const fest = runner ? null : ZS.sim.vychodna.bot(g, danger);
+    if (fest === 'order') { g.input.hugPressed = true; return; }
+    if (fest === 'hop') { jump(g, 'ArrowUp'); keys.add('ArrowRight'); return; }
+    if (fest === 'crawl') { keys.add('ArrowDown'); keys.add('ArrowRight'); return; }
+    if (fest === 'wait') return;
+    if (fest === 'left' || fest === 'right') { keys.add(fest === 'left' ? 'ArrowLeft' : 'ArrowRight'); return; }
     const queue = runner || danger ? null : ZS.sim.chopok.queue(g);
     if (queue === 'order') { g.input.hugPressed = true; return; }
     if (queue === 'wait') return;
